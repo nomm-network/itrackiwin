@@ -1,8 +1,0 @@
-/* Orbit-specific utilities */
-@layer utilities {
-  @keyframes orbit-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-  .animate-orbit-slow { animation: orbit-spin 40s linear infinite; }
-}
