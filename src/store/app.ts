@@ -119,8 +119,13 @@ export const useAppStore = create<AppState>()(
       reflections: [],
       xp: 0,
       seedIfEmpty: () => {
-        const { areas } = get();
-        if (!areas || Object.keys(areas).length === 0) {
+        const current = get().areas;
+        const defaultKeys = Object.keys(defaultAreas);
+        const currentKeys = Object.keys(current ?? {});
+        const mismatch =
+          currentKeys.length !== defaultKeys.length ||
+          !defaultKeys.every((k) => currentKeys.includes(k));
+        if (!current || mismatch) {
           set({ areas: defaultAreas });
         }
       },
