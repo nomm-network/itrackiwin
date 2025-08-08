@@ -1,8 +1,9 @@
 import React from "react";
-import Humanoid, { AreaId } from "@/components/Humanoid";
+import OrbitNavigation from "@/components/OrbitNavigation";
 import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Button } from "@/components/ui/button";
+import { AreaId } from "@/types/domain";
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -36,7 +37,7 @@ const Index: React.FC = () => {
         <div className="order-2 md:order-1 space-y-6 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-semibold leading-tight">I Track I Win</h1>
           <p className="text-muted-foreground max-w-prose">
-            Tap the humanoid hotspots to jump into life areas. Build habits, keep streaks, visualize progress.
+            Tap the orbiting planets to jump into life areas. Build habits, keep streaks, visualize progress.
           </p>
           <div className="flex gap-3">
             <Button onClick={() => navigate('/journal')} className="hover-scale">Daily Check-in</Button>
@@ -57,7 +58,7 @@ const Index: React.FC = () => {
           </div>
         </div>
         <div className="order-1 md:order-2">
-          <Humanoid onSelectArea={onSelect} />
+          <OrbitNavigation centerImageSrc="/lovable-uploads/e7a0d714-f7f9-435b-9d3d-5cbdc1381b54.png" />
         </div>
       </section>
       <footer className="container py-8 text-xs text-muted-foreground">

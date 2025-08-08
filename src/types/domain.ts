@@ -1,11 +1,10 @@
 export type AreaId =
-  | "love"
-  | "spirituality"
-  | "fitness"
-  | "money"
-  | "productivity"
-  | "energy"
-  | "learning";
+  | "health"
+  | "mind"
+  | "relationships"
+  | "wealth"
+  | "purpose"
+  | "lifestyle";
 
 export interface Area {
   id: AreaId;
@@ -13,6 +12,7 @@ export interface Area {
   name: string;
   icon: string; // emoji for now
   color: string; // HSL string e.g. "152 76% 66%"
+  subcategories?: string[]; // optional list of sub-categories
 }
 
 export interface Goal {

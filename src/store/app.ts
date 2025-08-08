@@ -22,13 +22,90 @@ interface AppState {
 }
 
 const defaultAreas: Record<AreaId, Area> = {
-  love: { id: "love", slug: "love", name: "Love", icon: "❤️", color: "0 80% 70%" },
-  spirituality: { id: "spirituality", slug: "spirituality", name: "Spirituality", icon: "🧠", color: "220 80% 70%" },
-  fitness: { id: "fitness", slug: "fitness", name: "Fitness", icon: "💪", color: "152 76% 66%" },
-  money: { id: "money", slug: "money", name: "Money", icon: "💼", color: "140 60% 50%" },
-  productivity: { id: "productivity", slug: "productivity", name: "Productivity", icon: "📈", color: "217 91% 66%" },
-  energy: { id: "energy", slug: "energy", name: "Energy", icon: "⚡️", color: "48 96% 60%" },
-  learning: { id: "learning", slug: "learning", name: "Learning", icon: "🗣️", color: "260 70% 70%" },
+  health: {
+    id: "health",
+    slug: "health",
+    name: "Health",
+    icon: "🏋️‍♂️",
+    color: "152 76% 66%",
+    subcategories: [
+      "Fitness & exercise",
+      "Nutrition & hydration",
+      "Sleep quality",
+      "Medical check-ups & prevention",
+      "Energy levels",
+    ],
+  },
+  mind: {
+    id: "mind",
+    slug: "mind",
+    name: "Mind & Emotions",
+    icon: "🧠",
+    color: "217 91% 66%",
+    subcategories: [
+      "Stress management",
+      "Mindfulness & meditation",
+      "Self-awareness",
+      "Emotional regulation",
+      "Therapy & mental health practices",
+    ],
+  },
+  relationships: {
+    id: "relationships",
+    slug: "relationships",
+    name: "Relationships",
+    icon: "🤝",
+    color: "0 80% 70%",
+    subcategories: [
+      "Family relationships",
+      "Romantic life",
+      "Friendships",
+      "Community & social skills",
+      "Networking & collaboration",
+    ],
+  },
+  wealth: {
+    id: "wealth",
+    slug: "wealth",
+    name: "Wealth",
+    icon: "💰",
+    color: "140 60% 50%",
+    subcategories: [
+      "Income & career growth",
+      "Saving & investing",
+      "Budgeting & debt management",
+      "Financial education",
+      "Long-term wealth building",
+    ],
+  },
+  purpose: {
+    id: "purpose",
+    slug: "purpose",
+    name: "Purpose & Growth",
+    icon: "🚀",
+    color: "260 70% 70%",
+    subcategories: [
+      "Career purpose or calling",
+      "Skill development",
+      "Hobbies & creativity",
+      "Continuous learning",
+      "Setting & achieving goals",
+    ],
+  },
+  lifestyle: {
+    id: "lifestyle",
+    slug: "lifestyle",
+    name: "Lifestyle & Contribution",
+    icon: "🌍",
+    color: "48 96% 60%",
+    subcategories: [
+      "Fun, travel & leisure",
+      "Environment & home organization",
+      "Minimalism & sustainability",
+      "Volunteering & giving back",
+      "Legacy projects",
+    ],
+  },
 };
 
 export const useAppStore = create<AppState>()(
