@@ -33,8 +33,8 @@ const Index: React.FC = () => {
           </div>
         </nav>
       </header>
-      <section id="main" className="container grid md:grid-cols-2 gap-10 items-center py-6">
-        <div className="order-2 md:order-1 space-y-6 animate-fade-in">
+      <section id="main" className="container flex flex-col gap-10 items-start py-6">
+        <div className="space-y-6 animate-fade-in">
           <h1 className="text-4xl md:text-5xl font-semibold leading-tight">I Track I Win</h1>
           <p className="text-muted-foreground max-w-prose">
             Tap the orbiting planets to jump into life areas. Build habits, keep streaks, visualize progress.
@@ -44,7 +44,7 @@ const Index: React.FC = () => {
             <Button variant="secondary" onClick={() => navigate('/progress')}>View Progress</Button>
           </div>
         </div>
-        <div className="order-1 md:order-2">
+        <div className="w-full">
           <OrbitNavigation centerImageSrc="/lovable-uploads/e7a0d714-f7f9-435b-9d3d-5cbdc1381b54.png" />
         </div>
       </section>
