@@ -26,20 +26,18 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
             className="size-32 sm:size-36 rounded-full border border-border bg-card shadow-[var(--shadow-elegant)] grid place-items-center overflow-hidden focus:outline-none focus:ring-2 focus:ring-ring"
             onClick={() => setSelected(null)}
             aria-label="Back to main areas"
+            title="Back"
           >
-            <div className="text-center px-3">
-              <div className="text-3xl" aria-hidden>{selected.icon}</div>
-              <div className="text-xs mt-1">{selected.name}</div>
-              <div className="text-[10px] text-muted-foreground mt-1">Back</div>
+            <div className="text-center px-3 leading-tight">
+              <div className="text-sm font-semibold">I Track I Win</div>
+              <div className="text-[10px] text-muted-foreground mt-1">(tap to go back)</div>
             </div>
           </button>
         ) : (
           <div className="size-32 sm:size-36 rounded-full border border-border bg-card shadow-[var(--shadow-elegant)] grid place-items-center overflow-hidden">
-            {centerImageSrc ? (
-              <img src={centerImageSrc} loading="lazy" className="size-full object-cover" alt="Profile or app logo" />
-            ) : (
-              <div className="text-3xl" aria-hidden>🧡</div>
-            )}
+            <div className="text-center px-3 leading-tight">
+              <div className="text-sm font-semibold">I Track I Win</div>
+            </div>
           </div>
         )}
       </div>
