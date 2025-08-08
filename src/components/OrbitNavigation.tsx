@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Area } from "@/types/domain";
@@ -15,10 +15,17 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
   const areasArr = useMemo(() => Object.values(areas) as Area[], [areas]);
   const [selected, setSelected] = useState<Area | null>(null);
 
-  const radius = 220; // larger orbit radius
+  const [isSmall, setIsSmall] = useState<boolean>(() => window.innerWidth < 640);
+  useEffect(() => {
+    const handler = () => setIsSmall(window.innerWidth < 640);
+    window.addEventListener("resize", handler);
+    return () => window.removeEventListener("resize", handler);
+  }, []);
+
+  const radius = isSmall ? 120 : 220;
 
   return (
-    <div className="relative mx-auto w-full max-w-[720px] aspect-square">
+    <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[720px] aspect-square">
       {/* Center avatar/logo or Back to main */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         {selected ? (
@@ -50,7 +57,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
             const angle = (i / selected.subcategories!.length) * Math.PI * 2;
             const x = Math.cos(angle) * radius;
             const y = Math.sin(angle) * radius;
-            const size = 56;
+            const size = isSmall ? 44 : 56;
             const style: React.CSSProperties = {
               width: size,
               height: size,
@@ -72,7 +79,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
                   </div>
                 </button>
                 <div
-                  className="absolute -translate-x-1/2 text-xs text-muted-foreground pointer-events-none"
+                  className="absolute -translate-x-1/2 text-[10px] sm:text-xs text-muted-foreground pointer-events-none"
                   style={{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${labelTopOffset}px)` }}
                   aria-hidden
                 >
@@ -88,7 +95,9 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
           const angle = (i / areasArr.length) * Math.PI * 2;
           const streak = getStreakForArea(a.id);
           const progress = Math.min(1, streak / 7); // normalize 0..1 (7-day target)
-          const size = 64 + progress * 36; // bigger planets 64..100
+          const base = isSmall ? 48 : 64;
+          const scale = isSmall ? 24 : 36;
+          const size = base + progress * scale; // responsive planet size
           const glowAlpha = 0.25 + progress * 0.45; // 0.25..0.7
           const x = Math.cos(angle) * radius;
           const y = Math.sin(angle) * radius;
@@ -120,7 +129,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
                 </div>
               </button>
               <div
-                className="absolute -translate-x-1/2 text-xs text-muted-foreground pointer-events-none"
+                className="absolute -translate-x-1/2 text-[10px] sm:text-xs text-muted-foreground pointer-events-none"
                 style={{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${labelTopOffset}px)` }}
                 aria-hidden
               >
