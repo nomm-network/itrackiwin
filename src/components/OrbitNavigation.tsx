@@ -14,10 +14,10 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
 
   const areasArr = useMemo(() => Object.values(areas) as Area[], [areas]);
 
-  const radius = 140; // px orbit radius (adjusts in responsive wrapper)
+  const radius = 220; // larger orbit radius
 
   return (
-    <div className="relative mx-auto w-full max-w-[520px] aspect-square">
+    <div className="relative mx-auto w-full max-w-[720px] aspect-square">
       {/* Center avatar/logo */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         <div className="size-28 rounded-full border border-border bg-card shadow-[var(--shadow-elegant)] grid place-items-center overflow-hidden">
@@ -36,9 +36,9 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
       {areasArr.map((a, i) => {
         const angle = (i / areasArr.length) * Math.PI * 2;
         const streak = getStreakForArea(a.id);
-        const progress = Math.min(1, streak / 7); // normalize 0..1 (7-day target)
-        const size = 56 + progress * 28; // 56..84
-        const glowAlpha = 0.25 + progress * 0.45; // 0.25..0.7
+        const progress = Math.min(1, streak / 7);
+        const size = 64 + progress * 36; // bigger planets 64..100
+        const glowAlpha = 0.25 + progress * 0.45;
         const x = Math.cos(angle) * radius;
         const y = Math.sin(angle) * radius;
         const style: React.CSSProperties = {
@@ -47,29 +47,37 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
           left: `calc(50% + ${x}px)`,
           top: `calc(50% + ${y}px)`,
           background: `hsl(${a.color})`,
-          boxShadow: `0 0 0 2px hsl(${a.color} / 0.45), 0 0 24px hsl(${a.color} / ${glowAlpha})`,
+          boxShadow: `0 0 0 2px hsl(${a.color} / 0.45), 0 0 28px hsl(${a.color} / ${glowAlpha})`,
         };
+        const labelTopOffset = y + size / 2 + 12;
         return (
-          <button
-            key={a.id}
-            style={style}
-            className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-[10px] sm:text-xs font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform"
-            aria-label={`${a.name} — progress ${(progress * 100).toFixed(0)}%`}
-            onClick={() => navigate(`/area/${a.slug}`)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                e.preventDefault();
-                navigate(`/area/${a.slug}`);
-              }
-            }}
-          >
-            <span className="sr-only">{a.name}</span>
-            <div className="grid place-items-center size-full">
-              <div className="text-xl" aria-hidden>
-                {a.icon}
+          <React.Fragment key={a.id}>
+            <button
+              style={style}
+              className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform"
+              aria-label={`${a.name} — progress ${(progress * 100).toFixed(0)}%`}
+              onClick={() => navigate(`/area/${a.slug}`)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  e.preventDefault();
+                  navigate(`/area/${a.slug}`);
+                }
+              }}
+            >
+              <div className="grid place-items-center size-full">
+                <div className="text-2xl" aria-hidden>
+                  {a.icon}
+                </div>
               </div>
+            </button>
+            <div
+              className="absolute -translate-x-1/2 text-xs text-muted-foreground pointer-events-none"
+              style={{ left: `calc(50% + ${x}px)`, top: `calc(50% + ${labelTopOffset}px)` }}
+              aria-hidden
+            >
+              {a.name}
             </div>
-          </button>
+          </React.Fragment>
         );
       })}
     </div>

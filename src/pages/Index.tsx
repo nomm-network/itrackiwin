@@ -43,19 +43,6 @@ const Index: React.FC = () => {
             <Button onClick={() => navigate('/journal')} className="hover-scale">Daily Check-in</Button>
             <Button variant="secondary" onClick={() => navigate('/progress')}>View Progress</Button>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 pt-4" aria-label="Areas">
-            {Object.values(areas).map((a) => (
-              <button
-                key={a.id}
-                onClick={() => navigate(`/area/${a.slug}`)}
-                className="rounded-lg border bg-card p-4 text-left hover-scale focus:outline-none focus:ring-2 focus:ring-ring"
-                aria-label={`${a.name} area`}
-              >
-                <div className="text-2xl" aria-hidden>{a.icon}</div>
-                <div className="font-medium">{a.name}</div>
-              </button>
-            ))}
-          </div>
         </div>
         <div className="order-1 md:order-2">
           <OrbitNavigation centerImageSrc="/lovable-uploads/e7a0d714-f7f9-435b-9d3d-5cbdc1381b54.png" />
