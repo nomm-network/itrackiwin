@@ -10,6 +10,8 @@ import Journal from "./pages/Journal";
 import Insights from "./pages/Insights";
 import Profile from "./pages/Profile";
 import AreaDetail from "./features/area/AreaDetail";
+import Auth from "./pages/Auth";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -20,12 +22,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/progress" element={<Progress />} />
-          <Route path="/journal" element={<Journal />} />
-          <Route path="/insights" element={<Insights />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/area/:slug" element={<AreaDetail />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<Index />} />
+            <Route path="/progress" element={<Progress />} />
+            <Route path="/journal" element={<Journal />} />
+            <Route path="/insights" element={<Insights />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/area/:slug" element={<AreaDetail />} />
+          </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

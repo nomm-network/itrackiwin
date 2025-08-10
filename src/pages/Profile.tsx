@@ -2,10 +2,24 @@ import React from "react";
 import { levelFromXp } from "@/lib/xp";
 import { useAppStore } from "@/store/app";
 import PageNav from "@/components/PageNav";
+import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
+import { cleanupAuthState } from "@/lib/auth";
 
 const Profile: React.FC = () => {
   const xp = useAppStore((s) => s.xp);
   const level = levelFromXp(xp);
+
+  const handleSignOut = async () => {
+    try {
+      cleanupAuthState();
+      try { await supabase.auth.signOut({ scope: 'global' }); } catch {}
+      window.location.href = '/auth';
+    } catch (e) {
+      window.location.href = '/auth';
+    }
+  };
+
   return (
     <>
       <PageNav current="Profile" />
@@ -26,6 +40,10 @@ const Profile: React.FC = () => {
             <p className="text-sm">
               <a className="story-link" href="/privacy">Privacy Policy</a> • <a className="story-link" href="/terms">Terms</a>
             </p>
+          </div>
+          <div className="rounded-lg border p-4 bg-card">
+            <h2 className="font-medium mb-2">Account</h2>
+            <Button variant="outline" onClick={handleSignOut}>Sign out</Button>
           </div>
         </section>
       </main>
