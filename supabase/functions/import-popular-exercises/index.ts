@@ -27,12 +27,8 @@ serve(async (req) => {
 
   try {
     // Fetch popular exercises from Wger public API (English, status=2=verified)
-    const url = "https://wger.de/api/v2/exerciseinfo/?language=2&status=2&limit=200";
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch from Wger: ${res.status} ${res.statusText}`);
-    }
-    const data = await res.json();
+    // We will paginate until we collect ~500 unique exercises.
+    const base = "https://wger.de/api/v2/exerciseinfo/?language=2&status=2";
 
     type WgerExercise = {
       id: number;
@@ -40,8 +36,33 @@ serve(async (req) => {
       description: string;
       equipment: { name: string }[];
       muscles: { name_en: string }[];
+      muscles_secondary?: { name_en: string }[];
+      category?: { name: string };
       images?: { image: string; is_main: boolean }[];
     };
+
+    // Helper to fetch a page
+    async function fetchPage(url: string) {
+      const res = await fetch(url);
+      if (!res.ok) {
+        throw new Error(`Failed to fetch from Wger: ${res.status} ${res.statusText}`);
+      }
+      return await res.json();
+    }
+
+    const desired = 500;
+    let nextUrl: string | null = `${base}&limit=100&offset=0`;
+    const results: WgerExercise[] = [];
+
+    while (nextUrl && results.length < desired) {
+      const page = await fetchPage(nextUrl);
+      const pageResults: WgerExercise[] = page.results || [];
+      for (const ex of pageResults) {
+        results.push(ex);
+        if (results.length >= desired) break;
+      }
+      nextUrl = page.next || null; // Wger returns full URL for next page
+    }
 
     const popularOrder = [
       "barbell squat",
@@ -79,66 +100,69 @@ serve(async (req) => {
     const orderIndex = new Map<string, number>();
     popularOrder.forEach((n, i) => orderIndex.set(slugify(n), i + 1));
 
-    const results: WgerExercise[] = data.results || [];
-
     // Map and prepare rows
-    const rows = results.map((ex: WgerExercise) => {
+    const mapped = results.map((ex: WgerExercise) => {
+      const name = typeof ex.name === "string" ? ex.name.trim() : "";
+      const slug = slugify(name); // for local ranking & dedupe only
       const primaryMuscle = ex.muscles?.[0]?.name_en || null;
+      const secondary = (ex.muscles_secondary || [])
+        .map((m) => m?.name_en)
+        .filter(Boolean) as string[];
       const equipment = ex.equipment?.map((e) => e.name).join(", ") || null;
       const descriptionText = ex.description
         ? ex.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
         : null;
       const mainImg = ex.images?.find((im) => im.is_main)?.image || ex.images?.[0]?.image || null;
-
-      const name = typeof ex.name === "string" ? ex.name.trim() : "";
-      const slugRaw = slugify(name);
-      const slug = slugRaw || null;
-
       const baseRank = slug ? orderIndex.get(slug) ?? null : null;
 
-      return {
+      // Build row WITHOUT slug (slug is generated in DB)
+      const row = {
         name: name || null,
-        slug,
         description: descriptionText,
         equipment,
         primary_muscle: primaryMuscle,
+        secondary_muscles: secondary.length ? secondary : null,
+        body_part: ex.category?.name || null,
         is_public: true,
         owner_user_id: null,
         source_url: `https://wger.de/en/exercise/${ex.id}`,
         image_url: mainImg,
         thumbnail_url: mainImg,
-        popularity_rank: baseRank, // others remain NULL and sort after
+        popularity_rank: baseRank,
       } as any;
+
+      return { row, slug };
     });
 
     // Deduplicate by slug, prefer first occurrence
     const seen = new Set<string>();
-    const uniqueRows = rows.filter((r) => {
-      if (seen.has(r.slug)) return false;
-      seen.add(r.slug);
-      return r.name && r.slug;
-    });
+    const uniqueRows = mapped
+      .filter((m) => {
+        if (!m.slug || !m.row.name) return false;
+        if (seen.has(m.slug)) return false;
+        seen.add(m.slug);
+        return true;
+      })
+      .map((m) => m.row);
 
     // Upsert in chunks
     const chunkSize = 200;
-    let inserted = 0;
-    let updated = 0;
+    let affected = 0;
 
     for (let i = 0; i < uniqueRows.length; i += chunkSize) {
       const chunk = uniqueRows.slice(i, i + chunkSize);
       const { data: upserted, error } = await supabase
         .from("exercises")
         .upsert(chunk, { onConflict: "slug" })
-        .select("id, slug");
+        .select("id");
       if (error) throw error;
       if (upserted) {
-        // We can't distinguish insert vs update directly without extra roundtrip; approximate by counting
-        inserted += upserted.length; // treat as affected
+        affected += upserted.length; // affected rows
       }
     }
 
     return new Response(
-      JSON.stringify({ ok: true, processed: uniqueRows.length, affected: inserted }),
+      JSON.stringify({ ok: true, processed: uniqueRows.length, affected }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (e) {

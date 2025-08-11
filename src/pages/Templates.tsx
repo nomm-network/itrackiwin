@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useAddExerciseToTemplate, useCloneTemplateToWorkout, useCreateTemplate, useSearchExercises, useTemplateExercises, useTemplates } from "@/features/fitness/api";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 
 const Templates: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +18,8 @@ const Templates: React.FC = () => {
   const addToTemplate = useAddExerciseToTemplate();
 
   const [q, setQ] = React.useState("");
-  const { data: results } = useSearchExercises(q);
+  const [muscle, setMuscle] = React.useState<string>("");
+  const { data: results } = useSearchExercises(q, { primaryMuscle: muscle || undefined });
 
   const addExercise = async (exerciseId: string) => {
     if (!selectedTemplate) return;
@@ -81,7 +83,27 @@ const Templates: React.FC = () => {
                   </div>
                   <div>
                     <h3 className="font-medium mb-2">Add Exercise</h3>
-                    <Input placeholder="Search exercises..." value={q} onChange={(e) => setQ(e.target.value)} />
+                    <div className="flex items-center gap-2">
+                      <Input placeholder="Search exercises..." value={q} onChange={(e) => setQ(e.target.value)} />
+                      <Select value={muscle} onValueChange={setMuscle}>
+                        <SelectTrigger className="w-[180px]">
+                          <SelectValue placeholder="Filter muscle" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="">All</SelectItem>
+                          <SelectItem value="Chest">Chest</SelectItem>
+                          <SelectItem value="Back">Back</SelectItem>
+                          <SelectItem value="Shoulders">Shoulders</SelectItem>
+                          <SelectItem value="Biceps">Biceps</SelectItem>
+                          <SelectItem value="Triceps">Triceps</SelectItem>
+                          <SelectItem value="Quadriceps">Quadriceps</SelectItem>
+                          <SelectItem value="Hamstrings">Hamstrings</SelectItem>
+                          <SelectItem value="Glutes">Glutes</SelectItem>
+                          <SelectItem value="Calves">Calves</SelectItem>
+                          <SelectItem value="Abs">Abs</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                     <div className="mt-2 space-y-2 max-h-80 overflow-auto">
                       {(results ?? []).map(ex => (
                         <div key={ex.id} className="border rounded-md p-2 flex items-center justify-between">

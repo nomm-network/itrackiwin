@@ -33,9 +33,9 @@ const Fitness: React.FC = () => {
   const importExercises = async () => {
     setImporting(true);
     try {
-      const { data, error } = await supabase.functions.invoke('import-exercises-exercisedb');
+      const { data, error } = await supabase.functions.invoke('import-popular-exercises');
       if (error) throw error;
-      toast({ title: 'Exercises imported', description: `${data?.affected ?? 0} rows affected.` });
+      toast({ title: 'Exercises imported', description: `${data?.processed ?? 0} processed, ${data?.affected ?? 0} upserted.` });
     } catch (e: any) {
       toast({ title: 'Import failed', description: e?.message || 'Unknown error' });
     } finally {
