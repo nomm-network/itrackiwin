@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { NavLink } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -38,7 +38,7 @@ const Exercises: React.FC = () => {
   const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
 
   // Add dialog state
-  const [addOpen, setAddOpen] = React.useState(false);
+  const [showAdd, setShowAdd] = React.useState(false);
   const [newName, setNewName] = React.useState("");
   const [newEquipmentId, setNewEquipmentId] = React.useState("");
   const [newIsPublic, setNewIsPublic] = React.useState(true);
@@ -61,7 +61,10 @@ const Exercises: React.FC = () => {
 
   const loadEquipment = React.useCallback(async () => {
     const { data, error } = await supabase.from('equipment').select('id,name').order('name');
-    if (!error) setEquipmentOptions(data || []);
+    if (error) {
+      console.error(error);
+    }
+    setEquipmentOptions(data || []);
   }, []);
 
   const loadExercises = React.useCallback(async () => {
@@ -98,7 +101,7 @@ const Exercises: React.FC = () => {
       });
       if (error) throw error;
       toast({ title: 'Exercise added' });
-      setAddOpen(false);
+      setShowAdd(false);
       setNewName(''); setNewEquipmentId(''); setNewIsPublic(true);
       await loadExercises();
     } catch (e: any) {
@@ -136,7 +139,7 @@ const Exercises: React.FC = () => {
         name: editName.trim(),
         equipment_id: editEquipmentId || null,
         is_public: editIsPublic,
-      }).eq('id', editId);
+      }).eq('id', editId).eq('owner_user_id', currentUserId);
       if (error) throw error;
       toast({ title: 'Exercise updated' });
       setEditOpen(false);
@@ -154,7 +157,7 @@ const Exercises: React.FC = () => {
     if (!editId) return;
     setEditSaving(true);
     try {
-      const { error } = await supabase.from('exercises').delete().eq('id', editId);
+      const { error } = await supabase.from('exercises').delete().eq('id', editId).eq('owner_user_id', currentUserId);
       if (error) throw error;
       toast({ title: 'Exercise deleted' });
       setEditOpen(false);
@@ -201,16 +204,16 @@ const Exercises: React.FC = () => {
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Exercises</h1>
-          <Dialog open={addOpen} onOpenChange={setAddOpen}>
-            <DialogTrigger asChild>
-              <Button>+ Add Exercise</Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Add Exercise</DialogTitle>
-                <DialogDescription>Create a new exercise.</DialogDescription>
-              </DialogHeader>
-              <div className="space-y-3">
+          <Button onClick={() => setShowAdd((v) => !v)}>{showAdd ? 'Close' : '+ Add Exercise'}</Button>
+        </div>
+        {showAdd && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Exercise</CardTitle>
+                <CardDescription>Create a new exercise.</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-3">
                 <div className="space-y-2">
                   <Label htmlFor="new_name">Name</Label>
                   <Input id="new_name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g., Push-up" />
@@ -233,14 +236,14 @@ const Exercises: React.FC = () => {
                   <Switch id="new_public" checked={newIsPublic} onCheckedChange={setNewIsPublic} />
                   <Label htmlFor="new_public">Public</Label>
                 </div>
-              </div>
-              <DialogFooter>
-                <Button variant="secondary" onClick={() => setAddOpen(false)}>Cancel</Button>
-                <Button onClick={createExercise} disabled={newSaving}>{newSaving ? 'Saving…' : 'Create'}</Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
-        </div>
+                <div className="flex gap-2">
+                  <Button variant="secondary" onClick={() => { setShowAdd(false); setNewName(''); setNewEquipmentId(''); setNewIsPublic(true); }}>Cancel</Button>
+                  <Button onClick={createExercise} disabled={newSaving}>{newSaving ? 'Saving…' : 'Create'}</Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         <section>
           <Card>
