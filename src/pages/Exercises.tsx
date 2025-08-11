@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { NavLink } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -45,7 +45,7 @@ const Exercises: React.FC = () => {
   const [newSaving, setNewSaving] = React.useState(false);
 
   // Edit dialog state
-  const [editOpen, setEditOpen] = React.useState(false);
+  
   const [editId, setEditId] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
   const [editEquipmentId, setEditEquipmentId] = React.useState("");
@@ -72,7 +72,7 @@ const Exercises: React.FC = () => {
     try {
       const { data, error } = await supabase
         .from('exercises')
-        .select('id,name,owner_user_id')
+        .select('id,name,owner_user_id,equipment_id,is_public')
         .order('name', { ascending: true })
         .limit(500);
       if (error) throw error;
@@ -124,7 +124,7 @@ const Exercises: React.FC = () => {
       setEditName(data?.name || ex.name || '');
       setEditEquipmentId(data?.equipment_id || '');
       setEditIsPublic(!!data?.is_public);
-      setEditOpen(true);
+      
     } catch (e: any) {
       console.error(e);
       toast({ title: 'Failed to open', description: e?.message || 'Unknown error' });
@@ -141,8 +141,6 @@ const Exercises: React.FC = () => {
         is_public: editIsPublic,
       }).eq('id', editId).eq('owner_user_id', currentUserId);
       if (error) throw error;
-      toast({ title: 'Exercise updated' });
-      setEditOpen(false);
       setEditId(null);
       await loadExercises();
     } catch (e: any) {
@@ -160,7 +158,6 @@ const Exercises: React.FC = () => {
       const { error } = await supabase.from('exercises').delete().eq('id', editId).eq('owner_user_id', currentUserId);
       if (error) throw error;
       toast({ title: 'Exercise deleted' });
-      setEditOpen(false);
       setEditId(null);
       await loadExercises();
     } catch (e: any) {
@@ -255,10 +252,44 @@ const Exercises: React.FC = () => {
               {loading && <p className="text-sm text-muted-foreground">Loading…</p>}
               {!loading && exercises.length === 0 && <p className="text-sm text-muted-foreground">No exercises yet.</p>}
               {exercises.map((ex) => (
-                <div key={ex.id} className="flex items-center justify-between border rounded-md p-2">
-                  <span className="text-sm font-medium">{ex.name}</span>
-                  {currentUserId && ex.owner_user_id === currentUserId && (
-                    <Button size="sm" variant="outline" onClick={() => openEdit(ex)}>Edit</Button>
+                <div key={ex.id} className="border rounded-md p-2">
+                  {editId === ex.id ? (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <Label htmlFor={`edit_name_${ex.id}`}>Name</Label>
+                        <Input id={`edit_name_${ex.id}`} value={editName} onChange={(e) => setEditName(e.target.value)} />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Equipment</Label>
+                        <Select value={editEquipmentId} onValueChange={setEditEquipmentId}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select equipment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">None</SelectItem>
+                            {equipmentOptions.map((eq: any) => (
+                              <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <Switch id={`edit_public_${ex.id}`} checked={editIsPublic} onCheckedChange={setEditIsPublic} />
+                        <Label htmlFor={`edit_public_${ex.id}`}>Public</Label>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button variant="destructive" onClick={deleteExercise} disabled={editSaving}>Delete</Button>
+                        <Button variant="secondary" onClick={() => setEditId(null)}>Cancel</Button>
+                        <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save'}</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{ex.name}</span>
+                      {currentUserId && ex.owner_user_id === currentUserId && (
+                        <Button size="sm" variant="outline" onClick={() => openEdit(ex)}>Edit</Button>
+                      )}
+                    </div>
                   )}
                 </div>
               ))}
@@ -268,44 +299,6 @@ const Exercises: React.FC = () => {
       </main>
 
 
-      {/* Edit Dialog */}
-      <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Exercise</DialogTitle>
-            <DialogDescription>Update name or equipment.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="edit_name">Name</Label>
-              <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-            </div>
-            <div className="space-y-2">
-              <Label>Equipment</Label>
-              <Select value={editEquipmentId} onValueChange={setEditEquipmentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select equipment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  {equipmentOptions.map((eq: any) => (
-                    <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch id="edit_public" checked={editIsPublic} onCheckedChange={setEditIsPublic} />
-              <Label htmlFor="edit_public">Public</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="destructive" onClick={deleteExercise} disabled={editSaving}>Delete</Button>
-            <Button variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
-            <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
     </>
   );
 };
