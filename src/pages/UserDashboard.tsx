@@ -147,6 +147,7 @@ const UserDashboard: React.FC = () => {
     items.sort((a, b) => a.display_order - b.display_order);
     const normalized = items.map((it, idx) => ({ ...it, display_order: idx + 1 }));
     setRows(normalized);
+  }, [categories, prefs, userId]);
 
   const onChangeRow = (categoryId: string, patch: Partial<UserPref>) => {
     setRows((prev) => prev.map((r) => r.category_id === categoryId ? { ...r, ...patch } : r));
