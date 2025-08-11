@@ -18,7 +18,7 @@ export function useIsAdmin() {
       // fetch roles for current user
       (async () => {
         try {
-          const { data, error } = (supabase as any)
+          const { data, error } = await (supabase as any)
             .from("user_roles")
             .select("role")
             .eq("user_id", session.user.id);
@@ -44,7 +44,7 @@ export function useIsAdmin() {
         return;
       }
       try {
-        const { data, error } = (supabase as any)
+        const { data, error } = await (supabase as any)
           .from("user_roles")
           .select("role")
           .eq("user_id", session.user.id);

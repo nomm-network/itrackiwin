@@ -21,26 +21,26 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
   const { data: categories = [] } = useQuery({
     queryKey: ["life_categories_orbit"],
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("life_categories")
         .select("id, name, icon, color, display_order")
         .order("display_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
-      return data as Array<{ id: string; name: string; icon?: string | null; color?: string | null }>;
+      return (data ?? []) as Array<{ id: string; name: string; icon?: string | null; color?: string | null }>;
     },
   });
 
   const { data: subcategories = [] } = useQuery({
     queryKey: ["life_subcategories_orbit"],
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("life_subcategories")
         .select("id, category_id, name, display_order")
         .order("display_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
-      return data as Array<{ id: string; category_id: string; name: string }>;
+      return (data ?? []) as Array<{ id: string; category_id: string; name: string }>;
     },
   });
 

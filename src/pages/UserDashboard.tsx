@@ -32,13 +32,13 @@ const UserDashboard: React.FC = () => {
   const { data: categories = [] } = useQuery({
     queryKey: ["life_categories"],
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("life_categories")
         .select("id, slug, name, display_order")
         .order("display_order", { ascending: true })
         .order("name", { ascending: true });
       if (error) throw error;
-      return data as LifeCategory[];
+      return (data ?? []) as LifeCategory[];
     },
   });
 
@@ -46,11 +46,11 @@ const UserDashboard: React.FC = () => {
     queryKey: ["user_category_prefs"],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("user_category_prefs")
         .select("id, user_id, category_id, display_order, priority");
       if (error) throw error;
-      return data as UserPref[];
+      return (data ?? []) as UserPref[];
     },
   });
 
@@ -68,7 +68,7 @@ const UserDashboard: React.FC = () => {
     mutationFn: async (items: UserPref[]) => {
       if (!userId) throw new Error("No user");
       const payload = items.map((i) => ({ ...i, user_id: userId }));
-      const { error } = (supabase as any)
+      const { error } = await (supabase as any)
         .from("user_category_prefs")
         .upsert(payload, { onConflict: "user_id,category_id" });
       if (error) throw error;
@@ -81,11 +81,11 @@ const UserDashboard: React.FC = () => {
   const { data: allSubcats = [] } = useQuery({
     queryKey: ["life_subcategories_all"],
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("life_subcategories")
         .select("id, category_id, name");
       if (error) throw error;
-      return data as LifeSubcategory[];
+      return (data ?? []) as LifeSubcategory[];
     },
   });
 
@@ -93,11 +93,11 @@ const UserDashboard: React.FC = () => {
     queryKey: ["user_pins"],
     enabled: !!userId,
     queryFn: async () => {
-      const { data, error } = (supabase as any)
+      const { data, error } = await (supabase as any)
         .from("user_pinned_subcategories")
         .select("id, user_id, subcategory_id");
       if (error) throw error;
-      return data as UserPin[];
+      return (data ?? []) as UserPin[];
     },
   });
 
@@ -106,7 +106,7 @@ const UserDashboard: React.FC = () => {
       if (!userId) throw new Error("No user");
       const isPinned = pins.some((p) => p.subcategory_id === subcatId);
       if (isPinned) {
-        const { error } = (supabase as any)
+        const { error } = await (supabase as any)
           .from("user_pinned_subcategories")
           .delete()
           .eq("subcategory_id", subcatId);
@@ -114,7 +114,7 @@ const UserDashboard: React.FC = () => {
         return;
       }
       if (pins.length >= 3) throw new Error("You can pin up to 3 subcategories");
-      const { error } = (supabase as any)
+      const { error } = await (supabase as any)
         .from("user_pinned_subcategories")
         .insert({ user_id: userId, subcategory_id: subcatId });
       if (error) throw error;
