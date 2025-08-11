@@ -83,7 +83,7 @@ const Exercises: React.FC = () => {
   const fetchExercises = async () => {
     setLoadingExercises(true);
     try {
-      const baseSelect = 'id,name,body_part,primary_muscle,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id';
+      const baseSelect = 'id,name,body_part_id,primary_muscle_id,secondary_muscle_ids,equipment_id,description,source_url,thumbnail_url,image_url,is_public,owner_user_id';
 
       const runQuery = async (useIdFilters: boolean) => {
         let q: any = supabase
@@ -196,10 +196,8 @@ const Exercises: React.FC = () => {
       const nameNorm = name.trim();
       let q: any = supabase
         .from('exercises')
-        .select('id,name,body_part,primary_muscle,equipment,thumbnail_url,image_url')
+        .select('id,name,thumbnail_url,image_url')
         .ilike('name', `%${nameNorm}%`);
-      if (bodyPart.trim()) q = q.ilike('body_part', `%${bodyPart.trim()}%`);
-      if (primaryMuscle.trim()) q = q.ilike('primary_muscle', `%${primaryMuscle.trim()}%`);
       const { data: existing, error: exErr } = await q.limit(10);
       if (exErr) throw exErr;
       if ((existing?.length || 0) > 0) {
@@ -231,10 +229,6 @@ const Exercises: React.FC = () => {
         .insert({
           name: name.trim(),
           description: description || null,
-          equipment: equipment || null,
-          primary_muscle: primaryMuscle || null,
-          body_part: bodyPart || null,
-          secondary_muscles: secArr.length ? secArr : null,
           source_url: sourceUrl || null,
           is_public: isPublic,
           owner_user_id: user.id,
@@ -325,10 +319,6 @@ const Exercises: React.FC = () => {
         .from('exercises')
         .update({
           name: editName.trim(),
-          primary_muscle: editPrimaryMuscle || null,
-          secondary_muscles: secArr.length ? secArr : null,
-          body_part: editBodyPart || null,
-          equipment: editEquipment || null,
           description: editDescription || null,
           source_url: editSourceUrl || null,
           is_public: editIsPublic,
@@ -490,7 +480,6 @@ const Exercises: React.FC = () => {
                       />
                       <div className="mt-2">
                         <div className="text-sm font-medium">{ex.name}</div>
-                        <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'} • {ex.equipment || '-'}</div>
                       </div>
                       {currentUserId && ex.owner_user_id === currentUserId && (
                         <div className="mt-3">
@@ -583,13 +572,9 @@ const Exercises: React.FC = () => {
                 <div key={ex.id} className="border rounded-md p-2 flex items-center justify-between">
                   <div>
                     <div className="text-sm font-medium">{ex.name}</div>
-                    <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'}</div>
                   </div>
                   <Button size="sm" onClick={() => {
                     setName(ex.name || '');
-                    setPrimaryMuscle(ex.primary_muscle || '');
-                    setBodyPart(ex.body_part || '');
-                    setEquipment(ex.equipment || '');
                     setShowMatchDialog(false);
                     toast({ title: 'Existing exercise selected', description: ex.name });
                   }}>Use this</Button>

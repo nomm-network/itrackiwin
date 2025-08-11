@@ -32,6 +32,7 @@ const FitnessConfigure: React.FC = () => {
   const [bodyParts, setBodyParts] = React.useState<any[]>([]);
   const [muscleGroups, setMuscleGroups] = React.useState<any[]>([]);
   const [muscles, setMuscles] = React.useState<any[]>([]);
+  const [equipment, setEquipment] = React.useState<any[]>([]);
 
   const [bpName, setBpName] = React.useState("");
   const [mgName, setMgName] = React.useState("");
@@ -40,16 +41,19 @@ const FitnessConfigure: React.FC = () => {
   const [mName, setMName] = React.useState("");
   const [mBodyPartId, setMBodyPartId] = React.useState("");
   const [mGroupId, setMGroupId] = React.useState("");
+  const [eqName, setEqName] = React.useState("");
 
   const loadAll = async () => {
-    const [{ data: bps }, { data: mgs }, { data: ms }] = await Promise.all([
+    const [{ data: bps }, { data: mgs }, { data: ms }, { data: eqs }] = await Promise.all([
       supabase.from('body_parts').select('id,name').order('name'),
       supabase.from('muscle_groups').select('id,name,body_part_id').order('name'),
       supabase.from('muscles').select('id,name,muscle_group_id').order('name'),
+      supabase.from('equipment').select('id,name').order('name'),
     ]);
     setBodyParts(bps || []);
     setMuscleGroups(mgs || []);
     setMuscles(ms || []);
+    setEquipment(eqs || []);
   };
 
   React.useEffect(() => { loadAll(); }, []);
@@ -131,6 +135,33 @@ const FitnessConfigure: React.FC = () => {
   const deleteMuscle = async (m: any) => {
     if (!confirm(`Delete ${m.name}?`)) return;
     const { error } = await supabase.from('muscles').delete().eq('id', m.id);
+    if (error) { toast({ title: 'Failed to delete', description: error.message }); return; }
+    await loadAll();
+    toast({ title: 'Deleted' });
+  };
+
+  // Equipment CRUD
+  const addEquipment = async () => {
+    if (!eqName.trim()) return;
+    const { error } = await supabase.from('equipment').insert({ name: eqName.trim(), slug: eqName.trim().toLowerCase().replace(/\s+/g, '-') });
+    if (error) { toast({ title: 'Failed to add equipment', description: error.message }); return; }
+    setEqName("");
+    await loadAll();
+    toast({ title: 'Equipment added' });
+  };
+
+  const renameEquipment = async (eq: any) => {
+    const name = prompt('Rename equipment', eq.name);
+    if (!name) return;
+    const { error } = await supabase.from('equipment').update({ name, slug: name.toLowerCase().replace(/\s+/g, '-') }).eq('id', eq.id);
+    if (error) { toast({ title: 'Failed to update', description: error.message }); return; }
+    await loadAll();
+    toast({ title: 'Updated' });
+  };
+
+  const deleteEquipment = async (eq: any) => {
+    if (!confirm(`Delete ${eq.name}?`)) return;
+    const { error } = await supabase.from('equipment').delete().eq('id', eq.id);
     if (error) { toast({ title: 'Failed to delete', description: error.message }); return; }
     await loadAll();
     toast({ title: 'Deleted' });

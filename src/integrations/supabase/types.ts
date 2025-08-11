@@ -35,6 +35,27 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: []
+      }
       exercise_images: {
         Row: {
           created_at: string
@@ -74,17 +95,15 @@ export type Database = {
           body_part_id: string | null
           created_at: string
           description: string | null
-          equipment: string | null
+          equipment_id: string | null
           id: string
           image_url: string | null
           is_public: boolean
           name: string
           owner_user_id: string | null
           popularity_rank: number | null
-          primary_muscle: string | null
           primary_muscle_id: string | null
           secondary_muscle_ids: string[] | null
-          secondary_muscles: string[] | null
           slug: string | null
           source_url: string | null
           thumbnail_url: string | null
@@ -94,17 +113,15 @@ export type Database = {
           body_part_id?: string | null
           created_at?: string
           description?: string | null
-          equipment?: string | null
+          equipment_id?: string | null
           id?: string
           image_url?: string | null
           is_public?: boolean
           name: string
           owner_user_id?: string | null
           popularity_rank?: number | null
-          primary_muscle?: string | null
           primary_muscle_id?: string | null
           secondary_muscle_ids?: string[] | null
-          secondary_muscles?: string[] | null
           slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -114,17 +131,15 @@ export type Database = {
           body_part_id?: string | null
           created_at?: string
           description?: string | null
-          equipment?: string | null
+          equipment_id?: string | null
           id?: string
           image_url?: string | null
           is_public?: boolean
           name?: string
           owner_user_id?: string | null
           popularity_rank?: number | null
-          primary_muscle?: string | null
           primary_muscle_id?: string | null
           secondary_muscle_ids?: string[] | null
-          secondary_muscles?: string[] | null
           slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -135,6 +150,13 @@ export type Database = {
             columns: ["body_part_id"]
             isOneToOne: false
             referencedRelation: "body_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
             referencedColumns: ["id"]
           },
           {

@@ -42,8 +42,7 @@ export interface Exercise {
   id: UUID;
   name: string;
   description?: string | null;
-  equipment?: string | null;
-  primary_muscle?: string | null;
+  // Additional fields like body_part_id, primary_muscle_id, equipment_id may exist but are not required here
 }
 
 export interface Template {
@@ -239,31 +238,24 @@ export const useAddSet = () => {
   });
 };
 
-export const useSearchExercises = (query: string, opts?: { primaryMuscle?: string; bodyPart?: string }) => {
+export const useSearchExercises = (query: string, _opts?: { primaryMuscle?: string; bodyPart?: string }) => {
   return useQuery({
-    queryKey: ["exercises_search", { query, primaryMuscle: opts?.primaryMuscle, bodyPart: opts?.bodyPart }],
-    enabled: query.length > 1 || !!opts?.primaryMuscle || !!opts?.bodyPart,
+    queryKey: ["exercises_search", { query }],
+    enabled: query.length > 1,
     queryFn: async (): Promise<Exercise[]> => {
       let qbuilder = supabase
         .from("exercises")
-        .select("id,name,description,equipment,primary_muscle,thumbnail_url,image_url,source_url,popularity_rank,is_public,body_part,secondary_muscles");
-
-      if (query.length > 1) {
-        qbuilder = qbuilder.ilike("name", `%${query}%`);
-      }
-      if (opts?.primaryMuscle) {
-        // Prefer primary muscle match; DB stores secondary_muscles as text[] so we can also try contains
-        qbuilder = qbuilder.eq("primary_muscle", opts.primaryMuscle);
-      }
-      if (opts?.bodyPart) {
-        qbuilder = qbuilder.eq("body_part", opts.bodyPart);
-      }
-
-      const { data, error } = await qbuilder
+        .select("id,name,description,thumbnail_url,image_url,source_url,popularity_rank,is_public")
         .order("is_public", { ascending: false })
         .order("popularity_rank", { ascending: true, nullsFirst: false })
         .order("name", { ascending: true })
         .limit(20);
+
+      if (query.length > 1) {
+        qbuilder = qbuilder.ilike("name", `%${query}%`);
+      }
+
+      const { data, error } = await qbuilder;
       if (error) throw error;
       return data as any;
     },

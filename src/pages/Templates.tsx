@@ -133,10 +133,9 @@ const Templates: React.FC = () => {
                     <div className="mt-2 space-y-2 max-h-80 overflow-auto">
                       {(results ?? []).map(ex => (
                         <div key={ex.id} className="border rounded-md p-2 flex items-center justify-between">
-                          <div>
-                            <div className="text-sm font-medium">{ex.name}</div>
-                            <div className="text-xs text-muted-foreground">{ex.primary_muscle} • {ex.equipment}</div>
-                          </div>
+                    <div>
+                      <div className="text-sm font-medium">{ex.name}</div>
+                    </div>
                           <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
                         </div>
                       ))}

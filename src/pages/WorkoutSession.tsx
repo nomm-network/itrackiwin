@@ -138,7 +138,6 @@ const WorkoutSession: React.FC = () => {
                   <div key={ex.id} className="flex items-center justify-between border rounded-md p-2">
                     <div>
                       <div className="text-sm font-medium">{ex.name}</div>
-                      <div className="text-xs text-muted-foreground">{ex.primary_muscle} • {ex.equipment}</div>
                     </div>
                     <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
                   </div>
