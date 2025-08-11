@@ -37,12 +37,6 @@ const Exercises: React.FC = () => {
   const [equipmentOptions, setEquipmentOptions] = React.useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
 
-  // Add dialog state
-  const [showAdd, setShowAdd] = React.useState(false);
-  const [newName, setNewName] = React.useState("");
-  const [newEquipmentId, setNewEquipmentId] = React.useState("");
-  const [newIsPublic, setNewIsPublic] = React.useState(true);
-  const [newSaving, setNewSaving] = React.useState(false);
 
   // Edit dialog state
   
@@ -87,30 +81,6 @@ const Exercises: React.FC = () => {
 
   React.useEffect(() => { loadEquipment(); loadExercises(); }, [loadEquipment, loadExercises]);
 
-  const createExercise = async () => {
-    if (!newName.trim()) { toast({ title: 'Name is required' }); return; }
-    setNewSaving(true);
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('Not authenticated');
-      const { error } = await supabase.from('exercises').insert({
-        name: newName.trim(),
-        owner_user_id: user.id,
-        is_public: newIsPublic,
-        equipment_id: newEquipmentId || null,
-      });
-      if (error) throw error;
-      toast({ title: 'Exercise added' });
-      setShowAdd(false);
-      setNewName(''); setNewEquipmentId(''); setNewIsPublic(true);
-      await loadExercises();
-    } catch (e: any) {
-      console.error(e);
-      toast({ title: 'Failed to add', description: e?.message || 'Unknown error' });
-    } finally {
-      setNewSaving(false);
-    }
-  };
 
   const openEdit = async (ex: any) => {
     try {
@@ -201,49 +171,12 @@ const Exercises: React.FC = () => {
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Exercises</h1>
-          <Button onClick={() => setShowAdd((v) => !v)}>{showAdd ? 'Close' : '+ Add Exercise'}</Button>
+          <Button asChild>
+            <NavLink to="/fitness/exercises/add">+ Add Exercise</NavLink>
+          </Button>
         </div>
-        {showAdd && (
           <section>
             <Card>
-              <CardHeader>
-                <CardTitle>Add Exercise</CardTitle>
-                <CardDescription>Create a new exercise.</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="space-y-2">
-                  <Label htmlFor="new_name">Name</Label>
-                  <Input id="new_name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g., Push-up" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Equipment</Label>
-                  <Select value={newEquipmentId} onValueChange={setNewEquipmentId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select equipment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">None</SelectItem>
-                      {equipmentOptions.map((eq: any) => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Switch id="new_public" checked={newIsPublic} onCheckedChange={setNewIsPublic} />
-                  <Label htmlFor="new_public">Public</Label>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="secondary" onClick={() => { setShowAdd(false); setNewName(''); setNewEquipmentId(''); setNewIsPublic(true); }}>Cancel</Button>
-                  <Button onClick={createExercise} disabled={newSaving}>{newSaving ? 'Saving…' : 'Create'}</Button>
-                </div>
-              </CardContent>
-            </Card>
-          </section>
-        )}
-
-        <section>
-          <Card>
             <CardHeader>
               <CardTitle>All Exercises</CardTitle>
               <CardDescription>Showing names only.</CardDescription>

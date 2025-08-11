@@ -19,6 +19,7 @@ import History from "./pages/History";
 import WorkoutDetail from "./pages/WorkoutDetail";
 import Exercises from "./pages/Exercises";
 import FitnessConfigure from "./pages/FitnessConfigure";
+import ExerciseAdd from "./pages/ExerciseAdd";
 
 const queryClient = new QueryClient();
 
@@ -40,6 +41,7 @@ const App = () => (
             {/* Fitness routes */}
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/fitness/exercises" element={<Exercises />} />
+            <Route path="/fitness/exercises/add" element={<ExerciseAdd />} />
             <Route path="/fitness/session/:id" element={<WorkoutSession />} />
             <Route path="/fitness/templates" element={<Templates />} />
             <Route path="/fitness/configure" element={<FitnessConfigure />} />
