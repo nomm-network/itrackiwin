@@ -65,9 +65,15 @@ const Exercises: React.FC = () => {
   const [editDescription, setEditDescription] = React.useState("");
   const [editSourceUrl, setEditSourceUrl] = React.useState("");
   const [editIsPublic, setEditIsPublic] = React.useState(true);
+  const [editFiles, setEditFiles] = React.useState<File[]>([]);
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = Array.from(e.target.files ?? []);
     setFiles(f);
+  };
+
+  const onEditFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = Array.from(e.target.files ?? []);
+    setEditFiles(f);
   };
 
   const fetchExercises = async () => {
@@ -232,6 +238,7 @@ const Exercises: React.FC = () => {
     setEditDescription(ex.description ?? "");
     setEditSourceUrl(ex.source_url ?? "");
     setEditIsPublic(!!ex.is_public);
+    setEditFiles([]);
     setEditOpen(true);
   };
 
@@ -258,9 +265,36 @@ const Exercises: React.FC = () => {
         .eq('id', editingId)
         .select();
       if (error) throw error;
-      toast({ title: 'Exercise updated' });
+
+      if (editFiles.length > 0) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error('Not authenticated');
+
+        for (let i = 0; i < editFiles.length; i++) {
+          const file = editFiles[i];
+          const path = `${user.id}/${editingId}/${Date.now()}-${i}-${file.name}`;
+          const { error: upErr } = await supabase.storage
+            .from('exercise-images')
+            .upload(path, file, { upsert: false, contentType: file.type });
+          if (upErr) throw upErr;
+          const { data: pub } = supabase.storage.from('exercise-images').getPublicUrl(path);
+          const url = pub.publicUrl;
+          const { error: insErr } = await supabase.from('exercise_images').insert({
+            user_id: user.id,
+            exercise_id: editingId,
+            url,
+            path,
+            is_primary: false,
+            order_index: i + 1,
+          });
+          if (insErr) throw insErr;
+        }
+      }
+
+      toast({ title: 'Exercise updated', description: editFiles.length ? `Uploaded ${editFiles.length} image(s)` : undefined });
       setEditOpen(false);
       setEditingId(null);
+      setEditFiles([]);
       await fetchExercises();
     } catch (e: any) {
       console.error(e);
@@ -480,6 +514,20 @@ const Exercises: React.FC = () => {
               <div className="flex items-center gap-3">
                 <Switch id="edit_is_public" checked={editIsPublic} onCheckedChange={setEditIsPublic} />
                 <Label htmlFor="edit_is_public">Public</Label>
+              </div>
+              <div className="sm:col-span-2 space-y-2">
+                <Label htmlFor="edit_images">Add Images</Label>
+                <Input id="edit_images" type="file" multiple accept="image/*" onChange={onEditFileChange} />
+                {editFiles.length > 0 && (
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
+                    {editFiles.map((f, i) => (
+                      <div key={i} className="text-xs text-muted-foreground truncate" title={f.name}>
+                        {f.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <p className="text-xs text-muted-foreground">Selected images will be uploaded and attached to this exercise.</p>
               </div>
             </div>
             <DialogFooter>
