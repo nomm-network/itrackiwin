@@ -5,3 +5,6 @@ verify_jwt = false
 
 [functions.import-exercises-exercisedb]
 verify_jwt = false
+
+[functions.import-exercises-community]
+verify_jwt = false
