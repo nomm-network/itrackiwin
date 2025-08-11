@@ -1,7 +1,6 @@
 import React, { useMemo, useState } from "react";
 import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -9,17 +8,27 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
+import { GripVertical } from "lucide-react";
 
 interface LifeCategory { id: string; slug: string; name: string; display_order: number; }
 interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; priority: number; }
 interface LifeSubcategory { id: string; category_id: string; name: string; }
 interface UserPin { id?: string; user_id: string; subcategory_id: string; }
 
+const DEFAULT_ORDER = [
+  "Health",
+  "Wealth",
+  "Relationships",
+  "Mind & Emotions",
+  "Purpose & Growth",
+  "Lifestyle & Contribution",
+];
+
 const UserDashboard: React.FC = () => {
   React.useEffect(() => {
     document.title = "Dashboard | I Track I Win";
     const meta = document.querySelector('meta[name="description"]');
-    if (meta) meta.setAttribute('content', 'Customize your categories order, set priorities, and pin subcategories');
+    if (meta) meta.setAttribute('content', 'Reorder categories (drag and drop) and pin subcategories');
   }, []);
 
   const qc = useQueryClient();
@@ -126,12 +135,41 @@ const UserDashboard: React.FC = () => {
   // Local editable state
   const [rows, setRows] = useState<UserPref[]>([]);
   React.useEffect(() => {
-    setRows(merged.map(({ pref }) => ({ ...pref })));
-  }, [merged.length]);
+    const orderMap = new Map<string, number>(DEFAULT_ORDER.map((n, i) => [n, i + 1]));
+    const items: UserPref[] = categories.map((c) => {
+      const p = prefs.find((x) => x.category_id === c.id);
+      const base = p && p.display_order > 0 ? p.display_order : (orderMap.get(c.name) ?? 999);
+      return {
+        ...(p ?? { user_id: userId!, category_id: c.id, display_order: base, priority: base }),
+        display_order: base,
+        priority: base,
+      } as UserPref;
+    });
+    items.sort((a, b) => a.display_order - b.display_order);
+    const normalized = items.map((it, idx) => ({ ...it, display_order: idx + 1, priority: idx + 1 }));
+    setRows(normalized);
+  }, [categories, prefs, userId]);
 
   const onChangeRow = (categoryId: string, patch: Partial<UserPref>) => {
     setRows((prev) => prev.map((r) => r.category_id === categoryId ? { ...r, ...patch } : r));
   };
+
+  const [dragId, setDragId] = useState<string | null>(null);
+  const handleDragStart = (id: string) => () => setDragId(id);
+  const handleDragOver = (id: string) => (e: React.DragEvent) => {
+    e.preventDefault();
+    if (!dragId || dragId === id) return;
+    setRows((prev) => {
+      const from = prev.findIndex((r) => r.category_id === dragId);
+      const to = prev.findIndex((r) => r.category_id === id);
+      if (from === -1 || to === -1) return prev;
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next.map((r, idx) => ({ ...r, display_order: idx + 1, priority: idx + 1 }));
+    });
+  };
+  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragId(null); };
 
   // Group subcategories by category for display
   const subByCat = useMemo(() => {
@@ -150,7 +188,7 @@ const UserDashboard: React.FC = () => {
         <div className="flex items-start justify-between mb-4">
           <div>
             <h1 className="text-2xl font-semibold">Your Dashboard</h1>
-            <p className="text-sm text-muted-foreground">Reorder categories, set priorities, and pin up to 3 subcategories</p>
+            <p className="text-sm text-muted-foreground">Reorder categories by dragging, and pin up to 3 subcategories</p>
           </div>
           <div className="flex items-center gap-2">
             <Button asChild variant="outline"><Link to="/profile">Account</Link></Button>
@@ -158,32 +196,42 @@ const UserDashboard: React.FC = () => {
         </div>
 
         <Card className="mb-6">
-          <CardHeader><CardTitle>Categories order & priority</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Categories</CardTitle></CardHeader>
           <CardContent>
+            <p className="text-sm text-muted-foreground mb-3">Drag & Drop to change the priority.</p>
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead className="w-20">Order</TableHead>
                   <TableHead>Category</TableHead>
-                  <TableHead className="w-32">Order</TableHead>
-                  <TableHead className="w-32">Priority</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {rows.map((r, idx) => (
-                  <TableRow key={r.category_id}>
-                    <TableCell>{categories.find(c=>c.id===r.category_id)?.name}</TableCell>
-                    <TableCell>
-                      <Input type="number" value={r.display_order} onChange={(e)=>onChangeRow(r.category_id, { display_order: Number(e.target.value) })} />
-                    </TableCell>
-                    <TableCell>
-                      <Input type="number" value={r.priority} onChange={(e)=>onChangeRow(r.category_id, { priority: Number(e.target.value) })} />
-                    </TableCell>
-                  </TableRow>
-                ))}
+                {rows.map((r, idx) => {
+                  const c = categories.find((x) => x.id === r.category_id);
+                  return (
+                    <TableRow
+                      key={r.category_id}
+                      draggable
+                      onDragStart={handleDragStart(r.category_id)}
+                      onDragOver={handleDragOver(r.category_id)}
+                      onDrop={handleDrop}
+                      className="cursor-grab"
+                    >
+                      <TableCell className="font-mono">{idx + 1}.</TableCell>
+                      <TableCell>
+                        <div className="flex items-center gap-2">
+                          <GripVertical className="h-4 w-4 text-muted-foreground" />
+                          <span>{c?.name}</span>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
             <div className="mt-4 flex justify-end">
-              <Button onClick={() => upsertPrefs.mutate(rows)}>Save</Button>
+              <Button onClick={() => upsertPrefs.mutate(rows.map((r, i) => ({ ...r, display_order: i + 1, priority: i + 1 })))}>Save</Button>
             </div>
           </CardContent>
         </Card>

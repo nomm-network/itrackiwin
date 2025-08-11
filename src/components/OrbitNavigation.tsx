@@ -22,14 +22,17 @@ const categoryIcon = (name: string): string => {
 const subcategoryIcon = (name: string): string => {
   const map: Record<string, string> = {
     "Fitness & exercise": "🏋️",
+    "Fitness and Exercise": "🏋️",
     "Sleep": "🛌",
     "Nutrition": "🍎",
     "Meditation": "🧘",
     "Learning": "📚",
     "Finance": "📈",
+    "Long-term wealth building": "🏦",
     "Career": "💼",
     "Family": "👨‍👩‍👧‍👦",
     "Friends": "🤝",
+    "Romantic life": "💞",
     "Hobbies": "🎨",
     "Contribution": "🤲",
     "Travel": "✈️",
@@ -42,6 +45,15 @@ const subcategoryIcon = (name: string): string => {
 
 const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => {
   const navigate = useNavigate();
+
+  const DEFAULT_ORDER = [
+    "Health",
+    "Wealth",
+    "Relationships",
+    "Mind & Emotions",
+    "Purpose & Growth",
+    "Lifestyle & Contribution",
+  ];
 
   type OrbitArea = {
     id: string;
@@ -86,15 +98,26 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
     return m;
   }, [subcategories]);
 
-  const areasArr = useMemo<OrbitArea[]>(() => {
-    return categories.map((c) => ({
-      id: c.id,
-      name: c.name,
-      icon: (c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(c.name)),
-      color: c.color ?? null,
-      subcategories: subByCat[c.id] || [],
-    }));
-  }, [categories, subByCat]);
+const areasArr = useMemo<OrbitArea[]>(() => {
+  // Sort categories by DEFAULT_ORDER first, then by name fallback
+  const orderIndex = (name: string) => {
+    const idx = DEFAULT_ORDER.indexOf(name);
+    return idx === -1 ? 999 : idx;
+  };
+  const sorted = [...categories].sort((a, b) => {
+    const ai = orderIndex(a.name);
+    const bi = orderIndex(b.name);
+    if (ai !== bi) return ai - bi;
+    return a.name.localeCompare(b.name);
+  });
+  return sorted.map((c) => ({
+    id: c.id,
+    name: c.name,
+    icon: (c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(c.name)),
+    color: c.color ?? null,
+    subcategories: subByCat[c.id] || [],
+  }));
+}, [categories, subByCat]);
 
   const [selected, setSelected] = useState<OrbitArea | null>(null);
 
@@ -185,25 +208,27 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
         ) : null
       ) : (
         // Main areas orbit (from DB)
-        areasArr.map((a, i) => {
-          const angle = (i / Math.max(areasArr.length, 1)) * Math.PI * 2;
-          const progress = 0; // TODO: hook up progress when streaks are available per category
-          const base = isSmall ? 48 : 64;
-          const scale = isSmall ? 24 : 36;
-          const size = base + progress * scale; // responsive planet size
-          const glowAlpha = 0.25 + progress * 0.45; // 0.25..0.7
-          const x = Math.cos(angle) * radius;
-          const y = Math.sin(angle) * radius;
-          const style: React.CSSProperties = {
-            width: size,
-            height: size,
-            left: `calc(50% + ${x}px)`,
-            top: `calc(50% + ${y}px)`,
-            background: a.color ? `hsl(${a.color})` : 'hsl(var(--primary))',
-            boxShadow: `0 0 0 2px ${a.color ? `hsl(${a.color} / 0.45)` : 'hsl(var(--primary) / 0.45)'}, 0 0 28px ${a.color ? `hsl(${a.color} / ${glowAlpha})` : `hsl(var(--primary) / ${glowAlpha})`}`,
-          };
-          const labelTopOffset = y + size / 2 + 12;
-          return (
+areasArr.map((a, i) => {
+  const step = (Math.PI * 2) / Math.max(areasArr.length, 1);
+  const angleStart = Math.PI; // start at 9 o'clock
+  const angle = angleStart - i * step; // clockwise
+  const progress = 0; // TODO: hook up progress when streaks are available per category
+  const base = isSmall ? 48 : 64;
+  const scale = isSmall ? 24 : 36;
+  const size = base + progress * scale; // responsive planet size
+  const glowAlpha = 0.25 + progress * 0.45; // 0.25..0.7
+  const x = Math.cos(angle) * radius;
+  const y = Math.sin(angle) * radius;
+  const style: React.CSSProperties = {
+    width: size,
+    height: size,
+    left: `calc(50% + ${x}px)`,
+    top: `calc(50% + ${y}px)`,
+    background: a.color ? `hsl(${a.color})` : 'hsl(var(--primary))',
+    boxShadow: `0 0 0 2px ${a.color ? `hsl(${a.color} / 0.45)` : 'hsl(var(--primary) / 0.45)'}, 0 0 28px ${a.color ? `hsl(${a.color} / ${glowAlpha})` : `hsl(var(--primary) / ${glowAlpha})`}`,
+  };
+  const labelTopOffset = y + size / 2 + 12;
+  return (
             <React.Fragment key={a.id}>
               <button
                 style={style}
