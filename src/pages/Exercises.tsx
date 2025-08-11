@@ -271,32 +271,43 @@ const Exercises: React.FC = () => {
 
         {!loading && !error && (
           <ul className="space-y-2">
-            {filtered.map((r) => (
-              <li key={r.id} className="rounded border p-3">
-                <div className="flex items-center justify-between gap-4">
-                  <div className="flex-1">
-                    <span className="font-medium">{r.name}</span>
-                    {r.owner_user_id ? (
-                      <span className="ml-2 text-xs text-muted-foreground">yours</span>
-                    ) : (
-                      <span className="ml-2 text-xs text-muted-foreground">public</span>
-                    )}
+            {filtered.map((r) => {
+              const mu = r.primary_muscle_id ? muscleById.get(r.primary_muscle_id) : undefined;
+              const grp = mu ? groupById.get(mu.muscle_group_id) : undefined;
+              return (
+                <li key={r.id} className="rounded border p-3">
+                  <div className="flex items-center justify-between gap-4">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{r.name}</span>
+                        {r.owner_user_id ? (
+                          <span className="text-xs text-muted-foreground">yours</span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">public</span>
+                        )}
+                      </div>
+                      {mu && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {grp ? `${grp.name} • ` : ''}{mu.name}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {r.owner_user_id === userId && (
+                        <>
+                          <Button asChild variant="outline" size="sm">
+                            <Link to={`/fitness/exercises/${r.id}/edit`}><Pencil className="mr-1" /> Edit</Link>
+                          </Button>
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)}>
+                            <Trash2 className="mr-1" /> Delete
+                          </Button>
+                        </>
+                      )}
+                    </div>
                   </div>
-                  <div className="flex items-center gap-2">
-                    {r.owner_user_id === userId && (
-                      <>
-                        <Button asChild variant="outline" size="sm">
-                          <Link to={`/fitness/exercises/${r.id}/edit`}><Pencil className="mr-1" /> Edit</Link>
-                        </Button>
-                        <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)}>
-                          <Trash2 className="mr-1" /> Delete
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </div>
-              </li>
-            ))}
+                </li>
+              );
+            })}
             {filtered.length === 0 && (
               <li className="text-sm text-muted-foreground">No exercises found.</li>
             )}
