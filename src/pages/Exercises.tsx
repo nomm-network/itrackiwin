@@ -83,25 +83,61 @@ const Exercises: React.FC = () => {
   const fetchExercises = async () => {
     setLoadingExercises(true);
     try {
-      let query: any = supabase
-        .from('exercises')
-        .select('id,name,body_part,body_part_id,primary_muscle,primary_muscle_id,secondary_muscles,secondary_muscle_ids,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id')
-        .order('name', { ascending: true });
-      if (filterName.trim()) query = query.ilike('name', `%${filterName.trim()}%`);
-      if (filterBodyPartId) query = query.eq('body_part_id', filterBodyPartId);
-      if (filterPrimaryMuscleId) {
-        query = query.eq('primary_muscle_id', filterPrimaryMuscleId);
-      } else if (filterMuscleGroupId) {
-        const ids = muscles.map((m: any) => m.id);
-        if (ids.length === 0) {
-          setExercises([]);
-          setLoadingExercises(false);
-          return;
+      const baseSelect = 'id,name,body_part,primary_muscle,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id';
+
+      const runQuery = async (useIdFilters: boolean) => {
+        let q: any = supabase
+          .from('exercises')
+          .select(baseSelect)
+          .order('name', { ascending: true });
+
+        if (filterName.trim()) q = q.ilike('name', `%${filterName.trim()}%`);
+
+        if (useIdFilters) {
+          if (filterBodyPartId) q = q.eq('body_part_id', filterBodyPartId);
+          if (filterPrimaryMuscleId) {
+            q = q.eq('primary_muscle_id', filterPrimaryMuscleId);
+          } else if (filterMuscleGroupId) {
+            const ids = muscles.map((m: any) => m.id);
+            if (ids.length === 0) {
+              return { data: [], error: null } as any;
+            } else {
+              q = q.in('primary_muscle_id', ids);
+            }
+          }
         } else {
-          query = query.in('primary_muscle_id', ids);
+          // Fallback for older DBs without *_id columns: use text columns
+          if (filterBodyPartId) {
+            const bpName = bodyParts.find((bp: any) => bp.id === filterBodyPartId)?.name;
+            if (bpName) q = q.ilike('body_part', `%${bpName}%`);
+          }
+          if (filterPrimaryMuscleId) {
+            const mName = muscles.find((m: any) => m.id === filterPrimaryMuscleId)?.name;
+            if (mName) q = q.ilike('primary_muscle', `%${mName}%`);
+          } else if (filterMuscleGroupId) {
+            const names: string[] = muscles.map((m: any) => m.name).filter(Boolean);
+            if (names.length) {
+              const orExpr = names
+                .map((n) => `primary_muscle.ilike.%${String(n).replace(/[,)/\\(]/g, ' ')}%`)
+                .join(',');
+              if (orExpr) q = q.or(orExpr);
+            } else {
+              return { data: [], error: null } as any;
+            }
+          }
         }
+        return await q.limit(200);
+      };
+
+      // First try with ID-based filters (new schema)
+      let { data, error } = await runQuery(true);
+
+      // If it failed due to missing columns, retry with text-based filters (old schema)
+      if (error && /column .* does not exist|unknown column|missing FROM-clause entry/i.test(error.message)) {
+        const retry = await runQuery(false);
+        data = retry.data; error = retry.error;
       }
-      const { data, error } = await query.limit(200);
+
       if (error) throw error;
       setExercises(data || []);
     } catch (err: any) {
@@ -445,7 +481,13 @@ const Exercises: React.FC = () => {
                 {exercises.map((ex) => (
                   <Card key={ex.id}>
                     <CardContent className="pt-4">
-                      <img src={ex.thumbnail_url || ex.image_url || '/placeholder.svg'} alt={`${ex.name} exercise thumbnail`} loading="lazy" className="w-full h-24 object-cover rounded-md" />
+                      <img
+                        src={ex.thumbnail_url || ex.image_url || '/placeholder.svg'}
+                        alt={`${ex.name} exercise thumbnail`}
+                        loading="lazy"
+                        className="w-full h-24 object-cover rounded-md"
+                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
+                      />
                       <div className="mt-2">
                         <div className="text-sm font-medium">{ex.name}</div>
                         <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'} • {ex.equipment || '-'}</div>
