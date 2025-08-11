@@ -18,6 +18,7 @@ const AdminRoute: React.FC = () => {
         if (rpcErr) throw rpcErr;
         if (isAdm === true) {
           setAllowed(true);
+          setLoading(false);
           return;
         }
       } catch {}

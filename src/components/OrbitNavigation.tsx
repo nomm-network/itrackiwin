@@ -280,7 +280,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       areasArr.map((a, i) => {
         const step = Math.PI * 2 / Math.max(areasArr.length, 1);
         const angleStart = Math.PI; // start at 9 o'clock
-        const angle = angleStart - i * step; // clockwise
+        const angle = angleStart + i * step; // clockwise from 9 o'clock
         const progress = 0; // TODO: hook up progress when streaks are available per category
         const base = isSmall ? 48 : 64;
         const scale = isSmall ? 24 : 36;
@@ -312,7 +312,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${labelTopOffset}px)`
           }} aria-hidden>
-                {a.name}
+                {`${i + 1}. ${a.name}`}
               </div>
             </React.Fragment>;
       })}
