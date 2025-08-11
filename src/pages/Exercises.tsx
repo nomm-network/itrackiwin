@@ -477,63 +477,69 @@ const Exercises: React.FC = () => {
         </Dialog>
 
         <Dialog open={editOpen} onOpenChange={setEditOpen}>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Edit exercise</DialogTitle>
-              <DialogDescription>Update your exercise details.</DialogDescription>
-            </DialogHeader>
-            <div className="grid sm:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="edit_name">Name</Label>
-                <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_primary_muscle">Primary muscle</Label>
-                <Input id="edit_primary_muscle" value={editPrimaryMuscle} onChange={(e) => setEditPrimaryMuscle(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_secondary_muscles">Secondary muscles (comma-separated)</Label>
-                <Input id="edit_secondary_muscles" value={editSecondaryMuscles} onChange={(e) => setEditSecondaryMuscles(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_body_part">Body part</Label>
-                <Input id="edit_body_part" value={editBodyPart} onChange={(e) => setEditBodyPart(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_equipment">Equipment</Label>
-                <Input id="edit_equipment" value={editEquipment} onChange={(e) => setEditEquipment(e.target.value)} />
-              </div>
-              <div className="sm:col-span-2 space-y-2">
-                <Label htmlFor="edit_description">Description</Label>
-                <Textarea id="edit_description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="edit_source_url">Source URL</Label>
-                <Input id="edit_source_url" value={editSourceUrl} onChange={(e) => setEditSourceUrl(e.target.value)} />
-              </div>
-              <div className="flex items-center gap-3">
-                <Switch id="edit_is_public" checked={editIsPublic} onCheckedChange={setEditIsPublic} />
-                <Label htmlFor="edit_is_public">Public</Label>
-              </div>
-              <div className="sm:col-span-2 space-y-2">
-                <Label htmlFor="edit_images">Add Images</Label>
-                <Input id="edit_images" type="file" multiple accept="image/*" onChange={onEditFileChange} />
-                {editFiles.length > 0 && (
-                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
-                    {editFiles.map((f, i) => (
-                      <div key={i} className="text-xs text-muted-foreground truncate" title={f.name}>
-                        {f.name}
-                      </div>
-                    ))}
+          <DialogContent className="sm:max-w-2xl p-0">
+            <div className="max-h-[85vh] flex flex-col">
+              <DialogHeader className="px-6 pt-6">
+                <DialogTitle>Edit exercise</DialogTitle>
+                <DialogDescription>Update your exercise details.</DialogDescription>
+              </DialogHeader>
+
+              <div className="px-6 pb-4 overflow-y-auto flex-1">
+                <div className="grid sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_name">Name</Label>
+                    <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
                   </div>
-                )}
-                <p className="text-xs text-muted-foreground">Selected images will be uploaded and attached to this exercise.</p>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_primary_muscle">Primary muscle</Label>
+                    <Input id="edit_primary_muscle" value={editPrimaryMuscle} onChange={(e) => setEditPrimaryMuscle(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_secondary_muscles">Secondary muscles (comma-separated)</Label>
+                    <Input id="edit_secondary_muscles" value={editSecondaryMuscles} onChange={(e) => setEditSecondaryMuscles(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_body_part">Body part</Label>
+                    <Input id="edit_body_part" value={editBodyPart} onChange={(e) => setEditBodyPart(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_equipment">Equipment</Label>
+                    <Input id="edit_equipment" value={editEquipment} onChange={(e) => setEditEquipment(e.target.value)} />
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <Label htmlFor="edit_description">Description</Label>
+                    <Textarea id="edit_description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="edit_source_url">Source URL</Label>
+                    <Input id="edit_source_url" value={editSourceUrl} onChange={(e) => setEditSourceUrl(e.target.value)} />
+                  </div>
+                  <div className="flex items-center gap-3">
+                    <Switch id="edit_is_public" checked={editIsPublic} onCheckedChange={setEditIsPublic} />
+                    <Label htmlFor="edit_is_public">Public</Label>
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <Label htmlFor="edit_images">Add Images</Label>
+                    <Input id="edit_images" type="file" multiple accept="image/*" onChange={onEditFileChange} />
+                    {editFiles.length > 0 && (
+                      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2 pt-2">
+                        {editFiles.map((f, i) => (
+                          <div key={i} className="text-xs text-muted-foreground truncate" title={f.name}>
+                            {f.name}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <p className="text-xs text-muted-foreground">Selected images will be uploaded and attached to this exercise.</p>
+                  </div>
+                </div>
               </div>
+
+              <DialogFooter className="px-6 py-4 border-t bg-background">
+                <Button variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
+                <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</Button>
+              </DialogFooter>
             </div>
-            <DialogFooter>
-              <Button variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
-              <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</Button>
-            </DialogFooter>
           </DialogContent>
         </Dialog>
       </main>
