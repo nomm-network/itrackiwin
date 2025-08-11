@@ -4,7 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Button } from "@/components/ui/button";
 import { AreaId } from "@/types/domain";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -13,7 +13,7 @@ const Index: React.FC = () => {
 
   React.useEffect(() => seedIfEmpty(), [seedIfEmpty]);
 
-  const { isAdmin } = useIsAdmin();
+  
 
   const onSelect = (id: AreaId) => {
     navigate(`/area/${id}`);
@@ -34,7 +34,7 @@ const Index: React.FC = () => {
             <Link className="story-link" to="/fitness">Fitness</Link>
             <Link className="story-link" to="/insights">Insights</Link>
             <Link className="story-link" to="/dashboard">Dashboard</Link>
-            {isAdmin && <Link className="story-link" to="/admin">Admin</Link>}
+            <Link className="story-link" to="/admin">Admin</Link>
           </div>
         </nav>
       </header>

@@ -22,7 +22,9 @@ import FitnessConfigure from "./pages/FitnessConfigure";
 import ExerciseAdd from "./pages/ExerciseAdd";
 import ExerciseEdit from "./pages/ExerciseEdit";
 import AdminRoute from "./components/auth/AdminRoute";
-import AdminDashboard from "./pages/AdminDashboard";
+import AdminHome from "./admin/pages/AdminHome";
+import AdminCategoryPage from "./admin/pages/AdminCategoryPage";
+import AdminSubcategoryPage from "./admin/pages/AdminSubcategoryPage";
 import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
@@ -58,7 +60,9 @@ const App = () => (
 
             {/* Admin routes */}
             <Route element={<AdminRoute />}>
-              <Route path="/admin" element={<AdminDashboard />} />
+              <Route path="/admin" element={<AdminHome />} />
+              <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
+              <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
             </Route>
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

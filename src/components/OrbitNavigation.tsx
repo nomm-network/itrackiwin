@@ -7,6 +7,39 @@ interface OrbitNavigationProps {
   centerImageSrc?: string;
 }
 
+const categoryIcon = (name: string): string => {
+  const map: Record<string, string> = {
+    "Health": "🩺",
+    "Mind & Emotions": "🧠",
+    "Relationships": "❤️",
+    "Wealth": "💰",
+    "Purpose & Growth": "🎯",
+    "Lifestyle & Contribution": "🌟",
+  };
+  return map[name] ?? "🪐";
+};
+
+const subcategoryIcon = (name: string): string => {
+  const map: Record<string, string> = {
+    "Fitness & exercise": "🏋️",
+    "Sleep": "🛌",
+    "Nutrition": "🍎",
+    "Meditation": "🧘",
+    "Learning": "📚",
+    "Finance": "📈",
+    "Career": "💼",
+    "Family": "👨‍👩‍👧‍👦",
+    "Friends": "🤝",
+    "Hobbies": "🎨",
+    "Contribution": "🤲",
+    "Travel": "✈️",
+    "Growth": "🌱",
+    "Purpose": "🎯",
+    "Emotions": "💬",
+  };
+  return map[name] ?? "🔹";
+};
+
 const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => {
   const navigate = useNavigate();
 
@@ -57,7 +90,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
     return categories.map((c) => ({
       id: c.id,
       name: c.name,
-      icon: c.icon ?? "●",
+      icon: (c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(c.name)),
       color: c.color ?? null,
       subcategories: subByCat[c.id] || [],
     }));
@@ -136,7 +169,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
                   }}
                 >
                   <div className="grid place-items-center size-full">
-                    <div className="text-xs" aria-hidden>●</div>
+                    <div className="text-xs" aria-hidden>{subcategoryIcon(name)}</div>
                   </div>
                 </button>
                 <div
