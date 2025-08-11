@@ -17,8 +17,8 @@ const Index: React.FC = () => {
         <nav className="flex items-center justify-between">
           <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
           <div className="flex items-center gap-2">
-            <span className="text-xl font-bold">I Track I Win</span>
-            <span className="text-sm text-muted-foreground">Track what matters. Win your life.</span>
+            <span className="text-xl font-bold">I Track. I Win.</span>
+            <span className="text-sm text-muted-foreground">Track what matters. Win your life!</span>
           </div>
           <div className="flex gap-4 text-sm items-center">
             <Link className="story-link" to="/progress">Progress</Link>
