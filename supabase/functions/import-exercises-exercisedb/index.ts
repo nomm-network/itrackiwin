@@ -26,12 +26,15 @@ serve(async (req) => {
   const supabase = createClient(SUPABASE_URL, SERVICE_ROLE_KEY, { auth: { persistSession: false } });
 
   try {
-    const url = "https://v1.exercisedb.dev/api/v1/exercises";
-    const res = await fetch(url);
-    if (!res.ok) {
-      throw new Error(`Failed to fetch ExerciseDB: ${res.status} ${res.statusText}`);
+    const base = "https://v1.exercisedb.dev/api/v1/exercises";
+    const desired = 500;
+    const pageSize = 200;
+
+    async function fetchJson(u: string) {
+      const r = await fetch(u);
+      if (!r.ok) throw new Error(`Failed to fetch ExerciseDB: ${r.status} ${r.statusText}`);
+      return await r.json();
     }
-    const raw = await res.json();
 
     type ExDb = {
       id: string;
@@ -43,14 +46,37 @@ serve(async (req) => {
       secondaryMuscles?: string[];
     };
 
-    const list: ExDb[] = Array.isArray(raw)
-      ? raw
-      : Array.isArray((raw as any)?.data)
-      ? (raw as any).data
-      : Array.isArray((raw as any)?.results)
-      ? (raw as any).results
-      : [];
+    const strategies: string[] = [
+      `${base}?limit=${desired}`,
+      ...Array.from({ length: Math.ceil(desired / pageSize) }, (_, i) => `${base}?limit=${pageSize}&offset=${i * pageSize}`),
+      ...Array.from({ length: Math.ceil(desired / pageSize) }, (_, i) => `${base}?page=${i + 1}&limit=${pageSize}`),
+      ...Array.from({ length: Math.ceil(desired / pageSize) }, (_, i) => `${base}?limit=${pageSize}&skip=${i * pageSize}`),
+      base,
+    ];
 
+    const collected: any[] = [];
+    for (const u of strategies) {
+      if (collected.length >= desired) break;
+      try {
+        const raw = await fetchJson(u);
+        const arr = Array.isArray(raw)
+          ? raw
+          : Array.isArray((raw as any)?.data)
+          ? (raw as any).data
+          : Array.isArray((raw as any)?.results)
+          ? (raw as any).results
+          : [];
+        for (const item of arr) {
+          collected.push(item);
+          if (collected.length >= desired) break;
+        }
+        if (arr.length === 0) continue;
+      } catch (_) {
+        // ignore and try next strategy
+      }
+    }
+
+    const list: ExDb[] = collected as ExDb[];
     console.log("ExerciseDB fetched count:", Array.isArray(list) ? list.length : 0);
 
     const rows = (Array.isArray(list) ? list : []).map((ex: ExDb) => {
