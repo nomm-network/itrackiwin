@@ -49,6 +49,22 @@ const Exercises: React.FC = () => {
 
   const [matches, setMatches] = React.useState<any[]>([]);
   const [showMatchDialog, setShowMatchDialog] = React.useState(false);
+
+  // Authenticated user id to control edit permissions
+  const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
+
+  // Edit dialog state
+  const [editOpen, setEditOpen] = React.useState(false);
+  const [editSaving, setEditSaving] = React.useState(false);
+  const [editingId, setEditingId] = React.useState<string | null>(null);
+  const [editName, setEditName] = React.useState("");
+  const [editPrimaryMuscle, setEditPrimaryMuscle] = React.useState("");
+  const [editSecondaryMuscles, setEditSecondaryMuscles] = React.useState("");
+  const [editBodyPart, setEditBodyPart] = React.useState("");
+  const [editEquipment, setEditEquipment] = React.useState("");
+  const [editDescription, setEditDescription] = React.useState("");
+  const [editSourceUrl, setEditSourceUrl] = React.useState("");
+  const [editIsPublic, setEditIsPublic] = React.useState(true);
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = Array.from(e.target.files ?? []);
     setFiles(f);
@@ -59,7 +75,7 @@ const Exercises: React.FC = () => {
     try {
       let query: any = supabase
         .from('exercises')
-        .select('id,name,body_part,primary_muscle,equipment,thumbnail_url,image_url,is_public,owner_user_id')
+        .select('id,name,body_part,primary_muscle,secondary_muscles,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id')
         .order('name', { ascending: true });
       if (filterName.trim()) query = query.ilike('name', `%${filterName.trim()}%`);
       if (filterBodyPart.trim()) query = query.ilike('body_part', `%${filterBodyPart.trim()}%`);
@@ -78,6 +94,18 @@ const Exercises: React.FC = () => {
   React.useEffect(() => {
     fetchExercises();
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      setCurrentUserId(data.user?.id ?? null);
+    });
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUserId(session?.user?.id ?? null);
+    });
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
   }, []);
 
   const onAdd = async () => {
@@ -194,6 +222,54 @@ const Exercises: React.FC = () => {
     }
   };
 
+  const openEdit = (ex: any) => {
+    setEditingId(ex.id);
+    setEditName(ex.name ?? "");
+    setEditPrimaryMuscle(ex.primary_muscle ?? "");
+    setEditSecondaryMuscles(Array.isArray(ex.secondary_muscles) ? ex.secondary_muscles.join(", ") : "");
+    setEditBodyPart(ex.body_part ?? "");
+    setEditEquipment(ex.equipment ?? "");
+    setEditDescription(ex.description ?? "");
+    setEditSourceUrl(ex.source_url ?? "");
+    setEditIsPublic(!!ex.is_public);
+    setEditOpen(true);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    setEditSaving(true);
+    try {
+      const secArr = editSecondaryMuscles
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
+      const { error } = await supabase
+        .from('exercises')
+        .update({
+          name: editName.trim(),
+          primary_muscle: editPrimaryMuscle || null,
+          secondary_muscles: secArr.length ? secArr : null,
+          body_part: editBodyPart || null,
+          equipment: editEquipment || null,
+          description: editDescription || null,
+          source_url: editSourceUrl || null,
+          is_public: editIsPublic,
+        })
+        .eq('id', editingId)
+        .select();
+      if (error) throw error;
+      toast({ title: 'Exercise updated' });
+      setEditOpen(false);
+      setEditingId(null);
+      await fetchExercises();
+    } catch (e: any) {
+      console.error(e);
+      toast({ title: 'Failed to update', description: e?.message || 'Unknown error' });
+    } finally {
+      setEditSaving(false);
+    }
+  };
+
   return (
     <>
       <PageNav current="Fitness" />
@@ -255,6 +331,13 @@ const Exercises: React.FC = () => {
                         <div className="text-sm font-medium">{ex.name}</div>
                         <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'} • {ex.equipment || '-'}</div>
                       </div>
+                      {currentUserId && ex.owner_user_id === currentUserId && (
+                        <div className="mt-3">
+                          <Button size="sm" variant="outline" onClick={() => openEdit(ex)} aria-label={`Edit ${ex.name}`}>
+                            Edit
+                          </Button>
+                        </div>
+                      )}
                     </CardContent>
                   </Card>
                 ))}
@@ -355,6 +438,53 @@ const Exercises: React.FC = () => {
             <DialogFooter>
               <Button variant="secondary" onClick={() => setShowMatchDialog(false)}>Cancel</Button>
               <Button onClick={async () => { setShowMatchDialog(false); await createExercise(); }}>Create new anyway</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        <Dialog open={editOpen} onOpenChange={setEditOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit exercise</DialogTitle>
+              <DialogDescription>Update your exercise details.</DialogDescription>
+            </DialogHeader>
+            <div className="grid sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit_name">Name</Label>
+                <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_primary_muscle">Primary muscle</Label>
+                <Input id="edit_primary_muscle" value={editPrimaryMuscle} onChange={(e) => setEditPrimaryMuscle(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_secondary_muscles">Secondary muscles (comma-separated)</Label>
+                <Input id="edit_secondary_muscles" value={editSecondaryMuscles} onChange={(e) => setEditSecondaryMuscles(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_body_part">Body part</Label>
+                <Input id="edit_body_part" value={editBodyPart} onChange={(e) => setEditBodyPart(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_equipment">Equipment</Label>
+                <Input id="edit_equipment" value={editEquipment} onChange={(e) => setEditEquipment(e.target.value)} />
+              </div>
+              <div className="sm:col-span-2 space-y-2">
+                <Label htmlFor="edit_description">Description</Label>
+                <Textarea id="edit_description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit_source_url">Source URL</Label>
+                <Input id="edit_source_url" value={editSourceUrl} onChange={(e) => setEditSourceUrl(e.target.value)} />
+              </div>
+              <div className="flex items-center gap-3">
+                <Switch id="edit_is_public" checked={editIsPublic} onCheckedChange={setEditIsPublic} />
+                <Label htmlFor="edit_is_public">Public</Label>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
+              <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
