@@ -4,23 +4,15 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Button } from "@/components/ui/button";
 import { AreaId } from "@/types/domain";
-
-
 const Index: React.FC = () => {
   const navigate = useNavigate();
-  const seedIfEmpty = useAppStore((s) => s.seedIfEmpty);
-  const areas = useAppStore((s) => s.areas);
-
+  const seedIfEmpty = useAppStore(s => s.seedIfEmpty);
+  const areas = useAppStore(s => s.areas);
   React.useEffect(() => seedIfEmpty(), [seedIfEmpty]);
-
-  
-
   const onSelect = (id: AreaId) => {
     navigate(`/area/${id}`);
   };
-
-  return (
-    <main className="min-h-screen bg-[hsl(215_25%_7%)]">
+  return <main className="min-h-screen bg-[hsl(215_25%_7%)]">
       <header className="container py-8">
         <nav className="flex items-center justify-between">
           <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
@@ -40,7 +32,7 @@ const Index: React.FC = () => {
       </header>
       <section id="main" className="container flex flex-col gap-10 items-start py-6">
         <div className="space-y-6 animate-fade-in">
-          <h1 className="text-4xl md:text-5xl font-semibold leading-tight">I Track I Win</h1>
+          <h1 className="text-4xl md:text-5xl font-semibold leading-tight">I Track. I Win.</h1>
           <p className="text-muted-foreground max-w-prose">
             Tap the orbiting planets to jump into life areas. Build habits, keep streaks, visualize progress.
           </p>
@@ -56,8 +48,6 @@ const Index: React.FC = () => {
       <footer className="container py-8 text-xs text-muted-foreground">
         <p>Privacy-first. All data stays yours. Web companion prototype — mobile app coming via React Native/Expo.</p>
       </footer>
-    </main>
-  );
+    </main>;
 };
-
 export default Index;
