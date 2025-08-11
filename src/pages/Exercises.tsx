@@ -4,6 +4,11 @@ import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuT
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { Link, NavLink } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { Pencil, Trash2 } from "lucide-react";
 
 // Basic SEO for the page (non-visual)
 const useSEO = () => {
@@ -29,30 +34,131 @@ interface ExerciseRow {
   secondary_muscle_ids: string[] | null;
 }
 
+interface BodyPart { id: string; name: string }
+interface MuscleGroup { id: string; name: string; body_part_id: string }
+interface Muscle { id: string; name: string; muscle_group_id: string }
+
 const Exercises: React.FC = () => {
   useSEO();
+  const { toast } = useToast();
   const [rows, setRows] = React.useState<ExerciseRow[]>([]);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
+  // filters
+  const [query, setQuery] = React.useState("");
+  const [ownership, setOwnership] = React.useState<"all" | "public" | "yours">("all");
+  const [bpId, setBpId] = React.useState<string>("");
+  const [groupId, setGroupId] = React.useState<string>("");
+  const [muscleId, setMuscleId] = React.useState<string>("");
+
+  // taxonomy
+  const [bodyParts, setBodyParts] = React.useState<BodyPart[]>([]);
+  const [muscleGroups, setMuscleGroups] = React.useState<MuscleGroup[]>([]);
+  const [muscles, setMuscles] = React.useState<Muscle[]>([]);
+  const [userId, setUserId] = React.useState<string | null>(null);
+
   React.useEffect(() => {
     let isMounted = true;
     (async () => {
-      setLoading(true);
-      setError(null);
-      const { data, error } = await supabase
-        .from('exercises')
-        .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_ids')
-        .order('name', { ascending: true })
-        .limit(100);
-      console.info('[Exercises] fetch', { count: data?.length, error });
-      if (!isMounted) return;
-      if (error) setError(error.message);
-      setRows(data || []);
-      setLoading(false);
+      try {
+        setLoading(true);
+        setError(null);
+        const [{ data, error }, u, bp, mg, m] = await Promise.all([
+          supabase
+            .from('exercises')
+            .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_ids')
+            .order('name', { ascending: true })
+            .limit(100),
+          supabase.auth.getUser(),
+          supabase.from('body_parts').select('id,name').order('name', { ascending: true }),
+          supabase.from('muscle_groups').select('id,name,body_part_id').order('name', { ascending: true }),
+          supabase.from('muscles').select('id,name,muscle_group_id').order('name', { ascending: true }),
+        ]);
+        if (!isMounted) return;
+        if (error) setError(error.message);
+        setRows(data || []);
+        setUserId(u.data.user?.id || null);
+        if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error;
+        setBodyParts(bp.data || []);
+        setMuscleGroups(mg.data || []);
+        setMuscles(m.data || []);
+      } catch (e: any) {
+        console.error('[Exercises] load error', e);
+        if (isMounted) setError(e?.message || String(e));
+      } finally {
+        if (isMounted) setLoading(false);
+      }
     })();
     return () => { isMounted = false; };
   }, []);
+
+  const groupsFiltered = React.useMemo(() => {
+    if (!bpId) return muscleGroups;
+    return muscleGroups.filter((g) => g.body_part_id === bpId);
+  }, [muscleGroups, bpId]);
+
+  const musclesFiltered = React.useMemo(() => {
+    if (!groupId) return [] as Muscle[];
+    return muscles.filter((mu) => mu.muscle_group_id === groupId);
+  }, [muscles, groupId]);
+
+  const muscleById = React.useMemo(() => {
+    const map = new Map<string, Muscle>();
+    muscles.forEach((mu) => map.set(mu.id, mu));
+    return map;
+  }, [muscles]);
+
+  const groupById = React.useMemo(() => {
+    const map = new Map<string, MuscleGroup>();
+    muscleGroups.forEach((g) => map.set(g.id, g));
+    return map;
+  }, [muscleGroups]);
+
+  const matchesFilters = React.useCallback((r: ExerciseRow) => {
+    // search
+    if (query.trim()) {
+      const q = query.trim().toLowerCase();
+      if (!r.name.toLowerCase().includes(q)) return false;
+    }
+    // ownership
+    if (ownership === 'public' && r.owner_user_id !== null) return false;
+    if (ownership === 'yours' && r.owner_user_id !== userId) return false;
+
+    // body part / group / muscle
+    const ids = [r.primary_muscle_id, ...(r.secondary_muscle_ids || [])].filter(Boolean) as string[];
+    if (muscleId) {
+      return ids.includes(muscleId);
+    }
+    if (groupId) {
+      const groupMuscleIds = muscles.filter((mu) => mu.muscle_group_id === groupId).map((mu) => mu.id);
+      return ids.some((id) => groupMuscleIds.includes(id));
+    }
+    if (bpId) {
+      // any muscle under selected body part
+      return ids.some((id) => {
+        const mu = muscleById.get(id);
+        if (!mu) return false;
+        const g = groupById.get(mu.muscle_group_id);
+        return g?.body_part_id === bpId;
+      });
+    }
+    return true;
+  }, [query, ownership, userId, muscleId, groupId, bpId, muscles, muscleById, groupById]);
+
+  const filtered = React.useMemo(() => rows.filter(matchesFilters), [rows, matchesFilters]);
+
+  const handleDelete = async (id: string) => {
+    const ok = window.confirm('Delete this exercise? This cannot be undone.');
+    if (!ok) return;
+    const { error } = await supabase.from('exercises').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Failed to delete', description: error.message });
+    } else {
+      setRows((prev) => prev.filter((x) => x.id !== id));
+      toast({ title: 'Exercise deleted' });
+    }
+  };
 
   return (
     <>
@@ -92,6 +198,70 @@ const Exercises: React.FC = () => {
           </Button>
         </div>
 
+        <section className="grid gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
+            <div className="md:col-span-2">
+              <Label htmlFor="search">Search</Label>
+              <Input id="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name" />
+            </div>
+            <div>
+              <Label>Body Part</Label>
+              <Select value={bpId} onValueChange={(v) => { setBpId(v); setGroupId(""); setMuscleId(""); }}>
+                <SelectTrigger>
+                  <SelectValue placeholder="All" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bodyParts.map((bp) => (
+                    <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Group</Label>
+              <Select value={groupId} onValueChange={(v) => { setGroupId(v); setMuscleId(""); }} disabled={!bpId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={bpId ? 'All' : 'Select body part first'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {groupsFiltered.map((g) => (
+                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>Muscle</Label>
+              <Select value={muscleId} onValueChange={setMuscleId} disabled={!groupId}>
+                <SelectTrigger>
+                  <SelectValue placeholder={groupId ? 'All' : 'Select group first'} />
+                </SelectTrigger>
+                <SelectContent>
+                  {musclesFiltered.map((mu) => (
+                    <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <div>
+              <Label>Visibility</Label>
+              <Select value={ownership} onValueChange={(v) => setOwnership(v as any)}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="public">Public</SelectItem>
+                  <SelectItem value="yours">Yours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button variant="secondary" type="button" onClick={() => { setQuery(""); setOwnership("all"); setBpId(""); setGroupId(""); setMuscleId(""); }}>Clear</Button>
+          </div>
+        </section>
+
         {loading && <p>Loading…</p>}
         {error && (
           <div role="alert" className="text-destructive">
@@ -101,19 +271,33 @@ const Exercises: React.FC = () => {
 
         {!loading && !error && (
           <ul className="space-y-2">
-            {rows.map((r) => (
+            {filtered.map((r) => (
               <li key={r.id} className="rounded border p-3">
-                <div className="flex items-center justify-between">
-                  <span>{r.name}</span>
-                  {r.owner_user_id ? (
-                    <span className="text-xs text-muted-foreground">yours</span>
-                  ) : (
-                    <span className="text-xs text-muted-foreground">public</span>
-                  )}
+                <div className="flex items-center justify-between gap-4">
+                  <div className="flex-1">
+                    <span className="font-medium">{r.name}</span>
+                    {r.owner_user_id ? (
+                      <span className="ml-2 text-xs text-muted-foreground">yours</span>
+                    ) : (
+                      <span className="ml-2 text-xs text-muted-foreground">public</span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {r.owner_user_id === userId && (
+                      <>
+                        <Button asChild variant="outline" size="sm">
+                          <Link to={`/fitness/exercises/${r.id}/edit`}><Pencil className="mr-1" /> Edit</Link>
+                        </Button>
+                        <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)}>
+                          <Trash2 className="mr-1" /> Delete
+                        </Button>
+                      </>
+                    )}
+                  </div>
                 </div>
               </li>
             ))}
-            {rows.length === 0 && (
+            {filtered.length === 0 && (
               <li className="text-sm text-muted-foreground">No exercises found.</li>
             )}
           </ul>
