@@ -73,6 +73,17 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
                   style={style}
                   className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform"
                   aria-label={`${name}`}
+                  onClick={() => {
+                    if (name === "Fitness & exercise") {
+                      navigate("/fitness");
+                    }
+                  }}
+                  onKeyDown={(e) => {
+                    if ((e.key === "Enter" || e.key === " ") && name === "Fitness & exercise") {
+                      e.preventDefault();
+                      navigate("/fitness");
+                    }
+                  }}
                 >
                   <div className="grid place-items-center size-full">
                     <div className="text-xs" aria-hidden>●</div>

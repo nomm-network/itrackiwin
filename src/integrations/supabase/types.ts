@@ -14,6 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
+      exercise_images: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          is_primary: boolean
+          order_index: number
+          path: string
+          url: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          is_primary?: boolean
+          order_index?: number
+          path: string
+          url: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          is_primary?: boolean
+          order_index?: number
+          path?: string
+          url?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       exercises: {
         Row: {
           body_part: string | null
