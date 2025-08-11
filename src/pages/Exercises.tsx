@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { NavLink } from "react-router-dom";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 const useSEO = () => {
   React.useEffect(() => {
     document.title = "Exercises | I Track I Win";
@@ -37,21 +39,86 @@ const Exercises: React.FC = () => {
   const [isPublic, setIsPublic] = React.useState(true);
   const [files, setFiles] = React.useState<File[]>([]);
   const [saving, setSaving] = React.useState(false);
+  const [secondaryMuscles, setSecondaryMuscles] = React.useState("");
 
+  const [filterName, setFilterName] = React.useState("");
+  const [filterBodyPart, setFilterBodyPart] = React.useState("");
+  const [filterPrimary, setFilterPrimary] = React.useState("");
+  const [exercises, setExercises] = React.useState<any[]>([]);
+  const [loadingExercises, setLoadingExercises] = React.useState(false);
+
+  const [matches, setMatches] = React.useState<any[]>([]);
+  const [showMatchDialog, setShowMatchDialog] = React.useState(false);
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = Array.from(e.target.files ?? []);
     setFiles(f);
   };
+
+  const fetchExercises = async () => {
+    setLoadingExercises(true);
+    try {
+      let query: any = supabase
+        .from('exercises')
+        .select('id,name,body_part,primary_muscle,equipment,thumbnail_url,image_url,is_public,owner_user_id')
+        .order('name', { ascending: true });
+      if (filterName.trim()) query = query.ilike('name', `%${filterName.trim()}%`);
+      if (filterBodyPart.trim()) query = query.ilike('body_part', `%${filterBodyPart.trim()}%`);
+      if (filterPrimary.trim()) query = query.ilike('primary_muscle', `%${filterPrimary.trim()}%`);
+      const { data, error } = await query.limit(200);
+      if (error) throw error;
+      setExercises(data || []);
+    } catch (err: any) {
+      console.error(err);
+      toast({ title: 'Failed to load exercises', description: err?.message || 'Unknown error' });
+    } finally {
+      setLoadingExercises(false);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchExercises();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onAdd = async () => {
     if (!name.trim()) {
       toast({ title: "Name is required" });
       return;
     }
+
+    // Duplicate check before creating
+    try {
+      const nameNorm = name.trim();
+      let q: any = supabase
+        .from('exercises')
+        .select('id,name,body_part,primary_muscle,equipment,thumbnail_url,image_url')
+        .ilike('name', `%${nameNorm}%`);
+      if (bodyPart.trim()) q = q.ilike('body_part', `%${bodyPart.trim()}%`);
+      if (primaryMuscle.trim()) q = q.ilike('primary_muscle', `%${primaryMuscle.trim()}%`);
+      const { data: existing, error: exErr } = await q.limit(10);
+      if (exErr) throw exErr;
+      if ((existing?.length || 0) > 0) {
+        setMatches(existing || []);
+        setShowMatchDialog(true);
+        return;
+      }
+    } catch (e) {
+      console.error(e);
+    }
+
+    await createExercise();
+  };
+
+  const createExercise = async () => {
     setSaving(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
+
+      const secArr = secondaryMuscles
+        .split(',')
+        .map((s) => s.trim())
+        .filter((s) => s.length > 0);
 
       // 1) Create exercise
       const { data: ex, error: e1 } = await supabase
@@ -62,6 +129,7 @@ const Exercises: React.FC = () => {
           equipment: equipment || null,
           primary_muscle: primaryMuscle || null,
           body_part: bodyPart || null,
+          secondary_muscles: secArr.length ? secArr : null,
           source_url: sourceUrl || null,
           is_public: isPublic,
           owner_user_id: user.id,
@@ -114,6 +182,10 @@ const Exercises: React.FC = () => {
       setSourceUrl("");
       setIsPublic(true);
       setFiles([]);
+      setSecondaryMuscles("");
+
+      // Refresh list
+      fetchExercises();
     } catch (e: any) {
       console.error(e);
       toast({ title: "Failed to add exercise", description: e?.message ?? "Unknown error" });
@@ -125,8 +197,74 @@ const Exercises: React.FC = () => {
   return (
     <>
       <PageNav current="Fitness" />
+      <nav className="container pt-4">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Workouts
+              </NavLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Exercises
+              </NavLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Templates
+              </NavLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </nav>
       <main className="container py-8">
         <h1 className="text-2xl font-semibold mb-6">Exercises</h1>
+        <section className="mb-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Browse Exercises</CardTitle>
+              <CardDescription>Filter by name, body part, and primary muscle.</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid sm:grid-cols-3 gap-3">
+                <div className="space-y-2">
+                  <Label htmlFor="filter_name">Name</Label>
+                  <Input id="filter_name" placeholder="e.g., Bench" value={filterName} onChange={(e) => setFilterName(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="filter_body">Body part</Label>
+                  <Input id="filter_body" placeholder="e.g., Upper body" value={filterBodyPart} onChange={(e) => setFilterBodyPart(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="filter_primary">Primary muscle</Label>
+                  <Input id="filter_primary" placeholder="e.g., Chest" value={filterPrimary} onChange={(e) => setFilterPrimary(e.target.value)} />
+                </div>
+              </div>
+              <div>
+                <Button variant="secondary" onClick={fetchExercises} disabled={loadingExercises} aria-label="Search exercises">
+                  {loadingExercises ? "Searching…" : "Search"}
+                </Button>
+              </div>
+              <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                {exercises.map((ex) => (
+                  <Card key={ex.id}>
+                    <CardContent className="pt-4">
+                      <img src={ex.thumbnail_url || ex.image_url || '/placeholder.svg'} alt={`${ex.name} exercise thumbnail`} loading="lazy" className="w-full h-24 object-cover rounded-md" />
+                      <div className="mt-2">
+                        <div className="text-sm font-medium">{ex.name}</div>
+                        <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'} • {ex.equipment || '-'}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+                {!loadingExercises && exercises.length === 0 && (
+                  <p className="text-sm text-muted-foreground">No exercises found.</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </section>
         <section>
           <Card>
             <CardHeader>
@@ -142,6 +280,10 @@ const Exercises: React.FC = () => {
                 <div className="space-y-2">
                   <Label htmlFor="primary_muscle">Primary muscle</Label>
                   <Input id="primary_muscle" placeholder="e.g., Chest" value={primaryMuscle} onChange={(e) => setPrimaryMuscle(e.target.value)} />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="secondary_muscles">Secondary muscles (comma-separated)</Label>
+                  <Input id="secondary_muscles" placeholder="e.g., Triceps, Front delts" value={secondaryMuscles} onChange={(e) => setSecondaryMuscles(e.target.value)} />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="body_part">Body part</Label>
@@ -185,6 +327,37 @@ const Exercises: React.FC = () => {
             </CardContent>
           </Card>
         </section>
+
+        <Dialog open={showMatchDialog} onOpenChange={setShowMatchDialog}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Exercise already exists</DialogTitle>
+              <DialogDescription>Select an existing exercise or create a new one.</DialogDescription>
+            </DialogHeader>
+            <div className="space-y-2 max-h-80 overflow-auto">
+              {matches.map((ex) => (
+                <div key={ex.id} className="border rounded-md p-2 flex items-center justify-between">
+                  <div>
+                    <div className="text-sm font-medium">{ex.name}</div>
+                    <div className="text-xs text-muted-foreground">{ex.primary_muscle || '-'} • {ex.body_part || '-'}</div>
+                  </div>
+                  <Button size="sm" onClick={() => {
+                    setName(ex.name || '');
+                    setPrimaryMuscle(ex.primary_muscle || '');
+                    setBodyPart(ex.body_part || '');
+                    setEquipment(ex.equipment || '');
+                    setShowMatchDialog(false);
+                    toast({ title: 'Existing exercise selected', description: ex.name });
+                  }}>Use this</Button>
+                </div>
+              ))}
+            </div>
+            <DialogFooter>
+              <Button variant="secondary" onClick={() => setShowMatchDialog(false)}>Cancel</Button>
+              <Button onClick={async () => { setShowMatchDialog(false); await createExercise(); }}>Create new anyway</Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </main>
     </>
   );
