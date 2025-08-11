@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
 
 const AdminRoute: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [allowed, setAllowed] = useState(false);
   const location = useLocation();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const checkRoles = async (userId: string) => {
@@ -62,7 +64,7 @@ const AdminRoute: React.FC = () => {
   if (loading) {
     return (
       <main className="container py-12">
-        <p className="text-muted-foreground">Loading...</p>
+        <p className="text-muted-foreground">{t('common.loading')}</p>
       </main>
     );
   }

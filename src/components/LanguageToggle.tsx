@@ -21,6 +21,7 @@ const LanguageToggle: React.FC = () => {
       <SelectContent>
         <SelectItem value="en">English</SelectItem>
         <SelectItem value="es">Español</SelectItem>
+        <SelectItem value="ro">Română</SelectItem>
       </SelectContent>
     </Select>
   );

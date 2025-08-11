@@ -8,14 +8,14 @@ import {
   BreadcrumbSeparator,
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
-
+import { useTranslation } from "react-i18next";
 
 interface PageNavProps {
   current: string;
 }
 
 const PageNav: React.FC<PageNavProps> = ({ current }) => {
-  
+  const { t } = useTranslation();
 
   return (
     <header className="container py-4">
@@ -25,7 +25,7 @@ const PageNav: React.FC<PageNavProps> = ({ current }) => {
             <BreadcrumbList>
               <BreadcrumbItem>
                 <BreadcrumbLink asChild>
-                  <Link to="/">Home</Link>
+                  <Link to="/">{t('common.home')}</Link>
                 </BreadcrumbLink>
               </BreadcrumbItem>
               <BreadcrumbSeparator />
@@ -36,8 +36,8 @@ const PageNav: React.FC<PageNavProps> = ({ current }) => {
           </Breadcrumb>
         </div>
         <div className="flex items-center gap-4 text-sm">
-          <Link to="/dashboard">Dashboard</Link>
-          <Link to="/admin">Admin</Link>
+          <Link to="/dashboard">{t('common.dashboard')}</Link>
+          <Link to="/admin">{t('common.admin')}</Link>
         </div>
       </nav>
     </header>
