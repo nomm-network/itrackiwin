@@ -88,7 +88,7 @@ serve(async (req) => {
       const secondary = Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles.filter(Boolean) : null;
 
       return {
-        _slug: slugKey, // for local dedupe only; slug is generated in DB
+        slug: slugKey,
         name,
         description: null,
         equipment: ex.equipment || null,
@@ -104,11 +104,13 @@ serve(async (req) => {
       } as any;
     }).filter(Boolean);
 
-    // Deduplicate by computed slug
+    // Deduplicate by slug
     const seen = new Set<string>();
     const uniqueRows = rows.filter((r: any) => {
-      if (seen.has(r._slug)) return false;
-      seen.add(r._slug);
+      const key = r.slug as string;
+      if (!key) return false;
+      if (seen.has(key)) return false;
+      seen.add(key);
       return true;
     });
 
@@ -116,10 +118,9 @@ serve(async (req) => {
     let affected = 0;
     for (let i = 0; i < uniqueRows.length; i += chunkSize) {
       const chunk = uniqueRows.slice(i, i + chunkSize);
-      const payload = (chunk as any[]).map(({ _slug, ...rest }) => rest);
       const { data: upserted, error } = await supabase
         .from("exercises")
-        .upsert(payload, { onConflict: "slug" })
+        .upsert(chunk, { onConflict: "slug" })
         .select("id, slug");
       if (error) throw error;
       affected += upserted?.length || 0;
