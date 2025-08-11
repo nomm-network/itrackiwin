@@ -28,7 +28,7 @@ const Index: React.FC = () => {
             <span className="text-xl font-bold">I Track I Win</span>
             <span className="text-sm text-muted-foreground">Track what matters. Win your life.</span>
           </div>
-          <div className="hidden md:flex gap-4 text-sm items-center">
+          <div className="flex gap-4 text-sm items-center">
             <Link className="story-link" to="/progress">Progress</Link>
             <Link className="story-link" to="/journal">Journal</Link>
             <Link className="story-link" to="/fitness">Fitness</Link>

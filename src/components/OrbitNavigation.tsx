@@ -1,7 +1,7 @@
 import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppStore } from "@/store/app";
-import { Area } from "@/types/domain";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 interface OrbitNavigationProps {
   centerImageSrc?: string;
@@ -9,11 +9,61 @@ interface OrbitNavigationProps {
 
 const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => {
   const navigate = useNavigate();
-  const areas = useAppStore((s) => s.areas);
-  const getStreakForArea = useAppStore((s) => s.getStreakForArea);
 
-  const areasArr = useMemo(() => Object.values(areas) as Area[], [areas]);
-  const [selected, setSelected] = useState<Area | null>(null);
+  type OrbitArea = {
+    id: string;
+    name: string;
+    icon?: string | null;
+    color?: string | null; // HSL string like "152 76% 66%"
+    subcategories: string[];
+  };
+
+  const { data: categories = [] } = useQuery({
+    queryKey: ["life_categories_orbit"],
+    queryFn: async () => {
+      const { data, error } = (supabase as any)
+        .from("life_categories")
+        .select("id, name, icon, color, display_order")
+        .order("display_order", { ascending: true })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data as Array<{ id: string; name: string; icon?: string | null; color?: string | null }>;
+    },
+  });
+
+  const { data: subcategories = [] } = useQuery({
+    queryKey: ["life_subcategories_orbit"],
+    queryFn: async () => {
+      const { data, error } = (supabase as any)
+        .from("life_subcategories")
+        .select("id, category_id, name, display_order")
+        .order("display_order", { ascending: true })
+        .order("name", { ascending: true });
+      if (error) throw error;
+      return data as Array<{ id: string; category_id: string; name: string }>;
+    },
+  });
+
+  const subByCat = useMemo(() => {
+    const m: Record<string, string[]> = {};
+    for (const s of subcategories) {
+      m[s.category_id] = m[s.category_id] || [];
+      m[s.category_id].push(s.name);
+    }
+    return m;
+  }, [subcategories]);
+
+  const areasArr = useMemo<OrbitArea[]>(() => {
+    return categories.map((c) => ({
+      id: c.id,
+      name: c.name,
+      icon: c.icon ?? "●",
+      color: c.color ?? null,
+      subcategories: subByCat[c.id] || [],
+    }));
+  }, [categories, subByCat]);
+
+  const [selected, setSelected] = useState<OrbitArea | null>(null);
 
   const [isSmall, setIsSmall] = useState<boolean>(() => window.innerWidth < 640);
   useEffect(() => {
@@ -63,8 +113,8 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
               height: size,
               left: `calc(50% + ${x}px)`,
               top: `calc(50% + ${y}px)`,
-              background: `hsl(${selected.color})`,
-              boxShadow: `0 0 0 2px hsl(${selected.color} / 0.45), 0 0 28px hsl(${selected.color} / 0.6)`,
+              background: selected.color ? `hsl(${selected.color})` : 'hsl(var(--primary))',
+              boxShadow: `0 0 0 2px ${selected.color ? `hsl(${selected.color} / 0.45)` : 'hsl(var(--primary) / 0.45)'}, 0 0 28px ${selected.color ? `hsl(${selected.color} / 0.6)` : 'hsl(var(--primary) / 0.6)'}`,
             };
             const labelTopOffset = y + size / 2 + 12;
             return (
@@ -101,11 +151,10 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
           })
         ) : null
       ) : (
-        // Main areas orbit
+        // Main areas orbit (from DB)
         areasArr.map((a, i) => {
-          const angle = (i / areasArr.length) * Math.PI * 2;
-          const streak = getStreakForArea(a.id);
-          const progress = Math.min(1, streak / 7); // normalize 0..1 (7-day target)
+          const angle = (i / Math.max(areasArr.length, 1)) * Math.PI * 2;
+          const progress = 0; // TODO: hook up progress when streaks are available per category
           const base = isSmall ? 48 : 64;
           const scale = isSmall ? 24 : 36;
           const size = base + progress * scale; // responsive planet size
@@ -117,8 +166,8 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
             height: size,
             left: `calc(50% + ${x}px)`,
             top: `calc(50% + ${y}px)`,
-            background: `hsl(${a.color})`,
-            boxShadow: `0 0 0 2px hsl(${a.color} / 0.45), 0 0 28px hsl(${a.color} / ${glowAlpha})`,
+            background: a.color ? `hsl(${a.color})` : 'hsl(var(--primary))',
+            boxShadow: `0 0 0 2px ${a.color ? `hsl(${a.color} / 0.45)` : 'hsl(var(--primary) / 0.45)'}, 0 0 28px ${a.color ? `hsl(${a.color} / ${glowAlpha})` : `hsl(var(--primary) / ${glowAlpha})`}`,
           };
           const labelTopOffset = y + size / 2 + 12;
           return (
@@ -126,7 +175,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
               <button
                 style={style}
                 className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform"
-                aria-label={`${a.name} — progress ${(progress * 100).toFixed(0)}%`}
+                aria-label={`${a.name}`}
                 onClick={() => setSelected(a)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter" || e.key === " ") {
@@ -136,7 +185,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
                 }}
               >
                 <div className="grid place-items-center size-full">
-                  <div className="text-2xl" aria-hidden>{a.icon}</div>
+                  <div className="text-2xl" aria-hidden>{a.icon || "●"}</div>
                 </div>
               </button>
               <div
