@@ -28,6 +28,7 @@ const Index: React.FC = () => {
           <div className="hidden md:flex gap-4 text-sm">
             <Link className="story-link" to="/progress">Progress</Link>
             <Link className="story-link" to="/journal">Journal</Link>
+            <Link className="story-link" to="/fitness">Fitness</Link>
             <Link className="story-link" to="/insights">Insights</Link>
             <Link className="story-link" to="/profile">Profile</Link>
           </div>

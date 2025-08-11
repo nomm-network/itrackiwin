@@ -12,6 +12,11 @@ import Profile from "./pages/Profile";
 import AreaDetail from "./features/area/AreaDetail";
 import Auth from "./pages/Auth";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import Fitness from "./pages/Fitness";
+import WorkoutSession from "./pages/WorkoutSession";
+import Templates from "./pages/Templates";
+import History from "./pages/History";
+import WorkoutDetail from "./pages/WorkoutDetail";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +35,12 @@ const App = () => (
             <Route path="/insights" element={<Insights />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/area/:slug" element={<AreaDetail />} />
+            {/* Fitness routes */}
+            <Route path="/fitness" element={<Fitness />} />
+            <Route path="/fitness/session/:id" element={<WorkoutSession />} />
+            <Route path="/fitness/templates" element={<Templates />} />
+            <Route path="/fitness/history" element={<History />} />
+            <Route path="/fitness/history/:id" element={<WorkoutDetail />} />
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
