@@ -35,7 +35,10 @@ const Fitness: React.FC = () => {
     try {
       const { data, error } = await supabase.functions.invoke('import-exercises-community');
       if (error) throw error;
-      toast({ title: 'Exercises imported', description: `${data?.processed ?? 0} processed, ${data?.affected ?? 0} upserted.` });
+      const src = data?.source ?? 'unknown';
+      const processed = data?.processed ?? 0;
+      const affected = data?.affected ?? 0;
+      toast({ title: 'Exercises imported', description: `${affected} added/updated from ${src} (${processed} processed).` });
     } catch (e: any) {
       toast({ title: 'Import failed', description: e?.message || 'Unknown error' });
     } finally {
