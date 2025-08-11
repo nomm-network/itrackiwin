@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogTrigger } from "@/components/ui/dialog";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { NavLink } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -201,7 +201,45 @@ const Exercises: React.FC = () => {
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Exercises</h1>
-          <Button onClick={() => setAddOpen(true)}>+ Add Exercise</Button>
+          <Dialog open={addOpen} onOpenChange={setAddOpen}>
+            <DialogTrigger asChild>
+              <Button>+ Add Exercise</Button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Add Exercise</DialogTitle>
+                <DialogDescription>Create a new exercise.</DialogDescription>
+              </DialogHeader>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="new_name">Name</Label>
+                  <Input id="new_name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g., Push-up" />
+                </div>
+                <div className="space-y-2">
+                  <Label>Equipment</Label>
+                  <Select value={newEquipmentId} onValueChange={setNewEquipmentId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select equipment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {equipmentOptions.map((eq: any) => (
+                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Switch id="new_public" checked={newIsPublic} onCheckedChange={setNewIsPublic} />
+                  <Label htmlFor="new_public">Public</Label>
+                </div>
+              </div>
+              <DialogFooter>
+                <Button variant="secondary" onClick={() => setAddOpen(false)}>Cancel</Button>
+                <Button onClick={createExercise} disabled={newSaving}>{newSaving ? 'Saving…' : 'Create'}</Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
         </div>
 
         <section>
@@ -226,43 +264,6 @@ const Exercises: React.FC = () => {
         </section>
       </main>
 
-      {/* Add Dialog */}
-      <Dialog open={addOpen} onOpenChange={setAddOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Add Exercise</DialogTitle>
-            <DialogDescription>Create a new exercise.</DialogDescription>
-          </DialogHeader>
-          <div className="space-y-3">
-            <div className="space-y-2">
-              <Label htmlFor="new_name">Name</Label>
-              <Input id="new_name" value={newName} onChange={(e) => setNewName(e.target.value)} placeholder="e.g., Push-up" />
-            </div>
-            <div className="space-y-2">
-              <Label>Equipment</Label>
-              <Select value={newEquipmentId} onValueChange={setNewEquipmentId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select equipment" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="">None</SelectItem>
-                  {equipmentOptions.map((eq: any) => (
-                    <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex items-center gap-3">
-              <Switch id="new_public" checked={newIsPublic} onCheckedChange={setNewIsPublic} />
-              <Label htmlFor="new_public">Public</Label>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button variant="secondary" onClick={() => setAddOpen(false)}>Cancel</Button>
-            <Button onClick={createExercise} disabled={newSaving}>{newSaving ? 'Saving…' : 'Create'}</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
 
       {/* Edit Dialog */}
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
