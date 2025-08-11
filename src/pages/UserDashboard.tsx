@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { Link } from "react-router-dom";
 
 interface LifeCategory { id: string; slug: string; name: string; display_order: number; }
 interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; priority: number; }
@@ -146,8 +147,15 @@ const UserDashboard: React.FC = () => {
     <main>
       <PageNav current="Dashboard" />
       <section className="container py-6">
-        <h1 className="text-2xl font-semibold">Your Dashboard</h1>
-        <p className="text-sm text-muted-foreground mb-4">Reorder categories, set priorities, and pin up to 3 subcategories</p>
+        <div className="flex items-start justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Your Dashboard</h1>
+            <p className="text-sm text-muted-foreground">Reorder categories, set priorities, and pin up to 3 subcategories</p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button asChild variant="outline"><Link to="/profile">Account</Link></Button>
+          </div>
+        </div>
 
         <Card className="mb-6">
           <CardHeader><CardTitle>Categories order & priority</CardTitle></CardHeader>

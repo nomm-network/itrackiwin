@@ -52,6 +52,14 @@ const App = () => (
             <Route path="/fitness/configure" element={<FitnessConfigure />} />
             <Route path="/fitness/history" element={<History />} />
             <Route path="/fitness/history/:id" element={<WorkoutDetail />} />
+
+            {/* User Dashboard */}
+            <Route path="/dashboard" element={<UserDashboard />} />
+
+            {/* Admin routes */}
+            <Route element={<AdminRoute />}>
+              <Route path="/admin" element={<AdminDashboard />} />
+            </Route>
           </Route>
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />

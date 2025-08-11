@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Button } from "@/components/ui/button";
 import { AreaId } from "@/types/domain";
+import { useIsAdmin } from "@/hooks/useIsAdmin";
 
 const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -11,6 +12,8 @@ const Index: React.FC = () => {
   const areas = useAppStore((s) => s.areas);
 
   React.useEffect(() => seedIfEmpty(), [seedIfEmpty]);
+
+  const { isAdmin } = useIsAdmin();
 
   const onSelect = (id: AreaId) => {
     navigate(`/area/${id}`);
@@ -25,12 +28,13 @@ const Index: React.FC = () => {
             <span className="text-xl font-bold">I Track I Win</span>
             <span className="text-sm text-muted-foreground">Track what matters. Win your life.</span>
           </div>
-          <div className="hidden md:flex gap-4 text-sm">
+          <div className="hidden md:flex gap-4 text-sm items-center">
             <Link className="story-link" to="/progress">Progress</Link>
             <Link className="story-link" to="/journal">Journal</Link>
             <Link className="story-link" to="/fitness">Fitness</Link>
             <Link className="story-link" to="/insights">Insights</Link>
-            <Link className="story-link" to="/profile">Profile</Link>
+            <Link className="story-link" to="/dashboard">Dashboard</Link>
+            {isAdmin && <Link className="story-link" to="/admin">Admin</Link>}
           </div>
         </nav>
       </header>
