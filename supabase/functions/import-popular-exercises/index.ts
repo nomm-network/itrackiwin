@@ -41,10 +41,16 @@ serve(async (req) => {
       images?: { image: string; is_main: boolean }[];
     };
 
-    // Helper to fetch a page
+    // Helper to fetch a page with proper headers
     async function fetchPage(url: string) {
-      const res = await fetch(url);
+      const res = await fetch(url, {
+        headers: {
+          "Accept": "application/json",
+          "User-Agent": "itrackiwin-edge/1.0 (+https://fsayiuhncisevhipbrak.supabase.co)"
+        }
+      });
       if (!res.ok) {
+        console.error("Wger fetch failed", res.status, res.statusText, url);
         throw new Error(`Failed to fetch from Wger: ${res.status} ${res.statusText}`);
       }
       return await res.json();
@@ -53,15 +59,41 @@ serve(async (req) => {
     const desired = 500;
     let nextUrl: string | null = `${base}&limit=100&offset=0`;
     const results: WgerExercise[] = [];
+    let pages = 0;
 
     while (nextUrl && results.length < desired) {
       const page = await fetchPage(nextUrl);
       const pageResults: WgerExercise[] = page.results || [];
+      pages++;
       for (const ex of pageResults) {
         results.push(ex);
         if (results.length >= desired) break;
       }
       nextUrl = page.next || null; // Wger returns full URL for next page
+    }
+
+    if (results.length === 0) {
+      console.log("exerciseinfo returned 0; falling back to exercise endpoint");
+      let next2: string | null = `https://wger.de/api/v2/exercise/?language=2&status=2&limit=100&offset=0`;
+      while (next2 && results.length < desired) {
+        const page = await fetchPage(next2);
+        const pageResults: any[] = page.results || [];
+        for (const ex of pageResults) {
+          results.push({
+            id: ex.id,
+            name: typeof ex.name === 'string' ? ex.name : String(ex.name ?? ''),
+            description: typeof ex.description === 'string' ? ex.description : '',
+            equipment: [],
+            muscles: [],
+            muscles_secondary: [],
+            category: typeof ex.category === 'object' ? ex.category : undefined,
+            images: [],
+          } as any);
+          if (results.length >= desired) break;
+        }
+        next2 = page.next || null;
+      }
+      console.log("fallback exercise fetched", results.length);
     }
 
     const popularOrder = [
@@ -115,9 +147,10 @@ serve(async (req) => {
       const mainImg = ex.images?.find((im) => im.is_main)?.image || ex.images?.[0]?.image || null;
       const baseRank = slug ? orderIndex.get(slug) ?? null : null;
 
-      // Build row WITHOUT slug (slug is generated in DB)
+      // Build row INCLUDING slug for conflict handling
       const row = {
         name: name || null,
+        slug: slug || null,
         description: descriptionText,
         equipment,
         primary_muscle: primaryMuscle,
