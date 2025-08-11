@@ -36,6 +36,8 @@ const Exercises: React.FC = () => {
   const [loading, setLoading] = React.useState(false);
   const [equipmentOptions, setEquipmentOptions] = React.useState<any[]>([]);
   const [currentUserId, setCurrentUserId] = React.useState<string | null>(null);
+  const [lastError, setLastError] = React.useState<string | null>(null);
+  const [debug] = React.useState(true);
 
 
   // Edit dialog state
@@ -63,16 +65,19 @@ const Exercises: React.FC = () => {
 
   const loadExercises = React.useCallback(async () => {
     setLoading(true);
+    setLastError(null);
     try {
       const { data, error } = await supabase
         .from('exercises')
-        .select('id,name,owner_user_id,equipment_id,is_public')
+        .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_ids')
         .order('name', { ascending: true })
         .limit(500);
+      console.debug('loadExercises result', { count: data?.length, error });
       if (error) throw error;
       setExercises(data || []);
     } catch (e: any) {
-      console.error(e);
+      console.error('loadExercises error', e);
+      setLastError(e?.message || String(e));
       toast({ title: 'Failed to load exercises', description: e?.message || 'Unknown error' });
     } finally {
       setLoading(false);
@@ -229,6 +234,19 @@ const Exercises: React.FC = () => {
             </CardContent>
           </Card>
         </section>
+        {debug && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle>Debug</CardTitle>
+                <CardDescription>State and last error</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify({ route: 'Exercises', loading, currentUserId, count: exercises.length, lastError, sample: exercises.slice(0,3) }, null, 2)}</pre>
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </main>
 
 

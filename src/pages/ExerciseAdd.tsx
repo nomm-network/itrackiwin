@@ -32,16 +32,27 @@ const ExerciseAdd: React.FC = () => {
   const navigate = useNavigate();
 
   const [equipmentOptions, setEquipmentOptions] = React.useState<any[]>([]);
+  const [muscleOptions, setMuscleOptions] = React.useState<any[]>([]);
   const [name, setName] = React.useState("");
+  const [primaryMuscleId, setPrimaryMuscleId] = React.useState("");
   const [equipmentId, setEquipmentId] = React.useState("");
   const [isPublic, setIsPublic] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
+  const [lastError, setLastError] = React.useState<string | null>(null);
+  const [debug] = React.useState(true);
 
   React.useEffect(() => {
-    supabase.from('equipment').select('id,name').order('name').then(({ data, error }) => {
-      if (error) console.error(error);
-      setEquipmentOptions(data || []);
-    });
+    (async () => {
+      const [{ data: eq, error: eqErr }, { data: mus, error: musErr }] = await Promise.all([
+        supabase.from('equipment').select('id,name').order('name'),
+        supabase.from('muscles').select('id,name').order('name')
+      ]);
+      console.debug('preload options', { eqCount: eq?.length, musCount: mus?.length, eqErr, musErr });
+      if (eqErr) console.error(eqErr);
+      if (musErr) console.error(musErr);
+      setEquipmentOptions(eq || []);
+      setMuscleOptions(mus || []);
+    })();
   }, []);
 
   const handleCreate = async () => {
@@ -50,17 +61,20 @@ const ExerciseAdd: React.FC = () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
+      console.debug('handleCreate payload', { name, primaryMuscleId, equipmentId, isPublic });
       const { error } = await supabase.from('exercises').insert({
         name: name.trim(),
         owner_user_id: user.id,
         is_public: isPublic,
         equipment_id: equipmentId || null,
+        primary_muscle_id: primaryMuscleId || null,
       });
       if (error) throw error;
       toast({ title: 'Exercise added' });
       navigate('/fitness/exercises');
     } catch (e: any) {
       console.error(e);
+      setLastError(e?.message || String(e));
       toast({ title: 'Failed to add', description: e?.message || 'Unknown error' });
     } finally {
       setSaving(false);
@@ -115,6 +129,20 @@ const ExerciseAdd: React.FC = () => {
                 <Input id="name" value={name} onChange={(e) => setName(e.target.value)} placeholder="e.g., Push-up" />
               </div>
               <div className="space-y-2">
+                <Label>Primary Muscle</Label>
+                <Select value={primaryMuscleId} onValueChange={setPrimaryMuscleId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select muscle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {muscleOptions.map((m: any) => (
+                      <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
                 <Label>Equipment</Label>
                 <Select value={equipmentId} onValueChange={setEquipmentId}>
                   <SelectTrigger>
@@ -139,6 +167,19 @@ const ExerciseAdd: React.FC = () => {
             </CardContent>
           </Card>
         </section>
+        {debug && (
+          <section>
+            <Card>
+              <CardHeader>
+                <CardTitle>Debug</CardTitle>
+                <CardDescription>Form state</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs whitespace-pre-wrap">{JSON.stringify({ name, primaryMuscleId, equipmentId, isPublic, saving, lastError }, null, 2)}</pre>
+              </CardContent>
+            </Card>
+          </section>
+        )}
       </main>
     </>
   );
