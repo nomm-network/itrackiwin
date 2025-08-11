@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       exercises: {
         Row: {
+          body_part: string | null
           created_at: string
           description: string | null
           equipment: string | null
@@ -32,6 +33,7 @@ export type Database = {
           thumbnail_url: string | null
         }
         Insert: {
+          body_part?: string | null
           created_at?: string
           description?: string | null
           equipment?: string | null
@@ -48,6 +50,7 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Update: {
+          body_part?: string | null
           created_at?: string
           description?: string | null
           equipment?: string | null
