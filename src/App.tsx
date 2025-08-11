@@ -21,6 +21,9 @@ import Exercises from "./pages/Exercises";
 import FitnessConfigure from "./pages/FitnessConfigure";
 import ExerciseAdd from "./pages/ExerciseAdd";
 import ExerciseEdit from "./pages/ExerciseEdit";
+import AdminRoute from "./components/auth/AdminRoute";
+import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
 
