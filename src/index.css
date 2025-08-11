@@ -8,50 +8,50 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    --background: 215 25% 7%;
-    --foreground: 210 20% 98%;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --card: 215 23% 10%;
-    --card-foreground: 210 20% 98%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 215 23% 10%;
-    --popover-foreground: 210 20% 98%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 152 76% 66%;
-    --primary-foreground: 216 28% 7%;
+    --primary: 152 76% 40%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 217 32% 17%;
-    --secondary-foreground: 210 20% 96%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
 
-    --muted: 217 24% 18%;
-    --muted-foreground: 215 20% 65%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 45%;
 
     --accent: 217 91% 66%;
     --accent-foreground: 215 25% 10%;
 
-    --destructive: 0 90% 72%;
-    --destructive-foreground: 215 25% 10%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
 
-    --border: 217 19% 24%;
-    --input: 217 19% 24%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 217 91% 66%;
 
     --radius: 0.75rem;
 
-    --sidebar-background: 215 23% 10%;
-    --sidebar-foreground: 210 20% 96%;
-    --sidebar-primary: 152 76% 66%;
-    --sidebar-primary-foreground: 216 28% 7%;
-    --sidebar-accent: 217 32% 17%;
-    --sidebar-accent-foreground: 210 20% 96%;
-    --sidebar-border: 217 19% 24%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 152 76% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
     --sidebar-ring: 217 91% 66%;
 
     /* Extras */
     --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(160 84% 39%));
-    --gradient-subtle: linear-gradient(180deg, hsl(215 25% 9%), hsl(215 25% 7%));
-    --shadow-elegant: 0 10px 30px -10px hsl(var(--accent) / 0.3);
-    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.35);
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--accent) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
   }
 
   .dark {

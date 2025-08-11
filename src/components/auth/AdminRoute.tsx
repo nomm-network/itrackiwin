@@ -14,6 +14,14 @@ const AdminRoute: React.FC = () => {
         await supabase.rpc('bootstrap_admin_if_empty');
       } catch {}
       try {
+        const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_admin', { _user_id: userId });
+        if (rpcErr) throw rpcErr;
+        if (isAdm === true) {
+          setAllowed(true);
+          return;
+        }
+      } catch {}
+      try {
         const { data, error } = (supabase as any)
           .from("user_roles")
           .select("role")

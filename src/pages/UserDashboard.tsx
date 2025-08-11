@@ -9,6 +9,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Link } from "react-router-dom";
 import { GripVertical } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 interface LifeCategory { id: string; slug: string; name: string; display_order: number; }
 interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; }
@@ -190,6 +191,7 @@ const UserDashboard: React.FC = () => {
             <p className="text-sm text-muted-foreground">Reorder categories by dragging, and pin up to 3 subcategories</p>
           </div>
           <div className="flex items-center gap-2">
+            <ThemeToggle />
             <Button asChild variant="outline"><Link to="/profile">Account</Link></Button>
           </div>
         </div>
