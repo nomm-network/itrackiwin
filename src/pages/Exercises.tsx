@@ -270,6 +270,7 @@ const Exercises: React.FC = () => {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error('Not authenticated');
 
+        let firstUrl: string | null = null;
         for (let i = 0; i < editFiles.length; i++) {
           const file = editFiles[i];
           const path = `${user.id}/${editingId}/${Date.now()}-${i}-${file.name}`;
@@ -279,15 +280,25 @@ const Exercises: React.FC = () => {
           if (upErr) throw upErr;
           const { data: pub } = supabase.storage.from('exercise-images').getPublicUrl(path);
           const url = pub.publicUrl;
+          if (!firstUrl) firstUrl = url;
           const { error: insErr } = await supabase.from('exercise_images').insert({
             user_id: user.id,
             exercise_id: editingId,
             url,
             path,
-            is_primary: false,
+            is_primary: i === 0,
             order_index: i + 1,
           });
           if (insErr) throw insErr;
+        }
+
+        if (firstUrl) {
+          const { error: upThumbErr } = await supabase
+            .from('exercises')
+            .update({ image_url: firstUrl, thumbnail_url: firstUrl })
+            .eq('id', editingId)
+            .eq('owner_user_id', user.id);
+          if (upThumbErr) throw upThumbErr;
         }
       }
 
