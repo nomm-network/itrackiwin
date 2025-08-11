@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import { useRecentWorkouts, useStartWorkout } from "@/features/fitness/api";
+import { toast } from "@/components/ui/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const useSEO = () => {
   React.useEffect(() => {
@@ -26,6 +28,20 @@ const Fitness: React.FC = () => {
   const navigate = useNavigate();
   const { data: workouts } = useRecentWorkouts(5);
   const startMut = useStartWorkout();
+
+  const [importing, setImporting] = React.useState(false);
+  const importExercises = async () => {
+    setImporting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('import-popular-exercises');
+      if (error) throw error;
+      toast({ title: 'Exercises imported', description: `${data?.affected ?? 0} rows affected.` });
+    } catch (e: any) {
+      toast({ title: 'Import failed', description: e?.message || 'Unknown error' });
+    } finally {
+      setImporting(false);
+    }
+  };
 
   const onStartFree = async () => {
     const id = await startMut.mutateAsync(null);
@@ -54,7 +70,12 @@ const Fitness: React.FC = () => {
               <CardDescription>Search the public library.</CardDescription>
             </CardHeader>
             <CardContent>
-              <Input placeholder="Search exercises..." aria-label="Search exercises" onFocus={() => navigate('/fitness/templates')} />
+              <div className="flex flex-col sm:flex-row gap-3">
+                <Input placeholder="Search exercises..." aria-label="Search exercises" onFocus={() => navigate('/fitness/templates')} />
+                <Button variant="secondary" onClick={importExercises} disabled={importing} aria-label="Load popular exercises">
+                  {importing ? 'Importing…' : 'Load popular exercises'}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </section>

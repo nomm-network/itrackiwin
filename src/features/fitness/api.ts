@@ -246,8 +246,11 @@ export const useSearchExercises = (query: string) => {
     queryFn: async (): Promise<Exercise[]> => {
       const { data, error } = await supabase
         .from("exercises")
-        .select("id,name,description,equipment,primary_muscle")
+        .select("id,name,description,equipment,primary_muscle,thumbnail_url,image_url,source_url,popularity_rank,is_public")
         .ilike("name", `%${query}%`)
+        .order("is_public", { ascending: false })
+        .order("popularity_rank", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true })
         .limit(20);
       if (error) throw error;
       return data as any;
