@@ -32,15 +32,13 @@ const Exercises: React.FC = () => {
   const { toast } = useToast();
 
   const [name, setName] = React.useState("");
-  const [primaryMuscle, setPrimaryMuscle] = React.useState("");
-  const [bodyPart, setBodyPart] = React.useState("");
-  const [equipment, setEquipment] = React.useState("");
   const [description, setDescription] = React.useState("");
   const [sourceUrl, setSourceUrl] = React.useState("");
   const [isPublic, setIsPublic] = React.useState(true);
   const [files, setFiles] = React.useState<File[]>([]);
   const [saving, setSaving] = React.useState(false);
-  const [secondaryMuscles, setSecondaryMuscles] = React.useState("");
+  const [equipmentOptions, setEquipmentOptions] = React.useState<any[]>([]);
+  const [newEquipmentId, setNewEquipmentId] = React.useState("");
 
   const [filterName, setFilterName] = React.useState("");
   const [filterBodyPartId, setFilterBodyPartId] = React.useState("");
@@ -62,10 +60,7 @@ const Exercises: React.FC = () => {
   const [editSaving, setEditSaving] = React.useState(false);
   const [editingId, setEditingId] = React.useState<string | null>(null);
   const [editName, setEditName] = React.useState("");
-  const [editPrimaryMuscle, setEditPrimaryMuscle] = React.useState("");
-  const [editSecondaryMuscles, setEditSecondaryMuscles] = React.useState("");
-  const [editBodyPart, setEditBodyPart] = React.useState("");
-  const [editEquipment, setEditEquipment] = React.useState("");
+  const [editEquipmentId, setEditEquipmentId] = React.useState("");
   const [editDescription, setEditDescription] = React.useState("");
   const [editSourceUrl, setEditSourceUrl] = React.useState("");
   const [editIsPublic, setEditIsPublic] = React.useState(true);
@@ -169,7 +164,12 @@ const Exercises: React.FC = () => {
     if (!error) setMuscles(data || []);
   };
 
-  React.useEffect(() => { loadBodyParts(); }, []);
+  const loadEquipmentOptions = async () => {
+    const { data } = await supabase.from('equipment').select('id,name').order('name');
+    setEquipmentOptions(data || []);
+  };
+
+  React.useEffect(() => { loadBodyParts(); loadEquipmentOptions(); }, []);
   React.useEffect(() => { loadMuscleGroups(filterBodyPartId); setFilterMuscleGroupId(""); setFilterPrimaryMuscleId(""); }, [filterBodyPartId]);
   React.useEffect(() => { loadMuscles(filterMuscleGroupId); setFilterPrimaryMuscleId(""); }, [filterMuscleGroupId]);
 
@@ -218,10 +218,7 @@ const Exercises: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const secArr = secondaryMuscles
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
+      // using only name and optional equipment; secondary muscles not used
 
       // 1) Create exercise
       const { data: ex, error: e1 } = await supabase
@@ -232,6 +229,7 @@ const Exercises: React.FC = () => {
           source_url: sourceUrl || null,
           is_public: isPublic,
           owner_user_id: user.id,
+          equipment_id: newEquipmentId || null,
         })
         .select("id")
         .single();
@@ -274,14 +272,11 @@ const Exercises: React.FC = () => {
       toast({ title: "Exercise added", description: files.length ? `Uploaded ${files.length} image(s)` : undefined });
       // Reset form
       setName("");
-      setPrimaryMuscle("");
-      setBodyPart("");
-      setEquipment("");
       setDescription("");
       setSourceUrl("");
       setIsPublic(true);
       setFiles([]);
-      setSecondaryMuscles("");
+      setNewEquipmentId("");
 
       // Refresh list
       fetchExercises();
@@ -296,10 +291,7 @@ const Exercises: React.FC = () => {
   const openEdit = (ex: any) => {
     setEditingId(ex.id);
     setEditName(ex.name ?? "");
-    setEditPrimaryMuscle(ex.primary_muscle ?? "");
-    setEditSecondaryMuscles(Array.isArray(ex.secondary_muscles) ? ex.secondary_muscles.join(", ") : "");
-    setEditBodyPart(ex.body_part ?? "");
-    setEditEquipment(ex.equipment ?? "");
+    setEditEquipmentId(ex.equipment_id ?? "");
     setEditDescription(ex.description ?? "");
     setEditSourceUrl(ex.source_url ?? "");
     setEditIsPublic(!!ex.is_public);
@@ -311,10 +303,6 @@ const Exercises: React.FC = () => {
     if (!editingId) return;
     setEditSaving(true);
     try {
-      const secArr = editSecondaryMuscles
-        .split(',')
-        .map((s) => s.trim())
-        .filter((s) => s.length > 0);
       const { error } = await supabase
         .from('exercises')
         .update({
@@ -322,6 +310,7 @@ const Exercises: React.FC = () => {
           description: editDescription || null,
           source_url: editSourceUrl || null,
           is_public: editIsPublic,
+          equipment_id: editEquipmentId || null,
         })
         .eq('id', editingId)
         .select();
@@ -511,20 +500,18 @@ const Exercises: React.FC = () => {
                   <Input id="name" placeholder="e.g., Barbell Bench Press" value={name} onChange={(e) => setName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="primary_muscle">Primary muscle</Label>
-                  <Input id="primary_muscle" placeholder="e.g., Chest" value={primaryMuscle} onChange={(e) => setPrimaryMuscle(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="secondary_muscles">Secondary muscles (comma-separated)</Label>
-                  <Input id="secondary_muscles" placeholder="e.g., Triceps, Front delts" value={secondaryMuscles} onChange={(e) => setSecondaryMuscles(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="body_part">Body part</Label>
-                  <Input id="body_part" placeholder="e.g., Upper body" value={bodyPart} onChange={(e) => setBodyPart(e.target.value)} />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="equipment">Equipment</Label>
-                  <Input id="equipment" placeholder="e.g., Barbell" value={equipment} onChange={(e) => setEquipment(e.target.value)} />
+                  <Label>Equipment</Label>
+                  <Select value={newEquipmentId} onValueChange={setNewEquipmentId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select equipment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">None</SelectItem>
+                      {equipmentOptions.map((eq: any) => (
+                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="sm:col-span-2 space-y-2">
                   <Label htmlFor="description">Description / cues</Label>
@@ -603,20 +590,18 @@ const Exercises: React.FC = () => {
                     <Input id="edit_name" value={editName} onChange={(e) => setEditName(e.target.value)} />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="edit_primary_muscle">Primary muscle</Label>
-                    <Input id="edit_primary_muscle" value={editPrimaryMuscle} onChange={(e) => setEditPrimaryMuscle(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit_secondary_muscles">Secondary muscles (comma-separated)</Label>
-                    <Input id="edit_secondary_muscles" value={editSecondaryMuscles} onChange={(e) => setEditSecondaryMuscles(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit_body_part">Body part</Label>
-                    <Input id="edit_body_part" value={editBodyPart} onChange={(e) => setEditBodyPart(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="edit_equipment">Equipment</Label>
-                    <Input id="edit_equipment" value={editEquipment} onChange={(e) => setEditEquipment(e.target.value)} />
+                    <Label>Equipment</Label>
+                    <Select value={editEquipmentId} onValueChange={setEditEquipmentId}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select equipment" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">None</SelectItem>
+                        {equipmentOptions.map((eq: any) => (
+                          <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <Label htmlFor="edit_description">Description</Label>
@@ -648,6 +633,7 @@ const Exercises: React.FC = () => {
               </div>
 
               <DialogFooter className="px-6 py-4 border-t bg-background">
+                <Button variant="destructive" onClick={async () => { if (!editingId) return; setEditSaving(true); try { const { error } = await supabase.from('exercises').delete().eq('id', editingId); if (error) throw error; toast({ title: 'Exercise deleted' }); setEditOpen(false); setEditingId(null); fetchExercises(); } catch (e: any) { console.error(e); toast({ title: 'Failed to delete', description: e?.message || 'Unknown error' }); } finally { setEditSaving(false); } }}>Delete</Button>
                 <Button variant="secondary" onClick={() => setEditOpen(false)}>Cancel</Button>
                 <Button onClick={saveEdit} disabled={editSaving}>{editSaving ? 'Saving…' : 'Save changes'}</Button>
               </DialogFooter>
