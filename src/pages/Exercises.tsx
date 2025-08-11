@@ -41,12 +41,6 @@ const Exercises: React.FC = () => {
   const [newEquipmentId, setNewEquipmentId] = React.useState("");
 
   const [filterName, setFilterName] = React.useState("");
-  const [filterBodyPartId, setFilterBodyPartId] = React.useState("");
-  const [filterMuscleGroupId, setFilterMuscleGroupId] = React.useState("");
-  const [filterPrimaryMuscleId, setFilterPrimaryMuscleId] = React.useState("");
-  const [bodyParts, setBodyParts] = React.useState<any[]>([]);
-  const [muscleGroups, setMuscleGroups] = React.useState<any[]>([]);
-  const [muscles, setMuscles] = React.useState<any[]>([]);
   const [exercises, setExercises] = React.useState<any[]>([]);
   const [loadingExercises, setLoadingExercises] = React.useState(false);
   const [matches, setMatches] = React.useState<any[]>([]);
@@ -78,61 +72,12 @@ const Exercises: React.FC = () => {
   const fetchExercises = async () => {
     setLoadingExercises(true);
     try {
-      const baseSelect = 'id,name,body_part_id,primary_muscle_id,secondary_muscle_ids,equipment_id,description,source_url,thumbnail_url,image_url,is_public,owner_user_id';
-
-      const runQuery = async (useIdFilters: boolean) => {
-        let q: any = supabase
-          .from('exercises')
-          .select(baseSelect)
-          .order('name', { ascending: true });
-
-        if (filterName.trim()) q = q.ilike('name', `%${filterName.trim()}%`);
-
-        if (useIdFilters) {
-          if (filterBodyPartId) q = q.eq('body_part_id', filterBodyPartId);
-          if (filterPrimaryMuscleId) {
-            q = q.eq('primary_muscle_id', filterPrimaryMuscleId);
-          } else if (filterMuscleGroupId) {
-            const ids = muscles.map((m: any) => m.id);
-            if (ids.length === 0) {
-              return { data: [], error: null } as any;
-            } else {
-              q = q.in('primary_muscle_id', ids);
-            }
-          }
-        } else {
-          // Fallback for older DBs without *_id columns: use text columns
-          if (filterBodyPartId) {
-            const bpName = bodyParts.find((bp: any) => bp.id === filterBodyPartId)?.name;
-            if (bpName) q = q.ilike('body_part', `%${bpName}%`);
-          }
-          if (filterPrimaryMuscleId) {
-            const mName = muscles.find((m: any) => m.id === filterPrimaryMuscleId)?.name;
-            if (mName) q = q.ilike('primary_muscle', `%${mName}%`);
-          } else if (filterMuscleGroupId) {
-            const names: string[] = muscles.map((m: any) => m.name).filter(Boolean);
-            if (names.length) {
-              const orExpr = names
-                .map((n) => `primary_muscle.ilike.%${String(n).replace(/[,)/\\(]/g, ' ')}%`)
-                .join(',');
-              if (orExpr) q = q.or(orExpr);
-            } else {
-              return { data: [], error: null } as any;
-            }
-          }
-        }
-        return await q.limit(200);
-      };
-
-      // First try with ID-based filters (new schema)
-      let { data, error } = await runQuery(true);
-
-      // If it failed due to missing columns, retry with text-based filters (old schema)
-      if (error && /column .* does not exist|unknown column|missing FROM-clause entry/i.test(error.message)) {
-        const retry = await runQuery(false);
-        data = retry.data; error = retry.error;
-      }
-
+      let q: any = supabase
+        .from('exercises')
+        .select('id,name')
+        .order('name', { ascending: true });
+      if (filterName.trim()) q = q.ilike('name', `%${filterName.trim()}%`);
+      const { data, error } = await q.limit(200);
       if (error) throw error;
       setExercises(data || []);
     } catch (err: any) {
@@ -148,30 +93,13 @@ const Exercises: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Taxonomy loaders
-  const loadBodyParts = async () => {
-    const { data, error } = await supabase.from('body_parts').select('id,name').order('name');
-    if (!error) setBodyParts(data || []);
-  };
-  const loadMuscleGroups = async (bpId: string) => {
-    if (!bpId) { setMuscleGroups([]); setMuscles([]); return; }
-    const { data, error } = await supabase.from('muscle_groups').select('id,name').eq('body_part_id', bpId).order('name');
-    if (!error) setMuscleGroups(data || []);
-  };
-  const loadMuscles = async (mgId: string) => {
-    if (!mgId) { setMuscles([]); return; }
-    const { data, error } = await supabase.from('muscles').select('id,name').eq('muscle_group_id', mgId).order('name');
-    if (!error) setMuscles(data || []);
-  };
-
+  // Load equipment options
   const loadEquipmentOptions = async () => {
     const { data } = await supabase.from('equipment').select('id,name').order('name');
     setEquipmentOptions(data || []);
   };
 
-  React.useEffect(() => { loadBodyParts(); loadEquipmentOptions(); }, []);
-  React.useEffect(() => { loadMuscleGroups(filterBodyPartId); setFilterMuscleGroupId(""); setFilterPrimaryMuscleId(""); }, [filterBodyPartId]);
-  React.useEffect(() => { loadMuscles(filterMuscleGroupId); setFilterPrimaryMuscleId(""); }, [filterMuscleGroupId]);
+  React.useEffect(() => { loadEquipmentOptions(); }, []);
 
   React.useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -400,76 +328,25 @@ const Exercises: React.FC = () => {
           <Card>
             <CardHeader>
               <CardTitle>Browse Exercises</CardTitle>
-              <CardDescription>Filter by name, body part, and primary muscle.</CardDescription>
+              <CardDescription>Filter by name.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-4 gap-3">
+              <div className="grid sm:grid-cols-2 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="filter_name">Name</Label>
                   <Input id="filter_name" placeholder="e.g., Bench" value={filterName} onChange={(e) => setFilterName(e.target.value)} />
                 </div>
-                <div className="space-y-2">
-                  <Label>Body part</Label>
-                  <Select value={filterBodyPartId} onValueChange={(v) => setFilterBodyPartId(v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All body parts" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All</SelectItem>
-                      {bodyParts.map((bp: any) => (
-                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="flex items-end">
+                  <Button variant="secondary" onClick={fetchExercises} disabled={loadingExercises} aria-label="Search exercises" className="mt-6">
+                    {loadingExercises ? "Searching…" : "Search"}
+                  </Button>
                 </div>
-                <div className="space-y-2">
-                  <Label>Muscle group</Label>
-                  <Select value={filterMuscleGroupId} onValueChange={(v) => setFilterMuscleGroupId(v)} disabled={!filterBodyPartId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={!filterBodyPartId ? "Select a body part first" : "All groups"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All</SelectItem>
-                      {muscleGroups.map((mg: any) => (
-                        <SelectItem key={mg.id} value={mg.id}>{mg.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Primary muscle</Label>
-                  <Select value={filterPrimaryMuscleId} onValueChange={(v) => setFilterPrimaryMuscleId(v)} disabled={!filterMuscleGroupId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={!filterMuscleGroupId ? "Select a group first" : "All muscles"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="">All</SelectItem>
-                      {muscles.map((m: any) => (
-                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div>
-                <Button variant="secondary" onClick={fetchExercises} disabled={loadingExercises} aria-label="Search exercises">
-                  {loadingExercises ? "Searching…" : "Search"}
-                </Button>
               </div>
               <div className="grid sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
                 {exercises.map((ex) => (
                   <Card key={ex.id}>
                     <CardContent className="pt-4">
-                      <img
-                        src={ex.thumbnail_url || ex.image_url || '/placeholder.svg'}
-                        alt={`${ex.name} exercise thumbnail`}
-                        loading="lazy"
-                        className="w-full h-24 object-cover rounded-md"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).src = '/placeholder.svg'; }}
-                      />
-                      <div className="mt-2">
-                        <div className="text-sm font-medium">{ex.name}</div>
-                      </div>
+                      <div className="text-sm font-medium">{ex.name}</div>
                       {currentUserId && ex.owner_user_id === currentUserId && (
                         <div className="mt-3">
                           <Button size="sm" variant="outline" onClick={() => openEdit(ex)} aria-label={`Edit ${ex.name}`}>
