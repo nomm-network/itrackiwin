@@ -45,7 +45,10 @@ const subcategoryIcon = (name: string): string => {
 
 const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => {
   const navigate = useNavigate();
-
+  const [userId, setUserId] = useState<string | null>(null);
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUserId(data.user?.id ?? null));
+  }, []);
   const DEFAULT_ORDER = [
     "Health",
     "Wealth",
@@ -76,37 +79,62 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({ centerImageSrc }) => 
     },
   });
 
-  const { data: subcategories = [] } = useQuery({
-    queryKey: ["life_subcategories_orbit"],
-    queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("life_subcategories")
-        .select("id, category_id, name, display_order")
-        .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Array<{ id: string; category_id: string; name: string }>;
-    },
-  });
+const { data: subcategories = [] } = useQuery({
+  queryKey: ["life_subcategories_orbit"],
+  queryFn: async () => {
+    const { data, error } = await (supabase as any)
+      .from("life_subcategories")
+      .select("id, category_id, name, display_order")
+      .order("display_order", { ascending: true })
+      .order("name", { ascending: true });
+    if (error) throw error;
+    return (data ?? []) as Array<{ id: string; category_id: string; name: string }>;
+  },
+});
 
-  const subByCat = useMemo(() => {
-    const m: Record<string, string[]> = {};
-    for (const s of subcategories) {
-      m[s.category_id] = m[s.category_id] || [];
-      m[s.category_id].push(s.name);
-    }
-    return m;
-  }, [subcategories]);
+const { data: prefs = [] } = useQuery({
+  queryKey: ["user_category_prefs_orbit"],
+  enabled: !!userId,
+  queryFn: async () => {
+    const { data, error } = await (supabase as any)
+      .from("user_category_prefs")
+      .select("category_id, display_order");
+    if (error) throw error;
+    return (data ?? []) as Array<{ category_id: string; display_order: number }>;
+  },
+});
+
+const { data: pins = [] } = useQuery({
+  queryKey: ["user_pins_orbit"],
+  enabled: !!userId,
+  queryFn: async () => {
+    const { data, error } = await (supabase as any)
+      .from("user_pinned_subcategories")
+      .select("subcategory_id");
+    if (error) throw error;
+    return (data ?? []) as Array<{ subcategory_id: string }>;
+  },
+});
+
+const subByCat = useMemo(() => {
+  const m: Record<string, string[]> = {};
+  for (const s of subcategories) {
+    m[s.category_id] = m[s.category_id] || [];
+    m[s.category_id].push(s.name);
+  }
+  return m;
+}, [subcategories]);
 
 const areasArr = useMemo<OrbitArea[]>(() => {
-  // Sort categories by DEFAULT_ORDER first, then by name fallback
-  const orderIndex = (name: string) => {
+  const orderIndex = (id: string, name: string) => {
+    const pref = prefs.find((p) => p.category_id === id);
+    if (pref) return pref.display_order;
     const idx = DEFAULT_ORDER.indexOf(name);
     return idx === -1 ? 999 : idx;
   };
   const sorted = [...categories].sort((a, b) => {
-    const ai = orderIndex(a.name);
-    const bi = orderIndex(b.name);
+    const ai = orderIndex(a.id, a.name);
+    const bi = orderIndex(b.id, b.name);
     if (ai !== bi) return ai - bi;
     return a.name.localeCompare(b.name);
   });
@@ -117,7 +145,7 @@ const areasArr = useMemo<OrbitArea[]>(() => {
     color: c.color ?? null,
     subcategories: subByCat[c.id] || [],
   }));
-}, [categories, subByCat]);
+}, [categories, subByCat, prefs]);
 
   const [selected, setSelected] = useState<OrbitArea | null>(null);
 
@@ -130,8 +158,58 @@ const areasArr = useMemo<OrbitArea[]>(() => {
 
   const radius = isSmall ? 120 : 220;
 
+  // Build pinned items (max 3)
+  const subById = useMemo(() => {
+    const m: Record<string, { id: string; category_id: string; name: string }> = {};
+    for (const s of subcategories) m[s.id] = s;
+    return m;
+  }, [subcategories]);
+
+  const pinnedItems = useMemo(() => {
+    const defaults = ["Fitness & exercise", "Long-term wealth building", "Romantic life"];
+    let list = pins.length
+      ? pins.map((p) => subById[p.subcategory_id]).filter(Boolean)
+      : defaults.map((n) => subcategories.find((s) => s.name === n)).filter(Boolean);
+    // dedupe by id and limit 3
+    const seen = new Set<string>();
+    const final: Array<{ id: string; category_id: string; name: string }> = [];
+    for (const s of list) {
+      if (!s || seen.has(s.id)) continue;
+      seen.add(s.id);
+      final.push(s);
+      if (final.length === 3) break;
+    }
+    return final;
+  }, [pins, subById, subcategories]);
+
   return (
-    <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[720px] aspect-square">
+    <div className="w-full">
+      <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2">
+        {pinnedItems.map((s) => {
+          const cat = categories.find((c) => c.id === s.category_id);
+          const bg = cat?.color ? `hsl(${cat.color})` : 'hsl(var(--primary))';
+          const shadow = cat?.color ? `0 0 0 2px hsl(${cat.color} / 0.45), 0 0 28px hsl(${cat.color} / 0.6)` : `0 0 0 2px hsl(var(--primary) / 0.45), 0 0 28px hsl(var(--primary) / 0.6)`;
+          return (
+            <button
+              key={s.id}
+              className="rounded-full px-3 py-2 text-xs sm:text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80"
+              style={{ background: bg, boxShadow: shadow }}
+              onClick={() => {
+                if (s.name === "Fitness & exercise" || s.name === "Fitness and Exercise") {
+                  navigate("/fitness");
+                } else {
+                  const area = areasArr.find((a) => a.id === s.category_id) || null;
+                  setSelected(area);
+                }
+              }}
+            >
+              <span className="mr-1" aria-hidden>{subcategoryIcon(s.name)}</span>
+              {s.name}
+            </button>
+          );
+        })}
+      </div>
+      <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[720px] aspect-square">
       {/* Center avatar/logo or Back to main */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">
         {selected ? (
@@ -257,6 +335,7 @@ areasArr.map((a, i) => {
           );
         })
       )}
+      </div>
     </div>
   );
 };

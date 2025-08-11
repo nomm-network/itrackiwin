@@ -462,7 +462,6 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
-          priority: number
           updated_at: string
           user_id: string
         }
@@ -471,7 +470,6 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
-          priority?: number
           updated_at?: string
           user_id: string
         }
@@ -480,7 +478,6 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
-          priority?: number
           updated_at?: string
           user_id?: string
         }
@@ -731,6 +728,10 @@ export type Database = {
       add_set: {
         Args: { p_workout_exercise_id: string; p_payload: Json }
         Returns: string
+      }
+      bootstrap_admin_if_empty: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
       }
       clone_template_to_workout: {
         Args: { p_template_id: string }

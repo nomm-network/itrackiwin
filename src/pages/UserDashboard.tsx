@@ -11,7 +11,7 @@ import { Link } from "react-router-dom";
 import { GripVertical } from "lucide-react";
 
 interface LifeCategory { id: string; slug: string; name: string; display_order: number; }
-interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; priority: number; }
+interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; }
 interface LifeSubcategory { id: string; category_id: string; name: string; }
 interface UserPin { id?: string; user_id: string; subcategory_id: string; }
 
@@ -57,7 +57,7 @@ const UserDashboard: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await (supabase as any)
         .from("user_category_prefs")
-        .select("id, user_id, category_id, display_order, priority");
+        .select("id, user_id, category_id, display_order");
       if (error) throw error;
       return (data ?? []) as UserPref[];
     },
@@ -68,7 +68,7 @@ const UserDashboard: React.FC = () => {
       const p = prefs.find((x) => x.category_id === c.id);
       return {
         category: c,
-        pref: p ?? { user_id: userId!, category_id: c.id, display_order: idx, priority: 0 },
+        pref: p ?? { user_id: userId!, category_id: c.id, display_order: idx },
       };
     });
   }, [categories, prefs, userId]);
@@ -140,15 +140,13 @@ const UserDashboard: React.FC = () => {
       const p = prefs.find((x) => x.category_id === c.id);
       const base = p && p.display_order > 0 ? p.display_order : (orderMap.get(c.name) ?? 999);
       return {
-        ...(p ?? { user_id: userId!, category_id: c.id, display_order: base, priority: base }),
+        ...(p ?? { user_id: userId!, category_id: c.id, display_order: base }),
         display_order: base,
-        priority: base,
       } as UserPref;
     });
     items.sort((a, b) => a.display_order - b.display_order);
-    const normalized = items.map((it, idx) => ({ ...it, display_order: idx + 1, priority: idx + 1 }));
+    const normalized = items.map((it, idx) => ({ ...it, display_order: idx + 1 }));
     setRows(normalized);
-  }, [categories, prefs, userId]);
 
   const onChangeRow = (categoryId: string, patch: Partial<UserPref>) => {
     setRows((prev) => prev.map((r) => r.category_id === categoryId ? { ...r, ...patch } : r));
@@ -166,7 +164,7 @@ const UserDashboard: React.FC = () => {
       const next = [...prev];
       const [moved] = next.splice(from, 1);
       next.splice(to, 0, moved);
-      return next.map((r, idx) => ({ ...r, display_order: idx + 1, priority: idx + 1 }));
+      return next.map((r, idx) => ({ ...r, display_order: idx + 1 }));
     });
   };
   const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragId(null); };
@@ -231,7 +229,7 @@ const UserDashboard: React.FC = () => {
               </TableBody>
             </Table>
             <div className="mt-4 flex justify-end">
-              <Button onClick={() => upsertPrefs.mutate(rows.map((r, i) => ({ ...r, display_order: i + 1, priority: i + 1 })))}>Save</Button>
+              <Button onClick={() => upsertPrefs.mutate(rows.map((r, i) => ({ ...r, display_order: i + 1 })))}>Save</Button>
             </div>
           </CardContent>
         </Card>
