@@ -18,6 +18,7 @@ import Templates from "./pages/Templates";
 import History from "./pages/History";
 import WorkoutDetail from "./pages/WorkoutDetail";
 import Exercises from "./pages/Exercises";
+import FitnessConfigure from "./pages/FitnessConfigure";
 
 const queryClient = new QueryClient();
 

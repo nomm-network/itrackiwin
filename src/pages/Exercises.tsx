@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { NavLink } from "react-router-dom";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 const useSEO = () => {
   React.useEffect(() => {
     document.title = "Exercises | I Track I Win";
@@ -42,11 +43,14 @@ const Exercises: React.FC = () => {
   const [secondaryMuscles, setSecondaryMuscles] = React.useState("");
 
   const [filterName, setFilterName] = React.useState("");
-  const [filterBodyPart, setFilterBodyPart] = React.useState("");
-  const [filterPrimary, setFilterPrimary] = React.useState("");
+  const [filterBodyPartId, setFilterBodyPartId] = React.useState("");
+  const [filterMuscleGroupId, setFilterMuscleGroupId] = React.useState("");
+  const [filterPrimaryMuscleId, setFilterPrimaryMuscleId] = React.useState("");
+  const [bodyParts, setBodyParts] = React.useState<any[]>([]);
+  const [muscleGroups, setMuscleGroups] = React.useState<any[]>([]);
+  const [muscles, setMuscles] = React.useState<any[]>([]);
   const [exercises, setExercises] = React.useState<any[]>([]);
   const [loadingExercises, setLoadingExercises] = React.useState(false);
-
   const [matches, setMatches] = React.useState<any[]>([]);
   const [showMatchDialog, setShowMatchDialog] = React.useState(false);
 
@@ -81,11 +85,21 @@ const Exercises: React.FC = () => {
     try {
       let query: any = supabase
         .from('exercises')
-        .select('id,name,body_part,primary_muscle,secondary_muscles,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id')
+        .select('id,name,body_part,body_part_id,primary_muscle,primary_muscle_id,secondary_muscles,secondary_muscle_ids,equipment,description,source_url,thumbnail_url,image_url,is_public,owner_user_id')
         .order('name', { ascending: true });
       if (filterName.trim()) query = query.ilike('name', `%${filterName.trim()}%`);
-      if (filterBodyPart.trim()) query = query.ilike('body_part', `%${filterBodyPart.trim()}%`);
-      if (filterPrimary.trim()) query = query.ilike('primary_muscle', `%${filterPrimary.trim()}%`);
+      if (filterBodyPartId) query = query.eq('body_part_id', filterBodyPartId);
+      if (filterPrimaryMuscleId) {
+        query = query.eq('primary_muscle_id', filterPrimaryMuscleId);
+      } else if (filterMuscleGroupId) {
+        const ids = muscles.map((m: any) => m.id);
+        if (ids.length === 0) {
+          setExercises([]);
+          return;
+        } else {
+          query = query.in('primary_muscle_id', ids);
+        }
+      }
       const { data, error } = await query.limit(200);
       if (error) throw error;
       setExercises(data || []);
@@ -101,6 +115,26 @@ const Exercises: React.FC = () => {
     fetchExercises();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Taxonomy loaders
+  const loadBodyParts = async () => {
+    const { data, error } = await supabase.from('body_parts').select('id,name').order('name');
+    if (!error) setBodyParts(data || []);
+  };
+  const loadMuscleGroups = async (bpId: string) => {
+    if (!bpId) { setMuscleGroups([]); setMuscles([]); return; }
+    const { data, error } = await supabase.from('muscle_groups').select('id,name').eq('body_part_id', bpId).order('name');
+    if (!error) setMuscleGroups(data || []);
+  };
+  const loadMuscles = async (mgId: string) => {
+    if (!mgId) { setMuscles([]); return; }
+    const { data, error } = await supabase.from('muscles').select('id,name').eq('muscle_group_id', mgId).order('name');
+    if (!error) setMuscles(data || []);
+  };
+
+  React.useEffect(() => { loadBodyParts(); }, []);
+  React.useEffect(() => { loadMuscleGroups(filterBodyPartId); setFilterMuscleGroupId(""); setFilterPrimaryMuscleId(""); }, [filterBodyPartId]);
+  React.useEffect(() => { loadMuscles(filterMuscleGroupId); setFilterPrimaryMuscleId(""); }, [filterMuscleGroupId]);
 
   React.useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -336,6 +370,11 @@ const Exercises: React.FC = () => {
                 Templates
               </NavLink>
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Configure
+              </NavLink>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </nav>
@@ -348,18 +387,52 @@ const Exercises: React.FC = () => {
               <CardDescription>Filter by name, body part, and primary muscle.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-3 gap-3">
+              <div className="grid sm:grid-cols-4 gap-3">
                 <div className="space-y-2">
                   <Label htmlFor="filter_name">Name</Label>
                   <Input id="filter_name" placeholder="e.g., Bench" value={filterName} onChange={(e) => setFilterName(e.target.value)} />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="filter_body">Body part</Label>
-                  <Input id="filter_body" placeholder="e.g., Upper body" value={filterBodyPart} onChange={(e) => setFilterBodyPart(e.target.value)} />
+                  <Label>Body part</Label>
+                  <Select value={filterBodyPartId} onValueChange={(v) => setFilterBodyPartId(v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All body parts" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All</SelectItem>
+                      {bodyParts.map((bp: any) => (
+                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="filter_primary">Primary muscle</Label>
-                  <Input id="filter_primary" placeholder="e.g., Chest" value={filterPrimary} onChange={(e) => setFilterPrimary(e.target.value)} />
+                  <Label>Muscle group</Label>
+                  <Select value={filterMuscleGroupId} onValueChange={(v) => setFilterMuscleGroupId(v)} disabled={!filterBodyPartId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={!filterBodyPartId ? "Select a body part first" : "All groups"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All</SelectItem>
+                      {muscleGroups.map((mg: any) => (
+                        <SelectItem key={mg.id} value={mg.id}>{mg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label>Primary muscle</Label>
+                  <Select value={filterPrimaryMuscleId} onValueChange={(v) => setFilterPrimaryMuscleId(v)} disabled={!filterMuscleGroupId}>
+                    <SelectTrigger>
+                      <SelectValue placeholder={!filterMuscleGroupId ? "Select a group first" : "All muscles"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">All</SelectItem>
+                      {muscles.map((m: any) => (
+                        <SelectItem key={m.id} value={m.id}>{m.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
               </div>
               <div>
