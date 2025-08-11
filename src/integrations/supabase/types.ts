@@ -14,6 +14,27 @@ export type Database = {
   }
   public: {
     Tables: {
+      body_parts: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: []
+      }
       exercise_images: {
         Row: {
           created_at: string
@@ -50,6 +71,7 @@ export type Database = {
       exercises: {
         Row: {
           body_part: string | null
+          body_part_id: string | null
           created_at: string
           description: string | null
           equipment: string | null
@@ -60,6 +82,8 @@ export type Database = {
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle: string | null
+          primary_muscle_id: string | null
+          secondary_muscle_ids: string[] | null
           secondary_muscles: string[] | null
           slug: string | null
           source_url: string | null
@@ -67,6 +91,7 @@ export type Database = {
         }
         Insert: {
           body_part?: string | null
+          body_part_id?: string | null
           created_at?: string
           description?: string | null
           equipment?: string | null
@@ -77,6 +102,8 @@ export type Database = {
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle?: string | null
+          primary_muscle_id?: string | null
+          secondary_muscle_ids?: string[] | null
           secondary_muscles?: string[] | null
           slug?: string | null
           source_url?: string | null
@@ -84,6 +111,7 @@ export type Database = {
         }
         Update: {
           body_part?: string | null
+          body_part_id?: string | null
           created_at?: string
           description?: string | null
           equipment?: string | null
@@ -94,12 +122,93 @@ export type Database = {
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle?: string | null
+          primary_muscle_id?: string | null
+          secondary_muscle_ids?: string[] | null
           secondary_muscles?: string[] | null
           slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "exercises_body_part_fk"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "body_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_primary_muscle_fk"
+            columns: ["primary_muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      muscle_groups: {
+        Row: {
+          body_part_id: string
+          created_at: string
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          body_part_id: string
+          created_at?: string
+          id?: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          body_part_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscle_groups_body_part_id_fkey"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "body_parts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      muscles: {
+        Row: {
+          created_at: string
+          id: string
+          muscle_group_id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          muscle_group_id: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          muscle_group_id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscles_muscle_group_id_fkey"
+            columns: ["muscle_group_id"]
+            isOneToOne: false
+            referencedRelation: "muscle_groups"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       personal_records: {
         Row: {
