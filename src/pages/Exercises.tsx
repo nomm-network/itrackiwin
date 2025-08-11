@@ -95,6 +95,7 @@ const Exercises: React.FC = () => {
         const ids = muscles.map((m: any) => m.id);
         if (ids.length === 0) {
           setExercises([]);
+          setLoadingExercises(false);
           return;
         } else {
           query = query.in('primary_muscle_id', ids);
