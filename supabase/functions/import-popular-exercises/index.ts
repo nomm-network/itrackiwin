@@ -7,7 +7,8 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-function slugify(name: string) {
+function slugify(name?: string | null) {
+  if (!name || typeof name !== "string") return "";
   return name
     .toLowerCase()
     .replace(/&/g, "and")
@@ -88,12 +89,15 @@ serve(async (req) => {
         ? ex.description.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim()
         : null;
       const mainImg = ex.images?.find((im) => im.is_main)?.image || ex.images?.[0]?.image || null;
-      const slug = slugify(ex.name);
 
-      const baseRank = orderIndex.get(slug) ?? null;
+      const name = typeof ex.name === "string" ? ex.name.trim() : "";
+      const slugRaw = slugify(name);
+      const slug = slugRaw || null;
+
+      const baseRank = slug ? orderIndex.get(slug) ?? null : null;
 
       return {
-        name: ex.name,
+        name: name || null,
         slug,
         description: descriptionText,
         equipment,
