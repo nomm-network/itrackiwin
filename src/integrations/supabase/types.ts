@@ -168,6 +168,128 @@ export type Database = {
           },
         ]
       }
+      life_categories: {
+        Row: {
+          color: string | null
+          created_at: string
+          display_order: number
+          icon: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          color?: string | null
+          created_at?: string
+          display_order?: number
+          icon?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      life_subcategories: {
+        Row: {
+          category_id: string
+          created_at: string
+          display_order: number
+          id: string
+          name: string
+          slug: string | null
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name: string
+          slug?: string | null
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          name?: string
+          slug?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "life_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentor_categories: {
+        Row: {
+          category_id: string
+          created_at: string
+          mentor_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          mentor_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          mentor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_categories_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      mentors: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       muscle_groups: {
         Row: {
           body_part_id: string
@@ -333,6 +455,94 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_category_prefs: {
+        Row: {
+          category_id: string
+          created_at: string
+          display_order: number
+          id: string
+          priority: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          priority?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          priority?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_category_prefs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_pinned_subcategories: {
+        Row: {
+          id: string
+          pinned_at: string
+          subcategory_id: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          pinned_at?: string
+          subcategory_id: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          pinned_at?: string
+          subcategory_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "life_subcategories"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
       }
       user_settings: {
         Row: {
@@ -538,12 +748,24 @@ export type Database = {
         Args: { weight: number; reps: number }
         Returns: number
       }
+      has_role: {
+        Args: {
+          _user_id: string
+          _role: Database["public"]["Enums"]["app_role"]
+        }
+        Returns: boolean
+      }
+      is_admin: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       start_workout: {
         Args: { p_template_id?: string }
         Returns: string
       }
     }
     Enums: {
+      app_role: "superadmin" | "admin" | "mentor" | "user"
       set_type: "normal" | "warmup" | "drop" | "amrap" | "timed" | "distance"
     }
     CompositeTypes: {
@@ -672,6 +894,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      app_role: ["superadmin", "admin", "mentor", "user"],
       set_type: ["normal", "warmup", "drop", "amrap", "timed", "distance"],
     },
   },
