@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Checkbox } from "@/components/ui/checkbox";
+import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
 import { Switch } from "@/components/ui/switch";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -42,6 +42,7 @@ const schema = z.object({
   name: z.string().min(2, 'Name is required'),
   description: z.string().optional(),
   body_part_id: z.string().uuid().optional().or(z.literal('')),
+  primary_muscle_group_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
   secondary_muscle_ids: z.array(z.string().uuid()).optional(),
   equipment_id: z.string().uuid().optional().or(z.literal('')),
@@ -67,19 +68,20 @@ const ExerciseAdd: React.FC = () => {
 
   const [files, setFiles] = React.useState<File[]>([]);
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(schema),
-    defaultValues: {
-      name: "",
-      description: "",
-      body_part_id: "",
-      primary_muscle_id: "",
-      secondary_muscle_ids: [],
-      equipment_id: "",
-      source_url: "",
-      is_public: true,
-    },
-  });
+const form = useForm<FormValues>({
+  resolver: zodResolver(schema),
+  defaultValues: {
+    name: "",
+    description: "",
+    body_part_id: "",
+    primary_muscle_group_id: "",
+    primary_muscle_id: "",
+    secondary_muscle_ids: [],
+    equipment_id: "",
+    source_url: "",
+    is_public: true,
+  },
+});
 
   const selectedBodyPartId = form.watch("body_part_id") || "";
 
@@ -109,16 +111,17 @@ const ExerciseAdd: React.FC = () => {
     loadAll();
   }, [toast]);
 
-  const groupById = React.useMemo(() => {
-    const map = new Map<string, MuscleGroup>();
-    muscleGroups.forEach((g) => map.set(g.id, g));
-    return map;
-  }, [muscleGroups]);
+const filteredMuscleGroups = React.useMemo(() => {
+  if (!selectedBodyPartId) return muscleGroups;
+  return muscleGroups.filter((g) => g.body_part_id === selectedBodyPartId);
+}, [muscleGroups, selectedBodyPartId]);
 
-  const filteredMuscles = React.useMemo(() => {
-    if (!selectedBodyPartId) return muscles;
-    return muscles.filter((mu) => groupById.get(mu.muscle_group_id)?.body_part_id === selectedBodyPartId);
-  }, [muscles, groupById, selectedBodyPartId]);
+const selectedGroupId = form.watch('primary_muscle_group_id') || '';
+
+const primaryMusclesOptions = React.useMemo(() => {
+  if (!selectedGroupId) return [] as Muscle[];
+  return muscles.filter((mu) => mu.muscle_group_id === selectedGroupId);
+}, [muscles, selectedGroupId]);
 
   const onSubmit = async (values: FormValues) => {
     if (!values.name.trim()) {
@@ -250,7 +253,7 @@ const ExerciseAdd: React.FC = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Body Part</Label>
-                  <Select onValueChange={(v) => form.setValue('body_part_id', v)} value={form.watch('body_part_id') || ''}>
+                  <Select onValueChange={(v) => { form.setValue('body_part_id', v); form.setValue('primary_muscle_group_id', ''); form.setValue('primary_muscle_id', ''); }} value={form.watch('body_part_id') || ''}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select body part" />
                     </SelectTrigger>
@@ -278,18 +281,34 @@ const ExerciseAdd: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Primary Muscle</Label>
-                  <Select onValueChange={(v) => form.setValue('primary_muscle_id', v)} value={form.watch('primary_muscle_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select primary muscle" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {filteredMuscles.map((mu) => (
-                        <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Muscle Group</Label>
+                    <Select onValueChange={(v) => { form.setValue('primary_muscle_group_id', v); form.setValue('primary_muscle_id', ''); }} value={form.watch('primary_muscle_group_id') || ''}>
+                      <SelectTrigger>
+                        <SelectValue placeholder={form.watch('body_part_id') ? 'Select muscle group' : 'Select body part first'} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {filteredMuscleGroups.map((g) => (
+                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Primary Muscle</Label>
+                    <Select onValueChange={(v) => form.setValue('primary_muscle_id', v)} value={form.watch('primary_muscle_id') || ''} disabled={!form.watch('primary_muscle_group_id')}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select primary muscle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {primaryMusclesOptions.map((mu) => (
+                          <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
                 <div className="space-y-2">
@@ -301,28 +320,13 @@ const ExerciseAdd: React.FC = () => {
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <Label>Secondary Muscles</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-72 overflow-auto border rounded-md p-3">
-                  {muscles.map((mu) => {
-                    const selected = form.watch('secondary_muscle_ids') || [];
-                    const checked = selected.includes(mu.id);
-                    return (
-                      <label key={mu.id} className="flex items-center gap-2 text-sm">
-                        <Checkbox
-                          checked={checked}
-                          onCheckedChange={(v) => {
-                            const current = new Set(selected);
-                            if (v) current.add(mu.id); else current.delete(mu.id);
-                            form.setValue('secondary_muscle_ids', Array.from(current));
-                          }}
-                        />
-                        {mu.name}
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
+              <SecondaryMuscleSelector
+                bodyParts={bodyParts}
+                muscleGroups={muscleGroups}
+                muscles={muscles}
+                selectedMuscleIds={form.watch('secondary_muscle_ids') || []}
+                onChange={(ids) => form.setValue('secondary_muscle_ids', ids)}
+              />
 
               <div className="space-y-2">
                 <Label htmlFor="source_url">Source URL (optional)</Label>
