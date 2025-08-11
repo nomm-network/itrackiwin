@@ -55,15 +55,15 @@ serve(async (req) => {
 
     const rows = (Array.isArray(list) ? list : []).map((ex: ExDb) => {
       const name = typeof ex.name === "string" ? ex.name.trim() : "";
-      const slugRaw = slugify(name);
-      if (!name || !slugRaw) return null;
+      const slugKey = slugify(name);
+      if (!name || !slugKey) return null;
 
       const primary = ex.target?.trim() || null;
       const secondary = Array.isArray(ex.secondaryMuscles) ? ex.secondaryMuscles.filter(Boolean) : null;
 
       return {
+        _slug: slugKey, // for local dedupe only; slug is generated in DB
         name,
-        slug: slugRaw,
         description: null,
         equipment: ex.equipment || null,
         primary_muscle: primary,
@@ -78,11 +78,11 @@ serve(async (req) => {
       } as any;
     }).filter(Boolean);
 
-    // Deduplicate by slug
+    // Deduplicate by computed slug
     const seen = new Set<string>();
     const uniqueRows = rows.filter((r: any) => {
-      if (seen.has(r.slug)) return false;
-      seen.add(r.slug);
+      if (seen.has(r._slug)) return false;
+      seen.add(r._slug);
       return true;
     });
 
@@ -90,9 +90,10 @@ serve(async (req) => {
     let affected = 0;
     for (let i = 0; i < uniqueRows.length; i += chunkSize) {
       const chunk = uniqueRows.slice(i, i + chunkSize);
+      const payload = (chunk as any[]).map(({ _slug, ...rest }) => rest);
       const { data: upserted, error } = await supabase
         .from("exercises")
-        .upsert(chunk, { onConflict: "slug" })
+        .upsert(payload, { onConflict: "slug" })
         .select("id, slug");
       if (error) throw error;
       affected += upserted?.length || 0;
