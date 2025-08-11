@@ -31,7 +31,7 @@ serve(async (req) => {
     if (!res.ok) {
       throw new Error(`Failed to fetch ExerciseDB: ${res.status} ${res.statusText}`);
     }
-    const results = await res.json();
+    const raw = await res.json();
 
     type ExDb = {
       id: string;
@@ -43,7 +43,17 @@ serve(async (req) => {
       secondaryMuscles?: string[];
     };
 
-    const rows = (Array.isArray(results) ? results : []).map((ex: ExDb) => {
+    const list: ExDb[] = Array.isArray(raw)
+      ? raw
+      : Array.isArray((raw as any)?.data)
+      ? (raw as any).data
+      : Array.isArray((raw as any)?.results)
+      ? (raw as any).results
+      : [];
+
+    console.log("ExerciseDB fetched count:", Array.isArray(list) ? list.length : 0);
+
+    const rows = (Array.isArray(list) ? list : []).map((ex: ExDb) => {
       const name = typeof ex.name === "string" ? ex.name.trim() : "";
       const slugRaw = slugify(name);
       if (!name || !slugRaw) return null;
