@@ -304,7 +304,7 @@ const ExerciseAdd: React.FC = () => {
               <div className="space-y-2">
                 <Label>Secondary Muscles</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-2 max-h-72 overflow-auto border rounded-md p-3">
-                  {filteredMuscles.map((mu) => {
+                  {muscles.map((mu) => {
                     const selected = form.watch('secondary_muscle_ids') || [];
                     const checked = selected.includes(mu.id);
                     return (
