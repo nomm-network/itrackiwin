@@ -85,12 +85,12 @@ const Templates: React.FC = () => {
                     <h3 className="font-medium mb-2">Add Exercise</h3>
                     <div className="flex items-center gap-2">
                       <Input placeholder="Search exercises..." value={q} onChange={(e) => setQ(e.target.value)} />
-                      <Select value={muscle} onValueChange={setMuscle}>
+                      <Select value={muscle || "__all__"} onValueChange={(v) => setMuscle(v === "__all__" ? "" : v)}>
                         <SelectTrigger className="w-[180px]">
                           <SelectValue placeholder="Filter muscle" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">All</SelectItem>
+                          <SelectItem value="__all__">All</SelectItem>
                           <SelectItem value="Chest">Chest</SelectItem>
                           <SelectItem value="Back">Back</SelectItem>
                           <SelectItem value="Shoulders">Shoulders</SelectItem>
