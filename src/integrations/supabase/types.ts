@@ -20,36 +20,48 @@ export type Database = {
           description: string | null
           equipment: string | null
           id: string
+          image_url: string | null
           is_public: boolean
           name: string
           owner_user_id: string | null
+          popularity_rank: number | null
           primary_muscle: string | null
           secondary_muscles: string[] | null
           slug: string | null
+          source_url: string | null
+          thumbnail_url: string | null
         }
         Insert: {
           created_at?: string
           description?: string | null
           equipment?: string | null
           id?: string
+          image_url?: string | null
           is_public?: boolean
           name: string
           owner_user_id?: string | null
+          popularity_rank?: number | null
           primary_muscle?: string | null
           secondary_muscles?: string[] | null
           slug?: string | null
+          source_url?: string | null
+          thumbnail_url?: string | null
         }
         Update: {
           created_at?: string
           description?: string | null
           equipment?: string | null
           id?: string
+          image_url?: string | null
           is_public?: boolean
           name?: string
           owner_user_id?: string | null
+          popularity_rank?: number | null
           primary_muscle?: string | null
           secondary_muscles?: string[] | null
           slug?: string | null
+          source_url?: string | null
+          thumbnail_url?: string | null
         }
         Relationships: []
       }
