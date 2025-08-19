@@ -3,21 +3,28 @@ import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { useTranslations } from "@/hooks/useTranslations";
 
 const AdminHeaderMenu: React.FC = () => {
   const { t } = useTranslation();
+  const { getTranslatedName, currentLanguage } = useTranslations();
   const location = useLocation();
 
   const { data: categories = [] } = useQuery({
-    queryKey: ["admin_categories_menu"],
+    queryKey: ["admin_categories_menu", currentLanguage],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("life_categories")
-        .select("id, slug, name")
+      const { data, error } = await supabase
+        .from("v_categories_with_translations")
+        .select("id, slug, translations, fallback_name")
         .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
+        .order("fallback_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Array<{ id: string; slug: string | null; name: string }>;
+      return (data ?? []) as Array<{ 
+        id: string; 
+        slug: string | null; 
+        translations: Record<string, { name: string; description?: string }> | null;
+        fallback_name: string;
+      }>;
     },
   });
 
@@ -27,7 +34,7 @@ const AdminHeaderMenu: React.FC = () => {
         {categories.map((c) => {
           const href = `/admin/category/${c.id}`;
           const active = location.pathname.startsWith(href);
-          const label = t(`categories.${c.slug ?? "_"}`, { defaultValue: c.name });
+          const label = getTranslatedName(c);
           return (
             <li key={c.id}>
               <Link

@@ -3,25 +3,32 @@ import { Link, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface Props { categoryId: string }
 
 const AdminSubcategoryMenu: React.FC<Props> = ({ categoryId }) => {
   const { t } = useTranslation();
+  const { getTranslatedName, currentLanguage } = useTranslations();
   const location = useLocation();
 
   const { data: subcategories = [] } = useQuery({
-    queryKey: ["admin_subcategories_menu", categoryId],
+    queryKey: ["admin_subcategories_menu", categoryId, currentLanguage],
     queryFn: async () => {
-      if (!categoryId) return [] as Array<{ id: string; slug: string | null; name: string }>;
-      const { data, error } = await (supabase as any)
-        .from("life_subcategories")
-        .select("id, slug, name")
+      if (!categoryId) return [];
+      const { data, error } = await supabase
+        .from("v_subcategories_with_translations")
+        .select("id, slug, translations, fallback_name")
         .eq("category_id", categoryId)
         .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
+        .order("fallback_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Array<{ id: string; slug: string | null; name: string }>;
+      return (data ?? []) as Array<{ 
+        id: string; 
+        slug: string | null; 
+        translations: Record<string, { name: string; description?: string }> | null;
+        fallback_name: string;
+      }>;
     },
     enabled: !!categoryId,
   });
@@ -32,7 +39,7 @@ const AdminSubcategoryMenu: React.FC<Props> = ({ categoryId }) => {
         {subcategories.map((s) => {
           const href = `/admin/category/${categoryId}/sub/${s.id}`;
           const active = location.pathname.startsWith(href);
-          const label = t(`subcategories.${s.slug ?? "_"}`, { defaultValue: s.name });
+          const label = getTranslatedName(s);
           return (
             <li key={s.id}>
               <Link

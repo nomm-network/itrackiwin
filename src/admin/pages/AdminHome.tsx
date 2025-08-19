@@ -5,18 +5,27 @@ import { supabase } from "@/integrations/supabase/client";
 import PageNav from "@/components/PageNav";
 import { useTranslation } from "react-i18next";
 import AdminHeaderMenu from "@/admin/components/AdminHeaderMenu";
+import { useTranslations } from "@/hooks/useTranslations";
+
 const AdminHome: React.FC = () => {
   const { t } = useTranslation();
+  const { getTranslatedName, currentLanguage } = useTranslations();
+  
   const { data: categories = [] } = useQuery({
-    queryKey: ["admin_categories_list"],
+    queryKey: ["admin_categories_list", currentLanguage],
     queryFn: async () => {
-      const { data, error } = await (supabase as any)
-        .from("life_categories")
-        .select("id, slug, name")
+      const { data, error } = await supabase
+        .from("v_categories_with_translations")
+        .select("id, slug, translations, fallback_name")
         .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
+        .order("fallback_name", { ascending: true });
       if (error) throw error;
-      return (data ?? []) as Array<{ id: string; slug: string | null; name: string }>;
+      return (data ?? []) as Array<{ 
+        id: string; 
+        slug: string | null; 
+        translations: Record<string, { name: string; description?: string }> | null;
+        fallback_name: string;
+      }>;
     },
   });
 
@@ -30,7 +39,7 @@ const AdminHome: React.FC = () => {
         <nav className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
           {categories.map((c) => (
             <Link key={c.id} to={`/admin/category/${c.id}`} className="rounded-md border border-border bg-card p-3 hover:bg-accent transition-colors">
-              {c.slug ? t(`categories.${c.slug}`, { defaultValue: c.name }) : c.name}
+              {getTranslatedName(c)}
             </Link>
           ))}
           {categories.length === 0 && (
