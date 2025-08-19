@@ -40,15 +40,14 @@ export interface WorkoutSet {
 
 export interface Exercise {
   id: UUID;
-  name: string;
-  description?: string | null;
+  translations: Record<string, { name: string; description?: string }> | null;
   // Additional fields like body_part_id, primary_muscle_id, equipment_id may exist but are not required here
 }
 
 export interface Template {
   id: UUID;
   user_id: UUID;
-  name: string;
+  translations: Record<string, { name: string; description?: string }> | null;
   notes?: string | null;
   created_at: string;
 }
@@ -244,15 +243,15 @@ export const useSearchExercises = (query: string, _opts?: { primaryMuscle?: stri
     enabled: query.length > 1,
     queryFn: async (): Promise<Exercise[]> => {
       let qbuilder = supabase
-        .from("exercises")
-        .select("id,name,description,thumbnail_url,image_url,source_url,popularity_rank,is_public")
+        .from("v_exercises_with_translations")
+        .select("id,translations,thumbnail_url,image_url,source_url,popularity_rank,is_public")
         .order("is_public", { ascending: false })
         .order("popularity_rank", { ascending: true, nullsFirst: false })
-        .order("name", { ascending: true })
         .limit(20);
 
       if (query.length > 1) {
-        qbuilder = qbuilder.ilike("name", `%${query}%`);
+        // Search in the English translation name for now
+        qbuilder = qbuilder.filter("translations", "cs", `{"en":{"name":"%${query}%"}}`);
       }
 
       const { data, error } = await qbuilder;
@@ -267,7 +266,7 @@ export const useTemplates = () => {
     queryKey: ["templates"],
     queryFn: async (): Promise<Template[]> => {
       const { data, error } = await supabase
-        .from("workout_templates")
+        .from("v_workout_templates_with_translations")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -298,13 +297,26 @@ export const useCreateTemplate = () => {
     mutationFn: async (name: string): Promise<UUID> => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
-      const { data, error } = await supabase
+      
+      // Insert into the base table first
+      const { data: template, error: templateError } = await supabase
         .from("workout_templates")
-        .insert({ name, user_id: user.id })
+        .insert({ user_id: user.id })
         .select("id")
         .single();
-      if (error) throw error;
-      return (data as any).id as UUID;
+      if (templateError) throw templateError;
+      
+      // Insert into the translations table
+      const { error: translationError } = await supabase
+        .from("workout_templates_translations")
+        .insert({ 
+          template_id: (template as any).id, 
+          language_code: 'en', 
+          name 
+        });
+      if (translationError) throw translationError;
+      
+      return (template as any).id as UUID;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["templates"] }),
   });
