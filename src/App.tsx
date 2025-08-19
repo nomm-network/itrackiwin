@@ -25,6 +25,10 @@ import AdminRoute from "./components/auth/AdminRoute";
 import AdminHome from "./admin/pages/AdminHome";
 import AdminCategoryPage from "./admin/pages/AdminCategoryPage";
 import AdminSubcategoryPage from "./admin/pages/AdminSubcategoryPage";
+import AdminTranslations from "./admin/pages/AdminTranslations";
+import AdminCategoriesTranslations from "./admin/pages/AdminCategoriesTranslations";
+import AdminSubcategoriesTranslations from "./admin/pages/AdminSubcategoriesTranslations";
+import AdminExercisesTranslations from "./admin/pages/AdminExercisesTranslations";
 import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
@@ -61,6 +65,10 @@ const App = () => (
             {/* Admin routes */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminHome />} />
+              <Route path="/admin/translations" element={<AdminTranslations />} />
+              <Route path="/admin/translations/categories" element={<AdminCategoriesTranslations />} />
+              <Route path="/admin/translations/subcategories" element={<AdminSubcategoriesTranslations />} />
+              <Route path="/admin/translations/exercises" element={<AdminExercisesTranslations />} />
               <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
               <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
             </Route>
