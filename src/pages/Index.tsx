@@ -4,6 +4,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAppStore } from "@/store/app";
 import { Button } from "@/components/ui/button";
 import { AreaId } from "@/types/domain";
+import ThemeToggle from "@/components/ThemeToggle";
+import LanguageToggle from "@/components/LanguageToggle";
 const Index: React.FC = () => {
   const navigate = useNavigate();
   const seedIfEmpty = useAppStore(s => s.seedIfEmpty);
@@ -27,6 +29,10 @@ const Index: React.FC = () => {
             <Link className="story-link" to="/insights">Insights</Link>
             <Link className="story-link" to="/dashboard">Dashboard</Link>
             <Link className="story-link" to="/admin">Admin</Link>
+            <div className="flex items-center gap-2 ml-2">
+              <LanguageToggle />
+              <ThemeToggle />
+            </div>
           </div>
         </nav>
       </header>
