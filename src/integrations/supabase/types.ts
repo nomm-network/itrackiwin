@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "13.0.4"
@@ -168,6 +168,33 @@ export type Database = {
           },
         ]
       }
+      languages: {
+        Row: {
+          code: string
+          created_at: string
+          flag_emoji: string | null
+          is_active: boolean
+          name: string
+          native_name: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          flag_emoji?: string | null
+          is_active?: boolean
+          name: string
+          native_name: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          flag_emoji?: string | null
+          is_active?: boolean
+          name?: string
+          native_name?: string
+        }
+        Relationships: []
+      }
       life_categories: {
         Row: {
           color: string | null
@@ -198,29 +225,90 @@ export type Database = {
         }
         Relationships: []
       }
-      life_subcategories: {
+      life_category_translations: {
         Row: {
           category_id: string
           created_at: string
-          display_order: number
+          description: string | null
           id: string
+          language_code: string
           name: string
-          slug: string | null
+          updated_at: string
         }
         Insert: {
           category_id: string
           created_at?: string
-          display_order?: number
+          description?: string | null
           id?: string
+          language_code: string
           name: string
-          slug?: string | null
+          updated_at?: string
         }
         Update: {
           category_id?: string
           created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "life_category_translations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "life_category_translations_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "life_category_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
+      life_subcategories: {
+        Row: {
+          accent_color: string | null
+          category_id: string
+          created_at: string
+          default_pinned: boolean | null
+          display_order: number
+          id: string
+          name: string
+          route_name: string | null
+          slug: string | null
+        }
+        Insert: {
+          accent_color?: string | null
+          category_id: string
+          created_at?: string
+          default_pinned?: boolean | null
+          display_order?: number
+          id?: string
+          name: string
+          route_name?: string | null
+          slug?: string | null
+        }
+        Update: {
+          accent_color?: string | null
+          category_id?: string
+          created_at?: string
+          default_pinned?: boolean | null
           display_order?: number
           id?: string
           name?: string
+          route_name?: string | null
           slug?: string | null
         }
         Relationships: [
@@ -229,6 +317,65 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "life_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      life_subcategory_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          name: string
+          subcategory_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          name: string
+          subcategory_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          name?: string
+          subcategory_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "life_subcategory_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+          {
+            foreignKeyName: "life_subcategory_translations_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "life_subcategories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "life_subcategory_translations_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "v_subcategories_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -255,6 +402,13 @@ export type Database = {
             columns: ["category_id"]
             isOneToOne: false
             referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_categories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -456,6 +610,44 @@ export type Database = {
           },
         ]
       }
+      text_translations: {
+        Row: {
+          context: string | null
+          created_at: string
+          id: string
+          key: string
+          language_code: string
+          updated_at: string
+          value: string
+        }
+        Insert: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          key: string
+          language_code: string
+          updated_at?: string
+          value: string
+        }
+        Update: {
+          context?: string | null
+          created_at?: string
+          id?: string
+          key?: string
+          language_code?: string
+          updated_at?: string
+          value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "text_translations_language_code_fkey"
+            columns: ["language_code"]
+            isOneToOne: false
+            referencedRelation: "languages"
+            referencedColumns: ["code"]
+          },
+        ]
+      }
       user_category_prefs: {
         Row: {
           category_id: string
@@ -489,6 +681,13 @@ export type Database = {
             referencedRelation: "life_categories"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_category_prefs_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
         ]
       }
       user_pinned_subcategories: {
@@ -516,6 +715,13 @@ export type Database = {
             columns: ["subcategory_id"]
             isOneToOne: false
             referencedRelation: "life_subcategories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "v_subcategories_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -722,11 +928,80 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      v_categories_with_translations: {
+        Row: {
+          color: string | null
+          created_at: string | null
+          display_order: number | null
+          fallback_name: string | null
+          icon: string | null
+          id: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: []
+      }
+      v_subcategories_with_translations: {
+        Row: {
+          accent_color: string | null
+          category_id: string | null
+          created_at: string | null
+          default_pinned: boolean | null
+          display_order: number | null
+          fallback_name: string | null
+          id: string | null
+          route_name: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "life_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "life_subcategories_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_user_pins_expanded: {
+        Row: {
+          accent_color: string | null
+          name: string | null
+          pinned_at: string | null
+          route_name: string | null
+          slug: string | null
+          subcategory_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "life_subcategories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
+            columns: ["subcategory_id"]
+            isOneToOne: false
+            referencedRelation: "v_subcategories_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_set: {
-        Args: { p_workout_exercise_id: string; p_payload: Json }
+        Args: { p_payload: Json; p_workout_exercise_id: string }
         Returns: string
       }
       bootstrap_admin_if_empty: {
@@ -746,13 +1021,25 @@ export type Database = {
         Returns: string
       }
       epley_1rm: {
-        Args: { weight: number; reps: number }
+        Args: { reps: number; weight: number }
         Returns: number
+      }
+      get_category_name: {
+        Args: { p_category_id: string; p_language_code?: string }
+        Returns: string
+      }
+      get_subcategory_name: {
+        Args: { p_language_code?: string; p_subcategory_id: string }
+        Returns: string
+      }
+      get_text: {
+        Args: { p_key: string; p_language_code?: string }
+        Returns: string
       }
       has_role: {
         Args: {
-          _user_id: string
           _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
         }
         Returns: boolean
       }
