@@ -7,13 +7,13 @@ const TranslationsMenu: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
-    { label: t('admin.categories'), href: '/admin/translations/categories' },
-    { label: t('admin.subcategories'), href: '/admin/translations/subcategories' },
-    { label: t('admin.exercises'), href: '/admin/translations/exercises' },
+    { label: t('navigation.categories'), href: '/admin/translations/categories' },
+    { label: t('navigation.subcategories'), href: '/admin/translations/subcategories' },
+    { label: t('navigation.exercises'), href: '/admin/translations/exercises' },
   ];
 
   return (
-    <nav aria-label={t("admin.translations_menu")} className="mb-6">
+    <nav aria-label={t("navigation.translations_menu")} className="mb-6">
       <ul className="flex items-center gap-2 flex-wrap">
         {menuItems.map((item) => {
           const isActive = location.pathname === item.href;

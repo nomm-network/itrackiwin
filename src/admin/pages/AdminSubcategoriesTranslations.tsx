@@ -129,10 +129,10 @@ const AdminSubcategoriesTranslations: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["subcategory_translations"] });
       setEditingTranslation(null);
       setNewTranslation({});
-      toast({ title: t('admin.translation_saved') });
+      toast({ title: t('labels.translation_saved') });
     },
     onError: (error) => {
-      toast({ title: t('admin.error'), description: error.message, variant: "destructive" });
+      toast({ title: t('labels.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -147,10 +147,10 @@ const AdminSubcategoriesTranslations: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["subcategory_translations"] });
-      toast({ title: t('admin.translation_deleted') });
+      toast({ title: t('labels.translation_deleted') });
     },
     onError: (error) => {
-      toast({ title: t('admin.error'), description: error.message, variant: "destructive" });
+      toast({ title: t('labels.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -172,15 +172,15 @@ const AdminSubcategoriesTranslations: React.FC = () => {
       <PageNav current="Admin / Translations / Subcategories" />
       <AdminMenu />
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('admin.subcategory_translations')}</h1>
+        <h1 className="text-2xl font-bold">{t('pages.subcategory_translations')}</h1>
         <TranslationsMenu />
         
         <div className="flex gap-4 items-center flex-wrap">
           <div className="flex gap-2 items-center">
-            <Label htmlFor="language-select">{t('admin.select_language')}</Label>
+            <Label htmlFor="language-select">{t('labels.select_language')}</Label>
             <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('admin.select_language')} />
+                <SelectValue placeholder={t('labels.select_language')} />
               </SelectTrigger>
               <SelectContent>
                 {languages.map((lang) => (
@@ -193,10 +193,10 @@ const AdminSubcategoriesTranslations: React.FC = () => {
           </div>
           
           <div className="flex gap-2 items-center">
-            <Label htmlFor="category-select">{t('admin.select_category')}</Label>
+            <Label htmlFor="category-select">{t('labels.select_category')}</Label>
             <Select value={selectedCategory} onValueChange={setSelectedCategory}>
               <SelectTrigger className="w-48">
-                <SelectValue placeholder={t('admin.select_category')} />
+                <SelectValue placeholder={t('labels.select_category')} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((cat) => (

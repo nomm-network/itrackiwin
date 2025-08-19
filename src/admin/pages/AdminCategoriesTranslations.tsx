@@ -99,10 +99,10 @@ const AdminCategoriesTranslations: React.FC = () => {
       queryClient.invalidateQueries({ queryKey: ["category_translations"] });
       setEditingTranslation(null);
       setNewTranslation({});
-      toast({ title: t('admin.translation_saved') });
+      toast({ title: t('labels.translation_saved') });
     },
     onError: (error) => {
-      toast({ title: t('admin.error'), description: error.message, variant: "destructive" });
+      toast({ title: t('labels.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -117,10 +117,10 @@ const AdminCategoriesTranslations: React.FC = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["category_translations"] });
-      toast({ title: t('admin.translation_deleted') });
+      toast({ title: t('labels.translation_deleted') });
     },
     onError: (error) => {
-      toast({ title: t('admin.error'), description: error.message, variant: "destructive" });
+      toast({ title: t('labels.error'), description: error.message, variant: "destructive" });
     },
   });
 
@@ -142,14 +142,14 @@ const AdminCategoriesTranslations: React.FC = () => {
       <PageNav current="Admin / Translations / Categories" />
       <AdminMenu />
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('admin.category_translations')}</h1>
+        <h1 className="text-2xl font-bold">{t('pages.category_translations')}</h1>
         <TranslationsMenu />
         
         <div className="flex gap-4 items-center">
-          <Label htmlFor="language-select">{t('admin.select_language')}</Label>
+          <Label htmlFor="language-select">{t('labels.select_language')}</Label>
           <Select value={selectedLanguage} onValueChange={setSelectedLanguage}>
             <SelectTrigger className="w-48">
-              <SelectValue placeholder={t('admin.select_language')} />
+              <SelectValue placeholder={t('labels.select_language')} />
             </SelectTrigger>
             <SelectContent>
               {languages.map((lang) => (
@@ -168,18 +168,18 @@ const AdminCategoriesTranslations: React.FC = () => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Plus className="h-5 w-5" />
-                  {t('admin.add_new_translation')}
+                  {t('labels.add_new_translation')}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div>
-                  <Label htmlFor="new-category">{t('admin.category')}</Label>
+                  <Label htmlFor="new-category">{t('labels.category')}</Label>
                   <Select 
                     value={newTranslation.category_id || ""} 
                     onValueChange={(value) => setNewTranslation({...newTranslation, category_id: value})}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder={t('admin.select_category')} />
+                      <SelectValue placeholder={t('labels.select_category')} />
                     </SelectTrigger>
                     <SelectContent>
                       {categories.map((cat) => (
@@ -191,21 +191,21 @@ const AdminCategoriesTranslations: React.FC = () => {
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="new-name">{t('admin.name')}</Label>
+                  <Label htmlFor="new-name">{t('labels.name')}</Label>
                   <Input
                     id="new-name"
                     value={newTranslation.name || ""}
                     onChange={(e) => setNewTranslation({...newTranslation, name: e.target.value})}
-                    placeholder={t('admin.enter_name')}
+                    placeholder={t('labels.enter_name')}
                   />
                 </div>
                 <div>
-                  <Label htmlFor="new-description">{t('admin.description')}</Label>
+                  <Label htmlFor="new-description">{t('labels.description')}</Label>
                   <Textarea
                     id="new-description"
                     value={newTranslation.description || ""}
                     onChange={(e) => setNewTranslation({...newTranslation, description: e.target.value})}
-                    placeholder={t('admin.enter_description')}
+                    placeholder={t('labels.enter_description')}
                   />
                 </div>
                 <Button 
@@ -215,7 +215,7 @@ const AdminCategoriesTranslations: React.FC = () => {
                   } as CategoryTranslation)}
                   disabled={!newTranslation.category_id || !newTranslation.name}
                 >
-                  {t('admin.add_translation')}
+                  {t('labels.add_translation')}
                 </Button>
               </CardContent>
             </Card>
@@ -243,7 +243,7 @@ const AdminCategoriesTranslations: React.FC = () => {
                       {editingTranslation?.id === translation.id ? (
                         <>
                           <div>
-                            <Label htmlFor="edit-name">{t('admin.name')}</Label>
+                            <Label htmlFor="edit-name">{t('labels.name')}</Label>
                             <Input
                               id="edit-name"
                               value={editingTranslation.name}
@@ -251,7 +251,7 @@ const AdminCategoriesTranslations: React.FC = () => {
                             />
                           </div>
                           <div>
-                            <Label htmlFor="edit-description">{t('admin.description')}</Label>
+                            <Label htmlFor="edit-description">{t('labels.description')}</Label>
                             <Textarea
                               id="edit-description"
                               value={editingTranslation.description || ""}
@@ -260,27 +260,27 @@ const AdminCategoriesTranslations: React.FC = () => {
                           </div>
                           <div className="flex gap-2">
                             <Button onClick={() => handleSave(editingTranslation)}>
-                              {t('admin.save')}
+                              {t('labels.save')}
                             </Button>
                             <Button variant="outline" onClick={() => setEditingTranslation(null)}>
-                              {t('admin.cancel')}
+                              {t('labels.cancel')}
                             </Button>
                           </div>
                         </>
                       ) : (
                         <>
                           <div>
-                            <Label>{t('admin.name')}</Label>
+                            <Label>{t('labels.name')}</Label>
                             <p className="text-sm">{translation.name}</p>
                           </div>
                           {translation.description && (
                             <div>
-                              <Label>{t('admin.description')}</Label>
+                              <Label>{t('labels.description')}</Label>
                               <p className="text-sm">{translation.description}</p>
                             </div>
                           )}
                           <Button onClick={() => setEditingTranslation(translation)}>
-                            {t('admin.edit')}
+                            {t('labels.edit')}
                           </Button>
                         </>
                       )}
@@ -289,7 +289,7 @@ const AdminCategoriesTranslations: React.FC = () => {
                 ))}
                 {translations.length === 0 && (
                   <div className="text-center py-8 text-muted-foreground">
-                    {t('admin.no_translations_found')}
+                    {t('labels.no_translations_found')}
                   </div>
                 )}
               </div>

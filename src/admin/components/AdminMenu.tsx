@@ -7,12 +7,12 @@ const AdminMenu: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
-    { label: t('admin.translations'), href: '/admin/translations' },
+    { label: t('navigation.translations'), href: '/admin/translations' },
     // Add more items later as requested
   ];
 
   return (
-    <nav aria-label={t("admin.main_menu")} className="mb-6 border-b border-border">
+    <nav aria-label={t("navigation.main_menu")} className="mb-6 border-b border-border">
       <ul className="flex items-center gap-1">
         {menuItems.map((item) => {
           const isActive = location.pathname.startsWith(item.href);

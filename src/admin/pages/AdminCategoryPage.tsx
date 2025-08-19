@@ -58,7 +58,7 @@ const AdminCategoryPage: React.FC = () => {
       <h1 className="sr-only">Admin Category: {category ? getTranslatedName(category) : "Category"}</h1>
       <AdminSubcategoryMenu categoryId={categoryId!} />
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">{t('admin.subcategories')}</h2>
+        <h2 className="text-xl font-semibold">{t('navigation.subcategories')}</h2>
         <nav className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
           {subcategories.map((s) => (
             <Link key={s.id} to={`/admin/category/${categoryId}/sub/${s.id}`} className="rounded-md border border-border bg-card p-3 hover:bg-accent transition-colors">
@@ -66,7 +66,7 @@ const AdminCategoryPage: React.FC = () => {
             </Link>
           ))}
           {subcategories.length === 0 && (
-            <p className="text-muted-foreground">{t('admin.no_subcategories')}</p>
+            <p className="text-muted-foreground">{t('labels.no_subcategories')}</p>
           )}
         </nav>
       </section>

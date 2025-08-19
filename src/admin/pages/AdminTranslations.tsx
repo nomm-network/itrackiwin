@@ -19,7 +19,7 @@ const AdminTranslations: React.FC = () => {
       <PageNav current="Admin / Translations" />
       <AdminMenu />
       <div className="space-y-6">
-        <h1 className="text-2xl font-bold">{t('admin.translations')}</h1>
+        <h1 className="text-2xl font-bold">{t('navigation.translations')}</h1>
         <TranslationsMenu />
         <Outlet />
       </div>

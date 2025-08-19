@@ -35,7 +35,7 @@ const AdminHome: React.FC = () => {
       <AdminHeaderMenu />
       <h1 className="sr-only">Admin</h1>
       <section className="space-y-4">
-        <h2 className="text-xl font-semibold">{t('admin.categories')}</h2>
+        <h2 className="text-xl font-semibold">{t('navigation.categories')}</h2>
         <nav className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
           {categories.map((c) => (
             <Link key={c.id} to={`/admin/category/${c.id}`} className="rounded-md border border-border bg-card p-3 hover:bg-accent transition-colors">
@@ -43,7 +43,7 @@ const AdminHome: React.FC = () => {
             </Link>
           ))}
           {categories.length === 0 && (
-            <p className="text-muted-foreground">{t('admin.no_categories')}</p>
+            <p className="text-muted-foreground">{t('labels.no_categories')}</p>
           )}
         </nav>
       </section>
