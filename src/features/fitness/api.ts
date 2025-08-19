@@ -242,21 +242,29 @@ export const useSearchExercises = (query: string, _opts?: { primaryMuscle?: stri
     queryKey: ["exercises_search", { query }],
     enabled: query.length > 1,
     queryFn: async (): Promise<Exercise[]> => {
+      // Use a simple direct query on the original table for search since jsonb search is complex
       let qbuilder = supabase
-        .from("v_exercises_with_translations")
-        .select("id,translations,thumbnail_url,image_url,source_url,popularity_rank,is_public")
+        .from("exercises")
+        .select("id,name,description,thumbnail_url,image_url,source_url,popularity_rank,is_public")
         .order("is_public", { ascending: false })
         .order("popularity_rank", { ascending: true, nullsFirst: false })
+        .order("name", { ascending: true })
         .limit(20);
 
       if (query.length > 1) {
-        // Search in the English translation name for now
-        qbuilder = qbuilder.filter("translations", "cs", `{"en":{"name":"%${query}%"}}`);
+        qbuilder = qbuilder.ilike("name", `%${query}%`);
       }
 
       const { data, error } = await qbuilder;
       if (error) throw error;
-      return data as any;
+      
+      // Transform to match our interface
+      return (data || []).map(exercise => ({
+        ...exercise,
+        translations: {
+          en: { name: exercise.name, description: exercise.description }
+        }
+      })) as Exercise[];
     },
   });
 };
@@ -298,10 +306,10 @@ export const useCreateTemplate = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       
-      // Insert into the base table first
+      // Insert into the base table first with empty name to satisfy the constraint
       const { data: template, error: templateError } = await supabase
         .from("workout_templates")
-        .insert({ user_id: user.id })
+        .insert({ user_id: user.id, name: '' })
         .select("id")
         .single();
       if (templateError) throw templateError;

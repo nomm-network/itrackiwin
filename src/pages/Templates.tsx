@@ -7,7 +7,9 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { useAddExerciseToTemplate, useCloneTemplateToWorkout, useCreateTemplate, useSearchExercises, useTemplateExercises, useTemplates } from "@/features/fitness/api";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { useTranslations } from "@/hooks/useTranslations";
 const Templates: React.FC = () => {
+  const { getTranslatedName } = useTranslations();
   const navigate = useNavigate();
   const { data: templates } = useTemplates();
   const create = useCreateTemplate();
@@ -76,7 +78,7 @@ const Templates: React.FC = () => {
               {(templates ?? []).map(t => (
                 <div key={t.id} className={`border rounded-md p-2 ${selectedTemplate === t.id ? 'bg-muted' : ''}`}>
                   <div className="flex items-center justify-between">
-                    <div className="text-sm font-medium">{t.name}</div>
+                    <div className="text-sm font-medium">{getTranslatedName(t)}</div>
                     <div className="flex gap-2">
                       <Button size="sm" variant="secondary" onClick={() => setSelectedTemplate(t.id)}>Edit</Button>
                       <Button size="sm" onClick={() => startTemplate(t.id)}>Start</Button>
@@ -134,7 +136,7 @@ const Templates: React.FC = () => {
                       {(results ?? []).map(ex => (
                         <div key={ex.id} className="border rounded-md p-2 flex items-center justify-between">
                     <div>
-                      <div className="text-sm font-medium">{ex.name}</div>
+                      <div className="text-sm font-medium">{getTranslatedName(ex)}</div>
                     </div>
                           <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
                         </div>

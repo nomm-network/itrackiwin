@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail } from "@/features/fitness/api";
 import { useToast } from "@/hooks/use-toast";
+import { useTranslations } from "@/hooks/useTranslations";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -31,6 +32,7 @@ const UnitToggle: React.FC = () => {
 };
 
 const WorkoutSession: React.FC = () => {
+  const { getTranslatedName } = useTranslations();
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -137,7 +139,7 @@ const WorkoutSession: React.FC = () => {
                 {(search ?? []).map(ex => (
                   <div key={ex.id} className="flex items-center justify-between border rounded-md p-2">
                     <div>
-                      <div className="text-sm font-medium">{ex.name}</div>
+                      <div className="text-sm font-medium">{getTranslatedName(ex)}</div>
                     </div>
                     <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
                   </div>
