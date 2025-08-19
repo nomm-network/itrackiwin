@@ -242,29 +242,40 @@ export const useSearchExercises = (query: string, _opts?: { primaryMuscle?: stri
     queryKey: ["exercises_search", { query }],
     enabled: query.length > 1,
     queryFn: async (): Promise<Exercise[]> => {
-      // Use a simple direct query on the original table for search since jsonb search is complex
-      let qbuilder = supabase
-        .from("exercises")
-        .select("id,name,description,thumbnail_url,image_url,source_url,popularity_rank,is_public")
-        .order("is_public", { ascending: false })
-        .order("popularity_rank", { ascending: true, nullsFirst: false })
-        .order("name", { ascending: true })
+      // Search in the translations table directly
+      const { data: searchResults, error } = await supabase
+        .from("exercises_translations")
+        .select("exercise_id, name, description")
+        .eq("language_code", "en")
+        .ilike("name", `%${query}%`)
         .limit(20);
-
-      if (query.length > 1) {
-        qbuilder = qbuilder.ilike("name", `%${query}%`);
-      }
-
-      const { data, error } = await qbuilder;
+      
       if (error) throw error;
       
-      // Transform to match our interface
-      return (data || []).map(exercise => ({
-        ...exercise,
-        translations: {
-          en: { name: exercise.name, description: exercise.description }
-        }
-      })) as Exercise[];
+      if (!searchResults || searchResults.length === 0) return [];
+      
+      // Get exercise details
+      const exerciseIds = searchResults.map(r => r.exercise_id);
+      const { data: exercises, error: exerciseError } = await supabase
+        .from("exercises")
+        .select("id,slug,thumbnail_url,image_url,source_url,popularity_rank,is_public")
+        .in("id", exerciseIds);
+        
+      if (exerciseError) throw exerciseError;
+      
+      // Combine results
+      return (exercises || []).map(exercise => {
+        const translation = searchResults.find(r => r.exercise_id === exercise.id);
+        return {
+          ...exercise,
+          translations: {
+            en: { 
+              name: translation?.name || 'Unknown', 
+              description: translation?.description 
+            }
+          }
+        };
+      }) as Exercise[];
     },
   });
 };
@@ -306,10 +317,10 @@ export const useCreateTemplate = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       
-      // Insert into the base table first with empty name to satisfy the constraint
+      // Insert into the base table first
       const { data: template, error: templateError } = await supabase
         .from("workout_templates")
-        .insert({ user_id: user.id, name: '' })
+        .insert({ user_id: user.id })
         .select("id")
         .single();
       if (templateError) throw templateError;
