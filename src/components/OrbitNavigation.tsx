@@ -2,6 +2,7 @@ import React, { useMemo, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useTranslations } from "@/hooks/useTranslations";
 interface OrbitNavigationProps {
   centerImageSrc?: string;
 }
@@ -43,6 +44,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   centerImageSrc
 }) => {
   const navigate = useNavigate();
+  const { getTranslatedName } = useTranslations();
   const [userId, setUserId] = useState<string | null>(null);
   useEffect(() => {
     supabase.auth.getUser().then(({
@@ -65,15 +67,13 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       const {
         data,
         error
-      } = await (supabase as any).from("life_categories").select("id, name, icon, color, display_order").order("display_order", {
-        ascending: true
-      }).order("name", {
+      } = await (supabase as any).from("v_categories_with_translations").select("id, translations, icon, color, display_order").order("display_order", {
         ascending: true
       });
       if (error) throw error;
       return (data ?? []) as Array<{
         id: string;
-        name: string;
+        translations: Record<string, { name: string; description?: string }> | null;
         icon?: string | null;
         color?: string | null;
       }>;
@@ -87,16 +87,14 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       const {
         data,
         error
-      } = await (supabase as any).from("life_subcategories").select("id, category_id, name, display_order").order("display_order", {
-        ascending: true
-      }).order("name", {
+      } = await (supabase as any).from("v_subcategories_with_translations").select("id, category_id, translations, display_order").order("display_order", {
         ascending: true
       });
       if (error) throw error;
       return (data ?? []) as Array<{
         id: string;
         category_id: string;
-        name: string;
+        translations: Record<string, { name: string; description?: string }> | null;
       }>;
     }
   });
@@ -136,11 +134,12 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   const subByCat = useMemo(() => {
     const m: Record<string, string[]> = {};
     for (const s of subcategories) {
+      const name = getTranslatedName(s);
       m[s.category_id] = m[s.category_id] || [];
-      m[s.category_id].push(s.name);
+      m[s.category_id].push(name);
     }
     return m;
-  }, [subcategories]);
+  }, [subcategories, getTranslatedName]);
   const areasArr = useMemo<OrbitArea[]>(() => {
     const orderIndex = (id: string, name: string) => {
       const pref = prefs.find(p => p.category_id === id);
@@ -149,19 +148,24 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       return idx === -1 ? 999 : idx;
     };
     const sorted = [...categories].sort((a, b) => {
-      const ai = orderIndex(a.id, a.name);
-      const bi = orderIndex(b.id, b.name);
+      const aName = getTranslatedName(a);
+      const bName = getTranslatedName(b);
+      const ai = orderIndex(a.id, aName);
+      const bi = orderIndex(b.id, bName);
       if (ai !== bi) return ai - bi;
-      return a.name.localeCompare(b.name);
+      return aName.localeCompare(bName);
     });
-    return sorted.map(c => ({
-      id: c.id,
-      name: c.name,
-      icon: c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(c.name),
-      color: c.color ?? null,
-      subcategories: subByCat[c.id] || []
-    }));
-  }, [categories, subByCat, prefs]);
+    return sorted.map(c => {
+      const name = getTranslatedName(c);
+      return {
+        id: c.id,
+        name,
+        icon: c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(name),
+        color: c.color ?? null,
+        subcategories: subByCat[c.id] || []
+      };
+    });
+  }, [categories, subByCat, prefs, getTranslatedName]);
   const [selected, setSelected] = useState<OrbitArea | null>(null);
   const [isSmall, setIsSmall] = useState<boolean>(() => window.innerWidth < 640);
   useEffect(() => {
@@ -178,12 +182,15 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       category_id: string;
       name: string;
     }> = {};
-    for (const s of subcategories) m[s.id] = s;
+    for (const s of subcategories) {
+      const name = getTranslatedName(s);
+      m[s.id] = { id: s.id, category_id: s.category_id, name };
+    }
     return m;
-  }, [subcategories]);
+  }, [subcategories, getTranslatedName]);
   const pinnedItems = useMemo(() => {
     const defaults = ["Fitness & exercise", "Long-term wealth building", "Romantic life"];
-    let list = pins.length ? pins.map(p => subById[p.subcategory_id]).filter(Boolean) : defaults.map(n => subcategories.find(s => s.name === n)).filter(Boolean);
+    let list = pins.length ? pins.map(p => subById[p.subcategory_id]).filter(Boolean) : defaults.map(n => subcategories.find(s => getTranslatedName(s) === n)).filter(Boolean).map(s => ({ id: s.id, category_id: s.category_id, name: getTranslatedName(s) }));
     // dedupe by id and limit 3
     const seen = new Set<string>();
     const final: Array<{
@@ -198,7 +205,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       if (final.length === 3) break;
     }
     return final;
-  }, [pins, subById, subcategories]);
+  }, [pins, subById, subcategories, getTranslatedName]);
   return <div className="w-full">
       <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2">
         {pinnedItems.map(s => {

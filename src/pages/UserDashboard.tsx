@@ -11,9 +11,10 @@ import { Link } from "react-router-dom";
 import { GripVertical } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
-interface LifeCategory { id: string; slug: string; name: string; display_order: number; }
+import { useTranslations } from "@/hooks/useTranslations";
+interface LifeCategory { id: string; slug: string; translations: Record<string, { name: string; description?: string }> | null; display_order: number; }
 interface UserPref { id?: string; user_id: string; category_id: string; display_order: number; }
-interface LifeSubcategory { id: string; category_id: string; name: string; }
+interface LifeSubcategory { id: string; category_id: string; translations: Record<string, { name: string; description?: string }> | null; }
 interface UserPin { id?: string; user_id: string; subcategory_id: string; }
 
 const DEFAULT_ORDER = [
@@ -32,6 +33,7 @@ const UserDashboard: React.FC = () => {
     if (meta) meta.setAttribute('content', 'Reorder categories (drag and drop) and pin subcategories');
   }, []);
 
+  const { getTranslatedName } = useTranslations();
   const qc = useQueryClient();
   const [userId, setUserId] = useState<string | null>(null);
 
@@ -43,10 +45,9 @@ const UserDashboard: React.FC = () => {
     queryKey: ["life_categories"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("life_categories")
-        .select("id, slug, name, display_order")
-        .order("display_order", { ascending: true })
-        .order("name", { ascending: true });
+        .from("v_categories_with_translations")
+        .select("id, slug, translations, display_order")
+        .order("display_order", { ascending: true });
       if (error) throw error;
       return (data ?? []) as LifeCategory[];
     },
@@ -92,8 +93,8 @@ const UserDashboard: React.FC = () => {
     queryKey: ["life_subcategories_all"],
     queryFn: async () => {
       const { data, error } = await (supabase as any)
-        .from("life_subcategories")
-        .select("id, category_id, name");
+        .from("v_subcategories_with_translations")
+        .select("id, category_id, translations");
       if (error) throw error;
       return (data ?? []) as LifeSubcategory[];
     },
@@ -139,7 +140,8 @@ const UserDashboard: React.FC = () => {
     const orderMap = new Map<string, number>(DEFAULT_ORDER.map((n, i) => [n, i + 1]));
     const items: UserPref[] = categories.map((c) => {
       const p = prefs.find((x) => x.category_id === c.id);
-      const base = p && p.display_order > 0 ? p.display_order : (orderMap.get(c.name) ?? 999);
+      const categoryName = getTranslatedName(c);
+      const base = p && p.display_order > 0 ? p.display_order : (orderMap.get(categoryName) ?? 999);
       return {
         ...(p ?? { user_id: userId!, category_id: c.id, display_order: base }),
         display_order: base,
@@ -148,7 +150,7 @@ const UserDashboard: React.FC = () => {
     items.sort((a, b) => a.display_order - b.display_order);
     const normalized = items.map((it, idx) => ({ ...it, display_order: idx + 1 }));
     setRows(normalized);
-  }, [categories, prefs, userId]);
+  }, [categories, prefs, userId, getTranslatedName]);
 
   const onChangeRow = (categoryId: string, patch: Partial<UserPref>) => {
     setRows((prev) => prev.map((r) => r.category_id === categoryId ? { ...r, ...patch } : r));
@@ -224,7 +226,7 @@ const UserDashboard: React.FC = () => {
                       <TableCell>
                         <div className="flex items-center gap-2">
                           <GripVertical className="h-4 w-4 text-muted-foreground" />
-                          <span>{c?.name}</span>
+                          <span>{c ? getTranslatedName(c) : 'Unknown'}</span>
                         </div>
                       </TableCell>
                     </TableRow>
@@ -244,7 +246,7 @@ const UserDashboard: React.FC = () => {
             <div className="space-y-5">
               {categories.map((c) => (
                 <div key={c.id}>
-                  <div className="font-medium mb-2">{c.name}</div>
+                  <div className="font-medium mb-2">{getTranslatedName(c)}</div>
                   <div className="grid md:grid-cols-3 gap-2">
                     {(subByCat[c.id] || []).map((s) => {
                       const isPinned = pins.some((p) => p.subcategory_id === s.id);
@@ -252,7 +254,7 @@ const UserDashboard: React.FC = () => {
                       return (
                         <label key={s.id} className={`flex items-center gap-2 rounded border p-2 ${disabled?"opacity-60":""}`}>
                           <Checkbox checked={isPinned} disabled={disabled} onCheckedChange={() => togglePin.mutate(s.id)} />
-                          <span className="text-sm">{s.name}</span>
+                          <span className="text-sm">{getTranslatedName(s)}</span>
                         </label>
                       );
                     })}
