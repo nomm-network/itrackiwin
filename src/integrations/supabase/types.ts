@@ -933,7 +933,6 @@ export type Database = {
           color: string | null
           created_at: string | null
           display_order: number | null
-          fallback_name: string | null
           icon: string | null
           id: string | null
           slug: string | null
@@ -948,7 +947,6 @@ export type Database = {
           created_at: string | null
           default_pinned: boolean | null
           display_order: number | null
-          fallback_name: string | null
           id: string | null
           route_name: string | null
           slug: string | null
