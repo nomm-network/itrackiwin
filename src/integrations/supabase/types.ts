@@ -35,6 +35,36 @@ export type Database = {
         }
         Relationships: []
       }
+      body_parts_translations: {
+        Row: {
+          body_part_id: string
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          body_part_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          body_part_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
@@ -53,6 +83,36 @@ export type Database = {
           id?: string
           name?: string
           slug?: string | null
+        }
+        Relationships: []
+      }
+      equipment_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          equipment_id: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          equipment_id: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          equipment_id?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -153,10 +213,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "exercises_body_part_fk"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "v_body_parts_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "exercises_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -166,7 +240,44 @@ export type Database = {
             referencedRelation: "muscles"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "exercises_primary_muscle_fk"
+            columns: ["primary_muscle_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      exercises_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          exercise_id: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          exercise_id: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          exercise_id?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       languages: {
         Row: {
@@ -468,7 +579,44 @@ export type Database = {
             referencedRelation: "body_parts"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "muscle_groups_body_part_id_fkey"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "v_body_parts_with_translations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      muscle_groups_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          muscle_group_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          muscle_group_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          muscle_group_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       muscles: {
         Row: {
@@ -500,7 +648,44 @@ export type Database = {
             referencedRelation: "muscle_groups"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "muscles_muscle_group_id_fkey"
+            columns: ["muscle_group_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscle_groups_with_translations"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      muscles_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          muscle_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          muscle_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          muscle_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       personal_records: {
         Row: {
@@ -542,6 +727,13 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_records_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -593,6 +785,20 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercises_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -799,6 +1005,13 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "workout_exercises_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
@@ -887,6 +1100,36 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_templates_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          name: string
+          template_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          name: string
+          template_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          name?: string
+          template_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       workouts: {
         Row: {
           created_at: string
@@ -922,6 +1165,15 @@ export type Database = {
       }
     }
     Views: {
+      v_body_parts_with_translations: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: []
+      }
       v_categories_with_translations: {
         Row: {
           color: string | null
@@ -933,6 +1185,128 @@ export type Database = {
           translations: Json | null
         }
         Relationships: []
+      }
+      v_equipment_with_translations: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: []
+      }
+      v_exercises_with_translations: {
+        Row: {
+          body_part: string | null
+          body_part_id: string | null
+          created_at: string | null
+          equipment_id: string | null
+          id: string | null
+          image_url: string | null
+          is_public: boolean | null
+          owner_user_id: string | null
+          popularity_rank: number | null
+          primary_muscle_id: string | null
+          secondary_muscle_ids: string[] | null
+          slug: string | null
+          source_url: string | null
+          thumbnail_url: string | null
+          translations: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercises_body_part_fk"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "body_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_body_part_fk"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "v_body_parts_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_primary_muscle_fk"
+            columns: ["primary_muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_primary_muscle_fk"
+            columns: ["primary_muscle_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_muscle_groups_with_translations: {
+        Row: {
+          body_part_id: string | null
+          created_at: string | null
+          id: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscle_groups_body_part_id_fkey"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "body_parts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "muscle_groups_body_part_id_fkey"
+            columns: ["body_part_id"]
+            isOneToOne: false
+            referencedRelation: "v_body_parts_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_muscles_with_translations: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          muscle_group_id: string | null
+          slug: string | null
+          translations: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "muscles_muscle_group_id_fkey"
+            columns: ["muscle_group_id"]
+            isOneToOne: false
+            referencedRelation: "muscle_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "muscles_muscle_group_id_fkey"
+            columns: ["muscle_group_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscle_groups_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_subcategories_with_translations: {
         Row: {
@@ -989,6 +1363,16 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_workout_templates_with_translations: {
+        Row: {
+          created_at: string | null
+          id: string | null
+          notes: string | null
+          translations: Json | null
+          user_id: string | null
+        }
+        Relationships: []
       }
     }
     Functions: {
