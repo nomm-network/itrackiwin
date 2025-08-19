@@ -65,10 +65,11 @@ const App = () => (
             {/* Admin routes */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminHome />} />
-              <Route path="/admin/translations" element={<AdminTranslations />} />
-              <Route path="/admin/translations/categories" element={<AdminCategoriesTranslations />} />
-              <Route path="/admin/translations/subcategories" element={<AdminSubcategoriesTranslations />} />
-              <Route path="/admin/translations/exercises" element={<AdminExercisesTranslations />} />
+              <Route path="/admin/translations" element={<AdminTranslations />}>
+                <Route path="categories" element={<AdminCategoriesTranslations />} />
+                <Route path="subcategories" element={<AdminSubcategoriesTranslations />} />
+                <Route path="exercises" element={<AdminExercisesTranslations />} />
+              </Route>
               <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
               <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
             </Route>

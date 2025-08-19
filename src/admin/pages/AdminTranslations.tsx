@@ -1,5 +1,5 @@
 import React from "react";
-import { Navigate, useLocation } from "react-router-dom";
+import { Outlet, Navigate, useLocation } from "react-router-dom";
 import PageNav from "@/components/PageNav";
 import AdminMenu from "@/admin/components/AdminMenu";
 import TranslationsMenu from "@/admin/components/TranslationsMenu";
@@ -21,9 +21,7 @@ const AdminTranslations: React.FC = () => {
       <div className="space-y-6">
         <h1 className="text-2xl font-bold">{t('admin.translations')}</h1>
         <TranslationsMenu />
-        <div className="text-muted-foreground">
-          {t('admin.select_translation_type')}
-        </div>
+        <Outlet />
       </div>
     </main>
   );
