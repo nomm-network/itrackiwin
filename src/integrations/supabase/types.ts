@@ -202,7 +202,6 @@ export type Database = {
           display_order: number
           icon: string | null
           id: string
-          name: string
           slug: string
         }
         Insert: {
@@ -211,7 +210,6 @@ export type Database = {
           display_order?: number
           icon?: string | null
           id?: string
-          name: string
           slug: string
         }
         Update: {
@@ -220,7 +218,6 @@ export type Database = {
           display_order?: number
           icon?: string | null
           id?: string
-          name?: string
           slug?: string
         }
         Relationships: []
@@ -285,7 +282,6 @@ export type Database = {
           default_pinned: boolean | null
           display_order: number
           id: string
-          name: string
           route_name: string | null
           slug: string | null
         }
@@ -296,7 +292,6 @@ export type Database = {
           default_pinned?: boolean | null
           display_order?: number
           id?: string
-          name: string
           route_name?: string | null
           slug?: string | null
         }
@@ -307,7 +302,6 @@ export type Database = {
           default_pinned?: boolean | null
           display_order?: number
           id?: string
-          name?: string
           route_name?: string | null
           slug?: string | null
         }
