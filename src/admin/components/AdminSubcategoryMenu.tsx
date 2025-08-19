@@ -18,16 +18,14 @@ const AdminSubcategoryMenu: React.FC<Props> = ({ categoryId }) => {
       if (!categoryId) return [];
       const { data, error } = await supabase
         .from("v_subcategories_with_translations")
-        .select("id, slug, translations, fallback_name")
+        .select("id, slug, translations")
         .eq("category_id", categoryId)
-        .order("display_order", { ascending: true })
-        .order("fallback_name", { ascending: true });
+        .order("display_order", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Array<{ 
         id: string; 
         slug: string | null; 
         translations: Record<string, { name: string; description?: string }> | null;
-        fallback_name: string;
       }>;
     },
     enabled: !!categoryId,

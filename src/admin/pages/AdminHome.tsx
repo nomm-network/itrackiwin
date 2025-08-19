@@ -16,15 +16,13 @@ const AdminHome: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("v_categories_with_translations")
-        .select("id, slug, translations, fallback_name")
-        .order("display_order", { ascending: true })
-        .order("fallback_name", { ascending: true });
+        .select("id, slug, translations")
+        .order("display_order", { ascending: true });
       if (error) throw error;
       return (data ?? []) as Array<{ 
         id: string; 
         slug: string | null; 
         translations: Record<string, { name: string; description?: string }> | null;
-        fallback_name: string;
       }>;
     },
   });

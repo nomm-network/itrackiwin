@@ -5,7 +5,6 @@ export const useTranslations = () => {
 
   const getTranslatedName = (item: {
     translations: Record<string, { name: string; description?: string }> | null;
-    fallback_name: string;
   }) => {
     if (item.translations?.[i18n.language]?.name) {
       return item.translations[i18n.language].name;
@@ -13,7 +12,7 @@ export const useTranslations = () => {
     if (item.translations?.en?.name) {
       return item.translations.en.name;
     }
-    return item.fallback_name;
+    return 'Untitled';
   };
 
   const getTranslatedDescription = (item: {
