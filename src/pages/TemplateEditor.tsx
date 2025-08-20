@@ -171,6 +171,49 @@ const TemplateEditor: React.FC = () => {
     enabled: templateExercises.length > 0
   });
 
+  // Get grip preferences for all template exercises
+  const { data: allGripPreferences = {} } = useQuery({
+    queryKey: ["all_grip_preferences", templateExercises.map(e => e.id)],
+    queryFn: async () => {
+      if (templateExercises.length === 0) return {};
+      
+      const { data, error } = await supabase
+        .from('template_exercise_preferences')
+        .select('template_exercise_id, preferred_grips')
+        .in('template_exercise_id', templateExercises.map(e => e.id))
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+      
+      if (error) throw error;
+      
+      return data.reduce((acc, pref) => {
+        acc[pref.template_exercise_id] = Array.isArray(pref.preferred_grips) ? 
+          pref.preferred_grips.map(String) : [];
+        return acc;
+      }, {} as Record<string, string[]>);
+    },
+    enabled: templateExercises.length > 0
+  });
+
+  // Get all grips for name lookup
+  const { data: allGrips = [] } = useQuery({
+    queryKey: ["all_grips"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('grips')
+        .select('id, name, slug');
+      if (error) throw error;
+      return data || [];
+    }
+  });
+
+  // Helper function to get grip names from slugs
+  const getGripNames = (gripSlugs: string[]) => {
+    if (!gripSlugs || gripSlugs.length === 0) return [];
+    return gripSlugs
+      .map(slug => allGrips.find(grip => grip.slug === slug)?.name)
+      .filter(Boolean);
+  };
+
   const getTranslatedText = (translations: any, fallback: string = "Unnamed") => {
     if (!translations) return fallback;
     return translations?.en?.name || translations?.['en-US']?.name || fallback;
@@ -443,9 +486,20 @@ const TemplateEditor: React.FC = () => {
                         <div className="text-sm font-medium truncate">
                           {exerciseNames[exercise.exercise_id] || `Exercise ${exercise.exercise_id}`}
                         </div>
-                        <div className="text-xs text-muted-foreground">
-                          Sets: {exercise.default_sets} • Reps: {exercise.target_reps || '-'}
-                          {exercise.target_weight && ` • Weight: ${exercise.target_weight}${exercise.weight_unit}`}
+                        <div className="text-xs text-muted-foreground space-y-1">
+                          <div>
+                            Sets: {exercise.default_sets} • Reps: {exercise.target_reps || '-'}
+                            {exercise.target_weight && ` • Weight: ${exercise.target_weight}${exercise.weight_unit}`}
+                          </div>
+                          {(() => {
+                            const exerciseGrips = allGripPreferences[exercise.id] || [];
+                            const gripNames = getGripNames(exerciseGrips);
+                            return gripNames.length > 0 ? (
+                              <div className="text-xs text-muted-foreground">
+                                Grips: {gripNames.join(', ')}
+                              </div>
+                            ) : null;
+                          })()}
                         </div>
                       </div>
                       <div className="flex gap-2">
