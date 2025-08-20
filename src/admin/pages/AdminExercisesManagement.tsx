@@ -337,6 +337,18 @@ const AdminExercisesManagement: React.FC = () => {
     ? muscles.filter(m => m.muscle_group_id === selectedMuscleGroup)
     : muscles;
 
+  // For edit dialog: filter muscles based on selected body part
+  const formFilteredMuscleGroups = formData.body_part_id 
+    ? muscleGroups.filter(mg => mg.body_part_id === formData.body_part_id)
+    : muscleGroups;
+
+  const formFilteredMuscles = formData.body_part_id
+    ? muscles.filter(m => {
+        const muscleGroup = muscleGroups.find(mg => mg.id === m.muscle_group_id);
+        return muscleGroup?.body_part_id === formData.body_part_id;
+      })
+    : muscles;
+
   return (
     <main className="container py-6">
       <PageNav current="Admin / Exercise Management" />
@@ -410,7 +422,11 @@ const AdminExercisesManagement: React.FC = () => {
                     <Label>Body Part</Label>
                     <Select 
                       value={formData.body_part_id || ""} 
-                      onValueChange={(value) => setFormData({ ...formData, body_part_id: value })}
+                      onValueChange={(value) => setFormData({ 
+                        ...formData, 
+                        body_part_id: value,
+                        primary_muscle_id: "" // Reset muscle when body part changes
+                      })}
                     >
                       <SelectTrigger>
                         <SelectValue placeholder="Select body part" />
@@ -435,7 +451,7 @@ const AdminExercisesManagement: React.FC = () => {
                         <SelectValue placeholder="Select primary muscle" />
                       </SelectTrigger>
                       <SelectContent>
-                        {muscles.map((muscle) => (
+                        {formFilteredMuscles.map((muscle) => (
                           <SelectItem key={muscle.id} value={muscle.id}>
                             {muscle.name}
                           </SelectItem>
@@ -480,8 +496,8 @@ const AdminExercisesManagement: React.FC = () => {
                   </Select>
                 </div>
 
-                <Button onClick={handleSave} disabled={upsertMutation.isPending}>
-                  {upsertMutation.isPending ? "Saving..." : "Save Exercise"}
+                <Button type="button" onClick={handleSave} disabled={upsertMutation.isPending}>
+                  {upsertMutation.isPending ? "Saving..." : editingExercise ? "Save Changes" : "Save Exercise"}
                 </Button>
               </div>
             </DialogContent>
@@ -641,116 +657,6 @@ const AdminExercisesManagement: React.FC = () => {
         </Card>
       </div>
 
-      {/* Edit Dialog */}
-      {editingExercise && (
-        <Dialog open={!!editingExercise} onOpenChange={() => setEditingExercise(null)}>
-          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>Edit Exercise: {editingExercise.name}</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid gap-2">
-                <Label htmlFor="edit-name">Name</Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name || ""}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Exercise name"
-                />
-              </div>
-              
-              <div className="grid gap-2">
-                <Label htmlFor="edit-description">Description</Label>
-                <Textarea
-                  id="edit-description"
-                  value={formData.description || ""}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Exercise description"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="grid gap-2">
-                  <Label>Body Part</Label>
-                  <Select 
-                    value={formData.body_part_id || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, body_part_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body part" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bodyParts.map((bp) => (
-                        <SelectItem key={bp.id} value={bp.id}>
-                          {bp.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Primary Muscle</Label>
-                  <Select 
-                    value={formData.primary_muscle_id || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, primary_muscle_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select primary muscle" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {muscles.map((muscle) => (
-                        <SelectItem key={muscle.id} value={muscle.id}>
-                          {muscle.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Equipment</Label>
-                <Select 
-                  value={formData.equipment_id || ""} 
-                  onValueChange={(value) => setFormData({ ...formData, equipment_id: value })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select equipment" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {equipment.map((eq) => (
-                      <SelectItem key={eq.id} value={eq.id}>
-                        {eq.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="grid gap-2">
-                <Label>Visibility</Label>
-                <Select 
-                  value={formData.is_public ? "true" : "false"} 
-                  onValueChange={(value) => setFormData({ ...formData, is_public: value === "true" })}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select visibility" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">Public</SelectItem>
-                    <SelectItem value="false">Private</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <Button onClick={handleSave} disabled={upsertMutation.isPending}>
-                {upsertMutation.isPending ? "Saving..." : "Save Changes"}
-              </Button>
-            </div>
-          </DialogContent>
-        </Dialog>
-      )}
     </main>
   );
 };
