@@ -245,9 +245,9 @@ const primaryMusclesOptions = React.useMemo(() => {
       </nav>
 
       <main className="container py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Add Exercise</h1>
-          <Button variant="secondary" asChild>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h1 className="text-xl md:text-2xl font-semibold">Add Exercise</h1>
+          <Button variant="secondary" asChild className="w-full sm:w-auto">
             <Link to="/fitness/exercises">Back to Exercises</Link>
           </Button>
         </div>
@@ -255,7 +255,7 @@ const primaryMusclesOptions = React.useMemo(() => {
         {loading ? (
           <p className="text-muted-foreground">Loading options…</p>
         ) : (
-          <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={form.handleSubmit(onSubmit)}>
+          <form className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" onSubmit={form.handleSubmit(onSubmit)}>
             <section className="lg:col-span-2 space-y-6">
               <div className="space-y-2">
                 <Label htmlFor="name">Name</Label>
@@ -297,8 +297,8 @@ const primaryMusclesOptions = React.useMemo(() => {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label>Muscle Group</Label>
                     <Select onValueChange={(v) => { form.setValue('primary_muscle_group_id', v); form.setValue('primary_muscle_id', ''); }} value={form.watch('primary_muscle_group_id') || ''}>
@@ -358,11 +358,11 @@ const primaryMusclesOptions = React.useMemo(() => {
                 <p className="text-xs text-muted-foreground">First image becomes the thumbnail.</p>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="secondary" asChild>
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                <Button type="button" variant="secondary" asChild className="w-full sm:w-auto">
                   <Link to="/fitness/exercises">Cancel</Link>
                 </Button>
-                <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Create Exercise'}</Button>
+                <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? 'Saving…' : 'Create Exercise'}</Button>
               </div>
 
               {lastError && (

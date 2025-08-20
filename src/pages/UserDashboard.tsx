@@ -187,15 +187,15 @@ const UserDashboard: React.FC = () => {
     <main>
       <PageNav current="Dashboard" />
       <section className="container py-6">
-        <div className="flex items-start justify-between mb-4">
+        <div className="flex flex-col sm:flex-row items-start justify-between gap-4 mb-6">
           <div>
-            <h1 className="text-2xl font-semibold">Your Dashboard</h1>
+            <h1 className="text-xl md:text-2xl font-semibold">Your Dashboard</h1>
             <p className="text-sm text-muted-foreground">Reorder categories by dragging, and pin up to 3 subcategories</p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 w-full sm:w-auto">
             <LanguageToggle />
             <ThemeToggle />
-            <Button asChild variant="outline"><Link to="/profile">Account</Link></Button>
+            <Button asChild variant="outline" className="flex-1 sm:flex-none"><Link to="/profile">Account</Link></Button>
           </div>
         </div>
 
@@ -247,7 +247,7 @@ const UserDashboard: React.FC = () => {
               {categories.map((c) => (
                 <div key={c.id}>
                   <div className="font-medium mb-2">{getTranslatedName(c)}</div>
-                  <div className="grid md:grid-cols-3 gap-2">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
                     {(subByCat[c.id] || []).map((s) => {
                       const isPinned = pins.some((p) => p.subcategory_id === s.id);
                       const disabled = !isPinned && pins.length >= 3;

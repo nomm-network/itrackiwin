@@ -205,64 +205,66 @@ const Exercises: React.FC = () => {
       </nav>
 
       <main className="container py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Exercises</h1>
-          <Button asChild>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+          <h1 className="text-xl md:text-2xl font-semibold">Exercises</h1>
+          <Button asChild className="w-full sm:w-auto">
             <Link to="/fitness/exercises/add">Add Exercise</Link>
           </Button>
         </div>
 
         <section className="grid gap-4">
-          <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            <div className="md:col-span-2">
+          <div className="grid grid-cols-1 gap-3">
+            <div>
               <Label htmlFor="search">Search</Label>
               <Input id="search" value={query} onChange={(e) => setQuery(e.target.value)} placeholder="Search by name" />
             </div>
-            <div>
-              <Label>Body Part</Label>
-              <Select value={bpId} onValueChange={(v) => { setBpId(v); setGroupId(""); setMuscleId(""); }}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bodyParts.map((bp) => (
-                    <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Group</Label>
-              <Select value={groupId} onValueChange={(v) => { setGroupId(v); setMuscleId(""); }} disabled={!bpId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={bpId ? 'All' : 'Select body part first'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {groupsFiltered.map((g) => (
-                    <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Muscle</Label>
-              <Select value={muscleId} onValueChange={setMuscleId} disabled={!groupId}>
-                <SelectTrigger>
-                  <SelectValue placeholder={groupId ? 'All' : 'Select group first'} />
-                </SelectTrigger>
-                <SelectContent>
-                  {musclesFiltered.map((mu) => (
-                    <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              <div>
+                <Label>Body Part</Label>
+                <Select value={bpId} onValueChange={(v) => { setBpId(v); setGroupId(""); setMuscleId(""); }}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bodyParts.map((bp) => (
+                      <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Group</Label>
+                <Select value={groupId} onValueChange={(v) => { setGroupId(v); setMuscleId(""); }} disabled={!bpId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={bpId ? 'All' : 'Select body part first'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {groupsFiltered.map((g) => (
+                      <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Muscle</Label>
+                <Select value={muscleId} onValueChange={setMuscleId} disabled={!groupId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={groupId ? 'All' : 'Select group first'} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {musclesFiltered.map((mu) => (
+                      <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
-          <div className="flex items-center gap-3">
-            <div>
+          <div className="flex flex-col sm:flex-row items-start sm:items-end gap-3">
+            <div className="w-full sm:w-auto">
               <Label>Visibility</Label>
               <Select value={ownership} onValueChange={(v) => setOwnership(v as any)}>
-                <SelectTrigger>
+                <SelectTrigger className="w-full sm:w-32">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -272,7 +274,7 @@ const Exercises: React.FC = () => {
                 </SelectContent>
               </Select>
             </div>
-            <Button variant="secondary" type="button" onClick={() => { setQuery(""); setOwnership("all"); setBpId(""); setGroupId(""); setMuscleId(""); }}>Clear</Button>
+            <Button variant="secondary" type="button" onClick={() => { setQuery(""); setOwnership("all"); setBpId(""); setGroupId(""); setMuscleId(""); }} className="w-full sm:w-auto">Clear</Button>
           </div>
         </section>
 
@@ -290,14 +292,14 @@ const Exercises: React.FC = () => {
               const grp = mu ? groupById.get(mu.muscle_group_id) : undefined;
               return (
                 <li key={r.id} className="rounded border p-3">
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex-1">
-                      <div className="flex items-center gap-2">
+                      <div className="flex items-center gap-2 flex-wrap">
                         <span className="font-medium">{r.name}</span>
                         {r.owner_user_id ? (
-                          <span className="text-xs text-muted-foreground">yours</span>
+                          <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded">yours</span>
                         ) : (
-                          <span className="text-xs text-muted-foreground">public</span>
+                          <span className="text-xs text-muted-foreground bg-secondary px-2 py-1 rounded">public</span>
                         )}
                       </div>
                       {mu && (
@@ -306,14 +308,18 @@ const Exercises: React.FC = () => {
                         </p>
                       )}
                     </div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 w-full sm:w-auto">
                       {r.owner_user_id === userId && (
                         <>
-                          <Button asChild variant="outline" size="sm">
-                            <Link to={`/fitness/exercises/${r.id}/edit`}><Pencil className="mr-1" /> Edit</Link>
+                          <Button asChild variant="outline" size="sm" className="flex-1 sm:flex-none">
+                            <Link to={`/fitness/exercises/${r.id}/edit`}>
+                              <Pencil className="mr-1 h-4 w-4" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Link>
                           </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)}>
-                            <Trash2 className="mr-1" /> Delete
+                          <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)} className="flex-1 sm:flex-none">
+                            <Trash2 className="mr-1 h-4 w-4" />
+                            <span className="hidden sm:inline">Delete</span>
                           </Button>
                         </>
                       )}
