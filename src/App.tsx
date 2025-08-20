@@ -29,6 +29,7 @@ import AdminTranslations from "./admin/pages/AdminTranslations";
 import AdminCategoriesTranslations from "./admin/pages/AdminCategoriesTranslations";
 import AdminSubcategoriesTranslations from "./admin/pages/AdminSubcategoriesTranslations";
 import AdminExercisesTranslations from "./admin/pages/AdminExercisesTranslations";
+import AdminExercisesManagement from "./admin/pages/AdminExercisesManagement";
 import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
@@ -65,6 +66,7 @@ const App = () => (
             {/* Admin routes */}
             <Route element={<AdminRoute />}>
               <Route path="/admin" element={<AdminHome />} />
+              <Route path="/admin/exercises" element={<AdminExercisesManagement />} />
               <Route path="/admin/translations" element={<AdminTranslations />}>
                 <Route path="categories" element={<AdminCategoriesTranslations />} />
                 <Route path="subcategories" element={<AdminSubcategoriesTranslations />} />

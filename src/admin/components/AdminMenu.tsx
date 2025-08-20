@@ -8,6 +8,7 @@ const AdminMenu: React.FC = () => {
 
   const menuItems = [
     { label: t('navigation.translations'), href: '/admin/translations' },
+    { label: 'Exercise Management', href: '/admin/exercises' },
     // Add more items later as requested
   ];
 

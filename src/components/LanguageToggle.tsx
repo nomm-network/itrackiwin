@@ -19,6 +19,7 @@ const LanguageToggle: React.FC = () => {
       if (error) throw error;
       return data || [];
     },
+    enabled: true, // Always enable this query, even for non-authenticated users
   });
 
   const onChange = (val: string) => {

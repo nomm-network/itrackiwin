@@ -1,0 +1,700 @@
+import React, { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
+import PageNav from "@/components/PageNav";
+import AdminMenu from "@/admin/components/AdminMenu";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+
+interface Exercise {
+  id: string;
+  name: string;
+  slug: string;
+  description: string | null;
+  body_part: string | null;
+  body_part_id: string | null;
+  primary_muscle_id: string | null;
+  secondary_muscle_ids: string[] | null;
+  equipment_id: string | null;
+  image_url: string | null;
+  thumbnail_url: string | null;
+  is_public: boolean;
+  owner_user_id: string | null;
+  source_url: string | null;
+  popularity_rank: number | null;
+  created_at: string;
+}
+
+interface BodyPart {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+interface MuscleGroup {
+  id: string;
+  name: string;
+  slug: string;
+  body_part_id: string;
+}
+
+interface Muscle {
+  id: string;
+  name: string;
+  slug: string;
+  muscle_group_id: string;
+}
+
+interface Equipment {
+  id: string;
+  name: string;
+  slug: string;
+}
+
+const AdminExercisesManagement: React.FC = () => {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // State
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string>("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
+  const [selectedMuscle, setSelectedMuscle] = useState<string>("");
+  const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [isPublic, setIsPublic] = useState<string>("");
+  const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
+  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<Partial<Exercise>>({
+    name: "",
+    description: "",
+    body_part_id: "",
+    primary_muscle_id: "",
+    secondary_muscle_ids: [],
+    equipment_id: "",
+    is_public: true,
+  });
+
+  // Fetch body parts
+  const { data: bodyParts = [] } = useQuery({
+    queryKey: ["admin_body_parts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("body_parts")
+        .select("id, name, slug")
+        .order("name");
+      if (error) throw error;
+      return data as BodyPart[];
+    },
+  });
+
+  // Fetch muscle groups
+  const { data: muscleGroups = [] } = useQuery({
+    queryKey: ["admin_muscle_groups"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("muscle_groups")
+        .select("id, name, slug, body_part_id")
+        .order("name");
+      if (error) throw error;
+      return data as MuscleGroup[];
+    },
+  });
+
+  // Fetch muscles
+  const { data: muscles = [] } = useQuery({
+    queryKey: ["admin_muscles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("muscles")
+        .select("id, name, slug, muscle_group_id")
+        .order("name");
+      if (error) throw error;
+      return data as Muscle[];
+    },
+  });
+
+  // Fetch equipment
+  const { data: equipment = [] } = useQuery({
+    queryKey: ["admin_equipment"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("equipment")
+        .select("id, name, slug")
+        .order("name");
+      if (error) throw error;
+      return data as Equipment[];
+    },
+  });
+
+  // Fetch exercises with filters
+  const { data: exercises = [], isLoading } = useQuery({
+    queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
+    queryFn: async () => {
+      let query = supabase
+        .from("exercises")
+        .select(`
+          id, name, slug, description, body_part, body_part_id, 
+          primary_muscle_id, secondary_muscle_ids, equipment_id,
+          image_url, thumbnail_url, is_public, owner_user_id, 
+          source_url, popularity_rank, created_at
+        `)
+        .order("name");
+
+      if (searchTerm) {
+        query = query.ilike("name", `%${searchTerm}%`);
+      }
+      if (selectedBodyPart) {
+        query = query.eq("body_part_id", selectedBodyPart);
+      }
+      if (selectedMuscle) {
+        query = query.eq("primary_muscle_id", selectedMuscle);
+      }
+      if (selectedEquipment) {
+        query = query.eq("equipment_id", selectedEquipment);
+      }
+      if (isPublic) {
+        query = query.eq("is_public", isPublic === "true");
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as Exercise[];
+    },
+  });
+
+  // Create/Update mutation
+  const upsertMutation = useMutation({
+    mutationFn: async (exercise: Partial<Exercise>) => {
+      if (exercise.id) {
+        const { data, error } = await supabase
+          .from("exercises")
+          .update(exercise)
+          .eq("id", exercise.id)
+          .select();
+        if (error) throw error;
+        return data;
+      } else {
+        // Ensure name is provided for new exercises
+        if (!exercise.name) {
+          throw new Error("Exercise name is required");
+        }
+        const exerciseToInsert = {
+          name: exercise.name!,
+          description: exercise.description || null,
+          body_part_id: exercise.body_part_id || null,
+          primary_muscle_id: exercise.primary_muscle_id || null,
+          secondary_muscle_ids: exercise.secondary_muscle_ids || null,
+          equipment_id: exercise.equipment_id || null,
+          is_public: exercise.is_public ?? true,
+          owner_user_id: null,
+        };
+        const { data, error } = await supabase
+          .from("exercises")
+          .insert([exerciseToInsert])
+          .select();
+        if (error) throw error;
+        return data;
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin_exercises"] });
+      toast({ title: "Success", description: "Exercise saved successfully" });
+      setEditingExercise(null);
+      setIsCreateDialogOpen(false);
+      setFormData({
+        name: "",
+        description: "",
+        body_part_id: "",
+        primary_muscle_id: "",
+        secondary_muscle_ids: [],
+        equipment_id: "",
+        is_public: true,
+      });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: `Failed to save exercise: ${error.message}`, variant: "destructive" });
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("exercises")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin_exercises"] });
+      toast({ title: "Success", description: "Exercise deleted successfully" });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: `Failed to delete exercise: ${error.message}`, variant: "destructive" });
+    },
+  });
+
+  const handleSave = () => {
+    // Validate required fields
+    if (!formData.name?.trim()) {
+      toast({ title: "Error", description: "Exercise name is required", variant: "destructive" });
+      return;
+    }
+    
+    if (editingExercise) {
+      upsertMutation.mutate({ ...editingExercise, ...formData });
+    } else {
+      upsertMutation.mutate(formData);
+    }
+  };
+
+  const handleDelete = (id: string) => {
+    if (confirm("Are you sure you want to delete this exercise?")) {
+      deleteMutation.mutate(id);
+    }
+  };
+
+  const handleEdit = (exercise: Exercise) => {
+    setEditingExercise(exercise);
+    setFormData(exercise);
+  };
+
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedBodyPart("");
+    setSelectedMuscleGroup("");
+    setSelectedMuscle("");
+    setSelectedEquipment("");
+    setIsPublic("");
+  };
+
+  const getBodyPartName = (id: string | null) => {
+    if (!id) return "N/A";
+    const bodyPart = bodyParts.find(bp => bp.id === id);
+    return bodyPart?.name || "Unknown";
+  };
+
+  const getMuscleName = (id: string | null) => {
+    if (!id) return "N/A";
+    const muscle = muscles.find(m => m.id === id);
+    return muscle?.name || "Unknown";
+  };
+
+  const getEquipmentName = (id: string | null) => {
+    if (!id) return "N/A";
+    const eq = equipment.find(e => e.id === id);
+    return eq?.name || "Unknown";
+  };
+
+  const filteredMuscleGroups = selectedBodyPart 
+    ? muscleGroups.filter(mg => mg.body_part_id === selectedBodyPart)
+    : muscleGroups;
+
+  const filteredMuscles = selectedMuscleGroup
+    ? muscles.filter(m => m.muscle_group_id === selectedMuscleGroup)
+    : muscles;
+
+  return (
+    <main className="container py-6">
+      <PageNav current="Admin / Exercise Management" />
+      <AdminMenu />
+      
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">Exercise Management</h1>
+          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+            <DialogTrigger asChild>
+              <Button>
+                <Plus className="w-4 h-4 mr-2" />
+                Create Exercise
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+              <DialogHeader>
+                <DialogTitle>
+                  {editingExercise ? "Edit Exercise" : "Create New Exercise"}
+                </DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="name">Name</Label>
+                  <Input
+                    id="name"
+                    value={formData.name || ""}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Exercise name"
+                  />
+                </div>
+                
+                <div className="grid gap-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description || ""}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Exercise description"
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <Label>Body Part</Label>
+                    <Select 
+                      value={formData.body_part_id || ""} 
+                      onValueChange={(value) => setFormData({ ...formData, body_part_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select body part" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {bodyParts.map((bp) => (
+                          <SelectItem key={bp.id} value={bp.id}>
+                            {bp.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="grid gap-2">
+                    <Label>Primary Muscle</Label>
+                    <Select 
+                      value={formData.primary_muscle_id || ""} 
+                      onValueChange={(value) => setFormData({ ...formData, primary_muscle_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select primary muscle" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {muscles.map((muscle) => (
+                          <SelectItem key={muscle.id} value={muscle.id}>
+                            {muscle.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Equipment</Label>
+                  <Select 
+                    value={formData.equipment_id || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, equipment_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select equipment" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {equipment.map((eq) => (
+                        <SelectItem key={eq.id} value={eq.id}>
+                          {eq.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Visibility</Label>
+                  <Select 
+                    value={formData.is_public ? "true" : "false"} 
+                    onValueChange={(value) => setFormData({ ...formData, is_public: value === "true" })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select visibility" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">Public</SelectItem>
+                      <SelectItem value="false">Private</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button onClick={handleSave} disabled={upsertMutation.isPending}>
+                  {upsertMutation.isPending ? "Saving..." : "Save Exercise"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Filters */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Filter className="w-4 h-4" />
+              Filters
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+              <div className="relative">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search exercises..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-8"
+                />
+              </div>
+              
+              <Select value={selectedBodyPart} onValueChange={setSelectedBodyPart}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Body Part" />
+                </SelectTrigger>
+                <SelectContent>
+                  {bodyParts.map((bp) => (
+                    <SelectItem key={bp.id} value={bp.id}>
+                      {bp.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Muscle Group" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredMuscleGroups.map((mg) => (
+                    <SelectItem key={mg.id} value={mg.id}>
+                      {mg.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedMuscle} onValueChange={setSelectedMuscle}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Muscle" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filteredMuscles.map((muscle) => (
+                    <SelectItem key={muscle.id} value={muscle.id}>
+                      {muscle.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Equipment" />
+                </SelectTrigger>
+                <SelectContent>
+                  {equipment.map((eq) => (
+                    <SelectItem key={eq.id} value={eq.id}>
+                      {eq.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+
+              <div className="flex gap-2">
+                <Select value={isPublic} onValueChange={setIsPublic}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Visibility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Public</SelectItem>
+                    <SelectItem value="false">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button variant="outline" onClick={clearFilters}>
+                  Clear
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Exercises Table */}
+        <Card>
+          <CardContent>
+            {isLoading ? (
+              <div className="text-center py-4">Loading exercises...</div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Body Part</TableHead>
+                    <TableHead>Primary Muscle</TableHead>
+                    <TableHead>Equipment</TableHead>
+                    <TableHead>Visibility</TableHead>
+                    <TableHead>Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {exercises.map((exercise) => (
+                    <TableRow key={exercise.id}>
+                      <TableCell className="font-medium">{exercise.name}</TableCell>
+                      <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
+                      <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
+                      <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
+                      <TableCell>
+                        <Badge variant={exercise.is_public ? "default" : "secondary"}>
+                          {exercise.is_public ? "Public" : "Private"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleEdit(exercise)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleDelete(exercise.id)}
+                            disabled={deleteMutation.isPending}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            
+            {exercises.length === 0 && !isLoading && (
+              <div className="text-center py-8 text-muted-foreground">
+                No exercises found matching your criteria.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Edit Dialog */}
+      {editingExercise && (
+        <Dialog open={!!editingExercise} onOpenChange={() => setEditingExercise(null)}>
+          <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Edit Exercise: {editingExercise.name}</DialogTitle>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid gap-2">
+                <Label htmlFor="edit-name">Name</Label>
+                <Input
+                  id="edit-name"
+                  value={formData.name || ""}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  placeholder="Exercise name"
+                />
+              </div>
+              
+              <div className="grid gap-2">
+                <Label htmlFor="edit-description">Description</Label>
+                <Textarea
+                  id="edit-description"
+                  value={formData.description || ""}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  placeholder="Exercise description"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div className="grid gap-2">
+                  <Label>Body Part</Label>
+                  <Select 
+                    value={formData.body_part_id || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, body_part_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select body part" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {bodyParts.map((bp) => (
+                        <SelectItem key={bp.id} value={bp.id}>
+                          {bp.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="grid gap-2">
+                  <Label>Primary Muscle</Label>
+                  <Select 
+                    value={formData.primary_muscle_id || ""} 
+                    onValueChange={(value) => setFormData({ ...formData, primary_muscle_id: value })}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select primary muscle" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {muscles.map((muscle) => (
+                        <SelectItem key={muscle.id} value={muscle.id}>
+                          {muscle.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Equipment</Label>
+                <Select 
+                  value={formData.equipment_id || ""} 
+                  onValueChange={(value) => setFormData({ ...formData, equipment_id: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select equipment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipment.map((eq) => (
+                      <SelectItem key={eq.id} value={eq.id}>
+                        {eq.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="grid gap-2">
+                <Label>Visibility</Label>
+                <Select 
+                  value={formData.is_public ? "true" : "false"} 
+                  onValueChange={(value) => setFormData({ ...formData, is_public: value === "true" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select visibility" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="true">Public</SelectItem>
+                    <SelectItem value="false">Private</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <Button onClick={handleSave} disabled={upsertMutation.isPending}>
+                {upsertMutation.isPending ? "Saving..." : "Save Changes"}
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
+    </main>
+  );
+};
+
+export default AdminExercisesManagement;
