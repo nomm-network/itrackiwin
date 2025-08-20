@@ -205,7 +205,7 @@ export type Database = {
           image_url?: string | null
           is_public?: boolean
           name: string
-          owner_user_id?: string
+          owner_user_id: string
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           secondary_muscle_group_ids?: string[] | null

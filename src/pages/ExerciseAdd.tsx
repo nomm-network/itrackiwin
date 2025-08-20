@@ -164,12 +164,18 @@ const primaryMusclesOptions = React.useMemo(() => {
         owner_user_id: user.id,
       };
 
+      console.log('[ExerciseAdd] Inserting payload:', payload);
+      console.log('[ExerciseAdd] Current user:', user);
+      
       const { data: inserted, error } = await supabase
         .from('exercises')
         .insert(payload)
         .select('id')
         .single();
-      if (error) throw error;
+      if (error) {
+        console.error('[ExerciseAdd] Insert error:', error);
+        throw error;
+      }
       const exerciseId = inserted?.id;
       if (!exerciseId) throw new Error('Failed to get new exercise id');
 
