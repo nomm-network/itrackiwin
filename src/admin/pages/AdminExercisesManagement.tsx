@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
+import { useTranslations } from '@/hooks/useTranslations';
 import { useToast } from "@/hooks/use-toast";
 import PageNav from "@/components/PageNav";
 import AdminMenu from "@/admin/components/AdminMenu";
@@ -66,10 +67,9 @@ interface Equipment {
 
 interface Grip {
   id: string;
-  name: string;
   slug: string;
   category: string;
-  description: string | null;
+  translations: Record<string, { name: string; description?: string }> | null;
 }
 
 const AdminExercisesManagement: React.FC = () => {
@@ -205,7 +205,7 @@ const AdminExercisesManagement: React.FC = () => {
         return {
           ...grip,
           translations
-        } as Grip;
+        };
       });
     },
   });
@@ -426,7 +426,7 @@ const AdminExercisesManagement: React.FC = () => {
     return gripIds
       .map(id => {
         const grip = grips.find(g => g.id === id);
-        return grip?.name || "Unknown";
+        return grip ? getTranslatedName(grip) : "Unknown";
       })
       .join(", ");
   };

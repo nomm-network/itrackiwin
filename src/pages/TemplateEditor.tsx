@@ -217,15 +217,37 @@ const TemplateEditor: React.FC = () => {
     enabled: templateExercises.length > 0
   });
 
-  // Get all grips for name lookup
+  // Get all grips for name lookup with translations
   const { data: allGrips = [] } = useQuery({
     queryKey: ["all_grips"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: gripsData, error: gripsError } = await supabase
         .from('grips')
-        .select('id, name, slug');
-      if (error) throw error;
-      return data || [];
+        .select('*');
+      if (gripsError) throw gripsError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from('grips_translations')
+        .select('*');
+      if (translationsError) throw translationsError;
+
+      // Combine grips with their translations
+      return gripsData.map(grip => {
+        const translations = translationsData
+          .filter(t => t.grip_id === grip.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = {
+              name: t.name,
+              description: t.description
+            };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return {
+          ...grip,
+          translations
+        };
+      });
     }
   });
 
@@ -236,7 +258,7 @@ const TemplateEditor: React.FC = () => {
       .map(id => {
         // Try to find by ID first (for default grips), then by slug (for user prefs)
         const grip = allGrips.find(g => g.id === id || g.slug === id);
-        return grip?.name;
+        return grip?.translations?.en?.name || grip?.translations?.['en-US']?.name || "Unknown";
       })
       .filter(Boolean);
   };

@@ -313,28 +313,22 @@ export type Database = {
         Row: {
           category: string
           created_at: string
-          description: string | null
           id: string
           is_compatible_with: Json | null
-          name: string
           slug: string
         }
         Insert: {
           category: string
           created_at?: string
-          description?: string | null
           id?: string
           is_compatible_with?: Json | null
-          name: string
           slug: string
         }
         Update: {
           category?: string
           created_at?: string
-          description?: string | null
           id?: string
           is_compatible_with?: Json | null
-          name?: string
           slug?: string
         }
         Relationships: []

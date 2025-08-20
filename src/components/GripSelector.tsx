@@ -11,7 +11,6 @@ import { useTranslations } from '@/hooks/useTranslations';
 
 interface Grip {
   id: string;
-  name: string;
   category: string;
   slug: string;
   translations: Record<string, { name: string; description?: string }> | null;
@@ -64,7 +63,7 @@ export const GripSelector: React.FC<GripSelectorProps> = ({
         return {
           ...grip,
           translations
-        } as Grip;
+        };
       });
     },
   });

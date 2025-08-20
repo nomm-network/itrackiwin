@@ -13,17 +13,17 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
+import { useTranslations } from '@/hooks/useTranslations';
 import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import AdminMenu from "@/admin/components/AdminMenu";
 
 interface Grip {
   id: string;
-  name: string;
   slug: string;
   category: string;
-  description?: string;
-  is_compatible_with: string[];
+  is_compatible_with?: any;
   created_at: string;
+  translations: Record<string, { name: string; description?: string }> | null;
 }
 
 const AdminGripsManagement: React.FC = () => {
@@ -76,43 +76,58 @@ const AdminGripsManagement: React.FC = () => {
         return {
           ...grip,
           translations
-        } as Grip;
+        };
       });
     },
   });
 
   // Create/Update grip mutation
   const upsertMutation = useMutation({
-    mutationFn: async (grip: Partial<Grip>) => {
+    mutationFn: async (grip: Partial<Grip> & { name: string; description?: string }) => {
       if (editingGrip) {
         const { data, error } = await supabase
           .from("grips")
           .update({
-            name: grip.name,
             slug: grip.slug,
             category: grip.category,
-            description: grip.description,
           })
           .eq("id", editingGrip.id)
           .select()
           .single();
-        
         if (error) throw error;
+        
+        // Update English translation
+        await supabase
+          .from("grips_translations")
+          .upsert({
+            grip_id: editingGrip.id,
+            language_code: "en",
+            name: grip.name,
+            description: grip.description || null,
+          });
+        
         return data;
       } else {
         const { data, error } = await supabase
           .from("grips")
           .insert({
-            name: grip.name,
             slug: grip.slug,
             category: grip.category,
-            description: grip.description,
-            is_compatible_with: [],
           })
           .select()
           .single();
-        
         if (error) throw error;
+        
+        // Insert English translation
+        await supabase
+          .from("grips_translations")
+          .insert({
+            grip_id: data.id,
+            language_code: "en",
+            name: grip.name,
+            description: grip.description || null,
+          });
+        
         return data;
       }
     },
@@ -190,10 +205,10 @@ const AdminGripsManagement: React.FC = () => {
   const handleEdit = (grip: Grip) => {
     setEditingGrip(grip);
     setFormData({
-      name: grip.name,
+      name: getTranslatedName(grip),
       slug: grip.slug,
       category: grip.category,
-      description: grip.description || "",
+      description: getTranslatedDescription(grip) || "",
     });
     setIsCreateDialogOpen(true);
   };
@@ -413,7 +428,7 @@ const AdminGripsManagement: React.FC = () => {
                 <TableBody>
                   {filteredGrips.map((grip) => (
                     <TableRow key={grip.id}>
-                      <TableCell className="font-medium">{grip.name}</TableCell>
+                      <TableCell className="font-medium">{getTranslatedName(grip)}</TableCell>
                       <TableCell className="font-mono text-sm">{grip.slug}</TableCell>
                       <TableCell>
                         <Badge className={getCategoryColor(grip.category)}>
@@ -421,7 +436,7 @@ const AdminGripsManagement: React.FC = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="max-w-[200px] truncate">
-                        {grip.description || "-"}
+                        {getTranslatedDescription(grip) || "-"}
                       </TableCell>
                       <TableCell>
                         {new Date(grip.created_at).toLocaleDateString()}
