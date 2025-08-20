@@ -291,24 +291,35 @@ const TemplateEditor: React.FC = () => {
   };
 
   const saveGripPreferences = async (exerciseId: string) => {
+    console.log('🔥 saveGripPreferences called with exerciseId:', exerciseId);
     const editor = gripEditors[exerciseId];
-    if (!editor) return;
+    console.log('🔥 Editor data:', editor);
+    
+    if (!editor) {
+      console.log('❌ No editor found for exerciseId:', exerciseId);
+      return;
+    }
 
     try {
-      console.log('Saving grip preferences:', editor.selectedGrips);
-      await upsertPreferences.mutateAsync({
+      console.log('🔥 Starting save with grips:', editor.selectedGrips);
+      console.log('🔥 Mutation pending?', upsertPreferences.isPending);
+      
+      const result = await upsertPreferences.mutateAsync({
         templateExerciseId: exerciseId,
         preferredGrips: editor.selectedGrips
       });
-      console.log('Grip preferences saved successfully');
+      
+      console.log('✅ Save result:', result);
+      console.log('✅ Grip preferences saved successfully');
 
       // Remove from editors after saving
       setGripEditors(prev => {
         const { [exerciseId]: removed, ...rest } = prev;
+        console.log('🔥 Removing editor, remaining editors:', Object.keys(rest));
         return rest;
       });
     } catch (error) {
-      console.error('Error saving grip preferences:', error);
+      console.error('❌ Error saving grip preferences:', error);
     }
   };
 
@@ -466,7 +477,10 @@ const TemplateEditor: React.FC = () => {
                           <div className="flex gap-2">
                             <Button 
                               size="sm" 
-                              onClick={() => saveGripPreferences(exercise.id)}
+                              onClick={() => {
+                                console.log('🔥 Save Grips button clicked for exercise:', exercise.id);
+                                saveGripPreferences(exercise.id);
+                              }}
                               disabled={upsertPreferences.isPending}
                             >
                               Save Grips
