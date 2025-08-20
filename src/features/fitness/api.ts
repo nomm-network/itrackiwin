@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+export { useExerciseMetrics, useEquipmentMetrics, useCombinedMetrics, useWorkoutSetMetrics, useUpsertWorkoutSetMetrics } from "./hooks/useMetrics";
 
 export type UUID = string;
 
@@ -258,12 +259,50 @@ export const useUpdateWorkout = () => {
 export const useAddSet = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: { workoutId: UUID; workoutExerciseId: UUID; payload: any }) => {
-      const { error } = await supabase.rpc("add_set", {
+    mutationFn: async (params: { 
+      workoutId: UUID; 
+      workoutExerciseId: UUID; 
+      payload: any;
+      metrics?: Array<{ metric_def_id: UUID; value: any; value_type: 'numeric' | 'integer' | 'text' | 'boolean' }>;
+    }) => {
+      const { error, data } = await supabase.rpc("add_set", {
         p_workout_exercise_id: params.workoutExerciseId,
         p_payload: params.payload,
       });
       if (error) throw error;
+      
+      // If metrics are provided, save them to the workout set
+      if (params.metrics && params.metrics.length > 0) {
+        const setId = data; // Assuming add_set returns the new set ID
+        
+        const metricValues = params.metrics.map(metric => {
+          const baseData = {
+            workout_set_id: setId,
+            metric_def_id: metric.metric_def_id,
+          };
+          
+          switch (metric.value_type) {
+            case 'numeric':
+              return { ...baseData, numeric_value: Number(metric.value) };
+            case 'integer':
+              return { ...baseData, int_value: parseInt(metric.value) };
+            case 'text':
+              return { ...baseData, text_value: String(metric.value) };
+            case 'boolean':
+              return { ...baseData, bool_value: Boolean(metric.value) };
+            default:
+              return { ...baseData, text_value: String(metric.value) };
+          }
+        });
+        
+        const { error: metricsError } = await supabase
+          .from("workout_set_metric_values")
+          .insert(metricValues);
+        
+        if (metricsError) throw metricsError;
+      }
+      
+      return data;
     },
     onSuccess: (_d, vars) => {
       qc.invalidateQueries({ queryKey: ["workout_detail", vars.workoutId] });

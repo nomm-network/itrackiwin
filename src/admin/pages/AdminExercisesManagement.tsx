@@ -35,7 +35,7 @@ interface Exercise {
   owner_user_id: string | null;
   source_url: string | null;
   popularity_rank: number | null;
-  default_grips: string[] | null;
+  default_grip_ids: string[] | null;
   created_at: string;
 }
 
@@ -96,7 +96,7 @@ const AdminExercisesManagement: React.FC = () => {
     secondary_muscle_group_ids: [],
     equipment_id: "",
     is_public: true,
-    default_grips: [],
+    default_grip_ids: [],
   });
   const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
 
@@ -221,7 +221,7 @@ const AdminExercisesManagement: React.FC = () => {
           id, name, slug, description, body_part, body_part_id, 
           primary_muscle_id, secondary_muscle_group_ids, equipment_id,
           image_url, thumbnail_url, is_public, owner_user_id, 
-          source_url, popularity_rank, default_grips, created_at
+          source_url, popularity_rank, default_grip_ids, created_at
         `)
         .order("name");
 
@@ -260,7 +260,7 @@ const AdminExercisesManagement: React.FC = () => {
           secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
-          default_grips: selectedGrips.length > 0 ? selectedGrips : null,
+          default_grip_ids: selectedGrips.length > 0 ? selectedGrips : null,
         };
         const { data, error } = await supabase
           .from("exercises")
@@ -289,7 +289,7 @@ const AdminExercisesManagement: React.FC = () => {
           secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
-          default_grips: selectedGrips.length > 0 ? selectedGrips : null,
+          default_grip_ids: selectedGrips.length > 0 ? selectedGrips : null,
           owner_user_id: user.id, // Set to current admin user
         };
         
@@ -319,7 +319,7 @@ const AdminExercisesManagement: React.FC = () => {
         secondary_muscle_group_ids: [],
         equipment_id: "",
         is_public: true,
-        default_grips: [],
+        default_grip_ids: [],
       });
       setSelectedGrips([]);
     },
@@ -375,9 +375,9 @@ const AdminExercisesManagement: React.FC = () => {
       secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || [],
       equipment_id: exercise.equipment_id || "",
       is_public: exercise.is_public ?? true,
-      default_grips: exercise.default_grips || [],
+      default_grip_ids: exercise.default_grip_ids || [],
     });
-    setSelectedGrips(exercise.default_grips || []);
+    setSelectedGrips(exercise.default_grip_ids || []);
     setIsCreateDialogOpen(true);
   };
 
@@ -500,7 +500,7 @@ const AdminExercisesManagement: React.FC = () => {
                     secondary_muscle_group_ids: [],
                     equipment_id: "",
                     is_public: true,
-                    default_grips: [],
+        default_grip_ids: [],
                   });
                   setSelectedGrips([]);
                 }
@@ -516,7 +516,7 @@ const AdminExercisesManagement: React.FC = () => {
                   secondary_muscle_group_ids: [],
                   equipment_id: "",
                   is_public: true,
-                  default_grips: [],
+                  default_grip_ids: [],
                 });
                 setSelectedGrips([]);
                 setIsCreateDialogOpen(true);
@@ -811,7 +811,7 @@ const AdminExercisesManagement: React.FC = () => {
                   <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
                   <TableCell>
                     <div className="max-w-48 truncate text-sm text-muted-foreground">
-                      {getGripNames(exercise.default_grips)}
+                      {getGripNames(exercise.default_grip_ids)}
                     </div>
                   </TableCell>
                   <TableCell>

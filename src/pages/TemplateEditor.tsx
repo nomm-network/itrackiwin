@@ -202,14 +202,14 @@ const TemplateEditor: React.FC = () => {
       
       const { data, error } = await supabase
         .from('exercises')
-        .select('id, default_grips')
+        .select('id, default_grip_ids')
         .in('id', templateExercises.map(e => e.exercise_id));
       
       if (error) throw error;
       
       return data.reduce((acc, exercise) => {
-        if (exercise.default_grips && Array.isArray(exercise.default_grips)) {
-          acc[exercise.id] = exercise.default_grips.map(String);
+        if (exercise.default_grip_ids && Array.isArray(exercise.default_grip_ids)) {
+          acc[exercise.id] = exercise.default_grip_ids.map(String);
         }
         return acc;
       }, {} as Record<string, string[]>);
@@ -326,7 +326,7 @@ const TemplateEditor: React.FC = () => {
       
       const { data: exercise } = await supabase
         .from('exercises')
-        .select('default_grips')
+        .select('default_grip_ids')
         .eq('id', templateExercise.exercise_id)
         .single();
       
@@ -340,16 +340,16 @@ const TemplateEditor: React.FC = () => {
       
       let initialGrips: string[] = [];
       
-      console.log('Exercise default_grips:', exercise?.default_grips);
+      console.log('Exercise default_grip_ids:', exercise?.default_grip_ids);
       console.log('Existing preferences:', existingPrefs?.preferred_grips);
       
       if (existingPrefs?.preferred_grips) {
         // Use existing preferences
         initialGrips = Array.isArray(existingPrefs.preferred_grips) ? 
           existingPrefs.preferred_grips.map(String) : [];
-      } else if (exercise?.default_grips && Array.isArray(exercise.default_grips) && exercise.default_grips.length > 0) {
+      } else if (exercise?.default_grip_ids && Array.isArray(exercise.default_grip_ids) && exercise.default_grip_ids.length > 0) {
         // Use exercise defaults - convert grip IDs to slugs
-        const gripIds = exercise.default_grips.map(String);
+        const gripIds = exercise.default_grip_ids.map(String);
         const { data: gripsData } = await supabase
           .from('grips')
           .select('id, slug')

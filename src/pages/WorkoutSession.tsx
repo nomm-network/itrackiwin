@@ -4,7 +4,8 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail } from "@/features/fitness/api";
+import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/fitness/api";
+import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 
@@ -45,6 +46,7 @@ const WorkoutSession: React.FC = () => {
 
   const [q, setQ] = React.useState("");
   const { data: search } = useSearchExercises(q);
+  const [metricValues, setMetricValues] = React.useState<Record<string, Record<string, any>>>({});
 
   const endWorkout = async () => {
     if (!id) return;
@@ -69,8 +71,27 @@ const WorkoutSession: React.FC = () => {
       notes: (fd.get("notes") as string) || null,
       is_completed: true,
     };
-    await addSetMut.mutateAsync({ workoutId: id!, workoutExerciseId, payload });
+    
+    // Get metrics for this workout exercise if any
+    const exerciseMetrics = metricValues[workoutExerciseId];
+    const metrics = exerciseMetrics ? Object.entries(exerciseMetrics)
+      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+      .map(([metricDefId, value]) => ({
+        metric_def_id: metricDefId,
+        value,
+        value_type: 'numeric' as const // For now, we'll default to numeric
+      })) : undefined;
+    
+    await addSetMut.mutateAsync({ 
+      workoutId: id!, 
+      workoutExerciseId, 
+      payload,
+      metrics
+    });
+    
     form.reset();
+    // Clear metrics for this exercise
+    setMetricValues(prev => ({ ...prev, [workoutExerciseId]: {} }));
   };
 
   const unit = (useUserSettings().data?.unit_weight ?? 'kg');
