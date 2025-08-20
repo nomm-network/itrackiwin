@@ -44,7 +44,7 @@ const schema = z.object({
   body_part_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_group_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
-  secondary_muscle_ids: z.array(z.string().uuid()).optional(),
+  secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
   equipment_id: z.string().uuid().optional().or(z.literal('')),
   source_url: z.string().url().optional().or(z.literal('')),
   is_public: z.boolean().default(true),
@@ -78,7 +78,7 @@ const ExerciseEdit: React.FC = () => {
       body_part_id: "",
       primary_muscle_group_id: "",
       primary_muscle_id: "",
-      secondary_muscle_ids: [],
+      secondary_muscle_group_ids: [],
       equipment_id: "",
       source_url: "",
       is_public: true,
@@ -130,7 +130,7 @@ const ExerciseEdit: React.FC = () => {
         setLoading(true);
         const { data, error } = await supabase
           .from('exercises')
-          .select('id,name,description,body_part_id,primary_muscle_id,secondary_muscle_ids,equipment_id,source_url,is_public')
+          .select('id,name,description,body_part_id,primary_muscle_id,secondary_muscle_group_ids,equipment_id,source_url,is_public')
           .eq('id', id)
           .maybeSingle();
         if (error) throw error;
@@ -148,7 +148,7 @@ const ExerciseEdit: React.FC = () => {
           }
           form.setValue('primary_muscle_id', data.primary_muscle_id);
         }
-        form.setValue('secondary_muscle_ids', data.secondary_muscle_ids || []);
+        form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
         form.setValue('equipment_id', data.equipment_id || '');
         form.setValue('source_url', data.source_url || '');
         form.setValue('is_public', data.is_public ?? true);
@@ -174,7 +174,7 @@ const ExerciseEdit: React.FC = () => {
         description: values.description || null,
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
-        secondary_muscle_ids: values.secondary_muscle_ids && values.secondary_muscle_ids.length > 0 ? values.secondary_muscle_ids : null,
+        secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
         source_url: values.source_url || null,
         is_public: values.is_public,
@@ -346,13 +346,7 @@ const ExerciseEdit: React.FC = () => {
                 </div>
               </div>
 
-              <SecondaryMuscleSelector
-                bodyParts={bodyParts}
-                muscleGroups={muscleGroups}
-                muscles={muscles}
-                selectedMuscleIds={form.watch('secondary_muscle_ids') || []}
-                onChange={(ids) => form.setValue('secondary_muscle_ids', ids)}
-              />
+              <p>Secondary Muscle Groups feature will be implemented here.</p>
 
               <div className="space-y-2">
                 <Label htmlFor="source_url">Source URL (optional)</Label>

@@ -31,7 +31,7 @@ interface ExerciseRow {
   name: string;
   owner_user_id: string | null;
   primary_muscle_id: string | null;
-  secondary_muscle_ids: string[] | null;
+  secondary_muscle_group_ids: string[] | null;
 }
 
 interface BodyPart { id: string; name: string }
@@ -67,7 +67,7 @@ const Exercises: React.FC = () => {
         const [{ data, error }, u, bp, mg, m] = await Promise.all([
           supabase
             .from('exercises')
-            .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_ids')
+            .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_group_ids')
             .order('name', { ascending: true })
             .limit(100),
           supabase.auth.getUser(),
@@ -126,7 +126,7 @@ const Exercises: React.FC = () => {
     if (ownership === 'yours' && r.owner_user_id !== userId) return false;
 
     // body part / group / muscle
-    const ids = [r.primary_muscle_id, ...(r.secondary_muscle_ids || [])].filter(Boolean) as string[];
+    const ids = [r.primary_muscle_id, ...(r.secondary_muscle_group_ids || [])].filter(Boolean) as string[];
     if (muscleId) {
       return ids.includes(muscleId);
     }

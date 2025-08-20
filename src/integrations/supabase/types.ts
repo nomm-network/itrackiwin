@@ -160,7 +160,7 @@ export type Database = {
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
-          secondary_muscle_ids: string[] | null
+          secondary_muscle_group_ids: string[] | null
           slug: string | null
           source_url: string | null
           thumbnail_url: string | null
@@ -178,7 +178,7 @@ export type Database = {
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
-          secondary_muscle_ids?: string[] | null
+          secondary_muscle_group_ids?: string[] | null
           slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -196,7 +196,7 @@ export type Database = {
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
-          secondary_muscle_ids?: string[] | null
+          secondary_muscle_group_ids?: string[] | null
           slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
@@ -1191,14 +1191,16 @@ export type Database = {
           body_part: string | null
           body_part_id: string | null
           created_at: string | null
+          description: string | null
           equipment_id: string | null
           id: string | null
           image_url: string | null
           is_public: boolean | null
+          name: string | null
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
-          secondary_muscle_ids: string[] | null
+          secondary_muscle_group_ids: string[] | null
           slug: string | null
           source_url: string | null
           thumbnail_url: string | null

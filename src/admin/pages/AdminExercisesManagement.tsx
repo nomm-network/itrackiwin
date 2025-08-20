@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
+import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 
 interface Exercise {
   id: string;
@@ -25,7 +25,7 @@ interface Exercise {
   body_part: string | null;
   body_part_id: string | null;
   primary_muscle_id: string | null;
-  secondary_muscle_ids: string[] | null;
+  secondary_muscle_group_ids: string[] | null;
   equipment_id: string | null;
   image_url: string | null;
   thumbnail_url: string | null;
@@ -81,7 +81,7 @@ const AdminExercisesManagement: React.FC = () => {
     description: "",
     body_part_id: "",
     primary_muscle_id: "",
-    secondary_muscle_ids: [],
+    secondary_muscle_group_ids: [],
     equipment_id: "",
     is_public: true,
   });
@@ -169,7 +169,7 @@ const AdminExercisesManagement: React.FC = () => {
         .from("exercises")
         .select(`
           id, name, slug, description, body_part, body_part_id, 
-          primary_muscle_id, secondary_muscle_ids, equipment_id,
+          primary_muscle_id, secondary_muscle_group_ids, equipment_id,
           image_url, thumbnail_url, is_public, owner_user_id, 
           source_url, popularity_rank, created_at
         `)
@@ -207,7 +207,7 @@ const AdminExercisesManagement: React.FC = () => {
           description: exercise.description || null,
           body_part_id: exercise.body_part_id || null,
           primary_muscle_id: exercise.primary_muscle_id || null,
-          secondary_muscle_ids: exercise.secondary_muscle_ids || null,
+          secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
         };
@@ -228,7 +228,7 @@ const AdminExercisesManagement: React.FC = () => {
           description: exercise.description || null,
           body_part_id: exercise.body_part_id || null,
           primary_muscle_id: exercise.primary_muscle_id || null,
-          secondary_muscle_ids: exercise.secondary_muscle_ids || null,
+          secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
           owner_user_id: null,
@@ -251,7 +251,7 @@ const AdminExercisesManagement: React.FC = () => {
         description: "",
         body_part_id: "",
         primary_muscle_id: "",
-        secondary_muscle_ids: [],
+        secondary_muscle_group_ids: [],
         equipment_id: "",
         is_public: true,
       });
@@ -306,7 +306,7 @@ const AdminExercisesManagement: React.FC = () => {
       description: exercise.description || "",
       body_part_id: exercise.body_part_id || "",
       primary_muscle_id: exercise.primary_muscle_id || "",
-      secondary_muscle_ids: exercise.secondary_muscle_ids || [],
+      secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || [],
       equipment_id: exercise.equipment_id || "",
       is_public: exercise.is_public ?? true,
     });
@@ -340,12 +340,12 @@ const AdminExercisesManagement: React.FC = () => {
     return eq?.name || "Unknown";
   };
 
-  const getSecondaryMuscleNames = (ids: string[] | null) => {
+  const getSecondaryMuscleGroupNames = (ids: string[] | null) => {
     if (!ids || ids.length === 0) return "None";
     return ids
       .map(id => {
-        const muscle = muscles.find(m => m.id === id);
-        return muscle?.name || "Unknown";
+        const muscleGroup = muscleGroups.find(mg => mg.id === id);
+        return muscleGroup?.name || "Unknown";
       })
       .join(", ");
   };
@@ -387,7 +387,7 @@ const AdminExercisesManagement: React.FC = () => {
                 description: "",
                 body_part_id: "",
                 primary_muscle_id: "",
-                secondary_muscle_ids: [],
+                secondary_muscle_group_ids: [],
                 equipment_id: "",
                 is_public: true,
               });
@@ -401,7 +401,7 @@ const AdminExercisesManagement: React.FC = () => {
                   description: "",
                   body_part_id: "",
                   primary_muscle_id: "",
-                  secondary_muscle_ids: [],
+                  secondary_muscle_group_ids: [],
                   equipment_id: "",
                   is_public: true,
                 });
@@ -501,12 +501,16 @@ const AdminExercisesManagement: React.FC = () => {
                   </Select>
                 </div>
 
-                <SecondaryMuscleSelector
+                <SecondaryMuscleGroupSelector
                   bodyParts={bodyParts}
                   muscleGroups={muscleGroups}
-                  muscles={muscles.filter(m => m.id !== formData.primary_muscle_id)}
-                  selectedMuscleIds={formData.secondary_muscle_ids || []}
-                  onChange={(ids) => setFormData({ ...formData, secondary_muscle_ids: ids })}
+                  selectedMuscleGroupIds={formData.secondary_muscle_group_ids || []}
+                  excludedMuscleGroupId={
+                    formData.primary_muscle_id 
+                      ? muscles.find(m => m.id === formData.primary_muscle_id)?.muscle_group_id 
+                      : undefined
+                  }
+                  onChange={(ids) => setFormData({ ...formData, secondary_muscle_group_ids: ids })}
                 />
 
                 <div className="grid gap-2">
@@ -635,7 +639,7 @@ const AdminExercisesManagement: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Body Part</TableHead>
                 <TableHead>Primary Muscle</TableHead>
-                <TableHead>Secondary Muscles</TableHead>
+                <TableHead>Secondary Muscle Groups</TableHead>
                 <TableHead>Equipment</TableHead>
                 <TableHead>Visibility</TableHead>
                 <TableHead>Actions</TableHead>
@@ -649,7 +653,7 @@ const AdminExercisesManagement: React.FC = () => {
                   <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
                   <TableCell>
                     <div className="max-w-48 truncate text-sm text-muted-foreground">
-                      {getSecondaryMuscleNames(exercise.secondary_muscle_ids)}
+                      {getSecondaryMuscleGroupNames(exercise.secondary_muscle_group_ids)}
                     </div>
                   </TableCell>
                   <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
