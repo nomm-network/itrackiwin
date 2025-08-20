@@ -290,7 +290,16 @@ const AdminExercisesManagement: React.FC = () => {
 
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
-    setFormData(exercise);
+    setFormData({
+      name: exercise.name || "",
+      description: exercise.description || "",
+      body_part_id: exercise.body_part_id || "",
+      primary_muscle_id: exercise.primary_muscle_id || "",
+      secondary_muscle_ids: exercise.secondary_muscle_ids || [],
+      equipment_id: exercise.equipment_id || "",
+      is_public: exercise.is_public ?? true,
+    });
+    setIsCreateDialogOpen(true);
   };
 
   const clearFilters = () => {
@@ -336,9 +345,35 @@ const AdminExercisesManagement: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
+          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
+            setIsCreateDialogOpen(open);
+            if (!open) {
+              setEditingExercise(null);
+              setFormData({
+                name: "",
+                description: "",
+                body_part_id: "",
+                primary_muscle_id: "",
+                secondary_muscle_ids: [],
+                equipment_id: "",
+                is_public: true,
+              });
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button>
+              <Button onClick={() => {
+                setEditingExercise(null);
+                setFormData({
+                  name: "",
+                  description: "",
+                  body_part_id: "",
+                  primary_muscle_id: "",
+                  secondary_muscle_ids: [],
+                  equipment_id: "",
+                  is_public: true,
+                });
+                setIsCreateDialogOpen(true);
+              }}>
                 <Plus className="w-4 h-4 mr-2" />
                 Create Exercise
               </Button>
