@@ -306,6 +306,36 @@ export type Database = {
         }
         Relationships: []
       }
+      grips: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          is_compatible_with: Json | null
+          name: string
+          slug: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_compatible_with?: Json | null
+          name: string
+          slug: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_compatible_with?: Json | null
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
       languages: {
         Row: {
           code: string
@@ -771,6 +801,7 @@ export type Database = {
           achieved_at: string
           created_at: string
           exercise_id: string
+          grip_combination: Json | null
           id: string
           kind: string
           unit: string | null
@@ -782,6 +813,7 @@ export type Database = {
           achieved_at: string
           created_at?: string
           exercise_id: string
+          grip_combination?: Json | null
           id?: string
           kind: string
           unit?: string | null
@@ -793,6 +825,7 @@ export type Database = {
           achieved_at?: string
           created_at?: string
           exercise_id?: string
+          grip_combination?: Json | null
           id?: string
           kind?: string
           unit?: string | null
@@ -1095,6 +1128,42 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_set_grips: {
+        Row: {
+          created_at: string
+          grip_id: string
+          id: string
+          workout_set_id: string
+        }
+        Insert: {
+          created_at?: string
+          grip_id: string
+          id?: string
+          workout_set_id: string
+        }
+        Update: {
+          created_at?: string
+          grip_id?: string
+          id?: string
+          workout_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_set_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_grips_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sets"
             referencedColumns: ["id"]
           },
         ]
