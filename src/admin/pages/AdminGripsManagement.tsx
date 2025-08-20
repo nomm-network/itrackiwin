@@ -27,6 +27,7 @@ interface Grip {
 }
 
 const AdminGripsManagement: React.FC = () => {
+  const { getTranslatedName, getTranslatedDescription } = useTranslations();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingGrip, setEditingGrip] = useState<Grip | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -44,18 +45,39 @@ const AdminGripsManagement: React.FC = () => {
     document.title = "Grips Management | Admin";
   }, []);
 
-  // Fetch grips
+  // Fetch grips with translations
   const { data: grips = [], isLoading } = useQuery({
     queryKey: ["admin-grips"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: gripsData, error: gripsError } = await supabase
         .from("grips")
         .select("*")
         .order("category", { ascending: true })
-        .order("name", { ascending: true });
-      
-      if (error) throw error;
-      return data as Grip[];
+        .order("slug", { ascending: true });
+      if (gripsError) throw gripsError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("grips_translations")
+        .select("*");
+      if (translationsError) throw translationsError;
+
+      // Combine grips with their translations
+      return gripsData.map(grip => {
+        const translations = translationsData
+          .filter(t => t.grip_id === grip.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = {
+              name: t.name,
+              description: t.description
+            };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return {
+          ...grip,
+          translations
+        } as Grip;
+      });
     },
   });
 
@@ -177,7 +199,7 @@ const AdminGripsManagement: React.FC = () => {
   };
 
   const handleDelete = (grip: Grip) => {
-    console.log("[AdminGrips] Deleting grip:", grip.name);
+    console.log("[AdminGrips] Deleting grip:", getTranslatedName(grip));
     deleteMutation.mutate(grip.id);
   };
 
@@ -200,9 +222,11 @@ const AdminGripsManagement: React.FC = () => {
 
   // Filter grips
   const filteredGrips = grips.filter(grip => {
-    const matchesSearch = grip.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const name = getTranslatedName(grip);
+    const description = getTranslatedDescription(grip) || "";
+    const matchesSearch = name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          grip.slug.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         (grip.description || "").toLowerCase().includes(searchTerm.toLowerCase());
+                         description.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCategory = categoryFilter === "all" || grip.category === categoryFilter;
     return matchesSearch && matchesCategory;
   });
@@ -426,7 +450,7 @@ const AdminGripsManagement: React.FC = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Grip</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{grip.name}"? This action cannot be undone.
+                                  Are you sure you want to delete "{getTranslatedName(grip)}"? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>

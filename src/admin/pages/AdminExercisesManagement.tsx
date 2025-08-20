@@ -73,6 +73,7 @@ interface Grip {
 }
 
 const AdminExercisesManagement: React.FC = () => {
+  const { getTranslatedName } = useTranslations();
   const { t } = useTranslation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -173,17 +174,39 @@ const AdminExercisesManagement: React.FC = () => {
     },
   });
 
-  // Fetch grips
+  // Fetch grips with translations
   const { data: grips = [] } = useQuery({
     queryKey: ["admin_grips"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: gripsData, error: gripsError } = await supabase
         .from("grips")
-        .select("id, name, slug, category, description")
+        .select("*")
         .order("category")
-        .order("name");
-      if (error) throw error;
-      return data as Grip[];
+        .order("slug");
+      if (gripsError) throw gripsError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("grips_translations")
+        .select("*");
+      if (translationsError) throw translationsError;
+
+      // Combine grips with their translations
+      return gripsData.map(grip => {
+        const translations = translationsData
+          .filter(t => t.grip_id === grip.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = {
+              name: t.name,
+              description: t.description
+            };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return {
+          ...grip,
+          translations
+        } as Grip;
+      });
     },
   });
 
@@ -626,7 +649,7 @@ const AdminExercisesManagement: React.FC = () => {
                                   onClick={() => handleGripToggle(grip.id)}
                                   className="justify-start"
                                 >
-                                  {grip.name}
+                                  {getTranslatedName(grip)}
                                 </Button>
                               );
                             })}
