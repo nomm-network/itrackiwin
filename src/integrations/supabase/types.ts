@@ -1009,6 +1009,13 @@ export type Database = {
             foreignKeyName: "pain_events_workout_set_id_fkey"
             columns: ["workout_set_id"]
             isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_set_id"]
+          },
+          {
+            foreignKeyName: "pain_events_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
             referencedRelation: "workout_sets"
             referencedColumns: ["id"]
           },
@@ -1068,6 +1075,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_exercises_with_translations"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "personal_records_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_set_id"]
           },
           {
             foreignKeyName: "personal_records_workout_set_id_fkey"
@@ -1152,6 +1166,13 @@ export type Database = {
           workout_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "readiness_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
           {
             foreignKeyName: "readiness_checkins_workout_id_fkey"
             columns: ["workout_id"]
@@ -1621,6 +1642,13 @@ export type Database = {
             foreignKeyName: "workout_exercise_groups_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_groups_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
@@ -1680,6 +1708,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
@@ -1711,6 +1746,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "grips"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_grips_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_set_id"]
           },
           {
             foreignKeyName: "workout_set_grips_workout_set_id_fkey"
@@ -1759,6 +1801,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercise_metric_defs"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_metric_values_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_set_id"]
           },
           {
             foreignKeyName: "workout_set_metric_values_workout_set_id_fkey"
@@ -1935,6 +1984,33 @@ export type Database = {
       }
     }
     Views: {
+      mv_user_exercise_1rm: {
+        Row: {
+          estimated_1rm: number | null
+          exercise_id: string | null
+          last_updated: string | null
+          max_reps: number | null
+          max_weight: number | null
+          total_working_sets: number | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_body_parts_with_translations: {
         Row: {
           created_at: string | null
@@ -2026,6 +2102,38 @@ export type Database = {
             columns: ["primary_muscle_id"]
             isOneToOne: false
             referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_last_working_set: {
+        Row: {
+          completed_at: string | null
+          distance: number | null
+          duration_seconds: number | null
+          exercise_id: string | null
+          reps: number | null
+          rpe: number | null
+          user_id: string | null
+          weight: number | null
+          weight_unit: string | null
+          workout_id: string | null
+          workout_set_id: string | null
+          workout_started_at: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -2201,6 +2309,34 @@ export type Database = {
       epley_1rm: {
         Args: { reps: number; weight: number }
         Returns: number
+      }
+      fn_detect_stagnation: {
+        Args: { p_exercise_id: string; p_lookback_sessions?: number }
+        Returns: Json
+      }
+      fn_start_workout_advanced: {
+        Args: { p_readiness_data?: Json; p_template_id?: string }
+        Returns: Json
+      }
+      fn_suggest_rest_seconds: {
+        Args: { p_effort_level?: string; p_workout_set_id: string }
+        Returns: number
+      }
+      fn_suggest_sets: {
+        Args: {
+          p_exercise_id: string
+          p_progression_type?: string
+          p_target_reps?: number
+        }
+        Returns: Json
+      }
+      fn_suggest_warmup: {
+        Args: {
+          p_exercise_id: string
+          p_working_reps?: number
+          p_working_weight?: number
+        }
+        Returns: Json
       }
       get_category_name: {
         Args: { p_category_id: string; p_language_code?: string }
