@@ -200,9 +200,19 @@ const AdminExercisesManagement: React.FC = () => {
   const upsertMutation = useMutation({
     mutationFn: async (exercise: Partial<Exercise>) => {
       if (exercise.id) {
+        // For updates, exclude slug and other system fields
+        const updateData = {
+          name: exercise.name,
+          description: exercise.description || null,
+          body_part_id: exercise.body_part_id || null,
+          primary_muscle_id: exercise.primary_muscle_id || null,
+          secondary_muscle_ids: exercise.secondary_muscle_ids || null,
+          equipment_id: exercise.equipment_id || null,
+          is_public: exercise.is_public ?? true,
+        };
         const { data, error } = await supabase
           .from("exercises")
-          .update(exercise)
+          .update(updateData)
           .eq("id", exercise.id)
           .select();
         if (error) throw error;
