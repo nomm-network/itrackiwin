@@ -174,24 +174,37 @@ const primaryMusclesOptions = React.useMemo(() => {
 }, [muscles, selectedGroupId]);
 
   const onSubmit = async (values: FormValues) => {
+    console.log('[ExerciseAdd] Form submission started');
+    console.log('[ExerciseAdd] Current user state:', user);
+    
     if (!values.name.trim()) {
       toast({ title: 'Name is required' });
       return;
     }
     
-    if (!user) {
-      toast({ title: 'Authentication Error', description: 'Please log in to create exercises' });
-      navigate('/auth');
-      return;
-    }
-
     setSaving(true);
     setLastError(null);
+    
     try {
-      const userId = user.id;
-      if (!userId) {
-        throw new Error('User ID is missing');
+      // Double-check authentication with fresh session
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+      console.log('[ExerciseAdd] Fresh session check:', session);
+      console.log('[ExerciseAdd] Session error:', sessionErr);
+      
+      if (sessionErr) {
+        console.error('[ExerciseAdd] Session error:', sessionErr);
+        throw new Error('Authentication error: ' + sessionErr.message);
       }
+      
+      if (!session?.user?.id) {
+        console.error('[ExerciseAdd] No valid user in session');
+        toast({ title: 'Authentication Error', description: 'Please log in to create exercises' });
+        navigate('/auth');
+        return;
+      }
+
+      const userId = session.user.id;
+      console.log('[ExerciseAdd] Using user ID:', userId);
 
       const payload = {
         name: values.name.trim(),
@@ -205,7 +218,7 @@ const primaryMusclesOptions = React.useMemo(() => {
         owner_user_id: userId,
       };
 
-      console.log('[ExerciseAdd] Final payload:', payload);
+      console.log('[ExerciseAdd] FINAL PAYLOAD BEING SENT:', JSON.stringify(payload, null, 2));
       
       const { data: inserted, error } = await supabase
         .from('exercises')
