@@ -226,6 +226,7 @@ const Exercises: React.FC = () => {
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">All</SelectItem>
                     {bodyParts.map((bp) => (
                       <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
                     ))}
@@ -239,6 +240,7 @@ const Exercises: React.FC = () => {
                     <SelectValue placeholder={bpId ? 'All' : 'Select body part first'} />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">All</SelectItem>
                     {groupsFiltered.map((g) => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -252,6 +254,7 @@ const Exercises: React.FC = () => {
                     <SelectValue placeholder={groupId ? 'All' : 'Select group first'} />
                   </SelectTrigger>
                   <SelectContent>
+                    <SelectItem value="">All</SelectItem>
                     {musclesFiltered.map((mu) => (
                       <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
                     ))}

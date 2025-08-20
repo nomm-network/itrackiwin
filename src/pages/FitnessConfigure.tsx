@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import PageNav from "@/components/PageNav";
+import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -6,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trash2, Edit3 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
+import { NavLink } from "react-router-dom";
 
 interface BodyPart {
   id: string;
@@ -260,8 +263,37 @@ export default function FitnessConfigure() {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
-      <h1 className="text-3xl font-bold">Fitness Configuration</h1>
+    <>
+      <PageNav current="Fitness" />
+      <nav className="container pt-4" aria-label="Fitness navigation">
+        <NavigationMenu>
+          <NavigationMenuList>
+            <NavigationMenuItem>
+              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Workouts
+              </NavLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Exercises
+              </NavLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Templates
+              </NavLink>
+            </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Configure
+              </NavLink>
+            </NavigationMenuItem>
+          </NavigationMenuList>
+        </NavigationMenu>
+      </nav>
+
+      <main className="container py-8 space-y-8">
+        <h1 className="text-3xl font-bold">Fitness Configuration</h1>
 
       {/* Body Parts */}
       <div className="card">
@@ -272,8 +304,8 @@ export default function FitnessConfigure() {
         </div>
         <div className="space-y-2">
           {bodyParts.map(bp => (
-            <div key={bp.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-              <span>{bp.name}</span>
+            <div key={bp.id} className="flex items-center justify-between bg-muted/50 dark:bg-muted p-2 rounded">
+              <span className="text-foreground">{bp.name}</span>
               <div className="flex gap-1">
                 <Button size="sm" variant="outline" onClick={() => renameBodyPart(bp)}>
                   <Edit3 className="h-4 w-4" />
@@ -306,8 +338,8 @@ export default function FitnessConfigure() {
         </div>
         <div className="space-y-2">
           {muscleGroups.map(mg => (
-            <div key={mg.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-              <span>{mg.name} <em>({bodyParts.find(bp => bp.id === mg.body_part_id)?.name})</em></span>
+            <div key={mg.id} className="flex items-center justify-between bg-muted/50 dark:bg-muted p-2 rounded">
+              <span className="text-foreground">{mg.name} <em className="text-muted-foreground">({bodyParts.find(bp => bp.id === mg.body_part_id)?.name})</em></span>
               <div className="flex gap-1">
                 <Button size="sm" variant="outline" onClick={() => renameMuscleGroup(mg)}>
                   <Edit3 className="h-4 w-4" />
@@ -350,8 +382,8 @@ export default function FitnessConfigure() {
         </div>
         <div className="space-y-2">
           {muscles.map(m => (
-            <div key={m.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
-              <span>{m.name} <em>({muscleGroups.find(mg => mg.id === m.muscle_group_id)?.name})</em></span>
+            <div key={m.id} className="flex items-center justify-between bg-muted/50 dark:bg-muted p-2 rounded">
+              <span className="text-foreground">{m.name} <em className="text-muted-foreground">({muscleGroups.find(mg => mg.id === m.muscle_group_id)?.name})</em></span>
               <div className="flex gap-1">
                 <Button size="sm" variant="outline" onClick={() => renameMuscle(m)}>
                   <Edit3 className="h-4 w-4" />
@@ -364,6 +396,7 @@ export default function FitnessConfigure() {
           ))}
         </div>
       </div>
-    </div>
+      </main>
+    </>
   );
 }
