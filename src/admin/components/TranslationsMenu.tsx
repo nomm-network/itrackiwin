@@ -10,6 +10,7 @@ const TranslationsMenu: React.FC = () => {
     { label: t('navigation.categories'), href: '/admin/translations/categories' },
     { label: t('navigation.subcategories'), href: '/admin/translations/subcategories' },
     { label: t('navigation.exercises'), href: '/admin/translations/exercises' },
+    { label: 'Muscles', href: '/admin/translations/muscles' },
   ];
 
   return (

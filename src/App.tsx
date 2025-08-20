@@ -29,6 +29,7 @@ import AdminTranslations from "./admin/pages/AdminTranslations";
 import AdminCategoriesTranslations from "./admin/pages/AdminCategoriesTranslations";
 import AdminSubcategoriesTranslations from "./admin/pages/AdminSubcategoriesTranslations";
 import AdminExercisesTranslations from "./admin/pages/AdminExercisesTranslations";
+import AdminMusclesTranslations from "./admin/pages/AdminMusclesTranslations";
 import AdminExercisesManagement from "./admin/pages/AdminExercisesManagement";
 import AdminMusclesManagement from "./admin/pages/AdminMusclesManagement";
 import UserDashboard from "./pages/UserDashboard";
@@ -73,6 +74,7 @@ const App = () => (
                 <Route path="categories" element={<AdminCategoriesTranslations />} />
                 <Route path="subcategories" element={<AdminSubcategoriesTranslations />} />
                 <Route path="exercises" element={<AdminExercisesTranslations />} />
+                <Route path="muscles" element={<AdminMusclesTranslations />} />
               </Route>
               <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
               <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
