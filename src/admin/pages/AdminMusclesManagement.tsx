@@ -64,22 +64,47 @@ const AdminMusclesManagement: React.FC = () => {
   const { data: bodyParts = [], isLoading: bodyPartsLoading } = useQuery({
     queryKey: ['admin-body-parts'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log('Starting body parts query...');
+      
+      // First try just the main table
+      const { data: mainData, error: mainError } = await supabase
+        .from('body_parts')
+        .select('*')
+        .order('created_at');
+      
+      console.log('Main table data:', mainData);
+      console.log('Main table error:', mainError);
+      
+      if (mainError) {
+        console.error('Body parts main query error:', mainError);
+        throw mainError;
+      }
+      
+      // Then try with translations
+      const { data: withTranslations, error: translationError } = await supabase
         .from('body_parts')
         .select(`
           *,
-          body_parts_translations(name, language_code)
+          body_parts_translations(*)
         `)
         .order('created_at');
-      if (error) {
-        console.error('Body parts query error:', error);
-        throw error;
+      
+      console.log('With translations data:', withTranslations);
+      console.log('Translation error:', translationError);
+      
+      if (translationError) {
+        console.error('Body parts translation query error:', translationError);
+        // Fall back to main data if translations fail
+        return mainData.map(item => ({
+          ...item,
+          translations: []
+        }));
       }
-      console.log('Raw body parts data:', data);
-      return data.map(item => ({
+      
+      return withTranslations.map(item => ({
         ...item,
         translations: item.body_parts_translations || []
-      })) as any;
+      }));
     },
   });
 
@@ -527,36 +552,41 @@ const AdminMusclesManagement: React.FC = () => {
                     <TableRow>
                       <TableCell colSpan={4}>Loading...</TableCell>
                     </TableRow>
-                  ) : bodyParts.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={4}>No body parts found</TableCell>
-                    </TableRow>
                   ) : (
-                    bodyParts.map((bodyPart) => (
-                      <TableRow key={bodyPart.id}>
-                        <TableCell>{getEnglishName(bodyPart.translations)}</TableCell>
-                        <TableCell>{bodyPart.slug || '-'}</TableCell>
-                        <TableCell>{new Date(bodyPart.created_at).toLocaleDateString()}</TableCell>
-                        <TableCell>
-                          <div className="flex space-x-2">
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => handleEdit(bodyPart, 'body-part')}
-                            >
-                              <Pencil className="h-4 w-4" />
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="destructive"
-                              onClick={() => handleDelete(bodyPart.id, 'body-part')}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    <>
+                      {console.log('bodyParts in render:', bodyParts)}
+                      {bodyParts.length === 0 ? (
+                        <TableRow>
+                          <TableCell colSpan={4}>No body parts found (Array length: {bodyParts.length})</TableCell>
+                        </TableRow>
+                      ) : (
+                        bodyParts.map((bodyPart) => (
+                          <TableRow key={bodyPart.id}>
+                            <TableCell>{getEnglishName(bodyPart.translations) || 'No name'}</TableCell>
+                            <TableCell>{bodyPart.slug || '-'}</TableCell>
+                            <TableCell>{new Date(bodyPart.created_at).toLocaleDateString()}</TableCell>
+                            <TableCell>
+                              <div className="flex space-x-2">
+                                <Button
+                                  size="sm"
+                                  variant="outline"
+                                  onClick={() => handleEdit(bodyPart, 'body-part')}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="sm"
+                                  variant="destructive"
+                                  onClick={() => handleDelete(bodyPart.id, 'body-part')}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                      )}
+                    </>
                   )}
                 </TableBody>
               </Table>
