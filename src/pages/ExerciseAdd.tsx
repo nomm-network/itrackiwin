@@ -311,6 +311,15 @@ const primaryMusclesOptions = React.useMemo(() => {
           </Button>
         </div>
 
+        {/* DEBUG INFO */}
+        <div className="mb-6 p-4 bg-yellow-100 border border-yellow-400 rounded">
+          <h3 className="font-bold text-yellow-800">DEBUG INFO:</h3>
+          <p className="text-sm text-yellow-700">User: {user ? user.id : 'NULL'}</p>
+          <p className="text-sm text-yellow-700">Email: {user?.email || 'NULL'}</p>
+          <p className="text-sm text-yellow-700">Auth Checking: {isAuthChecking ? 'YES' : 'NO'}</p>
+          <p className="text-sm text-yellow-700">Loading: {loading ? 'YES' : 'NO'}</p>
+        </div>
+
         {isAuthChecking ? (
           <p className="text-muted-foreground">Checking authentication...</p>
         ) : loading ? (
