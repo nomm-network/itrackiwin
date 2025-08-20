@@ -194,6 +194,29 @@ const TemplateEditor: React.FC = () => {
     enabled: templateExercises.length > 0
   });
 
+  // Get exercise default grips
+  const { data: exerciseDefaultGrips = {} } = useQuery({
+    queryKey: ["exercise_default_grips", templateExercises.map(e => e.exercise_id)],
+    queryFn: async () => {
+      if (templateExercises.length === 0) return {};
+      
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, default_grips')
+        .in('id', templateExercises.map(e => e.exercise_id));
+      
+      if (error) throw error;
+      
+      return data.reduce((acc, exercise) => {
+        if (exercise.default_grips && Array.isArray(exercise.default_grips)) {
+          acc[exercise.id] = exercise.default_grips.map(String);
+        }
+        return acc;
+      }, {} as Record<string, string[]>);
+    },
+    enabled: templateExercises.length > 0
+  });
+
   // Get all grips for name lookup
   const { data: allGrips = [] } = useQuery({
     queryKey: ["all_grips"],
@@ -206,11 +229,15 @@ const TemplateEditor: React.FC = () => {
     }
   });
 
-  // Helper function to get grip names from slugs
-  const getGripNames = (gripSlugs: string[]) => {
-    if (!gripSlugs || gripSlugs.length === 0) return [];
-    return gripSlugs
-      .map(slug => allGrips.find(grip => grip.slug === slug)?.name)
+  // Helper function to get grip names from IDs or slugs
+  const getGripNames = (gripIds: string[]) => {
+    if (!gripIds || gripIds.length === 0) return [];
+    return gripIds
+      .map(id => {
+        // Try to find by ID first (for default grips), then by slug (for user prefs)
+        const grip = allGrips.find(g => g.id === id || g.slug === id);
+        return grip?.name;
+      })
       .filter(Boolean);
   };
 
@@ -492,7 +519,13 @@ const TemplateEditor: React.FC = () => {
                             {exercise.target_weight && ` • Weight: ${exercise.target_weight}${exercise.weight_unit}`}
                           </div>
                           {(() => {
-                            const exerciseGrips = allGripPreferences[exercise.id] || [];
+                            // First check user preferences, then fallback to exercise defaults
+                            let exerciseGrips = allGripPreferences[exercise.id] || [];
+                            if (exerciseGrips.length === 0) {
+                              // No user preferences, check exercise defaults
+                              exerciseGrips = exerciseDefaultGrips[exercise.exercise_id] || [];
+                            }
+                            
                             const gripNames = getGripNames(exerciseGrips);
                             return gripNames.length > 0 ? (
                               <div className="text-xs text-muted-foreground">
