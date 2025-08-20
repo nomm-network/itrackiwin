@@ -171,7 +171,7 @@ const AdminMusclesManagement: React.FC = () => {
   });
 
   const muscleForm = useForm({
-    defaultValues: { name: '', slug: '', muscle_group_id: '' }
+    defaultValues: { name: '', slug: '', muscle_group_id: '', body_part_id: '' }
   });
 
   // Mutations
@@ -415,7 +415,13 @@ const AdminMusclesManagement: React.FC = () => {
     } else if (type === 'muscle-group') {
       muscleGroupForm.reset({ name, slug: item.slug || '', body_part_id: item.body_part_id });
     } else if (type === 'muscle') {
-      muscleForm.reset({ name, slug: item.slug || '', muscle_group_id: item.muscle_group_id });
+      const bodyPartId = item.muscle_groups?.body_part_id || '';
+      muscleForm.reset({ 
+        name, 
+        slug: item.slug || '', 
+        muscle_group_id: item.muscle_group_id,
+        body_part_id: bodyPartId
+      });
     }
     setIsDialogOpen(true);
   };
@@ -764,6 +770,36 @@ const AdminMusclesManagement: React.FC = () => {
                         />
                         <FormField
                           control={muscleForm.control}
+                          name="body_part_id"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Body Part</FormLabel>
+                              <Select 
+                                onValueChange={(value) => {
+                                  field.onChange(value);
+                                  // Reset muscle group when body part changes
+                                  muscleForm.setValue('muscle_group_id', '');
+                                }} 
+                                value={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select a body part" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  {bodyParts.map((bodyPart) => (
+                                    <SelectItem key={bodyPart.id} value={bodyPart.id}>
+                                      {getEnglishName(bodyPart.translations)}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </FormItem>
+                          )}
+                        />
+                        <FormField
+                          control={muscleForm.control}
                           name="muscle_group_id"
                           render={({ field }) => (
                             <FormItem>
@@ -775,11 +811,13 @@ const AdminMusclesManagement: React.FC = () => {
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent>
-                                  {muscleGroups.map((muscleGroup) => (
-                                    <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
-                                      {getEnglishName(muscleGroup.translations)}
-                                    </SelectItem>
-                                  ))}
+                                  {muscleGroups
+                                    .filter(mg => !muscleForm.watch('body_part_id') || mg.body_part_id === muscleForm.watch('body_part_id'))
+                                    .map((muscleGroup) => (
+                                      <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
+                                        {getEnglishName(muscleGroup.translations)}
+                                      </SelectItem>
+                                    ))}
                                 </SelectContent>
                               </Select>
                             </FormItem>
