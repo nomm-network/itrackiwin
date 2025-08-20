@@ -14,50 +14,33 @@ import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
 import AdminMenu from "../components/AdminMenu";
 import PageNav from "@/components/PageNav";
+import { useTranslations } from "@/hooks/useTranslations";
 
 interface Equipment {
   id: string;
-  name: string;
   slug?: string;
   created_at: string;
-  translations?: { name: string }[];
+  translations: Record<string, { name: string; description?: string }> | null;
 }
 
 const AdminEquipmentManagement: React.FC = () => {
   const { t } = useTranslation();
+  const { getTranslatedName } = useTranslations();
   const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<Equipment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-
-  // Helper function to get English name from translations
-  const getEnglishName = (translations?: any) => {
-    if (Array.isArray(translations)) {
-      const enTranslation = translations.find(t => t.language_code === 'en');
-      return enTranslation?.name || '';
-    }
-    return '';
-  };
 
   // Fetch equipment data with translations
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery({
     queryKey: ['admin-equipment'],
     queryFn: async () => {
-      // Fetch main data and translations separately
-      const [mainResult, translationsResult] = await Promise.all([
-        supabase.from('equipment').select('*').order('created_at'),
-        supabase.from('equipment_translations').select('*').eq('language_code', 'en')
-      ]);
+      const { data, error } = await supabase
+        .from('v_equipment_with_translations')
+        .select('*')
+        .order('created_at');
       
-      if (mainResult.error) throw mainResult.error;
-      if (translationsResult.error) throw translationsResult.error;
-      
-      // Combine data manually
-      const combined = mainResult.data.map(item => ({
-        ...item,
-        translations: translationsResult.data.filter(t => t.equipment_id === item.id)
-      }));
-      
-      return combined;
+      if (error) throw error;
+      return data as Equipment[];
     },
   });
 
@@ -73,7 +56,6 @@ const AdminEquipmentManagement: React.FC = () => {
       const { data: equipment, error: equipmentError } = await supabase
         .from('equipment')
         .insert([{ 
-          name: data.name, // Store name directly in equipment table
           slug: data.slug 
         }])
         .select()
@@ -107,7 +89,6 @@ const AdminEquipmentManagement: React.FC = () => {
       const { error: equipmentError } = await supabase
         .from('equipment')
         .update({ 
-          name: data.name,
           slug: data.slug 
         })
         .eq('id', id);
@@ -116,9 +97,11 @@ const AdminEquipmentManagement: React.FC = () => {
       // Update English translation
       const { error: translationError } = await supabase
         .from('equipment_translations')
-        .update({ name: data.name })
-        .eq('equipment_id', id)
-        .eq('language_code', 'en');
+        .upsert({ 
+          equipment_id: id,
+          language_code: 'en',
+          name: data.name 
+        });
       if (translationError) throw translationError;
     },
     onSuccess: () => {
@@ -152,7 +135,7 @@ const AdminEquipmentManagement: React.FC = () => {
 
   const handleEdit = (item: Equipment) => {
     setEditingItem(item);
-    const name = getEnglishName(item.translations) || item.name;
+    const name = getTranslatedName(item);
     equipmentForm.reset({ name, slug: item.slug || '' });
     setIsDialogOpen(true);
   };
@@ -262,7 +245,7 @@ const AdminEquipmentManagement: React.FC = () => {
                   {equipment.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
-                        {getEnglishName(item.translations) || item.name}
+                        {getTranslatedName(item)}
                       </TableCell>
                       <TableCell>{item.slug || '-'}</TableCell>
                       <TableCell>{new Date(item.created_at).toLocaleDateString()}</TableCell>

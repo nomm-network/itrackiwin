@@ -61,8 +61,9 @@ interface Muscle {
 
 interface Equipment {
   id: string;
-  name: string;
   slug: string;
+  created_at: string;
+  translations: Record<string, { name: string; description?: string }> | null;
 }
 
 interface Grip {
@@ -166,9 +167,9 @@ const AdminExercisesManagement: React.FC = () => {
     queryKey: ["admin_equipment"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("equipment")
-        .select("id, name, slug")
-        .order("name");
+        .from("v_equipment_with_translations")
+        .select("*")
+        .order("created_at");
       if (error) throw error;
       return data as Equipment[];
     },
@@ -446,7 +447,7 @@ const AdminExercisesManagement: React.FC = () => {
   const getEquipmentName = (id: string | null) => {
     if (!id) return "N/A";
     const eq = equipment.find(e => e.id === id);
-    return eq?.name || "Unknown";
+    return eq ? getTranslatedName(eq) : "Unknown";
   };
 
   const getSecondaryMuscleGroupNames = (ids: string[] | null) => {
@@ -607,7 +608,7 @@ const AdminExercisesManagement: React.FC = () => {
                     <SelectContent>
                       {equipment.map((eq) => (
                         <SelectItem key={eq.id} value={eq.id}>
-                          {eq.name}
+                          {getTranslatedName(eq)}
                         </SelectItem>
                       ))}
                     </SelectContent>
@@ -753,7 +754,7 @@ const AdminExercisesManagement: React.FC = () => {
                 <SelectContent>
                   {equipment.map((eq) => (
                     <SelectItem key={eq.id} value={eq.id}>
-                      {eq.name}
+                      {getTranslatedName(eq)}
                     </SelectItem>
                   ))}
                 </SelectContent>
