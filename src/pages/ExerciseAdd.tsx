@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
+import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 import { Switch } from "@/components/ui/switch";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
@@ -44,7 +44,7 @@ const schema = z.object({
   body_part_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_group_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
-  secondary_muscle_ids: z.array(z.string().uuid()).optional(),
+  secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
   equipment_id: z.string().uuid().optional().or(z.literal('')),
   source_url: z.string().url().optional().or(z.literal('')),
   is_public: z.boolean().default(true),
@@ -76,7 +76,7 @@ const form = useForm<FormValues>({
     body_part_id: "",
     primary_muscle_group_id: "",
     primary_muscle_id: "",
-    secondary_muscle_ids: [],
+    secondary_muscle_group_ids: [],
     equipment_id: "",
     source_url: "",
     is_public: true,
@@ -90,16 +90,33 @@ const form = useForm<FormValues>({
       try {
         setLoading(true);
         const [bp, mg, m, eq] = await Promise.all([
-          supabase.from("body_parts").select("id, slug, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
-          supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
-          supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
-          supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
+          supabase.from("v_body_parts_with_translations").select("id, slug, translations"),
+          supabase.from("v_muscle_groups_with_translations").select("id, slug, body_part_id, translations"),
+          supabase.from("v_muscles_with_translations").select("id, slug, muscle_group_id, translations"),
+          supabase.from("v_equipment_with_translations").select("id, slug, translations"),
         ]);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; if (eq.error) throw eq.error;
-        setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
-        setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
-        setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
-        setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
+        setBodyParts(bp.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
+        setMuscleGroups(mg.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          body_part_id: item.body_part_id, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
+        setMuscles(m.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          muscle_group_id: item.muscle_group_id, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
+        setEquipment(eq.data?.map(item => ({ 
+          id: item.id, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
       } catch (e: any) {
         console.error("[ExerciseAdd] load error", e);
         setLastError(e?.message || String(e));
@@ -140,7 +157,7 @@ const primaryMusclesOptions = React.useMemo(() => {
         description: values.description || null,
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
-        secondary_muscle_ids: values.secondary_muscle_ids && values.secondary_muscle_ids.length > 0 ? values.secondary_muscle_ids : null,
+        secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
         source_url: values.source_url || null,
         is_public: values.is_public,
@@ -320,12 +337,12 @@ const primaryMusclesOptions = React.useMemo(() => {
                 </div>
               </div>
 
-              <SecondaryMuscleSelector
+              <SecondaryMuscleGroupSelector
                 bodyParts={bodyParts}
                 muscleGroups={muscleGroups}
-                muscles={muscles}
-                selectedMuscleIds={form.watch('secondary_muscle_ids') || []}
-                onChange={(ids) => form.setValue('secondary_muscle_ids', ids)}
+                selectedMuscleGroupIds={form.watch('secondary_muscle_group_ids') || []}
+                excludedMuscleGroupId={form.watch('primary_muscle_group_id') || ''}
+                onChange={(ids) => form.setValue('secondary_muscle_group_ids', ids)}
               />
 
               <div className="space-y-2">

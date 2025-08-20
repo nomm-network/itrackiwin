@@ -71,18 +71,32 @@ const Exercises: React.FC = () => {
             .order('name', { ascending: true })
             .limit(100),
           supabase.auth.getUser(),
-          supabase.from('body_parts').select('id, slug, body_parts_translations!inner(name)').eq('body_parts_translations.language_code', 'en'),
-          supabase.from('muscle_groups').select('id, slug, body_part_id, muscle_groups_translations!inner(name)').eq('muscle_groups_translations.language_code', 'en'),
-          supabase.from('muscles').select('id, slug, muscle_group_id, muscles_translations!inner(name)').eq('muscles_translations.language_code', 'en'),
+          supabase.from('v_body_parts_with_translations').select('id, slug, translations'),
+          supabase.from('v_muscle_groups_with_translations').select('id, slug, body_part_id, translations'),
+          supabase.from('v_muscles_with_translations').select('id, slug, muscle_group_id, translations'),
         ]);
         if (!isMounted) return;
         if (error) setError(error.message);
         setRows(data || []);
         setUserId(u.data.user?.id || null);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error;
-        setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
-        setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
-        setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
+        setBodyParts(bp.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
+        setMuscleGroups(mg.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          body_part_id: item.body_part_id, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
+        setMuscles(m.data?.map(item => ({ 
+          id: item.id, 
+          slug: item.slug, 
+          muscle_group_id: item.muscle_group_id, 
+          name: (item.translations as any)?.en?.name || item.slug || 'Unknown' 
+        })) || []);
       } catch (e: any) {
         console.error('[Exercises] load error', e);
         if (isMounted) setError(e?.message || String(e));
