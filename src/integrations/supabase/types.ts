@@ -140,6 +140,46 @@ export type Database = {
           },
         ]
       }
+      exercise_default_grips: {
+        Row: {
+          exercise_id: string
+          grip_id: string
+          order_index: number
+        }
+        Insert: {
+          exercise_id: string
+          grip_id: string
+          order_index?: number
+        }
+        Update: {
+          exercise_id?: string
+          grip_id?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_default_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_images: {
         Row: {
           created_at: string
@@ -178,7 +218,7 @@ export type Database = {
           body_part: string | null
           body_part_id: string | null
           created_at: string
-          default_grips: Json | null
+          default_grip_ids: string[] | null
           description: string | null
           equipment_id: string | null
           id: string
@@ -197,7 +237,7 @@ export type Database = {
           body_part?: string | null
           body_part_id?: string | null
           created_at?: string
-          default_grips?: Json | null
+          default_grip_ids?: string[] | null
           description?: string | null
           equipment_id?: string | null
           id?: string
@@ -216,7 +256,7 @@ export type Database = {
           body_part?: string | null
           body_part_id?: string | null
           created_at?: string
-          default_grips?: Json | null
+          default_grip_ids?: string[] | null
           description?: string | null
           equipment_id?: string | null
           id?: string
@@ -1666,6 +1706,26 @@ export type Database = {
         Args: { p_key: string; p_language_code?: string }
         Returns: string
       }
+      gtrgm_compress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_decompress: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_in: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
+      gtrgm_options: {
+        Args: { "": unknown }
+        Returns: undefined
+      }
+      gtrgm_out: {
+        Args: { "": unknown }
+        Returns: unknown
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -1676,6 +1736,18 @@ export type Database = {
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      set_limit: {
+        Args: { "": number }
+        Returns: number
+      }
+      show_limit: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
+      show_trgm: {
+        Args: { "": string }
+        Returns: string[]
       }
       start_workout: {
         Args: { p_template_id?: string }
