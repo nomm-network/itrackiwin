@@ -14,7 +14,8 @@ const AdminMenu: React.FC = () => {
       label: 'Others', 
       href: '/admin/others',
       submenu: [
-        { label: 'Equipment', href: '/admin/others/equipment' }
+        { label: 'Equipment', href: '/admin/others/equipment' },
+        { label: 'Grips', href: '/admin/others/grips' }
       ]
     },
   ];

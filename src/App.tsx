@@ -34,6 +34,7 @@ import AdminMusclesTranslations from "./admin/pages/AdminMusclesTranslations";
 import AdminExercisesManagement from "./admin/pages/AdminExercisesManagement";
 import AdminMusclesManagement from "./admin/pages/AdminMusclesManagement";
 import AdminEquipmentManagement from "./admin/pages/AdminEquipmentManagement";
+import AdminGripsManagement from "./admin/pages/AdminGripsManagement";
 import UserDashboard from "./pages/UserDashboard";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => (
               <Route path="/admin/exercises" element={<AdminExercisesManagement />} />
               <Route path="/admin/muscles" element={<AdminMusclesManagement />} />
               <Route path="/admin/others/equipment" element={<AdminEquipmentManagement />} />
+              <Route path="/admin/others/grips" element={<AdminGripsManagement />} />
               <Route path="/admin/translations" element={<AdminTranslations />}>
                 <Route path="categories" element={<AdminCategoriesTranslations />} />
                 <Route path="subcategories" element={<AdminSubcategoriesTranslations />} />
