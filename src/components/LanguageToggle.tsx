@@ -32,17 +32,16 @@ const LanguageToggle: React.FC = () => {
 
   return (
     <Select value={current} onValueChange={onChange}>
-      <SelectTrigger className="w-[120px]" aria-label="Select language">
+      <SelectTrigger className="w-[80px] bg-background border-border" aria-label="Select language">
         <SelectValue>
           {currentLanguage && (
-            <span className="flex items-center gap-2">
-              <span>{currentLanguage.flag_emoji}</span>
-              <span className="hidden sm:inline">{currentLanguage.code.toUpperCase()}</span>
+            <span className="flex items-center justify-center">
+              <span className="text-lg">{currentLanguage.flag_emoji}</span>
             </span>
           )}
         </SelectValue>
       </SelectTrigger>
-      <SelectContent>
+      <SelectContent className="bg-background border-border">
         {languages.map((lang) => (
           <SelectItem key={lang.code} value={lang.code}>
             <span className="flex items-center gap-2">
