@@ -148,12 +148,26 @@ const primaryMusclesOptions = React.useMemo(() => {
     setSaving(true);
     setLastError(null);
     try {
-      const { data: { user }, error: userErr } = await supabase.auth.getUser();
-      if (userErr) throw userErr;
-      if (!user) throw new Error('Not authenticated');
-      if (!user.id) throw new Error('User ID is missing');
+      // Get current session first
+      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
+      if (sessionErr) {
+        console.error('[ExerciseAdd] Session error:', sessionErr);
+        throw sessionErr;
+      }
+      if (!session?.user) {
+        console.error('[ExerciseAdd] No authenticated user found');
+        throw new Error('Not authenticated - please log in');
+      }
 
-      const payload: any = {
+      const userId = session.user.id;
+      if (!userId) {
+        console.error('[ExerciseAdd] User ID is missing from session');
+        throw new Error('User ID is missing');
+      }
+
+      console.log('[ExerciseAdd] Authenticated user ID:', userId);
+
+      const payload = {
         name: values.name.trim(),
         description: values.description || null,
         body_part_id: values.body_part_id || null,
@@ -162,11 +176,10 @@ const primaryMusclesOptions = React.useMemo(() => {
         equipment_id: values.equipment_id || null,
         source_url: values.source_url || null,
         is_public: values.is_public,
-        owner_user_id: user.id,
+        owner_user_id: userId,
       };
 
-      console.log('[ExerciseAdd] Inserting payload:', payload);
-      console.log('[ExerciseAdd] Current user:', user);
+      console.log('[ExerciseAdd] Final payload:', payload);
       
       const { data: inserted, error } = await supabase
         .from('exercises')
@@ -183,13 +196,13 @@ const primaryMusclesOptions = React.useMemo(() => {
       // Upload images if any
       if (files.length > 0) {
         const uploads = await Promise.all(files.map(async (file, idx) => {
-          const path = `${user.id}/${exerciseId}/${Date.now()}-${idx}-${file.name}`;
+          const path = `${userId}/${exerciseId}/${Date.now()}-${idx}-${file.name}`;
           const { error: upErr } = await supabase.storage.from('exercise-images').upload(path, file, { upsert: false });
           if (upErr) throw upErr;
           const { data: pub } = supabase.storage.from('exercise-images').getPublicUrl(path);
           const publicUrl = pub.publicUrl;
           const { error: insErr } = await supabase.from('exercise_images').insert({
-            user_id: user.id,
+            user_id: userId,
             exercise_id: exerciseId,
             path,
             url: publicUrl,
