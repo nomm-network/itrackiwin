@@ -27,6 +27,7 @@ const GripSelector: React.FC<GripSelectorProps> = ({
   defaultGrips = [],
   requireSelection = false
 }) => {
+  console.log('GripSelector rendered with selectedGrips:', selectedGrips);
   const { data: grips = [] } = useQuery<Grip[]>({
     queryKey: ["grips"],
     queryFn: async () => {

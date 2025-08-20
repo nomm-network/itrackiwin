@@ -57,6 +57,7 @@ const TemplateEditor: React.FC = () => {
 
   // Edit states
   const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [gripEditors, setGripEditors] = useState<Record<string, ExerciseGripEditor>>({});
   
@@ -205,8 +206,18 @@ const TemplateEditor: React.FC = () => {
     const formData = new FormData(e.currentTarget);
     const newName = formData.get('templateName') as string;
     if (templateId && newName) {
-      await updateTemplate.mutateAsync({ templateId, name: newName });
+      await updateTemplate.mutateAsync({ templateId, name: newName, notes: template?.notes });
       setIsEditingName(false);
+    }
+  };
+
+  const handleDescriptionUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newNotes = formData.get('templateNotes') as string;
+    if (templateId) {
+      await updateTemplate.mutateAsync({ templateId, name: template?.name || 'Template', notes: newNotes });
+      setIsEditingDescription(false);
     }
   };
 
@@ -232,6 +243,7 @@ const TemplateEditor: React.FC = () => {
         .from('template_exercise_preferences')
         .select('preferred_grips')
         .eq('template_exercise_id', exerciseId)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
         .maybeSingle();
       
       let initialGrips: string[] = [];
@@ -245,6 +257,8 @@ const TemplateEditor: React.FC = () => {
         initialGrips = Array.isArray(exercise.default_grips) ? 
           exercise.default_grips.map(String) : [];
       }
+      
+      console.log('Setting initial grips for exercise:', exerciseId, initialGrips);
       
       setGripEditors(prev => ({
         ...prev,
@@ -359,6 +373,39 @@ const TemplateEditor: React.FC = () => {
                   </div>
                 )}
               </CardTitle>
+              {!isEditingName && (
+                <div className="space-y-2">
+                  {isEditingDescription ? (
+                    <form onSubmit={handleDescriptionUpdate} className="space-y-2">
+                      <textarea 
+                        name="templateNotes" 
+                        defaultValue={template?.notes || ''} 
+                        placeholder="Template description..."
+                        className="w-full min-h-[60px] p-2 text-sm border rounded resize-y"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button type="submit" size="sm">Save</Button>
+                        <Button type="button" size="sm" variant="outline" onClick={() => setIsEditingDescription(false)}>Cancel</Button>
+                      </div>
+                    </form>
+                  ) : (
+                    <div className="flex items-start gap-2">
+                      <p className="text-sm text-muted-foreground flex-1">
+                        {template?.notes || 'No description'}
+                      </p>
+                      <Button 
+                        size="sm" 
+                        variant="ghost" 
+                        onClick={() => setIsEditingDescription(true)}
+                        className="h-6 w-6 p-0 shrink-0"
+                      >
+                        <Edit2 className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-96 overflow-y-auto">
