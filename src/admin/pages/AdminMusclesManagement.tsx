@@ -66,69 +66,50 @@ const AdminMusclesManagement: React.FC = () => {
     queryFn: async () => {
       console.log('Starting body parts query...');
       
-      // First try just the main table
-      const { data: mainData, error: mainError } = await supabase
-        .from('body_parts')
-        .select('*')
-        .order('created_at');
+      // Fetch main data and translations separately
+      const [mainResult, translationsResult] = await Promise.all([
+        supabase.from('body_parts').select('*').order('created_at'),
+        supabase.from('body_parts_translations').select('*').eq('language_code', 'en')
+      ]);
       
-      console.log('Main table data:', mainData);
-      console.log('Main table error:', mainError);
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
       
-      if (mainError) {
-        console.error('Body parts main query error:', mainError);
-        throw mainError;
-      }
+      console.log('Main data:', mainResult.data);
+      console.log('Translations:', translationsResult.data);
       
-      // Then try with translations
-      const { data: withTranslations, error: translationError } = await supabase
-        .from('body_parts')
-        .select(`
-          *,
-          body_parts_translations(*)
-        `)
-        .order('created_at');
-      
-      console.log('With translations data:', withTranslations);
-      console.log('Translation error:', translationError);
-      
-      if (translationError) {
-        console.error('Body parts translation query error:', translationError);
-        // Fall back to main data if translations fail
-        return mainData.map(item => ({
-          ...item,
-          translations: []
-        }));
-      }
-      
-      return withTranslations.map(item => ({
+      // Combine data manually
+      const combined = mainResult.data.map(item => ({
         ...item,
-        translations: item.body_parts_translations || []
+        translations: translationsResult.data.filter(t => t.body_part_id === item.id)
       }));
+      
+      console.log('Combined data:', combined);
+      return combined;
     },
   });
 
   const { data: muscleGroups = [], isLoading: muscleGroupsLoading } = useQuery({
     queryKey: ['admin-muscle-groups'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('muscle_groups')
-        .select(`
-          *,
-          muscle_groups_translations(name, language_code),
-          body_parts(
-            id,
-            slug,
-            body_parts_translations(name, language_code)
-          )
-        `)
-        .order('created_at');
-      if (error) throw error;
-      return data.map(item => ({
+      const [mainResult, translationsResult, bodyPartsResult, bodyPartsTransResult] = await Promise.all([
+        supabase.from('muscle_groups').select('*').order('created_at'),
+        supabase.from('muscle_groups_translations').select('*').eq('language_code', 'en'),
+        supabase.from('body_parts').select('*'),
+        supabase.from('body_parts_translations').select('*').eq('language_code', 'en')
+      ]);
+      
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
+      if (bodyPartsResult.error) throw bodyPartsResult.error;
+      if (bodyPartsTransResult.error) throw bodyPartsTransResult.error;
+      
+      return mainResult.data.map(item => ({
         ...item,
-        translations: item.muscle_groups_translations || [],
+        translations: translationsResult.data.filter(t => t.muscle_group_id === item.id),
         body_parts: {
-          translations: item.body_parts?.body_parts_translations || []
+          ...bodyPartsResult.data.find(bp => bp.id === item.body_part_id),
+          translations: bodyPartsTransResult.data.filter(t => t.body_part_id === item.body_part_id)
         }
       }));
     },
@@ -137,34 +118,46 @@ const AdminMusclesManagement: React.FC = () => {
   const { data: muscles = [], isLoading: musclesLoading } = useQuery({
     queryKey: ['admin-muscles'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('muscles')
-        .select(`
-          *,
-          muscles_translations(name, language_code),
-          muscle_groups(
-            id,
-            slug,
-            muscle_groups_translations(name, language_code),
-            body_parts(
-              id,
-              slug,
-              body_parts_translations(name, language_code)
-            )
-          )
-        `)
-        .order('created_at');
-      if (error) throw error;
-      return data.map(item => ({
-        ...item,
-        translations: item.muscles_translations || [],
-        muscle_groups: {
-          translations: item.muscle_groups?.muscle_groups_translations || [],
-          body_parts: {
-            translations: item.muscle_groups?.body_parts?.body_parts_translations || []
+      const [
+        mainResult,
+        translationsResult,
+        muscleGroupsResult,
+        muscleGroupsTransResult,
+        bodyPartsResult,
+        bodyPartsTransResult
+      ] = await Promise.all([
+        supabase.from('muscles').select('*').order('created_at'),
+        supabase.from('muscles_translations').select('*').eq('language_code', 'en'),
+        supabase.from('muscle_groups').select('*'),
+        supabase.from('muscle_groups_translations').select('*').eq('language_code', 'en'),
+        supabase.from('body_parts').select('*'),
+        supabase.from('body_parts_translations').select('*').eq('language_code', 'en')
+      ]);
+      
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
+      if (muscleGroupsResult.error) throw muscleGroupsResult.error;
+      if (muscleGroupsTransResult.error) throw muscleGroupsTransResult.error;
+      if (bodyPartsResult.error) throw bodyPartsResult.error;
+      if (bodyPartsTransResult.error) throw bodyPartsTransResult.error;
+      
+      return mainResult.data.map(item => {
+        const muscleGroup = muscleGroupsResult.data.find(mg => mg.id === item.muscle_group_id);
+        const bodyPart = bodyPartsResult.data.find(bp => bp.id === muscleGroup?.body_part_id);
+        
+        return {
+          ...item,
+          translations: translationsResult.data.filter(t => t.muscle_id === item.id),
+          muscle_groups: {
+            ...muscleGroup,
+            translations: muscleGroupsTransResult.data.filter(t => t.muscle_group_id === item.muscle_group_id),
+            body_parts: {
+              ...bodyPart,
+              translations: bodyPartsTransResult.data.filter(t => t.body_part_id === muscleGroup?.body_part_id)
+            }
           }
-        }
-      }));
+        };
+      });
     },
   });
 

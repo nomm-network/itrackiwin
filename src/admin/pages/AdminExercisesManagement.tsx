@@ -89,19 +89,18 @@ const AdminExercisesManagement: React.FC = () => {
   const { data: bodyParts = [] } = useQuery({
     queryKey: ["admin_body_parts"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("body_parts")
-        .select(`
-          id, slug,
-          body_parts_translations!inner(name)
-        `)
-        .eq('body_parts_translations.language_code', 'en')
-        .order("body_parts_translations.name");
-      if (error) throw error;
-      return data.map(item => ({
+      const [mainResult, translationsResult] = await Promise.all([
+        supabase.from('body_parts').select('*').order('created_at'),
+        supabase.from('body_parts_translations').select('*').eq('language_code', 'en')
+      ]);
+      
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
+      
+      return mainResult.data.map(item => ({
         id: item.id,
         slug: item.slug,
-        name: (item.body_parts_translations as any)[0]?.name || ''
+        name: translationsResult.data.find(t => t.body_part_id === item.id)?.name || item.slug || 'Unknown'
       })) as BodyPart[];
     },
   });
@@ -110,20 +109,19 @@ const AdminExercisesManagement: React.FC = () => {
   const { data: muscleGroups = [] } = useQuery({
     queryKey: ["admin_muscle_groups"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("muscle_groups")
-        .select(`
-          id, slug, body_part_id,
-          muscle_groups_translations!inner(name)
-        `)
-        .eq('muscle_groups_translations.language_code', 'en')
-        .order("muscle_groups_translations.name");
-      if (error) throw error;
-      return data.map(item => ({
+      const [mainResult, translationsResult] = await Promise.all([
+        supabase.from('muscle_groups').select('*').order('created_at'),
+        supabase.from('muscle_groups_translations').select('*').eq('language_code', 'en')
+      ]);
+      
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
+      
+      return mainResult.data.map(item => ({
         id: item.id,
         slug: item.slug,
         body_part_id: item.body_part_id,
-        name: (item.muscle_groups_translations as any)[0]?.name || ''
+        name: translationsResult.data.find(t => t.muscle_group_id === item.id)?.name || item.slug || 'Unknown'
       })) as MuscleGroup[];
     },
   });
@@ -132,20 +130,19 @@ const AdminExercisesManagement: React.FC = () => {
   const { data: muscles = [] } = useQuery({
     queryKey: ["admin_muscles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("muscles")
-        .select(`
-          id, slug, muscle_group_id,
-          muscles_translations!inner(name)
-        `)
-        .eq('muscles_translations.language_code', 'en')
-        .order("muscles_translations.name");
-      if (error) throw error;
-      return data.map(item => ({
+      const [mainResult, translationsResult] = await Promise.all([
+        supabase.from('muscles').select('*').order('created_at'),
+        supabase.from('muscles_translations').select('*').eq('language_code', 'en')
+      ]);
+      
+      if (mainResult.error) throw mainResult.error;
+      if (translationsResult.error) throw translationsResult.error;
+      
+      return mainResult.data.map(item => ({
         id: item.id,
         slug: item.slug,
         muscle_group_id: item.muscle_group_id,
-        name: (item.muscles_translations as any)[0]?.name || ''
+        name: translationsResult.data.find(t => t.muscle_id === item.id)?.name || item.slug || 'Unknown'
       })) as Muscle[];
     },
   });
