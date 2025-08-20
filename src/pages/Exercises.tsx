@@ -71,9 +71,9 @@ const Exercises: React.FC = () => {
             .order('name', { ascending: true })
             .limit(100),
           supabase.auth.getUser(),
-          supabase.from('body_parts').select('id,name').order('name', { ascending: true }),
-          supabase.from('muscle_groups').select('id,name,body_part_id').order('name', { ascending: true }),
-          supabase.from('muscles').select('id,name,muscle_group_id').order('name', { ascending: true }),
+          supabase.from('body_parts').select('id, slug, body_parts_translations!inner(name)').eq('body_parts_translations.language_code', 'en'),
+          supabase.from('muscle_groups').select('id, slug, body_part_id, muscle_groups_translations!inner(name)').eq('muscle_groups_translations.language_code', 'en'),
+          supabase.from('muscles').select('id, slug, muscle_group_id, muscles_translations!inner(name)').eq('muscles_translations.language_code', 'en'),
         ]);
         if (!isMounted) return;
         if (error) setError(error.message);
