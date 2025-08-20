@@ -531,7 +531,10 @@ export const useUpsertTemplateExercisePreferences = () => {
           template_exercise_id: templateExerciseId,
           user_id: user.data.user.id,
           preferred_grips: preferredGrips,
-          notes
+          notes,
+          updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'template_exercise_id,user_id'
         });
       if (error) throw error;
     },
