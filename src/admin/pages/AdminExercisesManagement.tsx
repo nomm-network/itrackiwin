@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
 
 interface Exercise {
   id: string;
@@ -339,6 +340,16 @@ const AdminExercisesManagement: React.FC = () => {
     return eq?.name || "Unknown";
   };
 
+  const getSecondaryMuscleNames = (ids: string[] | null) => {
+    if (!ids || ids.length === 0) return "None";
+    return ids
+      .map(id => {
+        const muscle = muscles.find(m => m.id === id);
+        return muscle?.name || "Unknown";
+      })
+      .join(", ");
+  };
+
   const filteredMuscleGroups = selectedBodyPart 
     ? muscleGroups.filter(mg => mg.body_part_id === selectedBodyPart)
     : muscleGroups;
@@ -490,6 +501,14 @@ const AdminExercisesManagement: React.FC = () => {
                   </Select>
                 </div>
 
+                <SecondaryMuscleSelector
+                  bodyParts={bodyParts}
+                  muscleGroups={muscleGroups}
+                  muscles={muscles.filter(m => m.id !== formData.primary_muscle_id)}
+                  selectedMuscleIds={formData.secondary_muscle_ids || []}
+                  onChange={(ids) => setFormData({ ...formData, secondary_muscle_ids: ids })}
+                />
+
                 <div className="grid gap-2">
                   <Label>Visibility</Label>
                   <Select 
@@ -613,26 +632,32 @@ const AdminExercisesManagement: React.FC = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Body Part</TableHead>
-                    <TableHead>Primary Muscle</TableHead>
-                    <TableHead>Equipment</TableHead>
-                    <TableHead>Visibility</TableHead>
-                    <TableHead>Actions</TableHead>
+                <TableHead>Name</TableHead>
+                <TableHead>Body Part</TableHead>
+                <TableHead>Primary Muscle</TableHead>
+                <TableHead>Secondary Muscles</TableHead>
+                <TableHead>Equipment</TableHead>
+                <TableHead>Visibility</TableHead>
+                <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {exercises.map((exercise) => (
                     <TableRow key={exercise.id}>
-                      <TableCell className="font-medium">{exercise.name}</TableCell>
-                      <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
-                      <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
-                      <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
-                      <TableCell>
-                        <Badge variant={exercise.is_public ? "default" : "secondary"}>
-                          {exercise.is_public ? "Public" : "Private"}
-                        </Badge>
-                      </TableCell>
+                  <TableCell className="font-medium">{exercise.name}</TableCell>
+                  <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
+                  <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
+                  <TableCell>
+                    <div className="max-w-48 truncate text-sm text-muted-foreground">
+                      {getSecondaryMuscleNames(exercise.secondary_muscle_ids)}
+                    </div>
+                  </TableCell>
+                  <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
+                  <TableCell>
+                    <Badge variant={exercise.is_public ? "default" : "secondary"}>
+                      {exercise.is_public ? "Public" : "Private"}
+                    </Badge>
+                  </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
