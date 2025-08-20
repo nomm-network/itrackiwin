@@ -860,6 +860,36 @@ export type Database = {
           },
         ]
       }
+      template_exercise_preferences: {
+        Row: {
+          created_at: string
+          id: string
+          notes: string | null
+          preferred_grips: Json | null
+          template_exercise_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          preferred_grips?: Json | null
+          template_exercise_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          notes?: string | null
+          preferred_grips?: Json | null
+          template_exercise_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       template_exercises: {
         Row: {
           default_sets: number
