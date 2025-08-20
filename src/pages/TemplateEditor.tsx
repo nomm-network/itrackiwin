@@ -210,18 +210,30 @@ const TemplateEditor: React.FC = () => {
     }
   };
 
-  const toggleGripEditor = (exerciseId: string) => {
+  const toggleGripEditor = async (exerciseId: string) => {
     if (gripEditors[exerciseId]) {
       setGripEditors(prev => {
         const { [exerciseId]: removed, ...rest } = prev;
         return rest;
       });
     } else {
+      // Get the exercise to check for default grips
+      const templateExercise = templateExercises.find(te => te.id === exerciseId);
+      if (!templateExercise) return;
+      
+      const { data: exercise } = await supabase
+        .from('exercises')
+        .select('default_grips')
+        .eq('id', templateExercise.exercise_id)
+        .single();
+      
+      const defaultGrips = exercise?.default_grips || [];
+      
       setGripEditors(prev => ({
         ...prev,
         [exerciseId]: {
           exerciseId,
-          selectedGrips: []
+          selectedGrips: Array.isArray(defaultGrips) ? defaultGrips.map(String) : []
         }
       }));
     }
@@ -295,30 +307,7 @@ const TemplateEditor: React.FC = () => {
           </Button>
           <div className="flex items-center gap-2">
             <h1 className="text-xl md:text-2xl font-semibold">
-              {isEditingName ? (
-                <form onSubmit={handleNameUpdate} className="flex gap-2">
-                  <Input 
-                    name="templateName" 
-                    defaultValue={template?.name || 'Template'} 
-                    className="text-xl font-semibold"
-                    autoFocus
-                  />
-                  <Button type="submit" size="sm">Save</Button>
-                  <Button type="button" size="sm" variant="outline" onClick={() => setIsEditingName(false)}>Cancel</Button>
-                </form>
-              ) : (
-                <>
-                  {template?.name || 'Template'}
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    onClick={() => setIsEditingName(true)}
-                    className="ml-2"
-                  >
-                    <Edit2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
+              Template Editor
             </h1>
           </div>
         </div>
@@ -327,7 +316,32 @@ const TemplateEditor: React.FC = () => {
           {/* Exercises in Template */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Exercises in Template</CardTitle>
+              <CardTitle className="text-lg">
+                {isEditingName ? (
+                  <form onSubmit={handleNameUpdate} className="flex gap-2">
+                    <Input 
+                      name="templateName" 
+                      defaultValue={template?.name || 'Template'} 
+                      className="text-lg font-semibold"
+                      autoFocus
+                    />
+                    <Button type="submit" size="sm">Save</Button>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setIsEditingName(false)}>Cancel</Button>
+                  </form>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    Exercises in "{template?.name || 'Template'}"
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => setIsEditingName(true)}
+                      className="h-6 w-6 p-0"
+                    >
+                      <Edit2 className="h-3 w-3" />
+                    </Button>
+                  </div>
+                )}
+              </CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -367,6 +381,7 @@ const TemplateEditor: React.FC = () => {
                           <GripSelector
                             selectedGrips={gripEditors[exercise.id].selectedGrips}
                             onGripsChange={(grips) => handleGripsChange(exercise.id, grips)}
+                            requireSelection={true}
                           />
                           <div className="flex gap-2">
                             <Button 

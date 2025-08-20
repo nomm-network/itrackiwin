@@ -16,12 +16,16 @@ interface GripSelectorProps {
   selectedGrips: string[];
   onGripsChange: (grips: string[]) => void;
   className?: string;
+  defaultGrips?: string[];
+  requireSelection?: boolean;
 }
 
 const GripSelector: React.FC<GripSelectorProps> = ({ 
   selectedGrips, 
   onGripsChange,
-  className 
+  className,
+  defaultGrips = [],
+  requireSelection = false
 }) => {
   const { data: grips = [] } = useQuery<Grip[]>({
     queryKey: ["grips"],
@@ -48,6 +52,19 @@ const GripSelector: React.FC<GripSelectorProps> = ({
     const currentlySelected = selectedGrips.includes(grip.slug);
     
     if (currentlySelected) {
+      // Don't allow removing if we require selection and this is the only selected grip in this category
+      if (requireSelection && defaultGrips.length > 0) {
+        const categoryGrips = grips.filter(g => g.category === grip.category);
+        const selectedInCategory = selectedGrips.filter(selectedSlug => {
+          const selectedGrip = grips.find(g => g.slug === selectedSlug);
+          return selectedGrip?.category === grip.category;
+        });
+        
+        if (selectedInCategory.length === 1) {
+          return; // Don't allow removing the last selected grip in a required category
+        }
+      }
+      
       // Remove grip
       onGripsChange(selectedGrips.filter(g => g !== grip.slug));
     } else {
