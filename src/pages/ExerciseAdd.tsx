@@ -151,6 +151,7 @@ const primaryMusclesOptions = React.useMemo(() => {
       const { data: { user }, error: userErr } = await supabase.auth.getUser();
       if (userErr) throw userErr;
       if (!user) throw new Error('Not authenticated');
+      if (!user.id) throw new Error('User ID is missing');
 
       const payload: any = {
         name: values.name.trim(),
