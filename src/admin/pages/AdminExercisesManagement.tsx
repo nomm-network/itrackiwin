@@ -34,6 +34,7 @@ interface Exercise {
   owner_user_id: string | null;
   source_url: string | null;
   popularity_rank: number | null;
+  default_grips: string[] | null;
   created_at: string;
 }
 
@@ -63,6 +64,14 @@ interface Equipment {
   slug: string;
 }
 
+interface Grip {
+  id: string;
+  name: string;
+  slug: string;
+  category: string;
+  description: string | null;
+}
+
 const AdminExercisesManagement: React.FC = () => {
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -85,7 +94,9 @@ const AdminExercisesManagement: React.FC = () => {
     secondary_muscle_group_ids: [],
     equipment_id: "",
     is_public: true,
+    default_grips: [],
   });
+  const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
 
   // Fetch body parts with translations
   const { data: bodyParts = [] } = useQuery({
@@ -162,6 +173,20 @@ const AdminExercisesManagement: React.FC = () => {
     },
   });
 
+  // Fetch grips
+  const { data: grips = [] } = useQuery({
+    queryKey: ["admin_grips"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("grips")
+        .select("id, name, slug, category, description")
+        .order("category")
+        .order("name");
+      if (error) throw error;
+      return data as Grip[];
+    },
+  });
+
   // Fetch exercises with filters
   const { data: exercises = [], isLoading } = useQuery({
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
@@ -172,7 +197,7 @@ const AdminExercisesManagement: React.FC = () => {
           id, name, slug, description, body_part, body_part_id, 
           primary_muscle_id, secondary_muscle_group_ids, equipment_id,
           image_url, thumbnail_url, is_public, owner_user_id, 
-          source_url, popularity_rank, created_at
+          source_url, popularity_rank, default_grips, created_at
         `)
         .order("name");
 
@@ -211,6 +236,7 @@ const AdminExercisesManagement: React.FC = () => {
           secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
+          default_grips: selectedGrips.length > 0 ? selectedGrips : null,
         };
         const { data, error } = await supabase
           .from("exercises")
@@ -239,6 +265,7 @@ const AdminExercisesManagement: React.FC = () => {
           secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
+          default_grips: selectedGrips.length > 0 ? selectedGrips : null,
           owner_user_id: user.id, // Set to current admin user
         };
         
@@ -268,7 +295,9 @@ const AdminExercisesManagement: React.FC = () => {
         secondary_muscle_group_ids: [],
         equipment_id: "",
         is_public: true,
+        default_grips: [],
       });
+      setSelectedGrips([]);
     },
     onError: (error) => {
       toast({ title: "Error", description: `Failed to save exercise: ${error.message}`, variant: "destructive" });
@@ -322,7 +351,9 @@ const AdminExercisesManagement: React.FC = () => {
       secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || [],
       equipment_id: exercise.equipment_id || "",
       is_public: exercise.is_public ?? true,
+      default_grips: exercise.default_grips || [],
     });
+    setSelectedGrips(exercise.default_grips || []);
     setIsCreateDialogOpen(true);
   };
 
@@ -333,6 +364,48 @@ const AdminExercisesManagement: React.FC = () => {
     setSelectedMuscle("");
     setSelectedEquipment("");
     setIsPublic("");
+  };
+
+  // Grip selection logic
+  const handleGripToggle = (gripId: string) => {
+    const grip = grips.find(g => g.id === gripId);
+    if (!grip) return;
+
+    const newSelectedGrips = [...selectedGrips];
+    const isSelected = newSelectedGrips.includes(gripId);
+
+    if (isSelected) {
+      // Remove grip
+      const index = newSelectedGrips.indexOf(gripId);
+      newSelectedGrips.splice(index, 1);
+    } else {
+      // Check if we already have a grip from the same category
+      const existingGripFromCategory = newSelectedGrips.find(id => {
+        const existingGrip = grips.find(g => g.id === id);
+        return existingGrip?.category === grip.category;
+      });
+
+      if (existingGripFromCategory) {
+        // Replace the existing grip from this category
+        const index = newSelectedGrips.indexOf(existingGripFromCategory);
+        newSelectedGrips[index] = gripId;
+      } else {
+        // Add new grip
+        newSelectedGrips.push(gripId);
+      }
+    }
+
+    setSelectedGrips(newSelectedGrips);
+  };
+
+  const getGripNames = (gripIds: string[] | null) => {
+    if (!gripIds || gripIds.length === 0) return "None";
+    return gripIds
+      .map(id => {
+        const grip = grips.find(g => g.id === id);
+        return grip?.name || "Unknown";
+      })
+      .join(", ");
   };
 
   const getBodyPartName = (id: string | null) => {
@@ -395,18 +468,20 @@ const AdminExercisesManagement: React.FC = () => {
             setIsCreateDialogOpen(open);
             if (!open) {
               setEditingExercise(null);
-              setFormData({
-                name: "",
-                description: "",
-                body_part_id: "",
-                primary_muscle_id: "",
-                secondary_muscle_group_ids: [],
-                equipment_id: "",
-                is_public: true,
-              });
-            }
-          }}>
-            <DialogTrigger asChild>
+                  setFormData({
+                    name: "",
+                    description: "",
+                    body_part_id: "",
+                    primary_muscle_id: "",
+                    secondary_muscle_group_ids: [],
+                    equipment_id: "",
+                    is_public: true,
+                    default_grips: [],
+                  });
+                  setSelectedGrips([]);
+                }
+              }}>
+                <DialogTrigger asChild>
               <Button onClick={() => {
                 setEditingExercise(null);
                 setFormData({
@@ -417,7 +492,9 @@ const AdminExercisesManagement: React.FC = () => {
                   secondary_muscle_group_ids: [],
                   equipment_id: "",
                   is_public: true,
+                  default_grips: [],
                 });
+                setSelectedGrips([]);
                 setIsCreateDialogOpen(true);
               }}>
                 <Plus className="w-4 h-4 mr-2" />
@@ -525,6 +602,43 @@ const AdminExercisesManagement: React.FC = () => {
                   }
                   onChange={(ids) => setFormData({ ...formData, secondary_muscle_group_ids: ids })}
                 />
+
+                {/* Grips Selection */}
+                <div className="grid gap-2">
+                  <Label>Default Grips</Label>
+                  <div className="space-y-3">
+                    {['width', 'orientation', 'attachment'].map(category => {
+                      const categoryGrips = grips.filter(g => g.category === category);
+                      if (categoryGrips.length === 0) return null;
+                      
+                      return (
+                        <div key={category} className="space-y-2">
+                          <h4 className="text-sm font-medium capitalize">{category}</h4>
+                          <div className="grid grid-cols-2 gap-2">
+                            {categoryGrips.map(grip => {
+                              const isSelected = selectedGrips.includes(grip.id);
+                              return (
+                                <Button
+                                  key={grip.id}
+                                  type="button"
+                                  variant={isSelected ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleGripToggle(grip.id)}
+                                  className="justify-start"
+                                >
+                                  {grip.name}
+                                </Button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Select one grip from each category. Only one grip per category is allowed.
+                  </p>
+                </div>
 
                 <div className="grid gap-2">
                   <Label>Visibility</Label>
@@ -654,6 +768,7 @@ const AdminExercisesManagement: React.FC = () => {
                 <TableHead>Primary Muscle</TableHead>
                 <TableHead>Secondary Muscle Groups</TableHead>
                 <TableHead>Equipment</TableHead>
+                <TableHead>Default Grips</TableHead>
                 <TableHead>Visibility</TableHead>
                 <TableHead>Actions</TableHead>
                   </TableRow>
@@ -670,6 +785,11 @@ const AdminExercisesManagement: React.FC = () => {
                     </div>
                   </TableCell>
                   <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
+                  <TableCell>
+                    <div className="max-w-48 truncate text-sm text-muted-foreground">
+                      {getGripNames(exercise.default_grips)}
+                    </div>
+                  </TableCell>
                   <TableCell>
                     <Badge variant={exercise.is_public ? "default" : "secondary"}>
                       {exercise.is_public ? "Public" : "Private"}

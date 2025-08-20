@@ -181,6 +181,7 @@ export type Database = {
           body_part: string | null
           body_part_id: string | null
           created_at: string
+          default_grips: Json | null
           description: string | null
           equipment_id: string | null
           id: string
@@ -199,6 +200,7 @@ export type Database = {
           body_part?: string | null
           body_part_id?: string | null
           created_at?: string
+          default_grips?: Json | null
           description?: string | null
           equipment_id?: string | null
           id?: string
@@ -217,6 +219,7 @@ export type Database = {
           body_part?: string | null
           body_part_id?: string | null
           created_at?: string
+          default_grips?: Json | null
           description?: string | null
           equipment_id?: string | null
           id?: string
