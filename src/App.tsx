@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/auth/ProtectedRoute";
 import Fitness from "./pages/Fitness";
 import WorkoutSession from "./pages/WorkoutSession";
 import Templates from "./pages/Templates";
+import TemplateEditor from "./pages/TemplateEditor";
 import History from "./pages/History";
 import WorkoutDetail from "./pages/WorkoutDetail";
 import Exercises from "./pages/Exercises";
@@ -58,6 +59,7 @@ const App = () => (
             <Route path="/fitness/exercises/:id/edit" element={<ExerciseEdit />} />
             <Route path="/fitness/session/:id" element={<WorkoutSession />} />
             <Route path="/fitness/templates" element={<Templates />} />
+            <Route path="/fitness/templates/:templateId/edit" element={<TemplateEditor />} />
             <Route path="/fitness/configure" element={<FitnessConfigure />} />
             <Route path="/fitness/history" element={<History />} />
             <Route path="/fitness/history/:id" element={<WorkoutDetail />} />
