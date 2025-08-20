@@ -286,12 +286,12 @@ const AdminMusclesTranslations: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            {t('admin.add_new_translation')}
+            {t('labels.add_new_translation')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>{t('admin.body_part')}</Label>
+            <Label>{t('labels.body_part')}</Label>
             <Select 
               value={newBodyPart.body_part_id || ""} 
               onValueChange={(value) => setNewBodyPart({...newBodyPart, body_part_id: value})}
@@ -300,28 +300,30 @@ const AdminMusclesTranslations: React.FC = () => {
                 <SelectValue placeholder="Select body part" />
               </SelectTrigger>
               <SelectContent>
-                {bodyParts.map((bodyPart) => (
-                  <SelectItem key={bodyPart.id} value={bodyPart.id}>
-                    {bodyPart.slug}
-                  </SelectItem>
-                ))}
+                {bodyParts
+                  .filter(bodyPart => !bodyPartTranslations.some(t => t.body_part_id === bodyPart.id))
+                  .map((bodyPart) => (
+                    <SelectItem key={bodyPart.id} value={bodyPart.id}>
+                      {bodyPart.slug}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>{t('admin.name')}</Label>
+            <Label>{t('labels.name')}</Label>
             <Input
               value={newBodyPart.name || ""}
               onChange={(e) => setNewBodyPart({...newBodyPart, name: e.target.value})}
-              placeholder={t('admin.enter_name')}
+              placeholder={t('labels.enter_name')}
             />
           </div>
           <div>
-            <Label>{t('admin.description')}</Label>
+            <Label>{t('labels.description')}</Label>
             <Textarea
               value={newBodyPart.description || ""}
               onChange={(e) => setNewBodyPart({...newBodyPart, description: e.target.value})}
-              placeholder={t('admin.enter_description')}
+              placeholder={t('labels.enter_description')}
             />
           </div>
           <Button 
@@ -331,7 +333,7 @@ const AdminMusclesTranslations: React.FC = () => {
             } as BodyPartTranslation)}
             disabled={!newBodyPart.body_part_id || !newBodyPart.name}
           >
-            {t('admin.add_translation')}
+            {t('labels.add_translation')}
           </Button>
         </CardContent>
       </Card>
@@ -356,14 +358,14 @@ const AdminMusclesTranslations: React.FC = () => {
               {editingBodyPart?.id === translation.id ? (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <Input
                       value={editingBodyPart.name}
                       onChange={(e) => setEditingBodyPart({...editingBodyPart, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <Label>{t('admin.description')}</Label>
+                    <Label>{t('labels.description')}</Label>
                     <Textarea
                       value={editingBodyPart.description || ""}
                       onChange={(e) => setEditingBodyPart({...editingBodyPart, description: e.target.value})}
@@ -371,27 +373,27 @@ const AdminMusclesTranslations: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={() => createBodyPartTranslationMutation.mutate(editingBodyPart)}>
-                      {t('admin.save')}
+                      {t('labels.save')}
                     </Button>
                     <Button variant="outline" onClick={() => setEditingBodyPart(null)}>
-                      {t('admin.cancel')}
+                      {t('labels.cancel')}
                     </Button>
                   </div>
                 </>
               ) : (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <p className="text-sm">{translation.name}</p>
                   </div>
                   {translation.description && (
                     <div>
-                      <Label>{t('admin.description')}</Label>
+                      <Label>{t('labels.description')}</Label>
                       <p className="text-sm">{translation.description}</p>
                     </div>
                   )}
                   <Button onClick={() => setEditingBodyPart(translation)}>
-                    {t('admin.edit')}
+                    {t('labels.edit')}
                   </Button>
                 </>
               )}
@@ -400,7 +402,7 @@ const AdminMusclesTranslations: React.FC = () => {
         ))}
         {bodyPartTranslations.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            {t('admin.no_translations_found')}
+            {t('labels.no_translations_found')}
           </div>
         )}
       </div>
@@ -414,12 +416,12 @@ const AdminMusclesTranslations: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            {t('admin.add_new_translation')}
+            {t('labels.add_new_translation')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>{t('admin.muscle_group')}</Label>
+            <Label>{t('labels.muscle_group')}</Label>
             <Select 
               value={newMuscleGroup.muscle_group_id || ""} 
               onValueChange={(value) => setNewMuscleGroup({...newMuscleGroup, muscle_group_id: value})}
@@ -428,28 +430,30 @@ const AdminMusclesTranslations: React.FC = () => {
                 <SelectValue placeholder="Select muscle group" />
               </SelectTrigger>
               <SelectContent>
-                {muscleGroups.map((muscleGroup) => (
-                  <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
-                    {muscleGroup.slug}
-                  </SelectItem>
-                ))}
+                {muscleGroups
+                  .filter(muscleGroup => !muscleGroupTranslations.some(t => t.muscle_group_id === muscleGroup.id))
+                  .map((muscleGroup) => (
+                    <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
+                      {muscleGroup.slug}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>{t('admin.name')}</Label>
+            <Label>{t('labels.name')}</Label>
             <Input
               value={newMuscleGroup.name || ""}
               onChange={(e) => setNewMuscleGroup({...newMuscleGroup, name: e.target.value})}
-              placeholder={t('admin.enter_name')}
+              placeholder={t('labels.enter_name')}
             />
           </div>
           <div>
-            <Label>{t('admin.description')}</Label>
+            <Label>{t('labels.description')}</Label>
             <Textarea
               value={newMuscleGroup.description || ""}
               onChange={(e) => setNewMuscleGroup({...newMuscleGroup, description: e.target.value})}
-              placeholder={t('admin.enter_description')}
+              placeholder={t('labels.enter_description')}
             />
           </div>
           <Button 
@@ -459,7 +463,7 @@ const AdminMusclesTranslations: React.FC = () => {
             } as MuscleGroupTranslation)}
             disabled={!newMuscleGroup.muscle_group_id || !newMuscleGroup.name}
           >
-            {t('admin.add_translation')}
+            {t('labels.add_translation')}
           </Button>
         </CardContent>
       </Card>
@@ -484,14 +488,14 @@ const AdminMusclesTranslations: React.FC = () => {
               {editingMuscleGroup?.id === translation.id ? (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <Input
                       value={editingMuscleGroup.name}
                       onChange={(e) => setEditingMuscleGroup({...editingMuscleGroup, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <Label>{t('admin.description')}</Label>
+                    <Label>{t('labels.description')}</Label>
                     <Textarea
                       value={editingMuscleGroup.description || ""}
                       onChange={(e) => setEditingMuscleGroup({...editingMuscleGroup, description: e.target.value})}
@@ -499,27 +503,27 @@ const AdminMusclesTranslations: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={() => createMuscleGroupTranslationMutation.mutate(editingMuscleGroup)}>
-                      {t('admin.save')}
+                      {t('labels.save')}
                     </Button>
                     <Button variant="outline" onClick={() => setEditingMuscleGroup(null)}>
-                      {t('admin.cancel')}
+                      {t('labels.cancel')}
                     </Button>
                   </div>
                 </>
               ) : (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <p className="text-sm">{translation.name}</p>
                   </div>
                   {translation.description && (
                     <div>
-                      <Label>{t('admin.description')}</Label>
+                      <Label>{t('labels.description')}</Label>
                       <p className="text-sm">{translation.description}</p>
                     </div>
                   )}
                   <Button onClick={() => setEditingMuscleGroup(translation)}>
-                    {t('admin.edit')}
+                    {t('labels.edit')}
                   </Button>
                 </>
               )}
@@ -528,7 +532,7 @@ const AdminMusclesTranslations: React.FC = () => {
         ))}
         {muscleGroupTranslations.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            {t('admin.no_translations_found')}
+            {t('labels.no_translations_found')}
           </div>
         )}
       </div>
@@ -542,12 +546,12 @@ const AdminMusclesTranslations: React.FC = () => {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Plus className="h-5 w-5" />
-            {t('admin.add_new_translation')}
+            {t('labels.add_new_translation')}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label>{t('admin.muscle')}</Label>
+            <Label>{t('labels.muscle')}</Label>
             <Select 
               value={newMuscle.muscle_id || ""} 
               onValueChange={(value) => setNewMuscle({...newMuscle, muscle_id: value})}
@@ -556,28 +560,30 @@ const AdminMusclesTranslations: React.FC = () => {
                 <SelectValue placeholder="Select muscle" />
               </SelectTrigger>
               <SelectContent>
-                {muscles.map((muscle) => (
-                  <SelectItem key={muscle.id} value={muscle.id}>
-                    {muscle.slug}
-                  </SelectItem>
-                ))}
+                {muscles
+                  .filter(muscle => !muscleTranslations.some(t => t.muscle_id === muscle.id))
+                  .map((muscle) => (
+                    <SelectItem key={muscle.id} value={muscle.id}>
+                      {muscle.slug}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
           </div>
           <div>
-            <Label>{t('admin.name')}</Label>
+            <Label>{t('labels.name')}</Label>
             <Input
               value={newMuscle.name || ""}
               onChange={(e) => setNewMuscle({...newMuscle, name: e.target.value})}
-              placeholder={t('admin.enter_name')}
+              placeholder={t('labels.enter_name')}
             />
           </div>
           <div>
-            <Label>{t('admin.description')}</Label>
+            <Label>{t('labels.description')}</Label>
             <Textarea
               value={newMuscle.description || ""}
               onChange={(e) => setNewMuscle({...newMuscle, description: e.target.value})}
-              placeholder={t('admin.enter_description')}
+              placeholder={t('labels.enter_description')}
             />
           </div>
           <Button 
@@ -587,7 +593,7 @@ const AdminMusclesTranslations: React.FC = () => {
             } as MuscleTranslation)}
             disabled={!newMuscle.muscle_id || !newMuscle.name}
           >
-            {t('admin.add_translation')}
+            {t('labels.add_translation')}
           </Button>
         </CardContent>
       </Card>
@@ -612,14 +618,14 @@ const AdminMusclesTranslations: React.FC = () => {
               {editingMuscle?.id === translation.id ? (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <Input
                       value={editingMuscle.name}
                       onChange={(e) => setEditingMuscle({...editingMuscle, name: e.target.value})}
                     />
                   </div>
                   <div>
-                    <Label>{t('admin.description')}</Label>
+                    <Label>{t('labels.description')}</Label>
                     <Textarea
                       value={editingMuscle.description || ""}
                       onChange={(e) => setEditingMuscle({...editingMuscle, description: e.target.value})}
@@ -627,27 +633,27 @@ const AdminMusclesTranslations: React.FC = () => {
                   </div>
                   <div className="flex gap-2">
                     <Button onClick={() => createMuscleTranslationMutation.mutate(editingMuscle)}>
-                      {t('admin.save')}
+                      {t('labels.save')}
                     </Button>
                     <Button variant="outline" onClick={() => setEditingMuscle(null)}>
-                      {t('admin.cancel')}
+                      {t('labels.cancel')}
                     </Button>
                   </div>
                 </>
               ) : (
                 <>
                   <div>
-                    <Label>{t('admin.name')}</Label>
+                    <Label>{t('labels.name')}</Label>
                     <p className="text-sm">{translation.name}</p>
                   </div>
                   {translation.description && (
                     <div>
-                      <Label>{t('admin.description')}</Label>
+                      <Label>{t('labels.description')}</Label>
                       <p className="text-sm">{translation.description}</p>
                     </div>
                   )}
                   <Button onClick={() => setEditingMuscle(translation)}>
-                    {t('admin.edit')}
+                    {t('labels.edit')}
                   </Button>
                 </>
               )}
@@ -656,7 +662,7 @@ const AdminMusclesTranslations: React.FC = () => {
         ))}
         {muscleTranslations.length === 0 && (
           <div className="text-center py-8 text-muted-foreground">
-            {t('admin.no_translations_found')}
+            {t('labels.no_translations_found')}
           </div>
         )}
       </div>
