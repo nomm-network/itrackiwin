@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,13 @@ import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useSearchExercises, 
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
+import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
+import EffortSelector, { EffortLevel } from "@/components/fitness/EffortSelector";
+import RestTimer from "@/components/fitness/RestTimer";
+import WorkoutClock from "@/components/fitness/WorkoutClock";
+import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestions";
+import { useRestTimer } from "@/hooks/useRestTimer";
+import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -47,6 +54,19 @@ const WorkoutSession: React.FC = () => {
   const [q, setQ] = React.useState("");
   const { data: search } = useSearchExercises(q);
   const [metricValues, setMetricValues] = React.useState<Record<string, Record<string, any>>>({});
+  
+  // Enhanced workout state
+  const [showReadinessCheck, setShowReadinessCheck] = useState(!data?.workout);
+  const [currentSetEffort, setCurrentSetEffort] = useState<EffortLevel>();
+  const [showRestTimer, setShowRestTimer] = useState(false);
+  const [restDuration, setRestDuration] = useState(180);
+  const [lastCompletedSetId, setLastCompletedSetId] = useState<string>();
+
+  // Hooks for suggestions and timers
+  const { state: timerState, actions: timerActions } = useRestTimer(restDuration, () => {
+    setShowRestTimer(false);
+    toast({ title: "Rest complete!", description: "Ready for your next set." });
+  });
 
   const endWorkout = async () => {
     if (!id) return;
@@ -82,7 +102,7 @@ const WorkoutSession: React.FC = () => {
         value_type: 'numeric' as const // For now, we'll default to numeric
       })) : undefined;
     
-    await addSetMut.mutateAsync({ 
+    const result = await addSetMut.mutateAsync({ 
       workoutId: id!, 
       workoutExerciseId, 
       payload,
@@ -92,25 +112,108 @@ const WorkoutSession: React.FC = () => {
     form.reset();
     // Clear metrics for this exercise
     setMetricValues(prev => ({ ...prev, [workoutExerciseId]: {} }));
+    
+    // Store the set ID for effort tracking
+    setLastCompletedSetId(typeof result === 'string' ? result : Math.random().toString());
+  };
+
+  const handleEffortSelect = (effort: EffortLevel) => {
+    setCurrentSetEffort(effort);
+    
+    // Calculate rest time based on effort
+    const restTimes: Record<EffortLevel, number> = {
+      'very_easy': 60,
+      'easy': 90,
+      'moderate': 180,
+      'hard': 240,
+      'very_hard': 300,
+    };
+    
+    const suggestedRest = restTimes[effort];
+    setRestDuration(suggestedRest);
+    setShowRestTimer(true);
+    timerActions.setDuration(suggestedRest);
+    timerActions.start();
+    
+    toast({
+      title: "Set completed!",
+      description: `${effort.replace('_', ' ')} effort - Rest for ${Math.floor(suggestedRest / 60)}:${(suggestedRest % 60).toString().padStart(2, '0')}`,
+    });
+  };
+
+  const handlePainReport = () => {
+    toast({
+      title: "Pain reported",
+      description: "Consider stopping this exercise or reducing intensity.",
+      variant: "destructive",
+    });
+    // Could log pain event here
+  };
+
+  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
+    setShowReadinessCheck(false);
+    toast({
+      title: "Readiness recorded",
+      description: "Your data helps us optimize your workout suggestions.",
+    });
+  };
+
+  const handleSkipReadiness = () => {
+    setShowReadinessCheck(false);
   };
 
   const unit = (useUserSettings().data?.unit_weight ?? 'kg');
+
+  // Calculate total sets for workout clock
+  const totalSets = (data?.exercises || []).reduce((total, ex) => {
+    return total + (data?.setsByWe[ex.id] || []).length;
+  }, 0);
+  
+  const completedSets = (data?.exercises || []).reduce((total, ex) => {
+    return total + (data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length;
+  }, 0);
+
+  // Show readiness check if workout just started
+  if (showReadinessCheck) {
+    return (
+      <>
+        <PageNav current="Pre-Workout Check" />
+        <main className="container py-6 flex items-center justify-center min-h-[60vh]">
+          <ReadinessCheckIn
+            onSubmit={handleReadinessSubmit}
+            onSkip={handleSkipReadiness}
+          />
+        </main>
+      </>
+    );
+  }
 
   return (
     <>
       <PageNav current="Workout Session" />
       <main className="container py-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">{data?.workout?.title || 'Free Session'}</h1>
-          <div className="flex items-center gap-3">
-            <UnitToggle />
-            <Button variant="secondary" onClick={() => navigate('/fitness')}>Back</Button>
-            <Button onClick={endWorkout} disabled={endMut.isPending}>End Workout</Button>
+        {/* Header with workout clock */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h1 className="text-xl font-semibold">{data?.workout?.title || 'Free Session'}</h1>
+            <div className="flex items-center gap-3">
+              <UnitToggle />
+              <Button variant="secondary" onClick={() => navigate('/fitness')}>Back</Button>
+              <Button onClick={endWorkout} disabled={endMut.isPending}>End Workout</Button>
+            </div>
           </div>
+          
+          {data?.workout?.started_at && (
+            <WorkoutClock
+              startedAt={data.workout.started_at}
+              totalSets={totalSets}
+              completedSets={completedSets}
+            />
+          )}
         </div>
 
-        <section className="grid md:grid-cols-3 gap-6">
-          <Card className="md:col-span-2">
+        <section className="grid lg:grid-cols-4 gap-6">
+          <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Exercises</CardTitle>
             </CardHeader>
@@ -138,10 +241,23 @@ const WorkoutSession: React.FC = () => {
                     <Input name="rpe" placeholder="RPE" inputMode="decimal" />
                     <Input name="notes" placeholder="Notes" className="col-span-2" />
                     <input type="hidden" name="unit" value={unit} />
-                    <div className="col-span-6">
-                      <Button type="submit" size="sm" disabled={addSetMut.isPending}>Add Set</Button>
+                    <div className="col-span-6 flex gap-2">
+                      <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1">
+                        Add Set
+                      </Button>
                     </div>
                   </form>
+                  
+                  {/* Effort selector appears after completing a set */}
+                  {lastCompletedSetId && !showRestTimer && (
+                    <div className="mt-3">
+                      <EffortSelector
+                        onEffortSelect={handleEffortSelect}
+                        onPainReport={handlePainReport}
+                        selectedEffort={currentSetEffort}
+                      />
+                    </div>
+                  )}
                 </div>
               ))}
               {(data?.exercises?.length || 0) === 0 && (
@@ -150,25 +266,47 @@ const WorkoutSession: React.FC = () => {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Add Exercise</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <Input placeholder="Search..." value={q} onChange={(e) => setQ(e.target.value)} />
-              <div className="mt-3 space-y-2 max-h-80 overflow-auto">
-                {(search ?? []).map(ex => (
-                  <div key={ex.id} className="flex items-center justify-between border rounded-md p-2">
-                    <div>
-                      <div className="text-sm font-medium">{getTranslatedName(ex)}</div>
+          <div className="space-y-6">{/* Right column for controls and timer */}
+
+            {/* Rest Timer */}
+            {showRestTimer && (
+              <RestTimer
+                suggestedSeconds={restDuration}
+                onComplete={() => {
+                  setShowRestTimer(false);
+                  setCurrentSetEffort(undefined);
+                  setLastCompletedSetId(undefined);
+                }}
+                onSkip={() => {
+                  setShowRestTimer(false);
+                  setCurrentSetEffort(undefined);
+                  setLastCompletedSetId(undefined);
+                  timerActions.skip();
+                }}
+                isActive={timerState.isActive}
+              />
+            )}
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Add Exercise</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Input placeholder="Search..." value={q} onChange={(e) => setQ(e.target.value)} />
+                <div className="mt-3 space-y-2 max-h-80 overflow-auto">
+                  {(search ?? []).map(ex => (
+                    <div key={ex.id} className="flex items-center justify-between border rounded-md p-2">
+                      <div>
+                        <div className="text-sm font-medium">{getTranslatedName(ex)}</div>
+                      </div>
+                      <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
                     </div>
-                    <Button size="sm" onClick={() => addExercise(ex.id)}>Add</Button>
-                  </div>
-                ))}
-                {q.length <= 1 && <p className="text-xs text-muted-foreground">Type at least 2 characters to search.</p>}
-              </div>
-            </CardContent>
-          </Card>
+                  ))}
+                  {q.length <= 1 && <p className="text-xs text-muted-foreground">Type at least 2 characters to search.</p>}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
         </section>
       </main>
     </>
