@@ -248,14 +248,24 @@ const TemplateEditor: React.FC = () => {
       
       let initialGrips: string[] = [];
       
+      console.log('Exercise default_grips:', exercise?.default_grips);
+      console.log('Existing preferences:', existingPrefs?.preferred_grips);
+      
       if (existingPrefs?.preferred_grips) {
         // Use existing preferences
         initialGrips = Array.isArray(existingPrefs.preferred_grips) ? 
           existingPrefs.preferred_grips.map(String) : [];
-      } else if (exercise?.default_grips) {
-        // Use exercise defaults
-        initialGrips = Array.isArray(exercise.default_grips) ? 
-          exercise.default_grips.map(String) : [];
+      } else if (exercise?.default_grips && Array.isArray(exercise.default_grips) && exercise.default_grips.length > 0) {
+        // Use exercise defaults - convert grip IDs to slugs
+        const gripIds = exercise.default_grips.map(String);
+        const { data: gripsData } = await supabase
+          .from('grips')
+          .select('id, slug')
+          .in('id', gripIds);
+        
+        if (gripsData) {
+          initialGrips = gripsData.map(g => g.slug);
+        }
       }
       
       console.log('Setting initial grips for exercise:', exerciseId, initialGrips);
