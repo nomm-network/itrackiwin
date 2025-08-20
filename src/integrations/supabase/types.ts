@@ -1596,8 +1596,10 @@ export type Database = {
         Returns: boolean
       }
       clone_template_to_workout: {
-        Args: { p_template_id: string }
-        Returns: string
+        Args:
+          | { p_template_id: string }
+          | { template_id: string; workout_id: string }
+        Returns: undefined
       }
       create_demo_template_for_current_user: {
         Args: Record<PropertyKey, never>
