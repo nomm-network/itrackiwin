@@ -229,6 +229,7 @@ export const useDeleteWorkout = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["recent_workouts"] });
+      qc.invalidateQueries({ queryKey: ["workouts"] });
       qc.invalidateQueries({ queryKey: ["personal_records"] });
     },
   });
@@ -504,8 +505,9 @@ export const useUpdateTemplate = () => {
         .eq('id', templateId);
       if (error) throw error;
     },
-    onSuccess: () => {
+    onSuccess: (_, { templateId }) => {
       qc.invalidateQueries({ queryKey: ['templates'] });
+      qc.invalidateQueries({ queryKey: ['template', templateId] });
     },
   });
 };
