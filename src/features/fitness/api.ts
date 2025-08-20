@@ -47,7 +47,7 @@ export interface Exercise {
 export interface Template {
   id: UUID;
   user_id: UUID;
-  translations: Record<string, { name: string; description?: string }> | null;
+  name?: string | null;
   notes?: string | null;
   created_at: string;
 }
@@ -285,7 +285,7 @@ export const useTemplates = () => {
     queryKey: ["templates"],
     queryFn: async (): Promise<Template[]> => {
       const { data, error } = await supabase
-        .from("v_workout_templates_with_translations")
+        .from("workout_templates")
         .select("*")
         .order("created_at", { ascending: false });
       if (error) throw error;
@@ -317,23 +317,12 @@ export const useCreateTemplate = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
       
-      // Insert into the base table first
       const { data: template, error: templateError } = await supabase
         .from("workout_templates")
-        .insert({ user_id: user.id })
+        .insert({ user_id: user.id, name })
         .select("id")
         .single();
       if (templateError) throw templateError;
-      
-      // Insert into the translations table
-      const { error: translationError } = await supabase
-        .from("workout_templates_translations")
-        .insert({ 
-          template_id: (template as any).id, 
-          language_code: 'en', 
-          name 
-        });
-      if (translationError) throw translationError;
       
       return (template as any).id as UUID;
     },

@@ -227,13 +227,30 @@ const TemplateEditor: React.FC = () => {
         .eq('id', templateExercise.exercise_id)
         .single();
       
-      const defaultGrips = exercise?.default_grips || [];
+      // Get any existing preferences for this template exercise
+      const { data: existingPrefs } = await supabase
+        .from('template_exercise_preferences')
+        .select('preferred_grips')
+        .eq('template_exercise_id', exerciseId)
+        .maybeSingle();
+      
+      let initialGrips: string[] = [];
+      
+      if (existingPrefs?.preferred_grips) {
+        // Use existing preferences
+        initialGrips = Array.isArray(existingPrefs.preferred_grips) ? 
+          existingPrefs.preferred_grips.map(String) : [];
+      } else if (exercise?.default_grips) {
+        // Use exercise defaults
+        initialGrips = Array.isArray(exercise.default_grips) ? 
+          exercise.default_grips.map(String) : [];
+      }
       
       setGripEditors(prev => ({
         ...prev,
         [exerciseId]: {
           exerciseId,
-          selectedGrips: Array.isArray(defaultGrips) ? defaultGrips.map(String) : []
+          selectedGrips: initialGrips
         }
       }));
     }

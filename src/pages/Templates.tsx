@@ -77,7 +77,7 @@ const Templates: React.FC = () => {
               <CardContent className="p-4 md:p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="flex-1 min-w-0">
-                    <h3 className="text-lg font-medium truncate">{getTranslatedName(t)}</h3>
+                    <h3 className="text-lg font-medium truncate">{t.name || "New Template"}</h3>
                     <p className="text-sm text-muted-foreground">
                       {t.notes || "No description"}
                     </p>
