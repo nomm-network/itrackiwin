@@ -213,6 +213,72 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_metric_defs: {
+        Row: {
+          default_value: Json | null
+          equipment_id: string | null
+          exercise_id: string | null
+          id: string
+          is_required: boolean
+          metric_id: string
+          order_index: number
+        }
+        Insert: {
+          default_value?: Json | null
+          equipment_id?: string | null
+          exercise_id?: string | null
+          id?: string
+          is_required?: boolean
+          metric_id: string
+          order_index?: number
+        }
+        Update: {
+          default_value?: Json | null
+          equipment_id?: string | null
+          exercise_id?: string | null
+          id?: string
+          is_required?: boolean
+          metric_id?: string
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_metric_defs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_metric_id_fkey"
+            columns: ["metric_id"]
+            isOneToOne: false
+            referencedRelation: "metric_defs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           body_part: string | null
@@ -670,6 +736,36 @@ export type Database = {
         }
         Relationships: []
       }
+      metric_defs: {
+        Row: {
+          created_at: string
+          enum_options: string[] | null
+          id: string
+          key: string
+          label: string
+          unit: string | null
+          value_type: Database["public"]["Enums"]["metric_value_type"]
+        }
+        Insert: {
+          created_at?: string
+          enum_options?: string[] | null
+          id?: string
+          key: string
+          label: string
+          unit?: string | null
+          value_type: Database["public"]["Enums"]["metric_value_type"]
+        }
+        Update: {
+          created_at?: string
+          enum_options?: string[] | null
+          id?: string
+          key?: string
+          label?: string
+          unit?: string | null
+          value_type?: Database["public"]["Enums"]["metric_value_type"]
+        }
+        Relationships: []
+      }
       muscle_groups: {
         Row: {
           body_part_id: string
@@ -866,6 +962,7 @@ export type Database = {
           created_at: string
           exercise_id: string
           grip_combination: Json | null
+          grip_ids: string[] | null
           id: string
           kind: string
           unit: string | null
@@ -878,6 +975,7 @@ export type Database = {
           created_at?: string
           exercise_id: string
           grip_combination?: Json | null
+          grip_ids?: string[] | null
           id?: string
           kind: string
           unit?: string | null
@@ -890,6 +988,7 @@ export type Database = {
           created_at?: string
           exercise_id?: string
           grip_combination?: Json | null
+          grip_ids?: string[] | null
           id?: string
           kind?: string
           unit?: string | null
@@ -1255,6 +1354,54 @@ export type Database = {
           },
           {
             foreignKeyName: "workout_set_grips_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sets"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_set_metric_values: {
+        Row: {
+          bool_value: boolean | null
+          created_at: string
+          id: string
+          int_value: number | null
+          metric_def_id: string
+          numeric_value: number | null
+          text_value: string | null
+          workout_set_id: string
+        }
+        Insert: {
+          bool_value?: boolean | null
+          created_at?: string
+          id?: string
+          int_value?: number | null
+          metric_def_id: string
+          numeric_value?: number | null
+          text_value?: string | null
+          workout_set_id: string
+        }
+        Update: {
+          bool_value?: boolean | null
+          created_at?: string
+          id?: string
+          int_value?: number | null
+          metric_def_id?: string
+          numeric_value?: number | null
+          text_value?: string | null
+          workout_set_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_set_metric_values_metric_def_id_fkey"
+            columns: ["metric_def_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_metric_defs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_set_metric_values_workout_set_id_fkey"
             columns: ["workout_set_id"]
             isOneToOne: false
             referencedRelation: "workout_sets"
@@ -1756,6 +1903,7 @@ export type Database = {
     }
     Enums: {
       app_role: "superadmin" | "admin" | "mentor" | "user"
+      metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       set_type: "normal" | "warmup" | "drop" | "amrap" | "timed" | "distance"
     }
     CompositeTypes: {
@@ -1885,6 +2033,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["superadmin", "admin", "mentor", "user"],
+      metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       set_type: ["normal", "warmup", "drop", "amrap", "timed", "distance"],
     },
   },
