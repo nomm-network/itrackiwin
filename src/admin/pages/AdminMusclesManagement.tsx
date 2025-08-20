@@ -54,7 +54,8 @@ const AdminMusclesManagement: React.FC = () => {
   // Helper function to get English name from translations
   const getEnglishName = (translations?: any) => {
     if (Array.isArray(translations)) {
-      return translations[0]?.name || '';
+      const enTranslation = translations.find(t => t.language_code === 'en');
+      return enTranslation?.name || '';
     }
     return '';
   };
@@ -70,10 +71,14 @@ const AdminMusclesManagement: React.FC = () => {
           body_parts_translations(name, language_code)
         `)
         .order('created_at');
-      if (error) throw error;
+      if (error) {
+        console.error('Body parts query error:', error);
+        throw error;
+      }
+      console.log('Raw body parts data:', data);
       return data.map(item => ({
         ...item,
-        translations: Array.isArray(item.body_parts_translations) ? item.body_parts_translations.filter(t => t.language_code === 'en') : []
+        translations: item.body_parts_translations || []
       })) as any;
     },
   });
@@ -96,9 +101,9 @@ const AdminMusclesManagement: React.FC = () => {
       if (error) throw error;
       return data.map(item => ({
         ...item,
-        translations: Array.isArray(item.muscle_groups_translations) ? item.muscle_groups_translations.filter(t => t.language_code === 'en') : [],
+        translations: item.muscle_groups_translations || [],
         body_parts: {
-          translations: Array.isArray(item.body_parts?.body_parts_translations) ? item.body_parts.body_parts_translations.filter(t => t.language_code === 'en') : []
+          translations: item.body_parts?.body_parts_translations || []
         }
       }));
     },
@@ -127,11 +132,11 @@ const AdminMusclesManagement: React.FC = () => {
       if (error) throw error;
       return data.map(item => ({
         ...item,
-        translations: Array.isArray(item.muscles_translations) ? item.muscles_translations.filter(t => t.language_code === 'en') : [],
+        translations: item.muscles_translations || [],
         muscle_groups: {
-          translations: Array.isArray(item.muscle_groups?.muscle_groups_translations) ? item.muscle_groups.muscle_groups_translations.filter(t => t.language_code === 'en') : [],
+          translations: item.muscle_groups?.muscle_groups_translations || [],
           body_parts: {
-            translations: Array.isArray(item.muscle_groups?.body_parts?.body_parts_translations) ? item.muscle_groups.body_parts.body_parts_translations.filter(t => t.language_code === 'en') : []
+            translations: item.muscle_groups?.body_parts?.body_parts_translations || []
           }
         }
       }));
