@@ -395,6 +395,163 @@ export const useCloneTemplateToWorkout = () => {
   });
 };
 
+export const useDeleteTemplate = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (templateId: UUID): Promise<void> => {
+      const { error } = await supabase
+        .from('workout_templates')
+        .delete()
+        .eq('id', templateId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['templates'] });
+    },
+  });
+};
+
+export const useCloneTemplate = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (templateId: UUID): Promise<UUID> => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('Not authenticated');
+
+      // Get the original template
+      const { data: template, error: templateError } = await supabase
+        .from('workout_templates')
+        .select('name, notes')
+        .eq('id', templateId)
+        .single();
+      if (templateError) throw templateError;
+
+      // Create new template
+      const { data: newTemplate, error: createError } = await supabase
+        .from('workout_templates')
+        .insert({
+          user_id: user.data.user.id,
+          name: `Copy of ${template.name || 'Template'}`,
+          notes: template.notes
+        })
+        .select('id')
+        .single();
+      if (createError) throw createError;
+
+      // Copy template exercises
+      const { data: exercises, error: exercisesError } = await supabase
+        .from('template_exercises')
+        .select('*')
+        .eq('template_id', templateId);
+      if (exercisesError) throw exercisesError;
+
+      if (exercises.length > 0) {
+        const { error: copyError } = await supabase
+          .from('template_exercises')
+          .insert(
+            exercises.map(ex => ({
+              template_id: newTemplate.id,
+              exercise_id: ex.exercise_id,
+              order_index: ex.order_index,
+              default_sets: ex.default_sets,
+              target_reps: ex.target_reps,
+              target_weight: ex.target_weight,
+              weight_unit: ex.weight_unit,
+              notes: ex.notes
+            }))
+          );
+        if (copyError) throw copyError;
+      }
+
+      return newTemplate.id as UUID;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['templates'] });
+    },
+  });
+};
+
+export const useUpdateTemplate = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ templateId, name, notes }: { templateId: UUID; name: string; notes?: string }): Promise<void> => {
+      const { error } = await supabase
+        .from('workout_templates')
+        .update({ name, notes })
+        .eq('id', templateId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['templates'] });
+    },
+  });
+};
+
+export const useTemplateDetail = (templateId?: UUID) => {
+  return useQuery({
+    queryKey: ['template', templateId],
+    queryFn: async () => {
+      if (!templateId) return null;
+      const { data, error } = await supabase
+        .from('workout_templates')
+        .select('*')
+        .eq('id', templateId)
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!templateId,
+  });
+};
+
+export const useTemplateExercisePreferences = (templateExerciseId?: UUID) => {
+  return useQuery({
+    queryKey: ['template_exercise_preferences', templateExerciseId],
+    queryFn: async () => {
+      if (!templateExerciseId) return null;
+      const { data, error } = await supabase
+        .from('template_exercise_preferences')
+        .select('*')
+        .eq('template_exercise_id', templateExerciseId)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!templateExerciseId,
+  });
+};
+
+export const useUpsertTemplateExercisePreferences = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ 
+      templateExerciseId, 
+      preferredGrips, 
+      notes 
+    }: { 
+      templateExerciseId: UUID; 
+      preferredGrips: string[]; 
+      notes?: string;
+    }): Promise<void> => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('template_exercise_preferences')
+        .upsert({
+          template_exercise_id: templateExerciseId,
+          user_id: user.data.user.id,
+          preferred_grips: preferredGrips,
+          notes
+        });
+      if (error) throw error;
+    },
+    onSuccess: (_, variables) => {
+      qc.invalidateQueries({ queryKey: ['template_exercise_preferences', variables.templateExerciseId] });
+    },
+  });
+};
+
 export const usePersonalRecords = () => {
   return useQuery({
     queryKey: ["personal_records"],

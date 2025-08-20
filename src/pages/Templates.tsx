@@ -3,7 +3,7 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates } from "@/features/fitness/api";
+import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/fitness/api";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { useTranslations } from "@/hooks/useTranslations";
 
@@ -13,10 +13,23 @@ const Templates: React.FC = () => {
   const { data: templates } = useTemplates();
   const create = useCreateTemplate();
   const startFrom = useCloneTemplateToWorkout();
+  const deleteTemplate = useDeleteTemplate();
+  const cloneTemplate = useCloneTemplate();
 
   const startTemplate = async (templateId: string) => {
     const id = await startFrom.mutateAsync(templateId);
     navigate(`/fitness/session/${id}`);
+  };
+
+  const handleDeleteTemplate = async (templateId: string) => {
+    if (confirm('Are you sure you want to delete this template?')) {
+      await deleteTemplate.mutateAsync(templateId);
+    }
+  };
+
+  const handleCloneTemplate = async (templateId: string) => {
+    const newId = await cloneTemplate.mutateAsync(templateId);
+    navigate(`/fitness/templates/${newId}/edit`);
   };
 
   return (
@@ -76,6 +89,20 @@ const Templates: React.FC = () => {
                       onClick={() => navigate(`/fitness/templates/${t.id}/edit`)}
                     >
                       Edit
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      onClick={() => handleCloneTemplate(t.id)}
+                    >
+                      Clone
+                    </Button>
+                    <Button 
+                      size="sm" 
+                      variant="destructive" 
+                      onClick={() => handleDeleteTemplate(t.id)}
+                    >
+                      Delete
                     </Button>
                     <Button size="sm" onClick={() => startTemplate(t.id)}>
                       Start

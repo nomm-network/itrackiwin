@@ -5,8 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { ArrowLeft, Trash2 } from "lucide-react";
-import { useTemplateExercises, useAddExerciseToTemplate, useDeleteTemplateExercise } from "@/features/fitness/api";
+import { ArrowLeft, Trash2, Edit2, Settings } from "lucide-react";
+import { useTemplateExercises, useAddExerciseToTemplate, useDeleteTemplateExercise, useTemplateDetail, useUpdateTemplate, useTemplateExercisePreferences, useUpsertTemplateExercisePreferences } from "@/features/fitness/api";
+import GripSelector from "@/components/GripSelector";
 import { useTranslations } from "@/hooks/useTranslations";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
@@ -37,15 +38,30 @@ interface Exercise {
   body_part_id?: string;
 }
 
+interface ExerciseGripEditor {
+  exerciseId: string;
+  selectedGrips: string[];
+}
+
 const TemplateEditor: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
   const { getTranslatedName } = useTranslations();
   
-  // Template exercises
+  // Template data and mutations
+  const { data: template } = useTemplateDetail(templateId);
   const { data: templateExercises = [] } = useTemplateExercises(templateId);
   const addToTemplate = useAddExerciseToTemplate();
   const deleteFromTemplate = useDeleteTemplateExercise();
+  const updateTemplate = useUpdateTemplate();
+
+  // Edit states
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
+  const [gripEditors, setGripEditors] = useState<Record<string, ExerciseGripEditor>>({});
+  
+  // Grips mutation
+  const upsertPreferences = useUpsertTemplateExercisePreferences();
 
   // Filter states
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>("");
@@ -133,6 +149,27 @@ const TemplateEditor: React.FC = () => {
     enabled: searchQuery.length >= 2 || !!selectedMuscle || !!selectedBodyPart
   });
 
+  // Get exercise names for template exercises
+  const { data: exerciseNames = {} } = useQuery({
+    queryKey: ["exercise_names", templateExercises.map(e => e.exercise_id)],
+    queryFn: async () => {
+      if (templateExercises.length === 0) return {};
+      
+      const { data, error } = await supabase
+        .from('exercises')
+        .select('id, name')
+        .in('id', templateExercises.map(e => e.exercise_id));
+      
+      if (error) throw error;
+      
+      return data.reduce((acc, ex) => {
+        acc[ex.id] = ex.name;
+        return acc;
+      }, {} as Record<string, string>);
+    },
+    enabled: templateExercises.length > 0
+  });
+
   const getTranslatedText = (translations: any, fallback: string = "Unnamed") => {
     if (!translations) return fallback;
     return translations?.en?.name || translations?.['en-US']?.name || fallback;
@@ -161,6 +198,59 @@ const TemplateEditor: React.FC = () => {
 
   const removeExercise = async (exerciseId: string) => {
     await deleteFromTemplate.mutateAsync(exerciseId);
+  };
+
+  const handleNameUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const formData = new FormData(e.currentTarget);
+    const newName = formData.get('templateName') as string;
+    if (templateId && newName) {
+      await updateTemplate.mutateAsync({ templateId, name: newName });
+      setIsEditingName(false);
+    }
+  };
+
+  const toggleGripEditor = (exerciseId: string) => {
+    if (gripEditors[exerciseId]) {
+      setGripEditors(prev => {
+        const { [exerciseId]: removed, ...rest } = prev;
+        return rest;
+      });
+    } else {
+      setGripEditors(prev => ({
+        ...prev,
+        [exerciseId]: {
+          exerciseId,
+          selectedGrips: []
+        }
+      }));
+    }
+  };
+
+  const handleGripsChange = (exerciseId: string, grips: string[]) => {
+    setGripEditors(prev => ({
+      ...prev,
+      [exerciseId]: {
+        ...prev[exerciseId],
+        selectedGrips: grips
+      }
+    }));
+  };
+
+  const saveGripPreferences = async (exerciseId: string) => {
+    const editor = gripEditors[exerciseId];
+    if (!editor) return;
+
+    await upsertPreferences.mutateAsync({
+      templateExerciseId: exerciseId,
+      preferredGrips: editor.selectedGrips
+    });
+
+    // Remove from editors after saving
+    setGripEditors(prev => {
+      const { [exerciseId]: removed, ...rest } = prev;
+      return rest;
+    });
   };
 
   if (!templateId) {
@@ -203,7 +293,34 @@ const TemplateEditor: React.FC = () => {
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Templates
           </Button>
-          <h1 className="text-xl md:text-2xl font-semibold">Template Editor</h1>
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl md:text-2xl font-semibold">
+              {isEditingName ? (
+                <form onSubmit={handleNameUpdate} className="flex gap-2">
+                  <Input 
+                    name="templateName" 
+                    defaultValue={template?.name || 'Template'} 
+                    className="text-xl font-semibold"
+                    autoFocus
+                  />
+                  <Button type="submit" size="sm">Save</Button>
+                  <Button type="button" size="sm" variant="outline" onClick={() => setIsEditingName(false)}>Cancel</Button>
+                </form>
+              ) : (
+                <>
+                  {template?.name || 'Template'}
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    onClick={() => setIsEditingName(true)}
+                    className="ml-2"
+                  >
+                    <Edit2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </h1>
+          </div>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-2">
@@ -215,21 +332,61 @@ const TemplateEditor: React.FC = () => {
             <CardContent>
               <div className="space-y-3 max-h-96 overflow-y-auto">
                 {templateExercises.map(exercise => (
-                  <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <div className="text-sm font-medium truncate">Exercise {exercise.exercise_id}</div>
-                      <div className="text-xs text-muted-foreground">
-                        Sets: {exercise.default_sets} • Reps: {exercise.target_reps || '-'}
-                        {exercise.target_weight && ` • Weight: ${exercise.target_weight}${exercise.weight_unit}`}
+                  <div key={exercise.id} className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div className="flex-1 min-w-0">
+                        <div className="text-sm font-medium truncate">
+                          {exerciseNames[exercise.exercise_id] || `Exercise ${exercise.exercise_id}`}
+                        </div>
+                        <div className="text-xs text-muted-foreground">
+                          Sets: {exercise.default_sets} • Reps: {exercise.target_reps || '-'}
+                          {exercise.target_weight && ` • Weight: ${exercise.target_weight}${exercise.weight_unit}`}
+                        </div>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => toggleGripEditor(exercise.id)}
+                        >
+                          <Settings className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => removeExercise(exercise.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
-                    <Button
-                      size="sm"
-                      variant="destructive"
-                      onClick={() => removeExercise(exercise.id)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
+                    
+                    {gripEditors[exercise.id] && (
+                      <div className="pl-3">
+                        <div className="space-y-3">
+                          <GripSelector
+                            selectedGrips={gripEditors[exercise.id].selectedGrips}
+                            onGripsChange={(grips) => handleGripsChange(exercise.id, grips)}
+                          />
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              onClick={() => saveGripPreferences(exercise.id)}
+                              disabled={upsertPreferences.isPending}
+                            >
+                              Save Grips
+                            </Button>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => toggleGripEditor(exercise.id)}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
                 {templateExercises.length === 0 && (
