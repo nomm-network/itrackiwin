@@ -80,9 +80,9 @@ const Exercises: React.FC = () => {
         setRows(data || []);
         setUserId(u.data.user?.id || null);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error;
-        setBodyParts(bp.data || []);
-        setMuscleGroups(mg.data || []);
-        setMuscles(m.data || []);
+        setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
+        setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
+        setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
         console.error('[Exercises] load error', e);
         if (isMounted) setError(e?.message || String(e));

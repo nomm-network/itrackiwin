@@ -103,16 +103,16 @@ const ExerciseEdit: React.FC = () => {
       try {
         setLoading(true);
         const [bp, mg, m, eq] = await Promise.all([
-          supabase.from("body_parts").select("id,name").order("name", { ascending: true }),
-          supabase.from("muscle_groups").select("id,name,body_part_id").order("name", { ascending: true }),
-          supabase.from("muscles").select("id,name,muscle_group_id").order("name", { ascending: true }),
-          supabase.from("equipment").select("id,name").order("name", { ascending: true }),
+          supabase.from("body_parts").select("id, slug, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
+          supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
+          supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
+          supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
         ]);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; if (eq.error) throw eq.error;
-        setBodyParts(bp.data || []);
-        setMuscleGroups(mg.data || []);
-        setMuscles(m.data || []);
-        setEquipment(eq.data || []);
+        setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
+        setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
+        setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
+        setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
         console.error("[ExerciseEdit] load options error", e);
         setLastError(e?.message || String(e));

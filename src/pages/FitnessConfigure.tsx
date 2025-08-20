@@ -1,62 +1,65 @@
-import React from "react";
-import PageNav from "@/components/PageNav";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { NavLink } from "react-router-dom";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import React, { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trash2, Edit3 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from '@/hooks/use-toast';
 
-const useSEO = () => {
-  React.useEffect(() => {
-    document.title = "Configure Muscles | I Track I Win";
-    const desc = document.querySelector('meta[name="description"]') || document.createElement('meta');
-    desc.setAttribute('name', 'description');
-    desc.setAttribute('content', 'Manage body parts, muscle groups, and muscles for your exercise taxonomy.');
-    document.head.appendChild(desc);
+interface BodyPart {
+  id: string;
+  name: string;
+  slug?: string;
+}
 
-    const link = document.querySelector('link[rel="canonical"]') || document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', `${window.location.origin}/fitness/configure`);
-    document.head.appendChild(link);
-  }, []);
-};
+interface MuscleGroup {
+  id: string;
+  name: string;
+  body_part_id: string;
+  slug?: string;
+}
 
-const FitnessConfigure: React.FC = () => {
-  useSEO();
-  const { toast } = useToast();
+interface Muscle {
+  id: string;
+  name: string;
+  muscle_group_id: string;
+  slug?: string;
+}
 
-  const [bodyParts, setBodyParts] = React.useState<any[]>([]);
-  const [muscleGroups, setMuscleGroups] = React.useState<any[]>([]);
-  const [muscles, setMuscles] = React.useState<any[]>([]);
-  const [equipment, setEquipment] = React.useState<any[]>([]);
+export default function FitnessConfigure() {
+  // Data
+  const [bodyParts, setBodyParts] = useState<BodyPart[]>([]);
+  const [muscleGroups, setMuscleGroups] = useState<MuscleGroup[]>([]);
+  const [muscles, setMuscles] = useState<Muscle[]>([]);
 
-  const [bpName, setBpName] = React.useState("");
-  const [mgName, setMgName] = React.useState("");
-  const [mgBodyPartId, setMgBodyPartId] = React.useState("");
-
-  const [mName, setMName] = React.useState("");
-  const [mBodyPartId, setMBodyPartId] = React.useState("");
-  const [mGroupId, setMGroupId] = React.useState("");
-  const [eqName, setEqName] = React.useState("");
+  // Form states
+  const [bpName, setBpName] = useState("");
+  const [mgBodyPartId, setMgBodyPartId] = useState("");
+  const [mgName, setMgName] = useState("");
+  const [mBodyPartId, setMBodyPartId] = useState("");
+  const [mGroupId, setMGroupId] = useState("");
+  const [mName, setMName] = useState("");
 
   const loadAll = async () => {
-    const [{ data: bps }, { data: mgs }, { data: ms }, { data: eqs }] = await Promise.all([
-      supabase.from('body_parts').select('id,name').order('name'),
-      supabase.from('muscle_groups').select('id,name,body_part_id').order('name'),
-      supabase.from('muscles').select('id,name,muscle_group_id').order('name'),
-      supabase.from('equipment').select('id,name').order('name'),
-    ]);
-    setBodyParts(bps || []);
-    setMuscleGroups(mgs || []);
-    setMuscles(ms || []);
-    setEquipment(eqs || []);
+    try {
+      const [bp, mg, m] = await Promise.all([
+        supabase.from('body_parts').select('id, slug, body_parts_translations!inner(name)').eq('body_parts_translations.language_code', 'en'),
+        supabase.from('muscle_groups').select('id, slug, body_part_id, muscle_groups_translations!inner(name)').eq('muscle_groups_translations.language_code', 'en'),
+        supabase.from('muscles').select('id, slug, muscle_group_id, muscles_translations!inner(name)').eq('muscles_translations.language_code', 'en'),
+      ]);
+      if (bp.error) throw bp.error;
+      if (mg.error) throw mg.error;
+      if (m.error) throw m.error;
+      setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
+      setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
+      setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
+    } catch (error: any) {
+      toast({ title: 'Failed to load data', description: error.message });
+    }
   };
 
-  React.useEffect(() => { loadAll(); }, []);
+  useEffect(() => { loadAll(); }, []);
 
   // Dependent dropdowns in Muscles create form
   const groupsForSelectedBP = React.useMemo(() => muscleGroups.filter(g => g.body_part_id === mBodyPartId), [muscleGroups, mBodyPartId]);
@@ -64,20 +67,51 @@ const FitnessConfigure: React.FC = () => {
   // CRUD handlers
   const addBodyPart = async () => {
     if (!bpName.trim()) return;
-    const { error } = await supabase.from('body_parts').insert({ name: bpName.trim() });
-    if (error) { toast({ title: 'Failed to add body part', description: error.message }); return; }
-    setBpName("");
-    await loadAll();
-    toast({ title: 'Body part added' });
+    
+    try {
+      // Create body part
+      const { data: bodyPart, error: bodyPartError } = await supabase
+        .from('body_parts')
+        .insert([{ slug: bpName.toLowerCase().replace(/\s+/g, '-') }])
+        .select()
+        .single();
+      if (bodyPartError) throw bodyPartError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('body_parts_translations')
+        .insert([{
+          body_part_id: bodyPart.id,
+          language_code: 'en',
+          name: bpName.trim()
+        }]);
+      if (translationError) throw translationError;
+
+      setBpName("");
+      await loadAll();
+      toast({ title: 'Body part added' });
+    } catch (error: any) {
+      toast({ title: 'Failed to add body part', description: error.message });
+    }
   };
 
   const renameBodyPart = async (bp: any) => {
     const name = prompt('Rename body part', bp.name);
     if (!name) return;
-    const { error } = await supabase.from('body_parts').update({ name }).eq('id', bp.id);
-    if (error) { toast({ title: 'Failed to update', description: error.message }); return; }
-    await loadAll();
-    toast({ title: 'Updated' });
+    
+    try {
+      const { error } = await supabase
+        .from('body_parts_translations')
+        .update({ name })
+        .eq('body_part_id', bp.id)
+        .eq('language_code', 'en');
+      if (error) throw error;
+      
+      await loadAll();
+      toast({ title: 'Updated' });
+    } catch (error: any) {
+      toast({ title: 'Failed to update', description: error.message });
+    }
   };
 
   const deleteBodyPart = async (bp: any) => {
@@ -90,20 +124,54 @@ const FitnessConfigure: React.FC = () => {
 
   const addMuscleGroup = async () => {
     if (!mgBodyPartId || !mgName.trim()) return;
-    const { error } = await supabase.from('muscle_groups').insert({ body_part_id: mgBodyPartId, name: mgName.trim() });
-    if (error) { toast({ title: 'Failed to add group', description: error.message }); return; }
-    setMgName("");
-    await loadAll();
-    toast({ title: 'Muscle group added' });
+    
+    try {
+      // Create muscle group
+      const { data: muscleGroup, error: muscleGroupError } = await supabase
+        .from('muscle_groups')
+        .insert([{ 
+          body_part_id: mgBodyPartId, 
+          slug: mgName.toLowerCase().replace(/\s+/g, '-') 
+        }])
+        .select()
+        .single();
+      if (muscleGroupError) throw muscleGroupError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('muscle_groups_translations')
+        .insert([{
+          muscle_group_id: muscleGroup.id,
+          language_code: 'en',
+          name: mgName.trim()
+        }]);
+      if (translationError) throw translationError;
+
+      setMgName("");
+      await loadAll();
+      toast({ title: 'Muscle group added' });
+    } catch (error: any) {
+      toast({ title: 'Failed to add group', description: error.message });
+    }
   };
 
   const renameMuscleGroup = async (mg: any) => {
     const name = prompt('Rename muscle group', mg.name);
     if (!name) return;
-    const { error } = await supabase.from('muscle_groups').update({ name }).eq('id', mg.id);
-    if (error) { toast({ title: 'Failed to update', description: error.message }); return; }
-    await loadAll();
-    toast({ title: 'Updated' });
+    
+    try {
+      const { error } = await supabase
+        .from('muscle_groups_translations')
+        .update({ name })
+        .eq('muscle_group_id', mg.id)
+        .eq('language_code', 'en');
+      if (error) throw error;
+      
+      await loadAll();
+      toast({ title: 'Updated' });
+    } catch (error: any) {
+      toast({ title: 'Failed to update', description: error.message });
+    }
   };
 
   const deleteMuscleGroup = async (mg: any) => {
@@ -116,20 +184,54 @@ const FitnessConfigure: React.FC = () => {
 
   const addMuscle = async () => {
     if (!mGroupId || !mName.trim()) return;
-    const { error } = await supabase.from('muscles').insert({ muscle_group_id: mGroupId, name: mName.trim() });
-    if (error) { toast({ title: 'Failed to add muscle', description: error.message }); return; }
-    setMName("");
-    await loadAll();
-    toast({ title: 'Muscle added' });
+    
+    try {
+      // Create muscle
+      const { data: muscle, error: muscleError } = await supabase
+        .from('muscles')
+        .insert([{ 
+          muscle_group_id: mGroupId, 
+          slug: mName.toLowerCase().replace(/\s+/g, '-') 
+        }])
+        .select()
+        .single();
+      if (muscleError) throw muscleError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('muscles_translations')
+        .insert([{
+          muscle_id: muscle.id,
+          language_code: 'en',
+          name: mName.trim()
+        }]);
+      if (translationError) throw translationError;
+
+      setMName("");
+      await loadAll();
+      toast({ title: 'Muscle added' });
+    } catch (error: any) {
+      toast({ title: 'Failed to add muscle', description: error.message });
+    }
   };
 
   const renameMuscle = async (m: any) => {
     const name = prompt('Rename muscle', m.name);
     if (!name) return;
-    const { error } = await supabase.from('muscles').update({ name }).eq('id', m.id);
-    if (error) { toast({ title: 'Failed to update', description: error.message }); return; }
-    await loadAll();
-    toast({ title: 'Updated' });
+    
+    try {
+      const { error } = await supabase
+        .from('muscles_translations')
+        .update({ name })
+        .eq('muscle_id', m.id)
+        .eq('language_code', 'en');
+      if (error) throw error;
+      
+      await loadAll();
+      toast({ title: 'Updated' });
+    } catch (error: any) {
+      toast({ title: 'Failed to update', description: error.message });
+    }
   };
 
   const deleteMuscle = async (m: any) => {
@@ -140,225 +242,111 @@ const FitnessConfigure: React.FC = () => {
     toast({ title: 'Deleted' });
   };
 
-  // Equipment CRUD
-  const addEquipment = async () => {
-    if (!eqName.trim()) return;
-    const { error } = await supabase.from('equipment').insert({ name: eqName.trim(), slug: eqName.trim().toLowerCase().replace(/\s+/g, '-') });
-    if (error) { toast({ title: 'Failed to add equipment', description: error.message }); return; }
-    setEqName("");
-    await loadAll();
-    toast({ title: 'Equipment added' });
-  };
-
-  const renameEquipment = async (eq: any) => {
-    const name = prompt('Rename equipment', eq.name);
-    if (!name) return;
-    const { error } = await supabase.from('equipment').update({ name, slug: name.toLowerCase().replace(/\s+/g, '-') }).eq('id', eq.id);
-    if (error) { toast({ title: 'Failed to update', description: error.message }); return; }
-    await loadAll();
-    toast({ title: 'Updated' });
-  };
-
-  const deleteEquipment = async (eq: any) => {
-    if (!confirm(`Delete ${eq.name}?`)) return;
-    const { error } = await supabase.from('equipment').delete().eq('id', eq.id);
-    if (error) { toast({ title: 'Failed to delete', description: error.message }); return; }
-    await loadAll();
-    toast({ title: 'Deleted' });
-  };
-
   return (
-    <>
-      <PageNav current="Fitness" />
-      <nav className="container pt-4">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Workouts
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Exercises
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Templates
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Configure
-              </NavLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </nav>
+    <div className="container mx-auto p-6 space-y-8">
+      <h1 className="text-3xl font-bold">Fitness Configuration</h1>
 
-      <main className="container py-8 space-y-8">
-        <h1 className="text-2xl font-semibold">Configure Exercise Taxonomy</h1>
+      {/* Body Parts */}
+      <div className="card">
+        <h2 className="text-xl font-semibold mb-4">Body Parts</h2>
+        <div className="flex gap-2 mb-4">
+          <Input value={bpName} onChange={(e) => setBpName(e.target.value)} placeholder="Body part name" />
+          <Button onClick={addBodyPart}>Add</Button>
+        </div>
+        <div className="space-y-2">
+          {bodyParts.map(bp => (
+            <div key={bp.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+              <span>{bp.name}</span>
+              <div className="flex gap-1">
+                <Button size="sm" variant="outline" onClick={() => renameBodyPart(bp)}>
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => deleteBodyPart(bp)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        <section>
-          <Card>
-            <CardHeader>
-              <CardTitle>Body Parts</CardTitle>
-              <CardDescription>Create high-level categories.</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-3">
-                <div className="space-y-2 flex-1">
-                  <Label htmlFor="bp_name">Name</Label>
-                  <Input id="bp_name" placeholder="e.g., Pectorals" value={bpName} onChange={(e) => setBpName(e.target.value)} />
-                </div>
-                <div className="pt-6 sm:pt-0">
-                  <Button onClick={addBodyPart}>Add</Button>
-                </div>
+      {/* Muscle Groups */}
+      <div className="card">
+        <h2 className="text-xl font-semibold mb-4">Muscle Groups</h2>
+        <div className="flex gap-2 mb-4">
+          <Select value={mgBodyPartId} onValueChange={setMgBodyPartId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select body part" />
+            </SelectTrigger>
+            <SelectContent>
+              {bodyParts.map(bp => (
+                <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input value={mgName} onChange={(e) => setMgName(e.target.value)} placeholder="Group name" />
+          <Button onClick={addMuscleGroup}>Add</Button>
+        </div>
+        <div className="space-y-2">
+          {muscleGroups.map(mg => (
+            <div key={mg.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+              <span>{mg.name} <em>({bodyParts.find(bp => bp.id === mg.body_part_id)?.name})</em></span>
+              <div className="flex gap-1">
+                <Button size="sm" variant="outline" onClick={() => renameMuscleGroup(mg)}>
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => deleteMuscleGroup(mg)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3">
-                {bodyParts.map(bp => (
-                  <div key={bp.id} className="border rounded-md p-3 flex items-center justify-between">
-                    <span>{bp.name}</span>
-                    <div className="flex gap-2">
-                      <Button size="sm" variant="secondary" onClick={() => renameBodyPart(bp)}>Rename</Button>
-                      <Button size="sm" variant="destructive" onClick={() => deleteBodyPart(bp)}>Delete</Button>
-                    </div>
-                  </div>
-                ))}
-                {bodyParts.length === 0 && <p className="text-sm text-muted-foreground">No body parts yet.</p>}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
+            </div>
+          ))}
+        </div>
+      </div>
 
-        <section>
-          <Card>
-            <CardHeader>
-              <CardTitle>Muscle Groups</CardTitle>
-              <CardDescription>Groups under a body part (e.g., Chest under Pectorals).</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label>Body part</Label>
-                  <Select value={mgBodyPartId} onValueChange={setMgBodyPartId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body part" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bodyParts.map((bp: any) => (
-                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2 sm:col-span-2">
-                  <Label htmlFor="mg_name">Group name</Label>
-                  <div className="flex gap-2">
-                    <Input id="mg_name" placeholder="e.g., Chest" value={mgName} onChange={(e) => setMgName(e.target.value)} />
-                    <Button onClick={addMuscleGroup} disabled={!mgBodyPartId || !mgName.trim()}>Add</Button>
-                  </div>
-                </div>
+      {/* Muscles */}
+      <div className="card">
+        <h2 className="text-xl font-semibold mb-4">Muscles</h2>
+        <div className="flex gap-2 mb-4">
+          <Select value={mBodyPartId} onValueChange={setMBodyPartId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select body part" />
+            </SelectTrigger>
+            <SelectContent>
+              {bodyParts.map(bp => (
+                <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={mGroupId} onValueChange={setMGroupId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select muscle group" />
+            </SelectTrigger>
+            <SelectContent>
+              {groupsForSelectedBP.map(mg => (
+                <SelectItem key={mg.id} value={mg.id}>{mg.name}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Input value={mName} onChange={(e) => setMName(e.target.value)} placeholder="Muscle name" />
+          <Button onClick={addMuscle}>Add</Button>
+        </div>
+        <div className="space-y-2">
+          {muscles.map(m => (
+            <div key={m.id} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+              <span>{m.name} <em>({muscleGroups.find(mg => mg.id === m.muscle_group_id)?.name})</em></span>
+              <div className="flex gap-1">
+                <Button size="sm" variant="outline" onClick={() => renameMuscle(m)}>
+                  <Edit3 className="h-4 w-4" />
+                </Button>
+                <Button size="sm" variant="destructive" onClick={() => deleteMuscle(m)}>
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
-
-              <div className="space-y-2">
-                {muscleGroups.length === 0 && <p className="text-sm text-muted-foreground">No groups yet.</p>}
-                {bodyParts.map(bp => (
-                  <div key={bp.id}>
-                    <h4 className="font-medium mb-2">{bp.name}</h4>
-                    <div className="space-y-2">
-                      {muscleGroups.filter(g => g.body_part_id === bp.id).map(g => (
-                        <div key={g.id} className="border rounded-md p-2 flex items-center justify-between">
-                          <span>{g.name}</span>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="secondary" onClick={() => renameMuscleGroup(g)}>Rename</Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteMuscleGroup(g)}>Delete</Button>
-                          </div>
-                        </div>
-                      ))}
-                      {muscleGroups.filter(g => g.body_part_id === bp.id).length === 0 && (
-                        <p className="text-xs text-muted-foreground">No groups for this body part.</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-
-        <section>
-          <Card>
-            <CardHeader>
-              <CardTitle>Muscles</CardTitle>
-              <CardDescription>Muscles under a group (e.g., Upper Chest under Chest).</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid sm:grid-cols-3 gap-3">
-                <div className="space-y-2">
-                  <Label>Body part</Label>
-                  <Select value={mBodyPartId} onValueChange={(v) => { setMBodyPartId(v); setMGroupId(""); }}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body part" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bodyParts.map((bp: any) => (
-                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label>Muscle group</Label>
-                  <Select value={mGroupId} onValueChange={setMGroupId} disabled={!mBodyPartId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={!mBodyPartId ? 'Select body part first' : 'Select group'} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {groupsForSelectedBP.map((g: any) => (
-                        <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="m_name">Muscle name</Label>
-                  <div className="flex gap-2">
-                    <Input id="m_name" placeholder="e.g., Upper Chest" value={mName} onChange={(e) => setMName(e.target.value)} />
-                    <Button onClick={addMuscle} disabled={!mGroupId || !mName.trim()}>Add</Button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {muscles.length === 0 && <p className="text-sm text-muted-foreground">No muscles yet.</p>}
-                {muscleGroups.map(g => (
-                  <div key={g.id}>
-                    <h4 className="font-medium mb-2">{g.name}</h4>
-                    <div className="space-y-2">
-                      {muscles.filter(m => m.muscle_group_id === g.id).map(m => (
-                        <div key={m.id} className="border rounded-md p-2 flex items-center justify-between">
-                          <span>{m.name}</span>
-                          <div className="flex gap-2">
-                            <Button size="sm" variant="secondary" onClick={() => renameMuscle(m)}>Rename</Button>
-                            <Button size="sm" variant="destructive" onClick={() => deleteMuscle(m)}>Delete</Button>
-                          </div>
-                        </div>
-                      ))}
-                      {muscles.filter(m => m.muscle_group_id === g.id).length === 0 && (
-                        <p className="text-xs text-muted-foreground">No muscles for this group.</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </section>
-      </main>
-    </>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
   );
-};
-
-export default FitnessConfigure;
+}

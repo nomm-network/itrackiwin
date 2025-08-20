@@ -18,19 +18,16 @@ export type Database = {
         Row: {
           created_at: string
           id: string
-          name: string
           slug: string | null
         }
         Insert: {
           created_at?: string
           id?: string
-          name: string
           slug?: string | null
         }
         Update: {
           created_at?: string
           id?: string
-          name?: string
           slug?: string | null
         }
         Relationships: []
@@ -554,21 +551,18 @@ export type Database = {
           body_part_id: string
           created_at: string
           id: string
-          name: string
           slug: string | null
         }
         Insert: {
           body_part_id: string
           created_at?: string
           id?: string
-          name: string
           slug?: string | null
         }
         Update: {
           body_part_id?: string
           created_at?: string
           id?: string
-          name?: string
           slug?: string | null
         }
         Relationships: [
@@ -623,21 +617,18 @@ export type Database = {
           created_at: string
           id: string
           muscle_group_id: string
-          name: string
           slug: string | null
         }
         Insert: {
           created_at?: string
           id?: string
           muscle_group_id: string
-          name: string
           slug?: string | null
         }
         Update: {
           created_at?: string
           id?: string
           muscle_group_id?: string
-          name?: string
           slug?: string | null
         }
         Relationships: [
@@ -1403,6 +1394,26 @@ export type Database = {
       get_category_name: {
         Args: { p_category_id: string; p_language_code?: string }
         Returns: string
+      }
+      get_life_categories_i18n: {
+        Args: { lang_code: string }
+        Returns: {
+          description: string
+          display_order: number
+          id: string
+          name: string
+          slug: string
+        }[]
+      }
+      get_life_subcategories_i18n: {
+        Args: { category: string; lang_code: string }
+        Returns: {
+          category_id: string
+          display_order: number
+          id: string
+          name: string
+          slug: string
+        }[]
       }
       get_subcategory_name: {
         Args: { p_language_code?: string; p_subcategory_id: string }

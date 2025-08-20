@@ -85,42 +85,68 @@ const AdminExercisesManagement: React.FC = () => {
     is_public: true,
   });
 
-  // Fetch body parts
+  // Fetch body parts with translations
   const { data: bodyParts = [] } = useQuery({
     queryKey: ["admin_body_parts"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("body_parts")
-        .select("id, name, slug")
-        .order("name");
+        .select(`
+          id, slug,
+          body_parts_translations!inner(name)
+        `)
+        .eq('body_parts_translations.language_code', 'en')
+        .order("body_parts_translations.name");
       if (error) throw error;
-      return data as BodyPart[];
+      return data.map(item => ({
+        id: item.id,
+        slug: item.slug,
+        name: (item.body_parts_translations as any)[0]?.name || ''
+      })) as BodyPart[];
     },
   });
 
-  // Fetch muscle groups
+  // Fetch muscle groups with translations
   const { data: muscleGroups = [] } = useQuery({
     queryKey: ["admin_muscle_groups"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("muscle_groups")
-        .select("id, name, slug, body_part_id")
-        .order("name");
+        .select(`
+          id, slug, body_part_id,
+          muscle_groups_translations!inner(name)
+        `)
+        .eq('muscle_groups_translations.language_code', 'en')
+        .order("muscle_groups_translations.name");
       if (error) throw error;
-      return data as MuscleGroup[];
+      return data.map(item => ({
+        id: item.id,
+        slug: item.slug,
+        body_part_id: item.body_part_id,
+        name: (item.muscle_groups_translations as any)[0]?.name || ''
+      })) as MuscleGroup[];
     },
   });
 
-  // Fetch muscles
+  // Fetch muscles with translations
   const { data: muscles = [] } = useQuery({
     queryKey: ["admin_muscles"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("muscles")
-        .select("id, name, slug, muscle_group_id")
-        .order("name");
+        .select(`
+          id, slug, muscle_group_id,
+          muscles_translations!inner(name)
+        `)
+        .eq('muscles_translations.language_code', 'en')
+        .order("muscles_translations.name");
       if (error) throw error;
-      return data as Muscle[];
+      return data.map(item => ({
+        id: item.id,
+        slug: item.slug,
+        muscle_group_id: item.muscle_group_id,
+        name: (item.muscles_translations as any)[0]?.name || ''
+      })) as Muscle[];
     },
   });
 

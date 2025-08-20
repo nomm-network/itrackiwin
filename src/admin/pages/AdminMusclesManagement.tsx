@@ -18,25 +18,30 @@ import AdminMenu from "../components/AdminMenu";
 
 interface BodyPart {
   id: string;
-  name: string;
   slug?: string;
   created_at: string;
+  translations?: { name: string }[];
 }
 
 interface MuscleGroup {
   id: string;
-  name: string;
   slug?: string;
   body_part_id: string;
   created_at: string;
+  translations?: { name: string }[];
+  body_parts?: { translations?: { name: string }[] };
 }
 
 interface Muscle {
   id: string;
-  name: string;
   slug?: string;
   muscle_group_id: string;
   created_at: string;
+  translations?: { name: string }[];
+  muscle_groups?: { 
+    translations?: { name: string }[];
+    body_parts?: { translations?: { name: string }[] };
+  };
 }
 
 const AdminMusclesManagement: React.FC = () => {
@@ -46,16 +51,31 @@ const AdminMusclesManagement: React.FC = () => {
   const [editingItem, setEditingItem] = useState<any>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  // Fetch data
+  // Helper function to get English name from translations
+  const getEnglishName = (translations?: any) => {
+    if (Array.isArray(translations)) {
+      return translations[0]?.name || '';
+    }
+    return '';
+  };
+
+  // Fetch data with translations
   const { data: bodyParts = [], isLoading: bodyPartsLoading } = useQuery({
     queryKey: ['admin-body-parts'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('body_parts')
-        .select('*')
-        .order('name');
+        .select(`
+          *,
+          body_parts_translations!inner(name)
+        `)
+        .eq('body_parts_translations.language_code', 'en')
+        .order('created_at');
       if (error) throw error;
-      return data as BodyPart[];
+      return data.map(item => ({
+        ...item,
+        translations: item.body_parts_translations
+      })) as any;
     },
   });
 
@@ -64,10 +84,24 @@ const AdminMusclesManagement: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('muscle_groups')
-        .select('*, body_parts(name)')
-        .order('name');
+        .select(`
+          *,
+          muscle_groups_translations!inner(name),
+          body_parts!inner(
+            body_parts_translations!inner(name)
+          )
+        `)
+        .eq('muscle_groups_translations.language_code', 'en')
+        .eq('body_parts.body_parts_translations.language_code', 'en')
+        .order('created_at');
       if (error) throw error;
-      return data;
+      return data.map(item => ({
+        ...item,
+        translations: item.muscle_groups_translations,
+        body_parts: {
+          translations: item.body_parts?.body_parts_translations
+        }
+      }));
     },
   });
 
@@ -76,10 +110,31 @@ const AdminMusclesManagement: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('muscles')
-        .select('*, muscle_groups(name, body_parts(name))')
-        .order('name');
+        .select(`
+          *,
+          muscles_translations!inner(name),
+          muscle_groups!inner(
+            muscle_groups_translations!inner(name),
+            body_parts!inner(
+              body_parts_translations!inner(name)
+            )
+          )
+        `)
+        .eq('muscles_translations.language_code', 'en')
+        .eq('muscle_groups.muscle_groups_translations.language_code', 'en')
+        .eq('muscle_groups.body_parts.body_parts_translations.language_code', 'en')
+        .order('created_at');
       if (error) throw error;
-      return data;
+      return data.map(item => ({
+        ...item,
+        translations: item.muscles_translations,
+        muscle_groups: {
+          translations: item.muscle_groups?.muscle_groups_translations,
+          body_parts: {
+            translations: item.muscle_groups?.body_parts?.body_parts_translations
+          }
+        }
+      }));
     },
   });
 
@@ -99,10 +154,23 @@ const AdminMusclesManagement: React.FC = () => {
   // Mutations
   const createBodyPartMutation = useMutation({
     mutationFn: async (data: { name: string; slug?: string }) => {
-      const { error } = await supabase
+      // Create body part
+      const { data: bodyPart, error: bodyPartError } = await supabase
         .from('body_parts')
-        .insert([data]);
-      if (error) throw error;
+        .insert([{ slug: data.slug }])
+        .select()
+        .single();
+      if (bodyPartError) throw bodyPartError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('body_parts_translations')
+        .insert([{
+          body_part_id: bodyPart.id,
+          language_code: 'en',
+          name: data.name
+        }]);
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-body-parts'] });
@@ -117,11 +185,20 @@ const AdminMusclesManagement: React.FC = () => {
 
   const updateBodyPartMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string } }) => {
-      const { error } = await supabase
+      // Update body part
+      const { error: bodyPartError } = await supabase
         .from('body_parts')
-        .update(data)
+        .update({ slug: data.slug })
         .eq('id', id);
-      if (error) throw error;
+      if (bodyPartError) throw bodyPartError;
+
+      // Update English translation
+      const { error: translationError } = await supabase
+        .from('body_parts_translations')
+        .update({ name: data.name })
+        .eq('body_part_id', id)
+        .eq('language_code', 'en');
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-body-parts'] });
@@ -154,10 +231,23 @@ const AdminMusclesManagement: React.FC = () => {
 
   const createMuscleGroupMutation = useMutation({
     mutationFn: async (data: { name: string; slug?: string; body_part_id: string }) => {
-      const { error } = await supabase
+      // Create muscle group
+      const { data: muscleGroup, error: muscleGroupError } = await supabase
         .from('muscle_groups')
-        .insert([data]);
-      if (error) throw error;
+        .insert([{ slug: data.slug, body_part_id: data.body_part_id }])
+        .select()
+        .single();
+      if (muscleGroupError) throw muscleGroupError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('muscle_groups_translations')
+        .insert([{
+          muscle_group_id: muscleGroup.id,
+          language_code: 'en',
+          name: data.name
+        }]);
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-muscle-groups'] });
@@ -172,11 +262,20 @@ const AdminMusclesManagement: React.FC = () => {
 
   const updateMuscleGroupMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string; body_part_id: string } }) => {
-      const { error } = await supabase
+      // Update muscle group
+      const { error: muscleGroupError } = await supabase
         .from('muscle_groups')
-        .update(data)
+        .update({ slug: data.slug, body_part_id: data.body_part_id })
         .eq('id', id);
-      if (error) throw error;
+      if (muscleGroupError) throw muscleGroupError;
+
+      // Update English translation
+      const { error: translationError } = await supabase
+        .from('muscle_groups_translations')
+        .update({ name: data.name })
+        .eq('muscle_group_id', id)
+        .eq('language_code', 'en');
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-muscle-groups'] });
@@ -209,10 +308,23 @@ const AdminMusclesManagement: React.FC = () => {
 
   const createMuscleMutation = useMutation({
     mutationFn: async (data: { name: string; slug?: string; muscle_group_id: string }) => {
-      const { error } = await supabase
+      // Create muscle
+      const { data: muscle, error: muscleError } = await supabase
         .from('muscles')
-        .insert([data]);
-      if (error) throw error;
+        .insert([{ slug: data.slug, muscle_group_id: data.muscle_group_id }])
+        .select()
+        .single();
+      if (muscleError) throw muscleError;
+
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from('muscles_translations')
+        .insert([{
+          muscle_id: muscle.id,
+          language_code: 'en',
+          name: data.name
+        }]);
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-muscles'] });
@@ -227,11 +339,20 @@ const AdminMusclesManagement: React.FC = () => {
 
   const updateMuscleMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string; muscle_group_id: string } }) => {
-      const { error } = await supabase
+      // Update muscle
+      const { error: muscleError } = await supabase
         .from('muscles')
-        .update(data)
+        .update({ slug: data.slug, muscle_group_id: data.muscle_group_id })
         .eq('id', id);
-      if (error) throw error;
+      if (muscleError) throw muscleError;
+
+      // Update English translation
+      const { error: translationError } = await supabase
+        .from('muscles_translations')
+        .update({ name: data.name })
+        .eq('muscle_id', id)
+        .eq('language_code', 'en');
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-muscles'] });
@@ -264,12 +385,14 @@ const AdminMusclesManagement: React.FC = () => {
 
   const handleEdit = (item: any, type: string) => {
     setEditingItem({ ...item, type });
+    const name = getEnglishName(item.translations || item.body_parts_translations || item.muscle_groups_translations);
+    
     if (type === 'body-part') {
-      bodyPartForm.reset({ name: item.name, slug: item.slug || '' });
+      bodyPartForm.reset({ name, slug: item.slug || '' });
     } else if (type === 'muscle-group') {
-      muscleGroupForm.reset({ name: item.name, slug: item.slug || '', body_part_id: item.body_part_id });
+      muscleGroupForm.reset({ name, slug: item.slug || '', body_part_id: item.body_part_id });
     } else if (type === 'muscle') {
-      muscleForm.reset({ name: item.name, slug: item.slug || '', muscle_group_id: item.muscle_group_id });
+      muscleForm.reset({ name, slug: item.slug || '', muscle_group_id: item.muscle_group_id });
     }
     setIsDialogOpen(true);
   };
@@ -351,7 +474,7 @@ const AdminMusclesManagement: React.FC = () => {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel>Name (English)</FormLabel>
                               <FormControl>
                                 <Input {...field} required />
                               </FormControl>
@@ -406,7 +529,7 @@ const AdminMusclesManagement: React.FC = () => {
                   ) : (
                     bodyParts.map((bodyPart) => (
                       <TableRow key={bodyPart.id}>
-                        <TableCell>{bodyPart.name}</TableCell>
+                        <TableCell>{getEnglishName(bodyPart.translations)}</TableCell>
                         <TableCell>{bodyPart.slug || '-'}</TableCell>
                         <TableCell>{new Date(bodyPart.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
@@ -459,7 +582,7 @@ const AdminMusclesManagement: React.FC = () => {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel>Name (English)</FormLabel>
                               <FormControl>
                                 <Input {...field} required />
                               </FormControl>
@@ -493,7 +616,7 @@ const AdminMusclesManagement: React.FC = () => {
                                 <SelectContent>
                                   {bodyParts.map((bodyPart) => (
                                     <SelectItem key={bodyPart.id} value={bodyPart.id}>
-                                      {bodyPart.name}
+                                      {getEnglishName(bodyPart.translations)}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -520,8 +643,8 @@ const AdminMusclesManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Slug</TableHead>
                     <TableHead>Body Part</TableHead>
+                    <TableHead>Slug</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -538,9 +661,9 @@ const AdminMusclesManagement: React.FC = () => {
                   ) : (
                     muscleGroups.map((muscleGroup) => (
                       <TableRow key={muscleGroup.id}>
-                        <TableCell>{muscleGroup.name}</TableCell>
+                        <TableCell>{getEnglishName(muscleGroup.translations)}</TableCell>
+                        <TableCell>{getEnglishName(muscleGroup.body_parts?.translations)}</TableCell>
                         <TableCell>{muscleGroup.slug || '-'}</TableCell>
-                        <TableCell>{muscleGroup.body_parts?.name || '-'}</TableCell>
                         <TableCell>{new Date(muscleGroup.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
@@ -592,7 +715,7 @@ const AdminMusclesManagement: React.FC = () => {
                           name="name"
                           render={({ field }) => (
                             <FormItem>
-                              <FormLabel>Name</FormLabel>
+                              <FormLabel>Name (English)</FormLabel>
                               <FormControl>
                                 <Input {...field} required />
                               </FormControl>
@@ -626,7 +749,7 @@ const AdminMusclesManagement: React.FC = () => {
                                 <SelectContent>
                                   {muscleGroups.map((muscleGroup) => (
                                     <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
-                                      {muscleGroup.name} ({muscleGroup.body_parts?.name})
+                                      {getEnglishName(muscleGroup.translations)}
                                     </SelectItem>
                                   ))}
                                 </SelectContent>
@@ -653,9 +776,9 @@ const AdminMusclesManagement: React.FC = () => {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Name</TableHead>
-                    <TableHead>Slug</TableHead>
                     <TableHead>Muscle Group</TableHead>
                     <TableHead>Body Part</TableHead>
+                    <TableHead>Slug</TableHead>
                     <TableHead>Created</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
@@ -672,10 +795,10 @@ const AdminMusclesManagement: React.FC = () => {
                   ) : (
                     muscles.map((muscle) => (
                       <TableRow key={muscle.id}>
-                        <TableCell>{muscle.name}</TableCell>
+                        <TableCell>{getEnglishName(muscle.translations)}</TableCell>
+                        <TableCell>{getEnglishName(muscle.muscle_groups?.translations)}</TableCell>
+                        <TableCell>{getEnglishName(muscle.muscle_groups?.body_parts?.translations)}</TableCell>
                         <TableCell>{muscle.slug || '-'}</TableCell>
-                        <TableCell>{muscle.muscle_groups?.name || '-'}</TableCell>
-                        <TableCell>{muscle.muscle_groups?.body_parts?.name || '-'}</TableCell>
                         <TableCell>{new Date(muscle.created_at).toLocaleDateString()}</TableCell>
                         <TableCell>
                           <div className="flex space-x-2">
