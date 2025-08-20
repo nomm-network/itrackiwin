@@ -14,7 +14,7 @@ const Index: React.FC = () => {
   const onSelect = (id: AreaId) => {
     navigate(`/area/${id}`);
   };
-  return <main className="min-h-screen bg-[hsl(215_25%_7%)]">
+  return <main className="min-h-screen bg-background">
       <header className="container py-4 md:py-8">
         <nav className="flex items-center justify-between">
           <a href="#main" className="sr-only focus:not-sr-only">Skip to content</a>
