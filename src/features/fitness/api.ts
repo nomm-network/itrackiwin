@@ -220,6 +220,40 @@ export const useAddExerciseToWorkout = () => {
   });
 };
 
+export const useDeleteWorkout = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (workoutId: UUID) => {
+      const { error } = await supabase.from("workouts").delete().eq("id", workoutId);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["recent_workouts"] });
+      qc.invalidateQueries({ queryKey: ["personal_records"] });
+    },
+  });
+};
+
+export const useUpdateWorkout = () => {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (params: { workoutId: UUID; title?: string; notes?: string }) => {
+      const { error } = await supabase
+        .from("workouts")
+        .update({ 
+          title: params.title,
+          notes: params.notes 
+        })
+        .eq("id", params.workoutId);
+      if (error) throw error;
+    },
+    onSuccess: (_d, vars) => {
+      qc.invalidateQueries({ queryKey: ["workout_detail", vars.workoutId] });
+      qc.invalidateQueries({ queryKey: ["recent_workouts"] });
+    },
+  });
+};
+
 export const useAddSet = () => {
   const qc = useQueryClient();
   return useMutation({
