@@ -178,27 +178,20 @@ const primaryMusclesOptions = React.useMemo(() => {
       toast({ title: 'Name is required' });
       return;
     }
+    
+    if (!user) {
+      toast({ title: 'Authentication Error', description: 'Please log in to create exercises' });
+      navigate('/auth');
+      return;
+    }
+
     setSaving(true);
     setLastError(null);
     try {
-      // Get current session first
-      const { data: { session }, error: sessionErr } = await supabase.auth.getSession();
-      if (sessionErr) {
-        console.error('[ExerciseAdd] Session error:', sessionErr);
-        throw sessionErr;
-      }
-      if (!session?.user) {
-        console.error('[ExerciseAdd] No authenticated user found');
-        throw new Error('Not authenticated - please log in');
-      }
-
-      const userId = session.user.id;
+      const userId = user.id;
       if (!userId) {
-        console.error('[ExerciseAdd] User ID is missing from session');
         throw new Error('User ID is missing');
       }
-
-      console.log('[ExerciseAdd] Authenticated user ID:', userId);
 
       const payload = {
         name: values.name.trim(),
