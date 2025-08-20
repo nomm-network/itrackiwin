@@ -221,12 +221,12 @@ const Exercises: React.FC = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
               <div>
                 <Label>Body Part</Label>
-                <Select value={bpId} onValueChange={(v) => { setBpId(v); setGroupId(""); setMuscleId(""); }}>
+                <Select value={bpId || "all"} onValueChange={(v) => { setBpId(v === "all" ? "" : v); setGroupId(""); setMuscleId(""); }}>
                   <SelectTrigger>
                     <SelectValue placeholder="All" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {bodyParts.map((bp) => (
                       <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
                     ))}
@@ -235,12 +235,12 @@ const Exercises: React.FC = () => {
               </div>
               <div>
                 <Label>Group</Label>
-                <Select value={groupId} onValueChange={(v) => { setGroupId(v); setMuscleId(""); }} disabled={!bpId}>
+                <Select value={groupId || "all"} onValueChange={(v) => { setGroupId(v === "all" ? "" : v); setMuscleId(""); }} disabled={!bpId}>
                   <SelectTrigger>
                     <SelectValue placeholder={bpId ? 'All' : 'Select body part first'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {groupsFiltered.map((g) => (
                       <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
                     ))}
@@ -249,12 +249,12 @@ const Exercises: React.FC = () => {
               </div>
               <div>
                 <Label>Muscle</Label>
-                <Select value={muscleId} onValueChange={setMuscleId} disabled={!groupId}>
+                <Select value={muscleId || "all"} onValueChange={(v) => setMuscleId(v === "all" ? "" : v)} disabled={!groupId}>
                   <SelectTrigger>
                     <SelectValue placeholder={groupId ? 'All' : 'Select group first'} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">All</SelectItem>
+                    <SelectItem value="all">All</SelectItem>
                     {musclesFiltered.map((mu) => (
                       <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
                     ))}
