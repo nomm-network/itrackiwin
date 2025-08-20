@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import PageNav from "@/components/PageNav";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,8 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const ExerciseAdd: React.FC = () => {
+  const [user, setUser] = useState<any>(null);
+  const [isAuthChecking, setIsAuthChecking] = useState(true);
   useSEO();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -84,6 +86,33 @@ const form = useForm<FormValues>({
 });
 
   const selectedBodyPartId = form.watch("body_part_id") || "";
+
+  // Check authentication on mount
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('[ExerciseAdd] Auth check error:', error);
+          navigate('/auth');
+          return;
+        }
+        if (!session?.user) {
+          console.error('[ExerciseAdd] No authenticated user');
+          navigate('/auth');
+          return;
+        }
+        console.log('[ExerciseAdd] User authenticated:', session.user.id);
+        setUser(session.user);
+      } catch (err) {
+        console.error('[ExerciseAdd] Auth check failed:', err);
+        navigate('/auth');
+      } finally {
+        setIsAuthChecking(false);
+      }
+    };
+    checkAuth();
+  }, [navigate]);
 
   React.useEffect(() => {
     const loadAll = async () => {
@@ -125,8 +154,12 @@ const form = useForm<FormValues>({
         setLoading(false);
       }
     };
-    loadAll();
-  }, [toast]);
+    
+    // Only load data if user is authenticated
+    if (user && !isAuthChecking) {
+      loadAll();
+    }
+  }, [toast, user, isAuthChecking]);
 
 const filteredMuscleGroups = React.useMemo(() => {
   if (!selectedBodyPartId) return muscleGroups;
@@ -272,7 +305,9 @@ const primaryMusclesOptions = React.useMemo(() => {
           </Button>
         </div>
 
-        {loading ? (
+        {isAuthChecking ? (
+          <p className="text-muted-foreground">Checking authentication...</p>
+        ) : loading ? (
           <p className="text-muted-foreground">Loading options…</p>
         ) : (
           <form className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" onSubmit={form.handleSubmit(onSubmit)}>
