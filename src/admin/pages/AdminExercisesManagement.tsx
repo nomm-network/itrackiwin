@@ -223,6 +223,13 @@ const AdminExercisesManagement: React.FC = () => {
         if (!exercise.name) {
           throw new Error("Exercise name is required");
         }
+        
+        // Get current user for admin operations
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+          throw new Error("Authentication required");
+        }
+        
         const exerciseToInsert = {
           name: exercise.name!,
           description: exercise.description || null,
@@ -231,13 +238,19 @@ const AdminExercisesManagement: React.FC = () => {
           secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || null,
           equipment_id: exercise.equipment_id || null,
           is_public: exercise.is_public ?? true,
-          owner_user_id: null,
+          owner_user_id: user.id, // Set to current admin user
         };
+        
+        console.log('[AdminExercise] Creating exercise with payload:', exerciseToInsert);
+        
         const { data, error } = await supabase
           .from("exercises")
           .insert([exerciseToInsert])
           .select();
-        if (error) throw error;
+        if (error) {
+          console.error('[AdminExercise] Insert error:', error);
+          throw error;
+        }
         return data;
       }
     },

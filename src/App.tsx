@@ -56,8 +56,7 @@ const App = () => (
             {/* Fitness routes */}
             <Route path="/fitness" element={<Fitness />} />
             <Route path="/fitness/exercises" element={<Exercises />} />
-            <Route path="/fitness/exercises/add" element={<ExerciseAdd />} />
-            <Route path="/fitness/exercises/:id/edit" element={<ExerciseEdit />} />
+            {/* Removed ExerciseAdd - now only available in Admin */}
             <Route path="/fitness/session/:id" element={<WorkoutSession />} />
             <Route path="/fitness/templates" element={<Templates />} />
             <Route path="/fitness/templates/:templateId/edit" element={<TemplateEditor />} />
