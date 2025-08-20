@@ -294,16 +294,22 @@ const TemplateEditor: React.FC = () => {
     const editor = gripEditors[exerciseId];
     if (!editor) return;
 
-    await upsertPreferences.mutateAsync({
-      templateExerciseId: exerciseId,
-      preferredGrips: editor.selectedGrips
-    });
+    try {
+      console.log('Saving grip preferences:', editor.selectedGrips);
+      await upsertPreferences.mutateAsync({
+        templateExerciseId: exerciseId,
+        preferredGrips: editor.selectedGrips
+      });
+      console.log('Grip preferences saved successfully');
 
-    // Remove from editors after saving
-    setGripEditors(prev => {
-      const { [exerciseId]: removed, ...rest } = prev;
-      return rest;
-    });
+      // Remove from editors after saving
+      setGripEditors(prev => {
+        const { [exerciseId]: removed, ...rest } = prev;
+        return rest;
+      });
+    } catch (error) {
+      console.error('Error saving grip preferences:', error);
+    }
   };
 
   if (!templateId) {
