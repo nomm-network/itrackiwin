@@ -3,11 +3,14 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useRecentWorkouts, useStartWorkout } from "@/features/fitness/api";
+import { useRecentWorkouts, useStartWorkout, useUpdateWorkout, useDeleteWorkout } from "@/features/fitness/api";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
+import { Edit2, Trash2 } from "lucide-react";
 
 const useSEO = () => {
   React.useEffect(() => {
@@ -29,6 +32,12 @@ const Fitness: React.FC = () => {
   const navigate = useNavigate();
   const { data: workouts } = useRecentWorkouts(5);
   const startMut = useStartWorkout();
+  const updateMut = useUpdateWorkout();
+  const deleteMut = useDeleteWorkout();
+
+  const [editingWorkout, setEditingWorkout] = React.useState<any>(null);
+  const [title, setTitle] = React.useState("");
+  const [notes, setNotes] = React.useState("");
 
   const [importing, setImporting] = React.useState(false);
   const importExercises = async () => {
@@ -50,6 +59,39 @@ const Fitness: React.FC = () => {
   const onStartFree = async () => {
     const id = await startMut.mutateAsync(null);
     navigate(`/fitness/session/${id}`);
+  };
+
+  const handleEdit = (workout: any) => {
+    setEditingWorkout(workout);
+    setTitle(workout.title || "");
+    setNotes(workout.notes || "");
+  };
+
+  const handleUpdate = async () => {
+    if (!editingWorkout) return;
+    try {
+      await updateMut.mutateAsync({
+        workoutId: editingWorkout.id,
+        title: title.trim() || undefined,
+        notes: notes.trim() || undefined,
+      });
+      setEditingWorkout(null);
+      toast({ title: "Workout updated successfully" });
+    } catch (error: any) {
+      toast({ title: "Failed to update workout", description: error.message });
+    }
+  };
+
+  const handleDelete = async (workoutId: string, workoutTitle: string) => {
+    const confirmed = window.confirm(`Are you sure you want to delete "${workoutTitle || 'Free Session'}"? This action cannot be undone.`);
+    if (!confirmed) return;
+    
+    try {
+      await deleteMut.mutateAsync(workoutId);
+      toast({ title: "Workout deleted successfully" });
+    } catch (error: any) {
+      toast({ title: "Failed to delete workout", description: error.message });
+    }
   };
 
   return (
@@ -114,13 +156,42 @@ const Fitness: React.FC = () => {
           <h2 className="font-medium mb-3">Recent Workouts</h2>
           <div className="grid md:grid-cols-2 gap-4">
             {(workouts ?? []).map(w => (
-              <Card key={w.id} className="cursor-pointer" onClick={() => navigate(`/fitness/session/${w.id}`)}>
-                <CardHeader className="pb-2">
+              <Card key={w.id}>
+                <CardHeader 
+                  className="pb-2 cursor-pointer" 
+                  onClick={() => navigate(`/fitness/session/${w.id}`)}
+                >
                   <CardTitle className="text-base">{w.title || 'Free Session'}</CardTitle>
                   <CardDescription>
                     {new Date(w.started_at).toLocaleString()} • {w.ended_at ? 'Completed' : 'In progress'}
                   </CardDescription>
                 </CardHeader>
+                <CardContent className="pt-0">
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleEdit(w);
+                      }}
+                    >
+                      <Edit2 className="h-3 w-3 mr-1" />
+                      Edit
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDelete(w.id, w.title || 'Free Session');
+                      }}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete
+                    </Button>
+                  </div>
+                </CardContent>
               </Card>
             ))}
             {(!workouts || workouts.length === 0) && (
@@ -128,6 +199,47 @@ const Fitness: React.FC = () => {
             )}
           </div>
         </section>
+
+        <Dialog open={!!editingWorkout} onOpenChange={(open) => !open && setEditingWorkout(null)}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Workout</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <label htmlFor="workout-title" className="block text-sm font-medium mb-1">
+                  Title
+                </label>
+                <Input
+                  id="workout-title"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Workout title"
+                />
+              </div>
+              <div>
+                <label htmlFor="workout-notes" className="block text-sm font-medium mb-1">
+                  Notes
+                </label>
+                <Textarea
+                  id="workout-notes"
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Workout notes"
+                  rows={3}
+                />
+              </div>
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setEditingWorkout(null)}>
+                  Cancel
+                </Button>
+                <Button onClick={handleUpdate} disabled={updateMut.isPending}>
+                  {updateMut.isPending ? "Updating..." : "Update"}
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </main>
     </>
   );
