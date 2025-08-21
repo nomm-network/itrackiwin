@@ -298,12 +298,6 @@ const MobileFitness: React.FC = () => {
             </BottomSheetHeader>
             <div className="p-4 space-y-4">
               <Button variant="ghost" className="w-full justify-start h-12" asChild>
-                <Link to="/fitness/configure">
-                  <Settings className="h-4 w-4 mr-2" />
-                  {t('configure')}
-                </Link>
-              </Button>
-              <Button variant="ghost" className="w-full justify-start h-12" asChild>
                 <Link to="/profile">
                   <Settings className="h-4 w-4 mr-2" />
                   {t('profile')}
