@@ -46,7 +46,6 @@ interface ExerciseGripEditor {
 const TemplateEditor: React.FC = () => {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const { getTranslatedName } = useTranslations();
   
   // Template data and mutations
   const { data: template } = useTemplateDetail(templateId);
@@ -67,7 +66,10 @@ const TemplateEditor: React.FC = () => {
         .select('id, name, translations')
         .in('id', exerciseIds);
       
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching exercise details:', error);
+        throw error;
+      }
       return data || [];
     },
     enabled: templateExercises.length > 0
@@ -96,7 +98,10 @@ const TemplateEditor: React.FC = () => {
         .from('v_body_parts_with_translations')
         .select('id, translations')
         .order('id');
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching body parts:', error);
+        throw error;
+      }
       return data || [];
     }
   });
@@ -114,7 +119,10 @@ const TemplateEditor: React.FC = () => {
       }
       
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching muscle groups:', error);
+        throw error;
+      }
       return data || [];
     },
     enabled: true // Always fetch muscle groups
@@ -133,7 +141,10 @@ const TemplateEditor: React.FC = () => {
       }
       
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching muscles:', error);
+        throw error;
+      }
       return data || [];
     },
     enabled: true // Always fetch muscles
@@ -164,29 +175,40 @@ const TemplateEditor: React.FC = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      if (error) {
+        console.error('Error fetching exercises:', error);
+        throw error;
+      }
       return data || [];
     },
     enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
   });
+
+  // Helper to get translated name from the nested translations object
+  const getTranslatedNameFromData = (translations: any) => {
+    if (!translations || typeof translations !== 'object') return null;
+    
+    // Try current language first, then English fallback
+    const currentLang = 'en'; // You can get this from i18n if needed
+    if (translations[currentLang]?.name) return translations[currentLang].name;
+    if (translations['en']?.name) return translations['en'].name;
+    
+    // Return first available translation
+    const firstLang = Object.keys(translations)[0];
+    return firstLang ? translations[firstLang]?.name : null;
+  };
 
   // Helper to get exercise name by ID
   const getExerciseName = (exerciseId: string) => {
     const exercise = templateExerciseDetails.find(e => e.id === exerciseId);
     if (!exercise) return `Exercise ${exerciseId}`;
     
-    // Safely handle translations
-    if (exercise.translations && typeof exercise.translations === 'object') {
-      try {
-        const name = getTranslatedName(exercise.translations as any);
-        if (name) return name;
-      } catch {
-        // Fall back to exercise name
-      }
-    }
-    
-    return exercise.name || `Exercise ${exerciseId}`;
+    // Try translations first, then fallback to name
+    const translatedName = getTranslatedNameFromData(exercise.translations);
+    return translatedName || exercise.name || `Exercise ${exerciseId}`;
   };
+
+  // Helper functions
   const handleUpdateTemplateName = (newName: string) => {
     if (template) {
       updateTemplate.mutate({
@@ -475,17 +497,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Body Parts</SelectItem>
                   {bodyParts.map((bodyPart) => (
                     <SelectItem key={bodyPart.id} value={bodyPart.id}>
-                      {(() => {
-                        if (bodyPart.translations && typeof bodyPart.translations === 'object') {
-                          try {
-                            const name = getTranslatedName(bodyPart.translations as any);
-                            if (name) return name;
-                          } catch {
-                            // Fall back to default name
-                          }
-                        }
-                        return `Body Part ${bodyPart.id}`;
-                      })()}
+                      {getTranslatedNameFromData(bodyPart.translations) || `Body Part ${bodyPart.id}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -498,17 +510,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Muscle Groups</SelectItem>
                   {muscleGroups.map((muscleGroup) => (
                     <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
-                      {(() => {
-                        if (muscleGroup.translations && typeof muscleGroup.translations === 'object') {
-                          try {
-                            const name = getTranslatedName(muscleGroup.translations as any);
-                            if (name) return name;
-                          } catch {
-                            // Fall back to default name
-                          }
-                        }
-                        return `Muscle Group ${muscleGroup.id}`;
-                      })()}
+                      {getTranslatedNameFromData(muscleGroup.translations) || `Muscle Group ${muscleGroup.id}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -521,17 +523,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Muscles</SelectItem>
                   {muscles.map((muscle) => (
                     <SelectItem key={muscle.id} value={muscle.id}>
-                      {(() => {
-                        if (muscle.translations && typeof muscle.translations === 'object') {
-                          try {
-                            const name = getTranslatedName(muscle.translations as any);
-                            if (name) return name;
-                          } catch {
-                            // Fall back to default name
-                          }
-                        }
-                        return `Muscle ${muscle.id}`;
-                      })()}
+                      {getTranslatedNameFromData(muscle.translations) || `Muscle ${muscle.id}`}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -547,17 +539,7 @@ const TemplateEditor: React.FC = () => {
                     <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <h5 className="font-medium">
-                          {(() => {
-                            if (exercise.translations && typeof exercise.translations === 'object') {
-                              try {
-                                const name = getTranslatedName(exercise.translations as any);
-                                if (name) return name;
-                              } catch {
-                                // Fall back to exercise name
-                              }
-                            }
-                            return exercise.name;
-                          })()}
+                          {getTranslatedNameFromData(exercise.translations) || exercise.name}
                         </h5>
                       </div>
                       <Button
