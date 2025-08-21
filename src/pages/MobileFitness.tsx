@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
 import { useDefaultGym } from "@/features/health/fitness/hooks/useGymDetection.hook";
 import { GymDetectionDialog } from "@/features/health/fitness/components/GymDetectionDialog";
+import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
@@ -21,6 +22,7 @@ const MobileFitness: React.FC = () => {
   const navigate = useNavigate();
   const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
   const { data: defaultGym } = useDefaultGym();
+  const { gym: selectedGym } = useMyGym();
   const [quickWeight, setQuickWeight] = useState<number | null>(null);
   const [quickReps, setQuickReps] = useState<number | null>(null);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
@@ -78,6 +80,24 @@ const MobileFitness: React.FC = () => {
   return (
     <div className="min-h-screen bg-background pb-20">
       <div className="p-4 space-y-6">
+        {/* Current Gym Header */}
+        {selectedGym && (
+          <section>
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
+                <p className="font-medium">{selectedGym.name}</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/fitness/configure')}
+              >
+                Change
+              </Button>
+            </div>
+          </section>
+        )}
         {/* Quick Actions Grid */}
         <section>
           <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>

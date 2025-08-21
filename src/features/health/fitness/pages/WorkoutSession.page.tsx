@@ -15,6 +15,7 @@ import WorkoutClock from "@/components/fitness/WorkoutClock";
 import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestions";
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
+import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -45,6 +46,7 @@ const WorkoutSession: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data } = useWorkoutDetail(id);
+  const { gym: selectedGym } = useMyGym();
   useSEO(data?.workout?.title || 'Session');
 
   const endMut = useEndWorkout();
@@ -194,6 +196,23 @@ const WorkoutSession: React.FC = () => {
       <main className="container py-6 space-y-6">
         {/* Header with workout clock */}
         <div className="space-y-4">
+          {/* Current Gym Header */}
+          {selectedGym && (
+            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+              <div>
+                <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
+                <p className="font-medium">{selectedGym.name}</p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/fitness/configure')}
+              >
+                Change
+              </Button>
+            </div>
+          )}
+          
           <div className="flex items-center justify-between">
             <h1 className="text-xl font-semibold">{data?.workout?.title || 'Free Session'}</h1>
             <div className="flex items-center gap-3">
