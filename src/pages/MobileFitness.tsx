@@ -32,25 +32,25 @@ const MobileFitness: React.FC = () => {
 
   const quickActions = [
     {
-      label: t('quickStart').toUpperCase(),
+      label: t('quickStart'),
       icon: Play,
       href: "/fitness/session/new",
       color: "bg-green-500 hover:bg-green-600 text-white"
     },
     {
-      label: t('templates').toUpperCase(),
+      label: t('templates'),
       icon: Dumbbell,
       href: "/fitness/templates",
       color: "bg-blue-500 hover:bg-blue-600 text-white"
     },
     {
-      label: t('exercises').toUpperCase(),
+      label: t('exercises'),
       icon: BarChart3,
       href: "/fitness/exercises",
       color: "bg-purple-500 hover:bg-purple-600 text-white"
     },
     {
-      label: t('history').toUpperCase(),
+      label: t('history'),
       icon: History,
       href: "/fitness/history",
       color: "bg-orange-500 hover:bg-orange-600 text-white"
@@ -62,7 +62,7 @@ const MobileFitness: React.FC = () => {
       <div className="p-4 space-y-6">
         {/* Quick Actions Grid */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">{t('quickActions').toUpperCase()}</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
@@ -90,21 +90,21 @@ const MobileFitness: React.FC = () => {
               className="flex-1"
               onClick={() => setShowQuickEntry(false)}
             >
-              QUICK INPUT
+              Quick Input
             </Button>
             <Button
               variant={showQuickEntry ? "default" : "outline"}
               className="flex-1"
               onClick={() => setShowQuickEntry(true)}
             >
-              ENTRY PAD
+              Entry Pad
             </Button>
           </div>
 
           {!showQuickEntry ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t('quickLog').toUpperCase()}</CardTitle>
+                <CardTitle className="text-base">{t('quickLog')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <VoiceInput
@@ -173,7 +173,7 @@ const MobileFitness: React.FC = () => {
 
         {/* Progress Metrics */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">QUICK STATS</h2>
+          <h2 className="text-lg font-semibold mb-4">Quick Stats</h2>
           <div className="grid grid-cols-2 gap-3">
             <MetricVisualization
               title="Weight Progress"
@@ -194,7 +194,7 @@ const MobileFitness: React.FC = () => {
         {/* Recent Workouts */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">{t('recentWorkouts').toUpperCase()}</h2>
+            <h2 className="text-lg font-semibold">{t('recentWorkouts')}</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/fitness/history">
                 {t('common.viewAll')}
@@ -267,7 +267,7 @@ const MobileFitness: React.FC = () => {
           </BottomSheetTrigger>
           <BottomSheetContent>
             <BottomSheetHeader>
-              <BottomSheetTitle>{t('settings').toUpperCase()}</BottomSheetTitle>
+              <BottomSheetTitle>{t('settings')}</BottomSheetTitle>
             </BottomSheetHeader>
             <div className="p-4 space-y-4">
               <Button variant="ghost" className="w-full justify-start h-12" asChild>

@@ -18,13 +18,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { t } = useTranslation();
 
   const navigation = [
-    { name: t('dashboard').toUpperCase(), href: "/dashboard", icon: Home },
-    { name: t('fitness').toUpperCase(), href: "/fitness", icon: Dumbbell },
-    { name: "SOCIAL", href: "/social", icon: Users },
-    { name: "AI COACH", href: "/ai-coach", icon: Target },
-    { name: "ACHIEVEMENTS", href: "/achievements", icon: Award },
-    { name: t('progress').toUpperCase(), href: "/progress", icon: TrendingUp },
-    { name: t('profile').toUpperCase(), href: "/profile", icon: User },
+    { name: t('dashboard'), href: "/dashboard", icon: Home },
+    { name: t('fitness'), href: "/fitness", icon: Dumbbell },
+    { name: "Social", href: "/social", icon: Users },
+    { name: "AI Coach", href: "/ai-coach", icon: Target },
+    { name: "Achievements", href: "/achievements", icon: Award },
+    { name: t('progress'), href: "/progress", icon: TrendingUp },
+    { name: t('profile'), href: "/profile", icon: User },
   ];
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(href + "/");
@@ -44,7 +44,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             <SheetContent side="left" className="w-72 p-0">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b">
-                  <h2 className="text-lg font-semibold">iTrack.iWin</h2>
+                  <h2 className="text-lg font-semibold">iTrack.iWin.</h2>
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -88,7 +88,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </Sheet>
           
           <div className="flex-1 flex justify-center">
-            <h1 className="text-lg font-semibold">iTrack.iWin</h1>
+            <h1 className="text-lg font-semibold">iTrack.iWin.</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -105,7 +105,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
-            <h2 className="text-xl font-bold">iTrack.iWin</h2>
+            <h2 className="text-xl font-bold">iTrack.iWin.</h2>
           </div>
           <div className="mt-5 flex-1 flex flex-col">
             <nav className="flex-1 px-2 pb-4 space-y-1">

@@ -1,7 +1,7 @@
 {
-  "name": "iTrack.iWin - Fitness & Life Tracker",
-  "short_name": "iTrack.iWin",
-  "description": "Track your fitness, progress, and life goals with iTrack.iWin",
+  "name": "iTrack.iWin. - Fitness & Life Tracker",
+  "short_name": "iTrack.iWin.",
+  "description": "Track your fitness, progress, and life goals with iTrack.iWin.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#ffffff",
