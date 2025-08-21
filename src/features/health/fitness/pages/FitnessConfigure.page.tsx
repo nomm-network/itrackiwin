@@ -19,13 +19,23 @@ interface UserGym {
 interface PlaceResult {
   place_id: string;
   name: string;
-  formatted_address: string;
-  geometry: {
-    location: {
-      lat: number;
-      lng: number;
-    };
+  address: string;
+  rating?: number;
+  user_ratings_total?: number;
+  location?: {
+    lat: number;
+    lng: number;
   };
+  photos?: Array<{
+    url: string;
+    width: number;
+    height: number;
+  }>;
+  opening_hours?: {
+    open_now?: boolean;
+  };
+  website?: string;
+  phone?: string;
 }
 
 export default function FitnessConfigure() {
@@ -64,17 +74,101 @@ export default function FitnessConfigure() {
     
     setIsSearching(true);
     try {
-      // This would typically call the Google Places API via an edge function
-      // For now, we'll simulate with a placeholder
-      toast({ 
-        title: 'Search functionality', 
-        description: 'Google Places API integration would be implemented here' 
+      const { data, error } = await supabase.functions.invoke('search-gyms', {
+        body: { 
+          query: searchQuery.trim()
+        }
       });
-      
-      // Placeholder search results
-      setSearchResults([]);
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.results) {
+        setSearchResults(data.results);
+        toast({ 
+          title: `Found ${data.results.length} gyms`, 
+          description: `Showing results for "${searchQuery}"` 
+        });
+      } else {
+        setSearchResults([]);
+        toast({ 
+          title: 'No gyms found', 
+          description: 'Try a different search term or location' 
+        });
+      }
     } catch (error: any) {
-      toast({ title: 'Search failed', description: error.message });
+      console.error('Search error:', error);
+      toast({ 
+        title: 'Search failed', 
+        description: error.message || 'Unable to search for gyms' 
+      });
+      setSearchResults([]);
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  const searchNearbyGymsByLocation = async () => {
+    if (!navigator.geolocation) {
+      toast({ 
+        title: 'Location not supported', 
+        description: 'Your browser does not support geolocation' 
+      });
+      return;
+    }
+
+    setIsSearching(true);
+    try {
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 60000
+        });
+      });
+
+      const { latitude, longitude } = position.coords;
+
+      const { data, error } = await supabase.functions.invoke('search-gyms', {
+        body: { 
+          lat: latitude,
+          lng: longitude,
+          radius: 5000 // 5km radius
+        }
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.results) {
+        setSearchResults(data.results);
+        toast({ 
+          title: `Found ${data.results.length} nearby gyms`, 
+          description: 'Gyms within 5km of your location' 
+        });
+      } else {
+        setSearchResults([]);
+        toast({ 
+          title: 'No nearby gyms found', 
+          description: 'Try expanding your search area' 
+        });
+      }
+    } catch (error: any) {
+      if (error.code === error.PERMISSION_DENIED) {
+        toast({ 
+          title: 'Location access denied', 
+          description: 'Please allow location access to find nearby gyms' 
+        });
+      } else {
+        console.error('Location search error:', error);
+        toast({ 
+          title: 'Search failed', 
+          description: error.message || 'Unable to get your location' 
+        });
+      }
+      setSearchResults([]);
     } finally {
       setIsSearching(false);
     }
@@ -120,6 +214,60 @@ export default function FitnessConfigure() {
       toast({ title: 'Gym removed' });
     } catch (error: any) {
       toast({ title: 'Failed to remove gym', description: error.message });
+    }
+  };
+
+  const addGymFromPlace = async (place: PlaceResult) => {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) {
+        toast({ title: 'Authentication required', description: 'Please log in to add gyms' });
+        return;
+      }
+
+      // Check if user already has this gym
+      const { data: existingGyms, error: checkError } = await supabase
+        .from('user_gyms')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('name', place.name);
+
+      if (checkError) throw checkError;
+
+      if (existingGyms && existingGyms.length > 0) {
+        toast({ 
+          title: 'Gym already added', 
+          description: `${place.name} is already in your gym list` 
+        });
+        return;
+      }
+
+      // Add the gym to user's list
+      const { error } = await supabase
+        .from('user_gyms')
+        .insert([{
+          user_id: user.id,
+          name: place.name,
+          is_default: userGyms.length === 0 // Set as default if it's the first gym
+        }]);
+
+      if (error) throw error;
+
+      await loadUserGyms();
+      toast({ 
+        title: 'Gym added successfully', 
+        description: `${place.name} has been added to your gym list${userGyms.length === 0 ? ' and set as default' : ''}` 
+      });
+
+      // Clear search results after successful add
+      setSearchResults([]);
+      setSearchQuery("");
+    } catch (error: any) {
+      console.error('Error adding gym:', error);
+      toast({ 
+        title: 'Failed to add gym', 
+        description: error.message || 'Unable to add gym to your list' 
+      });
     }
   };
 
@@ -268,37 +416,110 @@ export default function FitnessConfigure() {
                 />
               </div>
               <div className="flex items-end">
-                <Button 
-                  onClick={searchNearbyGyms}
-                  disabled={isSearching || !searchQuery.trim()}
-                >
-                  {isSearching ? 'Searching...' : 'Search'}
-                </Button>
+                  <Button 
+                    onClick={searchNearbyGyms}
+                    disabled={isSearching || !searchQuery.trim()}
+                  >
+                    {isSearching ? 'Searching...' : 'Search'}
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={searchNearbyGymsByLocation}
+                    disabled={isSearching}
+                    className="whitespace-nowrap"
+                  >
+                    📍 Near Me
+                  </Button>
               </div>
             </div>
 
             {searchResults.length > 0 && (
-              <div className="space-y-2">
-                <h4 className="font-medium">Search Results</h4>
-                {searchResults.map((place) => (
-                  <div
-                    key={place.place_id}
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div>
-                      <h5 className="font-medium">{place.name}</h5>
-                      <p className="text-sm text-muted-foreground">
-                        {place.formatted_address}
-                      </p>
+              <div className="space-y-3">
+                <h4 className="font-medium">Search Results ({searchResults.length} gyms found)</h4>
+                <div className="max-h-96 overflow-y-auto space-y-3">
+                  {searchResults.map((place) => (
+                    <div
+                      key={place.place_id}
+                      className="flex items-start justify-between p-4 border rounded-lg hover:bg-accent/5 transition-colors"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3">
+                          {place.photos?.[0] && (
+                            <img 
+                              src={place.photos[0].url}
+                              alt={place.name}
+                              className="w-16 h-16 rounded object-cover flex-shrink-0"
+                              onError={(e) => {
+                                e.currentTarget.style.display = 'none';
+                              }}
+                            />
+                          )}
+                          <div className="flex-1 min-w-0">
+                            <h5 className="font-medium text-sm">{place.name}</h5>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {place.address}
+                            </p>
+                            <div className="flex items-center gap-4 mt-2 text-xs text-muted-foreground">
+                              {place.rating && (
+                                <span className="flex items-center gap-1">
+                                  ⭐ {place.rating}
+                                  {place.user_ratings_total && (
+                                    <span>({place.user_ratings_total})</span>
+                                  )}
+                                </span>
+                              )}
+                              {place.opening_hours?.open_now !== undefined && (
+                                <span className={place.opening_hours.open_now ? 'text-green-600' : 'text-red-600'}>
+                                  {place.opening_hours.open_now ? 'Open' : 'Closed'}
+                                </span>
+                              )}
+                            </div>
+                            {(place.website || place.phone) && (
+                              <div className="flex gap-3 mt-2">
+                                {place.website && (
+                                  <a 
+                                    href={place.website} 
+                                    target="_blank" 
+                                    rel="noopener noreferrer"
+                                    className="text-xs text-primary hover:underline"
+                                  >
+                                    Website
+                                  </a>
+                                )}
+                                {place.phone && (
+                                  <a 
+                                    href={`tel:${place.phone}`}
+                                    className="text-xs text-primary hover:underline"
+                                  >
+                                    {place.phone}
+                                  </a>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      <Button 
+                        size="sm"
+                        onClick={() => addGymFromPlace(place)}
+                        className="ml-3 flex-shrink-0"
+                      >
+                        Add Gym
+                      </Button>
                     </div>
-                    <Button size="sm">Add Gym</Button>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             )}
 
-            <div className="text-sm text-muted-foreground">
-              <p>💡 Tip: You can search for specific gym chains, addresses, or just your city name</p>
+            <div className="text-sm text-muted-foreground space-y-2">
+              <p>💡 <strong>Search Tips:</strong></p>
+              <ul className="list-disc list-inside space-y-1 ml-4">
+                <li>Search for specific gym chains like "Planet Fitness", "LA Fitness"</li>
+                <li>Enter your city name like "gyms in New York"</li>
+                <li>Use the "📍 Near Me" button to find gyms close to your location</li>
+                <li>Try broader terms like "fitness center" or "health club"</li>
+              </ul>
             </div>
           </CardContent>
         </Card>
