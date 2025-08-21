@@ -8,7 +8,8 @@ const resources = {
       admin: 'Admin',
       dashboard: 'Dashboard',
       account: 'Account',
-      loading: 'Loading...'
+      loading: 'Loading...',
+      viewAll: 'View All'
     },
     navigation: {
       categories: 'Categories',
@@ -18,6 +19,23 @@ const resources = {
       main_menu: 'Main Menu',
       translations_menu: 'Translations Menu'
     },
+    fitness: 'Fitness',
+    progress: 'Progress',
+    profile: 'Profile',
+    quickActions: 'Quick Actions',
+    quickStart: 'Quick Start',
+    templates: 'Templates',
+    history: 'History',
+    quickLog: 'Quick Log',
+    logSet: 'Log Set',
+    settings: 'Settings',
+    configure: 'Configure',
+    workout: 'Workout',
+    recentWorkouts: 'Recent Workouts',
+    completed: 'Completed',
+    inProgress: 'In Progress',
+    noWorkouts: 'No workouts yet',
+    startFirstWorkout: 'Start First Workout',
     labels: {
       no_categories: 'No categories found.',
       no_subcategories: 'No subcategories yet.',
@@ -64,7 +82,8 @@ const resources = {
       admin: 'Admin',
       dashboard: 'Panel',
       account: 'Cuenta',
-      loading: 'Cargando...'
+      loading: 'Cargando...',
+      viewAll: 'Ver Todo'
     },
     navigation: {
       categories: 'Categorías',
@@ -74,6 +93,23 @@ const resources = {
       main_menu: 'Menú Principal',
       translations_menu: 'Menú de Traducciones'
     },
+    fitness: 'Fitness',
+    progress: 'Progreso',
+    profile: 'Perfil',
+    quickActions: 'Acciones Rápidas',
+    quickStart: 'Inicio Rápido',
+    templates: 'Plantillas',
+    history: 'Historial',
+    quickLog: 'Registro Rápido',
+    logSet: 'Registrar Serie',
+    settings: 'Configuración',
+    configure: 'Configurar',
+    workout: 'Entrenamiento',
+    recentWorkouts: 'Entrenamientos Recientes',
+    completed: 'Completado',
+    inProgress: 'En Progreso',
+    noWorkouts: 'Sin entrenamientos aún',
+    startFirstWorkout: 'Iniciar Primer Entrenamiento',
     labels: {
       no_categories: 'No se encontraron categorías.',
       no_subcategories: 'Aún no hay subcategorías.',
@@ -119,7 +155,8 @@ const resources = {
       admin: 'Admin',
       dashboard: 'Panou',
       account: 'Cont',
-      loading: 'Se încarcă...'
+      loading: 'Se încarcă...',
+      viewAll: 'Vezi Tot'
     },
     navigation: {
       categories: 'Categorii',
@@ -129,6 +166,23 @@ const resources = {
       main_menu: 'Meniu Principal',
       translations_menu: 'Meniu Traduceri'
     },
+    fitness: 'Fitness',
+    progress: 'Progres',
+    profile: 'Profil',
+    quickActions: 'Acțiuni Rapide',
+    quickStart: 'Start Rapid',
+    templates: 'Șabloane',
+    history: 'Istoric',
+    quickLog: 'Jurnal Rapid',
+    logSet: 'Înregistrează Set',
+    settings: 'Setări',
+    configure: 'Configurează',
+    workout: 'Antrenament',
+    recentWorkouts: 'Antrenamente Recente',
+    completed: 'Completat',
+    inProgress: 'În Progres',
+    noWorkouts: 'Încă fără antrenamente',
+    startFirstWorkout: 'Începe Primul Antrenament',
     labels: {
       no_categories: 'Nu s-au găsit categorii.',
       no_subcategories: 'Încă nu există subcategorii.',
