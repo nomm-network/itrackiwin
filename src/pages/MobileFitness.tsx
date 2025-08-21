@@ -9,12 +9,26 @@ import { useTranslation } from "react-i18next";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
+import VoiceInput from "@/components/mobile/VoiceInput";
+import QuickEntryPad from "@/components/mobile/QuickEntryPad";
+import MetricVisualization from "@/components/mobile/MetricVisualization";
 
 const MobileFitness: React.FC = () => {
   const { t } = useTranslation();
   const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
   const [quickWeight, setQuickWeight] = useState<number | null>(null);
   const [quickReps, setQuickReps] = useState<number | null>(null);
+  const [showQuickEntry, setShowQuickEntry] = useState(false);
+
+  // Mock data for metric visualization
+  const mockMetricData = [
+    { date: '1/15', value: 45 },
+    { date: '1/16', value: 47.5 },
+    { date: '1/18', value: 50 },
+    { date: '1/20', value: 52.5 },
+    { date: '1/22', value: 50 },
+    { date: '1/24', value: 55 },
+  ];
 
   const quickActions = [
     {
@@ -68,38 +82,105 @@ const MobileFitness: React.FC = () => {
           </div>
         </section>
 
-        {/* Quick Set Logger */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">{t('fitness.quickLog')}</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4">
-              <TouchOptimizedSetInput
-                value={quickWeight}
-                onChange={setQuickWeight}
-                label={t('fitness.weight')}
-                suffix="kg"
-                max={500}
-                step={2.5}
-                className="flex-1"
-              />
-              <TouchOptimizedSetInput
-                value={quickReps}
-                onChange={setQuickReps}
-                label={t('fitness.reps')}
-                max={100}
-                className="flex-1"
-              />
-            </div>
-            <Button 
-              className="w-full h-12 touch-manipulation"
-              disabled={!quickWeight || !quickReps}
+        {/* Enhanced Quick Entry */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              variant={!showQuickEntry ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setShowQuickEntry(false)}
             >
-              {t('fitness.logSet')}
+              Quick Input
             </Button>
-          </CardContent>
-        </Card>
+            <Button
+              variant={showQuickEntry ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setShowQuickEntry(true)}
+            >
+              Entry Pad
+            </Button>
+          </div>
+
+          {!showQuickEntry ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t('fitness.quickLog')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <VoiceInput
+                  onResult={(text) => {
+                    import('@/lib/voiceParser').then(({ parseVoiceInput }) => {
+                      const parsed = parseVoiceInput(text);
+                      if (parsed.weight) setQuickWeight(parsed.weight);
+                      if (parsed.reps) setQuickReps(parsed.reps);
+                    });
+                  }}
+                  placeholder="Say: '10 reps at 50 kilos'"
+                />
+                
+                <div className="flex gap-4">
+                  <TouchOptimizedSetInput
+                    value={quickWeight}
+                    onChange={setQuickWeight}
+                    label={t('fitness.weight')}
+                    suffix="kg"
+                    max={500}
+                    step={2.5}
+                    className="flex-1"
+                  />
+                  <TouchOptimizedSetInput
+                    value={quickReps}
+                    onChange={setQuickReps}
+                    label={t('fitness.reps')}
+                    max={100}
+                    className="flex-1"
+                  />
+                </div>
+                <Button 
+                  className="w-full h-12 touch-manipulation"
+                  disabled={!quickWeight || !quickReps}
+                  onClick={() => {
+                    console.log('Logging set:', quickWeight, quickReps);
+                    setQuickWeight(null);
+                    setQuickReps(null);
+                  }}
+                >
+                  {t('fitness.logSet')}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <QuickEntryPad
+              onSubmit={(weight, reps) => {
+                console.log('Quick entry:', weight, reps);
+                setQuickWeight(weight);
+                setQuickReps(reps);
+              }}
+              lastWeight={quickWeight || 0}
+              lastReps={quickReps || 0}
+            />
+          )}
+        </div>
+
+        {/* Progress Metrics */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">Quick Stats</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <MetricVisualization
+              title="Weight Progress"
+              data={mockMetricData}
+              unit="kg"
+              target={60}
+              type="line"
+            />
+            <MetricVisualization
+              title="Volume"
+              data={mockMetricData.map(d => ({ ...d, value: d.value * 8 }))}
+              unit="kg"
+              type="bar"
+            />
+          </div>
+        </section>
 
         {/* Recent Workouts */}
         <section>

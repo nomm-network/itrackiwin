@@ -1,9 +1,14 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Smartphone, Settings } from 'lucide-react';
 import { ExerciseMetricDef } from '@/features/fitness/hooks/useMetrics';
+import EnhancedMetricsForm from '@/components/mobile/EnhancedMetricsForm';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DynamicMetricsFormProps {
   metrics: ExerciseMetricDef[];
@@ -18,6 +23,15 @@ export const DynamicMetricsForm: React.FC<DynamicMetricsFormProps> = ({
   onValuesChange,
   className
 }) => {
+  const isMobile = useIsMobile();
+  const [useEnhanced, setUseEnhanced] = useState(isMobile);
+
+  // Mock exercise history for enhanced form
+  const mockExerciseHistory = [
+    { date: '2024-01-20', weight: 50, reps: 8 },
+    { date: '2024-01-22', weight: 52.5, reps: 8 },
+    { date: '2024-01-24', weight: 55, reps: 7 },
+  ];
   const handleValueChange = (metricId: string, value: any) => {
     onValuesChange({
       ...values,
@@ -143,10 +157,45 @@ export const DynamicMetricsForm: React.FC<DynamicMetricsFormProps> = ({
 
   return (
     <div className={`space-y-3 ${className}`}>
-      <h4 className="text-sm font-medium text-muted-foreground">Additional Metrics</h4>
-      <div className="grid grid-cols-2 gap-2">
-        {metrics.map(renderMetricInput)}
-      </div>
+      {isMobile ? (
+        <Tabs value={useEnhanced ? "enhanced" : "standard"} onValueChange={(value) => setUseEnhanced(value === "enhanced")}>
+          <div className="flex items-center justify-between mb-3">
+            <h4 className="text-sm font-medium text-muted-foreground">Additional Metrics</h4>
+            <TabsList className="h-8">
+              <TabsTrigger value="standard" className="text-xs">
+                <Settings className="h-3 w-3 mr-1" />
+                Standard
+              </TabsTrigger>
+              <TabsTrigger value="enhanced" className="text-xs">
+                <Smartphone className="h-3 w-3 mr-1" />
+                Enhanced
+              </TabsTrigger>
+            </TabsList>
+          </div>
+          
+          <TabsContent value="standard">
+            <div className="grid grid-cols-2 gap-2">
+              {metrics.map(renderMetricInput)}
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="enhanced">
+            <EnhancedMetricsForm
+              metrics={metrics}
+              values={values}
+              onValuesChange={onValuesChange}
+              exerciseHistory={mockExerciseHistory}
+            />
+          </TabsContent>
+        </Tabs>
+      ) : (
+        <>
+          <h4 className="text-sm font-medium text-muted-foreground">Additional Metrics</h4>
+          <div className="grid grid-cols-2 gap-2">
+            {metrics.map(renderMetricInput)}
+          </div>
+        </>
+      )}
     </div>
   );
 };
