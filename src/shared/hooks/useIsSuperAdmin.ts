@@ -1,0 +1,1 @@
+export { useIsSuperAdmin } from '@/hooks/useIsSuperAdmin';

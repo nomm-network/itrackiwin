@@ -1,0 +1,38 @@
+export const Paths = {
+  root: '/',
+  auth: '/auth',
+  dashboard: '/dashboard',
+  health: {
+    fitness: {
+      root: '/fitness',
+      exercises: '/fitness/exercises',
+      exerciseEdit: (id = ':id') => `/fitness/exercises/${id}/edit`,
+      session: (id = ':id') => `/fitness/session/${id}`,
+      templates: '/fitness/templates',
+      templateEdit: (templateId = ':templateId') => `/fitness/templates/${templateId}/edit`,
+      configure: '/fitness/configure',
+      history: '/fitness/history',
+      historyDetail: (id = ':id') => `/fitness/history/${id}`,
+    },
+  },
+  social: '/social',
+  aiCoach: '/ai-coach',
+  progress: '/progress',
+  journal: '/journal',
+  insights: '/insights',
+  achievements: '/achievements',
+  analytics: '/analytics',
+  profile: '/profile',
+  area: (slug = ':slug') => `/area/${slug}`,
+  admin: {
+    root: '/admin',
+    exercises: '/admin/exercises',
+    muscles: '/admin/muscles',
+    equipment: '/admin/others/equipment',
+    grips: '/admin/others/grips',
+    translations: '/admin/translations',
+    category: (categoryId = ':categoryId') => `/admin/category/${categoryId}`,
+    subcategory: (categoryId = ':categoryId', subcategoryId = ':subcategoryId') =>
+      `/admin/category/${categoryId}/sub/${subcategoryId}`,
+  },
+} as const;
