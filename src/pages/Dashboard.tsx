@@ -49,17 +49,21 @@ const Dashboard: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
+    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 md:pb-6">
       {/* Header */}
       <div className="space-y-2">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold">Dashboard</h1>
-            <p className="text-muted-foreground">
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+            <p className="text-sm sm:text-base text-muted-foreground">
               Your personal command center for tracking progress across all areas of life.
             </p>
           </div>
-          <Button variant="outline" onClick={() => navigate('/explore')}>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/explore')}
+            className="self-start sm:self-auto text-sm"
+          >
             Explore by Planets
           </Button>
         </div>
@@ -67,35 +71,37 @@ const Dashboard: React.FC = () => {
 
       {/* Category Navigation */}
       <Tabs value={currentCategory} onValueChange={handleCategoryChange}>
-        <TabsList className="grid w-full grid-cols-3 lg:grid-cols-6">
+        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto p-1">
           {categories.map((cat) => (
             <TabsTrigger
               key={cat.id}
               value={cat.id}
-              className="flex items-center gap-2 text-xs"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs p-2 sm:p-3 h-auto"
             >
-              <span>{cat.icon}</span>
-              <span className="hidden sm:inline">{cat.name}</span>
+              <span className="text-base">{cat.icon}</span>
+              <span className="text-xs sm:text-sm leading-tight">{cat.name}</span>
             </TabsTrigger>
           ))}
         </TabsList>
 
         {categories.map((cat) => (
-          <TabsContent key={cat.id} value={cat.id} className="space-y-6">
+          <TabsContent key={cat.id} value={cat.id} className="space-y-4 sm:space-y-6">
             {/* Subcategory Navigation */}
             {cat.subcategories && cat.subcategories.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {cat.subcategories.map((sub) => (
-                  <Badge
-                    key={sub.id}
-                    variant={currentSubcategory === sub.id ? "default" : "outline"}
-                    className="cursor-pointer"
-                    onClick={() => handleSubcategoryChange(sub.id)}
-                  >
-                    <span className="mr-1">{sub.icon}</span>
-                    {sub.name}
-                  </Badge>
-                ))}
+              <div className="overflow-x-auto pb-2">
+                <div className="flex gap-2 min-w-max px-1">
+                  {cat.subcategories.map((sub) => (
+                    <Badge
+                      key={sub.id}
+                      variant={currentSubcategory === sub.id ? "default" : "outline"}
+                      className="cursor-pointer whitespace-nowrap flex-shrink-0 px-3 py-2 text-sm"
+                      onClick={() => handleSubcategoryChange(sub.id)}
+                    >
+                      <span className="mr-1">{sub.icon}</span>
+                      {sub.name}
+                    </Badge>
+                  ))}
+                </div>
               </div>
             )}
 
