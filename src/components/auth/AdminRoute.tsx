@@ -12,10 +12,6 @@ const AdminRoute: React.FC = () => {
   useEffect(() => {
     const checkRoles = async (userId: string) => {
       try {
-        // Attempt to bootstrap an admin if none exists yet
-        await supabase.rpc('bootstrap_admin_if_empty');
-      } catch {}
-      try {
         const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_admin', { _user_id: userId });
         if (rpcErr) throw rpcErr;
         if (isAdm === true) {
