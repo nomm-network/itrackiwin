@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Brain, MessageCircle, TrendingUp, Target, Loader2, Sparkles } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { useRecentWorkouts } from "@/features/fitness/api";
+import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
 import { useQuery } from "@tanstack/react-query";
 
 interface CoachingResponse {

@@ -9,7 +9,7 @@ import { Mic, Calculator, Zap } from 'lucide-react';
 import VoiceInput from './VoiceInput';
 import QuickEntryPad from './QuickEntryPad';
 import MetricVisualization from './MetricVisualization';
-import { ExerciseMetricDef } from '@/features/fitness/hooks/useMetrics';
+import { ExerciseMetricDef } from '@/features/health/fitness/hooks/useMetrics.hook';
 
 interface EnhancedMetricsFormProps {
   metrics: ExerciseMetricDef[];

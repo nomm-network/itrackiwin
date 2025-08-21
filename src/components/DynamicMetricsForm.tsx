@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Smartphone, Settings } from 'lucide-react';
-import { ExerciseMetricDef } from '@/features/fitness/hooks/useMetrics';
+import { ExerciseMetricDef } from '@/features/health/fitness/hooks/useMetrics.hook';
 import EnhancedMetricsForm from '@/components/mobile/EnhancedMetricsForm';
 import { useIsMobile } from '@/hooks/use-mobile';
 

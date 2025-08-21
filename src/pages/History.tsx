@@ -3,7 +3,7 @@ import PageNav from "@/components/PageNav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-import { usePersonalRecords, useRecentWorkouts, useDeleteWorkout, useUpdateWorkout } from "@/features/fitness/api";
+import { usePersonalRecords, useRecentWorkouts, useDeleteWorkout, useUpdateWorkout } from "@/features/health/fitness/services/fitness.api";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Edit2 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";

@@ -3,7 +3,7 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/fitness/api";
+import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/health/fitness/services/fitness.api";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { useTranslations } from "@/hooks/useTranslations";
 

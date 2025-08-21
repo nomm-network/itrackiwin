@@ -4,5 +4,6 @@ export {
   useEquipmentMetrics, 
   useCombinedMetrics, 
   useWorkoutSetMetrics, 
-  useUpsertWorkoutSetMetrics 
-} from '@/features/fitness/api';
+  useUpsertWorkoutSetMetrics,
+  type ExerciseMetricDef
+} from '@/features/health/fitness/services/fitness.api';

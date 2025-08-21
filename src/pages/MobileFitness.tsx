@@ -4,7 +4,7 @@ import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { useRecentWorkouts } from "@/features/fitness/api";
+import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
 import { useTranslation } from "react-i18next";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";

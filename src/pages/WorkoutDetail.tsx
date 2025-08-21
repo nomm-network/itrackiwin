@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/fitness/api";
+import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 

@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useRecentWorkouts, useStartWorkout, useUpdateWorkout, useDeleteWorkout } from "@/features/fitness/api";
+import { useRecentWorkouts, useStartWorkout, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
 import { toast } from "@/components/ui/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
