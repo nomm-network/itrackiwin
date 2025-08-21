@@ -3020,8 +3020,12 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_superadmin_with_rate_limit: {
-        Args: { _user_id: string }
+        Args: Record<PropertyKey, never> | { _user_id: string }
         Returns: boolean
       }
       log_admin_action: {
