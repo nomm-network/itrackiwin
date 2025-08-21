@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell } from "lucide-react";
+import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -118,23 +118,27 @@ const MobileFitness: React.FC = () => {
                   placeholder="Say: '10 reps at 50 kilos'"
                 />
                 
-                <div className="flex gap-4">
-                  <TouchOptimizedSetInput
-                    value={quickWeight}
-                    onChange={setQuickWeight}
-                    label={t('weight')}
-                    suffix="kg"
-                    max={500}
-                    step={2.5}
-                    className="flex-1"
-                  />
-                  <TouchOptimizedSetInput
-                    value={quickReps}
-                    onChange={setQuickReps}
-                    label={t('reps')}
-                    max={100}
-                    className="flex-1"
-                  />
+                <div className="flex gap-2">
+                  <div className="flex-1 flex items-center gap-2">
+                    <Weight className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <TouchOptimizedSetInput
+                      value={quickWeight}
+                      onChange={setQuickWeight}
+                      suffix="kg"
+                      max={500}
+                      step={2.5}
+                      className="flex-1"
+                    />
+                  </div>
+                  <div className="flex-1 flex items-center gap-2">
+                    <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <TouchOptimizedSetInput
+                      value={quickReps}
+                      onChange={setQuickReps}
+                      max={100}
+                      className="flex-1"
+                    />
+                  </div>
                 </div>
                 <Button 
                   className="w-full h-12 touch-manipulation"
