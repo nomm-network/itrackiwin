@@ -5,7 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { MapPin, Edit3, Trash2, Search } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MapPin, Edit3, Trash2, Search, Plus } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 import { NavLink } from "react-router-dom";
@@ -38,12 +39,24 @@ interface PlaceResult {
   phone?: string;
 }
 
+interface MicroWeight {
+  id: string;
+  weight: number;
+  unit: "kg" | "lb";
+  quantity: number;
+  user_gym_id: string;
+}
+
 export default function FitnessConfigure() {
   const [userGyms, setUserGyms] = useState<UserGym[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
+  const [microWeights, setMicroWeights] = useState<MicroWeight[]>([]);
+  const [newWeight, setNewWeight] = useState("");
+  const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState("gyms");
 
   const loadUserGyms = async () => {
     try {
@@ -65,8 +78,32 @@ export default function FitnessConfigure() {
     }
   };
 
+  const loadMicroWeights = async () => {
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_gym_miniweights')
+        .select('*')
+        .eq('user_gym_id', (await supabase
+          .from('user_gyms')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('is_default', true)
+          .single()).data?.id || '')
+        .order('weight');
+
+      if (error && error.code !== 'PGRST116') throw error;
+      setMicroWeights(data || []);
+    } catch (error: any) {
+      console.error('Failed to load micro weights:', error.message);
+    }
+  };
+
   useEffect(() => {
     loadUserGyms();
+    loadMicroWeights();
   }, []);
 
   const searchNearbyGyms = async () => {
@@ -271,6 +308,64 @@ export default function FitnessConfigure() {
     }
   };
 
+  const addMicroWeight = async () => {
+    const weight = parseFloat(newWeight);
+    if (!weight || weight <= 0) {
+      toast({ title: 'Invalid weight', description: 'Please enter a valid weight' });
+      return;
+    }
+
+    try {
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) return;
+
+      const defaultGym = await supabase
+        .from('user_gyms')
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('is_default', true)
+        .single();
+
+      if (!defaultGym.data) {
+        toast({ title: 'No default gym', description: 'Please set a default gym first' });
+        return;
+      }
+
+      const { error } = await supabase
+        .from('user_gym_miniweights')
+        .insert([{
+          user_gym_id: defaultGym.data.id,
+          weight,
+          unit: newWeightUnit as "kg" | "lb",
+          quantity: 1
+        }]);
+
+      if (error) throw error;
+
+      setNewWeight("");
+      await loadMicroWeights();
+      toast({ title: 'Micro weight added' });
+    } catch (error: any) {
+      toast({ title: 'Failed to add micro weight', description: error.message });
+    }
+  };
+
+  const removeMicroWeight = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_gym_miniweights')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      await loadMicroWeights();
+      toast({ title: 'Micro weight removed' });
+    } catch (error: any) {
+      toast({ title: 'Failed to remove micro weight', description: error.message });
+    }
+  };
+
   if (isLoading) {
     return (
       <>
@@ -318,8 +413,15 @@ export default function FitnessConfigure() {
           <p className="text-muted-foreground">Manage your gym settings and preferences</p>
         </div>
 
-        {/* Current Gyms */}
-        <Card>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="gyms">Gyms</TabsTrigger>
+            <TabsTrigger value="microweights">Micro Weights</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="gyms" className="space-y-6">
+            {/* Current Gyms */}
+            <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <MapPin className="h-5 w-5" />
@@ -523,6 +625,95 @@ export default function FitnessConfigure() {
             </div>
           </CardContent>
         </Card>
+          </TabsContent>
+
+          <TabsContent value="microweights" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Plus className="h-5 w-5" />
+                  Micro Weights
+                </CardTitle>
+                <CardDescription>
+                  Manage your micro plates for precise weight adjustments
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {/* Add new micro weight */}
+                <div className="flex gap-2">
+                  <div className="flex-1">
+                    <Label htmlFor="weight-input">Weight</Label>
+                    <Input
+                      id="weight-input"
+                      type="number"
+                      step="0.25"
+                      placeholder="1.25"
+                      value={newWeight}
+                      onChange={(e) => setNewWeight(e.target.value)}
+                    />
+                  </div>
+                  <div className="w-24">
+                    <Label htmlFor="weight-unit">Unit</Label>
+                    <select
+                      id="weight-unit"
+                      value={newWeightUnit}
+                      onChange={(e) => setNewWeightUnit(e.target.value)}
+                      className="w-full h-10 px-3 rounded-md border border-input bg-background"
+                    >
+                      <option value="kg">kg</option>
+                      <option value="lbs">lbs</option>
+                    </select>
+                  </div>
+                  <div className="flex items-end">
+                    <Button onClick={addMicroWeight} disabled={!newWeight}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Micro weights list */}
+                {microWeights.length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <Plus className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>No micro weights configured yet</p>
+                    <p className="text-sm">Add micro plates for precise weight adjustments</p>
+                  </div>
+                ) : (
+                  <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {microWeights.map((weight) => (
+                      <div
+                        key={weight.id}
+                        className="flex items-center justify-between p-3 rounded-lg border bg-card"
+                      >
+                        <span className="font-medium">
+                          {weight.weight} {weight.unit}
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMicroWeight(weight.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div className="text-sm text-muted-foreground">
+                  <p>💡 <strong>Tip:</strong> Micro weights are useful for:</p>
+                  <ul className="list-disc list-inside mt-2 space-y-1 ml-4">
+                    <li>Cable machines with limited weight increments</li>
+                    <li>Progressive overload with small weight increases</li>
+                    <li>Adjusting fixed weight equipment</li>
+                    <li>Fine-tuning your working weight</li>
+                  </ul>
+                </div>
+              </CardContent>
+            </Card>
+          </TabsContent>
+        </Tabs>
       </main>
     </>
   );
