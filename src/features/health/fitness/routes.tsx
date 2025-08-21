@@ -11,18 +11,16 @@ const HistoryPage = lazy(() => import("./pages/History.page"));
 const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 const FitnessConfigurePage = lazy(() => import("./pages/FitnessConfigure.page"));
 
-export function FitnessRoutes() {
-  return (
-    <Routes>
-      <Route index element={<FitnessPage />} />
-      <Route path="exercises" element={<ExercisesPage />} />
-      <Route path="exercises/:id/edit" element={<ExerciseEditPage />} />
-      <Route path="session/:id" element={<WorkoutSessionPage />} />
-      <Route path="templates" element={<TemplatesPage />} />
-      <Route path="templates/:templateId/edit" element={<TemplateEditorPage />} />
-      <Route path="configure" element={<FitnessConfigurePage />} />
-      <Route path="history" element={<HistoryPage />} />
-      <Route path="history/:id" element={<WorkoutDetailPage />} />
-    </Routes>
-  );
-}
+export const FitnessRoutes = (
+  <Routes>
+    <Route index element={<FitnessPage />} />
+    <Route path="exercises" element={<ExercisesPage />} />
+    <Route path="exercises/:id/edit" element={<ExerciseEditPage />} />
+    <Route path="session/:id" element={<WorkoutSessionPage />} />
+    <Route path="templates" element={<TemplatesPage />} />
+    <Route path="templates/:templateId/edit" element={<TemplateEditorPage />} />
+    <Route path="configure" element={<FitnessConfigurePage />} />
+    <Route path="history" element={<HistoryPage />} />
+    <Route path="history/:id" element={<WorkoutDetailPage />} />
+  </Routes>
+);
