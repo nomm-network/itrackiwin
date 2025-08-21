@@ -426,9 +426,13 @@ export const useTemplates = () => {
   return useQuery({
     queryKey: ["templates"],
     queryFn: async (): Promise<Template[]> => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return [];
+      
       const { data, error } = await supabase
         .from("workout_templates")
         .select("*")
+        .eq("user_id", user.id)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data || [];
@@ -439,10 +443,16 @@ export const useTemplates = () => {
 export const useCreateTemplate = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (template: any) => {
+    mutationFn: async (name: string) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase
         .from("workout_templates")
-        .insert(template)
+        .insert({
+          name,
+          user_id: user.id
+        })
         .select()
         .single();
       if (error) throw error;
@@ -470,8 +480,56 @@ export const useCloneTemplate = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (templateId: UUID) => {
-      // Placeholder - this RPC doesn't exist yet
-      throw new Error("clone_template RPC not implemented");
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("Not authenticated");
+
+      // Get the original template
+      const { data: template, error: fetchError } = await supabase
+        .from("workout_templates")
+        .select("*")
+        .eq("id", templateId)
+        .single();
+      if (fetchError) throw fetchError;
+
+      // Create the cloned template
+      const { data: newTemplate, error: insertError } = await supabase
+        .from("workout_templates")
+        .insert({
+          name: `${template.name} (Copy)`,
+          notes: template.notes,
+          user_id: user.id
+        })
+        .select()
+        .single();
+      if (insertError) throw insertError;
+
+      // Get template exercises
+      const { data: exercises, error: exercisesError } = await supabase
+        .from("template_exercises")
+        .select("*")
+        .eq("template_id", templateId);
+      if (exercisesError) throw exercisesError;
+
+      // Clone exercises
+      if (exercises && exercises.length > 0) {
+        const clonedExercises = exercises.map(exercise => ({
+          template_id: newTemplate.id,
+          exercise_id: exercise.exercise_id,
+          order_index: exercise.order_index,
+          default_sets: exercise.default_sets,
+          target_reps: exercise.target_reps,
+          target_weight: exercise.target_weight,
+          weight_unit: exercise.weight_unit,
+          notes: exercise.notes
+        }));
+
+        const { error: cloneError } = await supabase
+          .from("template_exercises")
+          .insert(clonedExercises);
+        if (cloneError) throw cloneError;
+      }
+
+      return newTemplate.id;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["templates"] }),
   });
