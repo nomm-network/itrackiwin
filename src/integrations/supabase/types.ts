@@ -3020,6 +3020,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_superadmin_with_rate_limit: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
       log_admin_action: {
         Args: { action_type: string; details?: Json; target_user_id?: string }
         Returns: undefined

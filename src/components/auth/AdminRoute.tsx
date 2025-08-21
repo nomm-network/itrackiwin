@@ -13,7 +13,7 @@ const AdminRoute: React.FC = () => {
     const checkRoles = async (userId: string) => {
       try {
         // Use the secure admin check with rate limiting
-        const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_admin_with_rate_limit', { _user_id: userId });
+        const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_superadmin_with_rate_limit', { _user_id: userId });
         
         if (rpcErr) {
           // Log the error for security monitoring

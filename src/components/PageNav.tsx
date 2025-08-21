@@ -9,7 +9,7 @@ import {
   BreadcrumbPage,
 } from "@/components/ui/breadcrumb";
 import { useTranslation } from "react-i18next";
-import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 
 interface PageNavProps {
   current: string;
@@ -17,7 +17,7 @@ interface PageNavProps {
 
 const PageNav: React.FC<PageNavProps> = ({ current }) => {
   const { t } = useTranslation();
-  const { isAdmin } = useIsAdmin();
+  const { isSuperAdmin } = useIsSuperAdmin();
 
   return (
     <header className="container py-4">
@@ -39,7 +39,7 @@ const PageNav: React.FC<PageNavProps> = ({ current }) => {
         </div>
         <div className="flex items-center gap-4 text-sm">
           <Link to="/dashboard">{t('common.dashboard')}</Link>
-          {isAdmin && <Link to="/admin">{t('common.admin')}</Link>}
+          {isSuperAdmin && <Link to="/admin">{t('common.admin')}</Link>}
         </div>
       </nav>
     </header>
