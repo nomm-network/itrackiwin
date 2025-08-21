@@ -8,3 +8,6 @@ verify_jwt = false
 
 [functions.import-exercises-community]
 verify_jwt = false
+
+[functions.refresh-exercise-views]
+verify_jwt = false

@@ -2884,6 +2884,24 @@ export type Database = {
         Args: { p_key: string; p_language_code?: string }
         Returns: string
       }
+      get_user_last_set_for_exercise: {
+        Args: { p_exercise_id: string }
+        Returns: {
+          completed_at: string
+          exercise_id: string
+          reps: number
+          user_id: string
+          weight: number
+        }[]
+      }
+      get_user_pr_for_exercise: {
+        Args: { p_exercise_id: string }
+        Returns: {
+          best_weight: number
+          exercise_id: string
+          user_id: string
+        }[]
+      }
       gtrgm_compress: {
         Args: { "": unknown }
         Returns: unknown
