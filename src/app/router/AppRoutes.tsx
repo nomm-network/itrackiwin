@@ -6,6 +6,9 @@ import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLay
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
 
+// Dashboard
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
+
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
 const Auth = lazy(() => import('@/pages/Auth'));
@@ -42,7 +45,10 @@ export function AppRoutes() {
           <Route path="/*" element={
             <ProtectedMobileLayout>
               <Routes>
-                {/* General protected routes */}
+                {/* Main Dashboard - New unified dashboard */}
+                <Route path="/dashboard" element={<Dashboard />} />
+                
+                {/* Legacy routes - keeping for compatibility */}
                 <Route path={Paths.dashboard} element={<UserDashboard />} />
                 <Route path={Paths.progress} element={<Progress />} />
                 <Route path={Paths.journal} element={<Journal />} />
