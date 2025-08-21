@@ -11,6 +11,8 @@ export const Paths = {
       templates: '/fitness/templates',
       templateEdit: (templateId = ':templateId') => `/fitness/templates/${templateId}/edit`,
       configure: '/fitness/configure',
+      myGym: '/fitness/my-gym',
+      templatesRotation: '/fitness/templates/rotation',
       history: '/fitness/history',
       historyDetail: (id = ':id') => `/fitness/history/${id}`,
     },
