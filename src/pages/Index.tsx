@@ -6,8 +6,10 @@ import { Button } from "@/components/ui/button";
 import { AreaId } from "@/types/domain";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
+import { useIsSuperAdmin } from "@/hooks/useIsSuperAdmin";
 const Index: React.FC = () => {
   const navigate = useNavigate();
+  const { isSuperAdmin } = useIsSuperAdmin();
   const seedIfEmpty = useAppStore(s => s.seedIfEmpty);
   const areas = useAppStore(s => s.areas);
   React.useEffect(() => seedIfEmpty(), [seedIfEmpty]);
@@ -28,8 +30,8 @@ const Index: React.FC = () => {
               <Link className="story-link" to="/journal">Journal</Link>
               <Link className="story-link" to="/fitness">Fitness</Link>
               <Link className="story-link" to="/insights">Insights</Link>
-              <Link className="story-link" to="/dashboard">Dashboard</Link>
-              <Link className="story-link" to="/admin">Admin</Link>
+               <Link className="story-link" to="/dashboard">Dashboard</Link>
+               {isSuperAdmin && <Link className="story-link" to="/admin">Admin</Link>}
             </div>
             <div className="md:hidden">
               <Button variant="outline" size="sm" asChild>
