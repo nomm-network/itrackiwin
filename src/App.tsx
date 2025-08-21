@@ -42,6 +42,7 @@ import AdminGripsTranslations from "./admin/pages/AdminGripsTranslations";
 import AICoachingHub from "./pages/AICoachingHub";
 import Social from "./pages/Social";
 import UserDashboard from "./pages/UserDashboard";
+import Achievements from "./pages/Achievements";
 import { useIsMobile } from "./hooks/useMobile";
 
 const queryClient = new QueryClient();
@@ -73,6 +74,7 @@ const App = () => {
                   <Route path="/progress" element={<Progress />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/insights" element={<Insights />} />
+                  <Route path="/achievements" element={<Achievements />} />
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/area/:slug" element={<AreaDetail />} />

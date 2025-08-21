@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, TrendingUp, BookOpen, Target, User, Settings, Dumbbell, Users } from "lucide-react";
+import { Menu, X, Home, TrendingUp, BookOpen, Target, User, Settings, Dumbbell, Users, Award } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
@@ -22,6 +22,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
     { name: t('nav.fitness'), href: "/fitness", icon: Dumbbell },
     { name: "Social", href: "/social", icon: Users },
     { name: "AI Coach", href: "/ai-coach", icon: Target },
+    { name: "Achievements", href: "/achievements", icon: Award },
     { name: t('nav.progress'), href: "/progress", icon: TrendingUp },
     { name: t('nav.profile'), href: "/profile", icon: User },
   ];
