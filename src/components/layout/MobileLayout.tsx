@@ -18,13 +18,13 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const { t } = useTranslation();
 
   const navigation = [
-    { name: t('nav.dashboard'), href: "/dashboard", icon: Home },
-    { name: t('nav.fitness'), href: "/fitness", icon: Dumbbell },
+    { name: t('dashboard'), href: "/dashboard", icon: Home },
+    { name: t('fitness'), href: "/fitness", icon: Dumbbell },
     { name: "Social", href: "/social", icon: Users },
     { name: "AI Coach", href: "/ai-coach", icon: Target },
     { name: "Achievements", href: "/achievements", icon: Award },
-    { name: t('nav.progress'), href: "/progress", icon: TrendingUp },
-    { name: t('nav.profile'), href: "/profile", icon: User },
+    { name: t('progress'), href: "/progress", icon: TrendingUp },
+    { name: t('profile'), href: "/profile", icon: User },
   ];
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(href + "/");

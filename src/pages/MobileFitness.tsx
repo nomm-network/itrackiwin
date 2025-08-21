@@ -32,25 +32,25 @@ const MobileFitness: React.FC = () => {
 
   const quickActions = [
     {
-      label: t('fitness.quickStart'),
+      label: t('quickStart'),
       icon: Play,
       href: "/fitness/session/new",
       color: "bg-green-500 hover:bg-green-600 text-white"
     },
     {
-      label: t('fitness.templates'),
+      label: t('templates'),
       icon: Dumbbell,
       href: "/fitness/templates",
       color: "bg-blue-500 hover:bg-blue-600 text-white"
     },
     {
-      label: t('fitness.exercises'),
+      label: t('exercises'),
       icon: BarChart3,
       href: "/fitness/exercises",
       color: "bg-purple-500 hover:bg-purple-600 text-white"
     },
     {
-      label: t('fitness.history'),
+      label: t('history'),
       icon: History,
       href: "/fitness/history",
       color: "bg-orange-500 hover:bg-orange-600 text-white"
@@ -62,7 +62,7 @@ const MobileFitness: React.FC = () => {
       <div className="p-4 space-y-6">
         {/* Quick Actions Grid */}
         <section>
-          <h2 className="text-lg font-semibold mb-4">{t('fitness.quickActions')}</h2>
+          <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
@@ -104,7 +104,7 @@ const MobileFitness: React.FC = () => {
           {!showQuickEntry ? (
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-base">{t('fitness.quickLog')}</CardTitle>
+                <CardTitle className="text-base">{t('quickLog')}</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <VoiceInput
@@ -122,7 +122,7 @@ const MobileFitness: React.FC = () => {
                   <TouchOptimizedSetInput
                     value={quickWeight}
                     onChange={setQuickWeight}
-                    label={t('fitness.weight')}
+                    label={t('weight')}
                     suffix="kg"
                     max={500}
                     step={2.5}
@@ -131,7 +131,7 @@ const MobileFitness: React.FC = () => {
                   <TouchOptimizedSetInput
                     value={quickReps}
                     onChange={setQuickReps}
-                    label={t('fitness.reps')}
+                    label={t('reps')}
                     max={100}
                     className="flex-1"
                   />
@@ -145,7 +145,7 @@ const MobileFitness: React.FC = () => {
                     setQuickReps(null);
                   }}
                 >
-                  {t('fitness.logSet')}
+                  {t('logSet')}
                 </Button>
               </CardContent>
             </Card>
@@ -185,7 +185,7 @@ const MobileFitness: React.FC = () => {
         {/* Recent Workouts */}
         <section>
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">{t('fitness.recentWorkouts')}</h2>
+            <h2 className="text-lg font-semibold">{t('recentWorkouts')}</h2>
             <Button variant="ghost" size="sm" asChild>
               <Link to="/fitness/history">
                 {t('common.viewAll')}
@@ -212,7 +212,7 @@ const MobileFitness: React.FC = () => {
                     <div className="flex items-center justify-between">
                       <div>
                         <h3 className="font-medium">
-                          {workout.title || t('fitness.workout')}
+                          {workout.title || t('workout')}
                         </h3>
                         <p className="text-sm text-muted-foreground">
                           {new Date(workout.started_at).toLocaleDateString()}
@@ -220,7 +220,7 @@ const MobileFitness: React.FC = () => {
                       </div>
                       <div className="text-right">
                         <Badge variant={workout.ended_at ? "default" : "secondary"}>
-                          {workout.ended_at ? t('fitness.completed') : t('fitness.inProgress')}
+                          {workout.ended_at ? t('completed') : t('inProgress')}
                         </Badge>
                         {workout.ended_at && (
                           <p className="text-xs text-muted-foreground mt-1">
@@ -237,10 +237,10 @@ const MobileFitness: React.FC = () => {
             <Card>
               <CardContent className="text-center py-8">
                 <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <p className="text-muted-foreground mb-4">{t('fitness.noWorkouts')}</p>
+                <p className="text-muted-foreground mb-4">{t('noWorkouts')}</p>
                 <Button asChild>
                   <Link to="/fitness/session/new">
-                    {t('fitness.startFirstWorkout')}
+                    {t('startFirstWorkout')}
                   </Link>
                 </Button>
               </CardContent>
@@ -253,24 +253,24 @@ const MobileFitness: React.FC = () => {
           <BottomSheetTrigger asChild>
             <Button variant="outline" className="w-full h-12 touch-manipulation">
               <Settings className="h-4 w-4 mr-2" />
-              {t('fitness.settings')}
+              {t('settings')}
             </Button>
           </BottomSheetTrigger>
           <BottomSheetContent>
             <BottomSheetHeader>
-              <BottomSheetTitle>{t('fitness.settings')}</BottomSheetTitle>
+              <BottomSheetTitle>{t('settings')}</BottomSheetTitle>
             </BottomSheetHeader>
             <div className="p-4 space-y-4">
               <Button variant="ghost" className="w-full justify-start h-12" asChild>
                 <Link to="/fitness/configure">
                   <Settings className="h-4 w-4 mr-2" />
-                  {t('fitness.configure')}
+                  {t('configure')}
                 </Link>
               </Button>
               <Button variant="ghost" className="w-full justify-start h-12" asChild>
                 <Link to="/profile">
                   <Settings className="h-4 w-4 mr-2" />
-                  {t('nav.profile')}
+                  {t('profile')}
                 </Link>
               </Button>
             </div>
