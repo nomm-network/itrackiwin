@@ -118,25 +118,30 @@ const MobileFitness: React.FC = () => {
                   placeholder="Say: '10 reps at 50 kilos'"
                 />
                 
-                <div className="flex gap-2">
-                  <div className="flex-1 flex items-center gap-2">
-                    <Weight className="h-4 w-4 text-muted-foreground shrink-0" />
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Weight className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">Weight</span>
+                    </div>
                     <TouchOptimizedSetInput
                       value={quickWeight}
                       onChange={setQuickWeight}
                       suffix="kg"
                       max={500}
                       step={2.5}
-                      className="flex-1"
+                      className="w-full"
                     />
                   </div>
-                  <div className="flex-1 flex items-center gap-2">
-                    <Hash className="h-4 w-4 text-muted-foreground shrink-0" />
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1 mb-2">
+                      <span className="text-xs font-medium text-muted-foreground"># Reps</span>
+                    </div>
                     <TouchOptimizedSetInput
                       value={quickReps}
                       onChange={setQuickReps}
                       max={100}
-                      className="flex-1"
+                      className="w-full"
                     />
                   </div>
                 </div>
