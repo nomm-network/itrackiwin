@@ -65,9 +65,9 @@ const TemplateEditor: React.FC = () => {
   const upsertPreferences = useUpsertTemplateExercisePreferences();
 
   // Filter states
-  const [selectedBodyPart, setSelectedBodyPart] = useState<string>("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
-  const [selectedMuscle, setSelectedMuscle] = useState<string>("");
+  const [selectedBodyPart, setSelectedBodyPart] = useState<string>("all");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("all");
+  const [selectedMuscle, setSelectedMuscle] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   // Data queries
@@ -91,7 +91,7 @@ const TemplateEditor: React.FC = () => {
         .select('id, body_part_id, translations')
         .order('id');
       
-      if (selectedBodyPart) {
+      if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq('body_part_id', selectedBodyPart);
       }
       
@@ -109,7 +109,7 @@ const TemplateEditor: React.FC = () => {
         .select('id, muscle_group_id, translations')
         .order('id');
       
-      if (selectedMuscleGroup) {
+      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
         query = query.eq('muscle_group_id', selectedMuscleGroup);
       }
       
@@ -122,7 +122,7 @@ const TemplateEditor: React.FC = () => {
   const { data: exercises = [] } = useQuery<Exercise[]>({
     queryKey: ["exercises_for_template", searchQuery, selectedMuscle, selectedBodyPart],
     queryFn: async () => {
-      if (searchQuery.length < 2 && !selectedMuscle && !selectedBodyPart) {
+      if (searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedBodyPart || selectedBodyPart === "all")) {
         return [];
       }
 
@@ -137,9 +137,9 @@ const TemplateEditor: React.FC = () => {
         query = query.ilike('name', `%${searchQuery}%`);
       }
 
-      if (selectedMuscle) {
+      if (selectedMuscle && selectedMuscle !== "all") {
         query = query.eq('primary_muscle_id', selectedMuscle);
-      } else if (selectedBodyPart) {
+      } else if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq('body_part_id', selectedBodyPart);
       }
 
@@ -147,7 +147,7 @@ const TemplateEditor: React.FC = () => {
       if (error) throw error;
       return data || [];
     },
-    enabled: searchQuery.length >= 2 || !!selectedMuscle || !!selectedBodyPart
+    enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
   });
 
   // Helper functions
@@ -363,7 +363,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectValue placeholder="Body Part" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Body Parts</SelectItem>
+                  <SelectItem value="all">All Body Parts</SelectItem>
                   {bodyParts.map((bodyPart) => (
                     <SelectItem key={bodyPart.id} value={bodyPart.id}>
                       {getTranslatedName(bodyPart.translations)}
@@ -376,7 +376,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectValue placeholder="Muscle Group" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Muscle Groups</SelectItem>
+                  <SelectItem value="all">All Muscle Groups</SelectItem>
                   {muscleGroups.map((muscleGroup) => (
                     <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
                       {getTranslatedName(muscleGroup.translations)}
@@ -389,7 +389,7 @@ const TemplateEditor: React.FC = () => {
                   <SelectValue placeholder="Muscle" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Muscles</SelectItem>
+                  <SelectItem value="all">All Muscles</SelectItem>
                   {muscles.map((muscle) => (
                     <SelectItem key={muscle.id} value={muscle.id}>
                       {getTranslatedName(muscle.translations)}
@@ -429,7 +429,7 @@ const TemplateEditor: React.FC = () => {
               </p>
             )}
 
-            {searchQuery.length < 2 && !selectedMuscle && !selectedBodyPart && (
+            {searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedBodyPart || selectedBodyPart === "all") && (
               <p className="text-center text-muted-foreground py-4">
                 Search for exercises or select filters to see available exercises.
               </p>
