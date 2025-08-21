@@ -661,7 +661,7 @@ export default function FitnessConfigure() {
                       className="w-full h-10 px-3 rounded-md border border-input bg-background"
                     >
                       <option value="kg">kg</option>
-                      <option value="lbs">lbs</option>
+                      <option value="lb">lb</option>
                     </select>
                   </div>
                   <div className="flex items-end">
