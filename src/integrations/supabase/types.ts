@@ -2855,6 +2855,14 @@ export type Database = {
         Args: { p_payload: Json; p_workout_exercise_id: string }
         Returns: string
       }
+      audit_security_definer_functions: {
+        Args: Record<PropertyKey, never>
+        Returns: {
+          function_name: string
+          has_search_path: boolean
+          is_restricted: boolean
+        }[]
+      }
       check_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -3018,6 +3026,10 @@ export type Database = {
       }
       refresh_exercise_views: {
         Args: { p_exercise_id: string; p_user_id: string }
+        Returns: undefined
+      }
+      refresh_materialized_views_secure: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       set_limit: {
