@@ -52,10 +52,17 @@ const Dashboard: React.FC = () => {
     <div className="container mx-auto p-6 space-y-6">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <p className="text-muted-foreground">
-          Your personal command center for tracking progress across all areas of life.
-        </p>
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Your personal command center for tracking progress across all areas of life.
+            </p>
+          </div>
+          <Button variant="outline" onClick={() => navigate('/explore')}>
+            Explore by Planets
+          </Button>
+        </div>
       </div>
 
       {/* Category Navigation */}

@@ -25,6 +25,7 @@ const Achievements = lazy(() => import('@/pages/Achievements'));
 const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
+const Orbits = lazy(() => import('@/pages/Orbits'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -40,6 +41,13 @@ export function AppRoutes() {
           {/* Public routes */}
           <Route path={Paths.root} element={<Index />} />
           <Route path={Paths.auth} element={<Auth />} />
+
+          {/* Public orbits page for authenticated users */}
+          <Route path="/explore" element={
+            <ProtectedMobileLayout>
+              <Orbits />
+            </ProtectedMobileLayout>
+          } />
 
           {/* Protected routes wrapper */}
           <Route path="/*" element={
