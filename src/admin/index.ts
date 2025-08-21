@@ -1,5 +1,5 @@
 // Barrel exports for admin feature
-export { default as AdminHomePage } from './pages/AdminHomePage';
+export { default as AdminHomePage } from './pages/AdminHome.page';
 export { default as AdminExercisesManagement } from './pages/AdminExercisesManagement';
 export { default as AdminMusclesManagement } from './pages/AdminMusclesManagement';
 export { default as AdminEquipmentManagement } from './pages/AdminEquipmentManagement';

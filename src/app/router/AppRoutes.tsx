@@ -1,8 +1,8 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Paths } from './paths';
-import { AdminGuard } from './route-guards/AdminGuard';
-import { AuthGuard } from './route-guards/AuthGuard';
+import { AdminGuard } from './route-guards/Admin.guard';
+import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
 
 // Public pages
@@ -23,18 +23,18 @@ const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 
 // Fitness feature pages
-const MobileFitness = lazy(() => import('@/features/health/fitness/pages/FitnessPage'));
-const ExercisesPage = lazy(() => import('@/features/health/fitness/pages/ExercisesPage'));
-const ExerciseEditPage = lazy(() => import('@/features/health/fitness/pages/ExerciseEditPage'));
-const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/pages/WorkoutSessionPage'));
-const TemplatesPage = lazy(() => import('@/features/health/fitness/pages/TemplatesPage'));
-const TemplateEditorPage = lazy(() => import('@/features/health/fitness/pages/TemplateEditorPage'));
-const FitnessConfigurePage = lazy(() => import('@/features/health/fitness/pages/FitnessConfigurePage'));
-const HistoryPage = lazy(() => import('@/features/health/fitness/pages/HistoryPage'));
-const WorkoutDetailPage = lazy(() => import('@/features/health/fitness/pages/WorkoutDetailPage'));
+const MobileFitness = lazy(() => import('@/features/health/fitness/pages/Fitness.page'));
+const ExercisesPage = lazy(() => import('@/features/health/fitness/pages/Exercises.page'));
+const ExerciseEditPage = lazy(() => import('@/features/health/fitness/pages/ExerciseEdit.page'));
+const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/pages/WorkoutSession.page'));
+const TemplatesPage = lazy(() => import('@/features/health/fitness/pages/Templates.page'));
+const TemplateEditorPage = lazy(() => import('@/features/health/fitness/pages/TemplateEditor.page'));
+const FitnessConfigurePage = lazy(() => import('@/features/health/fitness/pages/FitnessConfigure.page'));
+const HistoryPage = lazy(() => import('@/features/health/fitness/pages/History.page'));
+const WorkoutDetailPage = lazy(() => import('@/features/health/fitness/pages/WorkoutDetail.page'));
 
 // Admin pages
-const AdminHomePage = lazy(() => import('@/admin/pages/AdminHomePage'));
+const AdminHomePage = lazy(() => import('@/admin/pages/AdminHome.page'));
 const AdminExercisesManagement = lazy(() => import('@/admin/pages/AdminExercisesManagement'));
 const AdminMusclesManagement = lazy(() => import('@/admin/pages/AdminMusclesManagement'));
 const AdminEquipmentManagement = lazy(() => import('@/admin/pages/AdminEquipmentManagement'));
