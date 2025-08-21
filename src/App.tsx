@@ -100,9 +100,12 @@ const App = () => {
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+
+            {/* Protected area wrapper */}
             <Route path="/*" element={
               <ProtectedMobileLayout>
                 <Routes>
+                  {/* regular user routes */}
                   <Route path="/ai-coach" element={<AICoachingHub />} />
                   <Route path="/social" element={<Social />} />
                   <Route path="/progress" element={<Progress />} />
@@ -112,7 +115,8 @@ const App = () => {
                   <Route path="/analytics" element={<Analytics />} />
                   <Route path="/profile" element={<Profile />} />
                   <Route path="/area/:slug" element={<AreaDetail />} />
-                  {/* Fitness routes - mobile-optimized */}
+
+                  {/* fitness */}
                   <Route path="/fitness" element={<MobileFitness />} />
                   <Route path="/fitness/exercises" element={<Exercises />} />
                   <Route path="/fitness/exercises/:id/edit" element={<ExerciseEdit />} />
@@ -122,20 +126,26 @@ const App = () => {
                   <Route path="/fitness/configure" element={<FitnessConfigure />} />
                   <Route path="/fitness/history" element={<History />} />
                   <Route path="/fitness/history/:id" element={<WorkoutDetail />} />
-                  {/* User Dashboard */}
+
+                  {/* user dashboard */}
                   <Route path="/dashboard" element={<UserDashboard />} />
-                  {/* Admin routes */}
-                  <Route path="/admin" element={<AdminHome />} />
-                  <Route path="/admin/exercises" element={<AdminExercisesManagement />} />
-                  <Route path="/admin/muscles" element={<AdminMusclesManagement />} />
-                  <Route path="/admin/others/equipment" element={<AdminEquipmentManagement />} />
-                  <Route path="/admin/others/grips" element={<AdminGripsManagement />} />
-                  <Route path="/admin/translations/*" element={<AdminTranslations />} />
-                  <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
-                  <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
+
+                  {/* ADMIN: wrap everything in AdminRoute */}
+                  <Route element={<AdminRoute />}>
+                    <Route path="/admin" element={<AdminHome />} />
+                    <Route path="/admin/exercises" element={<AdminExercisesManagement />} />
+                    <Route path="/admin/muscles" element={<AdminMusclesManagement />} />
+                    <Route path="/admin/others/equipment" element={<AdminEquipmentManagement />} />
+                    <Route path="/admin/others/grips" element={<AdminGripsManagement />} />
+                    <Route path="/admin/translations/*" element={<AdminTranslations />} />
+                    <Route path="/admin/category/:categoryId" element={<AdminCategoryPage />} />
+                    <Route path="/admin/category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
+                  </Route>
                 </Routes>
               </ProtectedMobileLayout>
             } />
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </BrowserRouter>

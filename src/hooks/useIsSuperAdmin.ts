@@ -23,7 +23,7 @@ export function useIsSuperAdmin() {
       (async () => {
         try {
           const { data: superAdminResult, error } = await (supabase as any)
-            .rpc("is_superadmin_with_rate_limit", { _user_id: session.user.id });
+            .rpc("is_superadmin_with_rate_limit");
           
           if (error) {
             console.error('Superadmin check failed:', error);
@@ -84,7 +84,7 @@ export function useIsSuperAdmin() {
       
       try {
         const { data: superAdminResult, error } = await (supabase as any)
-          .rpc("is_superadmin_with_rate_limit", { _user_id: session.user.id });
+          .rpc("is_superadmin_with_rate_limit");
         
         if (error) {
           console.error('Initial superadmin check failed:', error);
