@@ -8,6 +8,7 @@ const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManage
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
+const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
 const AdminCategoryPage = lazy(() => import("./pages/AdminCategoryPage"));
 const AdminSubcategoryPage = lazy(() => import("./pages/AdminSubcategoryPage"));
@@ -24,6 +25,7 @@ export function AdminRoutes() {
               <Route path="muscles" element={<AdminMusclesManagement />} />
               <Route path="others/equipment" element={<AdminEquipmentManagement />} />
               <Route path="others/grips" element={<AdminGripsManagement />} />
+              <Route path="others/gyms" element={<AdminGymsManagement />} />
               <Route path="translations/*" element={<AdminTranslations />} />
               <Route path="category/:categoryId" element={<AdminCategoryPage />} />
               <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
