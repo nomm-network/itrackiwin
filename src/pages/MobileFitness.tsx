@@ -5,7 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
+import { useDefaultGym } from "@/features/health/fitness/hooks/useGymDetection.hook";
+import { GymDetectionDialog } from "@/features/health/fitness/components/GymDetectionDialog";
 import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
@@ -15,10 +18,13 @@ import MetricVisualization from "@/components/mobile/MetricVisualization";
 
 const MobileFitness: React.FC = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
+  const { data: defaultGym } = useDefaultGym();
   const [quickWeight, setQuickWeight] = useState<number | null>(null);
   const [quickReps, setQuickReps] = useState<number | null>(null);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
+  const [showGymDetection, setShowGymDetection] = useState(false);
 
   // Mock data for metric visualization
   const mockMetricData = [
@@ -30,11 +36,23 @@ const MobileFitness: React.FC = () => {
     { date: '1/24', value: 55 },
   ];
 
+  const handleQuickStart = () => {
+    if (!defaultGym) {
+      setShowGymDetection(true);
+    } else {
+      navigate("/fitness/session/new");
+    }
+  };
+
+  const handleGymSelected = () => {
+    navigate("/fitness/session/new");
+  };
+
   const quickActions = [
     {
       label: t('quickStart'),
       icon: Play,
-      href: "/fitness/session/new",
+      onClick: handleQuickStart,
       color: "bg-green-500 hover:bg-green-600 text-white"
     },
     {
@@ -66,7 +84,16 @@ const MobileFitness: React.FC = () => {
           <div className="grid grid-cols-2 gap-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
-              return (
+              return action.onClick ? (
+                <Button
+                  key={action.label}
+                  onClick={action.onClick}
+                  className={`h-20 flex-col gap-2 touch-manipulation ${action.color}`}
+                >
+                  <Icon className="h-6 w-6" />
+                  <span className="text-sm font-medium">{action.label}</span>
+                </Button>
+              ) : (
                 <Button
                   key={action.label}
                   asChild
@@ -286,6 +313,12 @@ const MobileFitness: React.FC = () => {
           </BottomSheetContent>
         </BottomSheet>
       </div>
+
+      <GymDetectionDialog
+        open={showGymDetection}
+        onOpenChange={setShowGymDetection}
+        onGymSelected={handleGymSelected}
+      />
     </div>
   );
 };

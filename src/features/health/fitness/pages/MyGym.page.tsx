@@ -9,9 +9,12 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useMyGym } from '../hooks/useMyGym.hook';
+import { useDefaultGym } from '../hooks/useGymDetection.hook';
+import { GymDetectionDialog } from '../components/GymDetectionDialog';
 
 const MyGymPage = () => {
   const { toast } = useToast();
+  const { data: defaultGym } = useDefaultGym();
   const { 
     gym, 
     inventory, 
@@ -31,6 +34,7 @@ const MyGymPage = () => {
     stackValues: '', 
     auxValues: '' 
   });
+  const [showGymDetection, setShowGymDetection] = useState(false);
 
   if (isLoading) {
     return <div className="p-4">Loading gym setup...</div>;
@@ -106,6 +110,17 @@ const MyGymPage = () => {
     }
   };
 
+  const handleGymChange = () => {
+    setShowGymDetection(true);
+  };
+
+  const handleGymSelected = () => {
+    toast({
+      title: "Gym updated",
+      description: "Your default gym has been changed successfully!",
+    });
+  };
+
   return (
     <div className="container mx-auto p-4 max-w-4xl">
       <div className="mb-6">
@@ -115,16 +130,30 @@ const MyGymPage = () => {
         </p>
       </div>
 
-      {gym && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between">
-              {gym.name}
-              {gym.is_default && <Badge>Default</Badge>}
-            </CardTitle>
-          </CardHeader>
-        </Card>
-      )}
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="flex items-center justify-between">
+            <div>
+              {defaultGym ? (
+                <div>
+                  <span className="text-lg">{defaultGym.gym.name}</span>
+                  <Badge className="ml-2">Default</Badge>
+                  {defaultGym.gym.address && (
+                    <p className="text-sm text-muted-foreground font-normal mt-1">
+                      {defaultGym.gym.address}
+                    </p>
+                  )}
+                </div>
+              ) : (
+                <span className="text-lg">No gym selected</span>
+              )}
+            </div>
+            <Button variant="outline" onClick={handleGymChange}>
+              {defaultGym ? 'Change Gym' : 'Select Gym'}
+            </Button>
+          </CardTitle>
+        </CardHeader>
+      </Card>
 
       <Tabs defaultValue="dumbbells" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
@@ -348,6 +377,12 @@ const MyGymPage = () => {
           </Card>
         </TabsContent>
       </Tabs>
+
+      <GymDetectionDialog
+        open={showGymDetection}
+        onOpenChange={setShowGymDetection}
+        onGymSelected={handleGymSelected}
+      />
     </div>
   );
 };
