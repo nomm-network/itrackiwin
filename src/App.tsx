@@ -40,6 +40,7 @@ import AdminGripsManagement from "./admin/pages/AdminGripsManagement";
 import AdminEquipmentTranslations from "./admin/pages/AdminEquipmentTranslations";
 import AdminGripsTranslations from "./admin/pages/AdminGripsTranslations";
 import AICoachingHub from "./pages/AICoachingHub";
+import Social from "./pages/Social";
 import UserDashboard from "./pages/UserDashboard";
 import { useIsMobile } from "./hooks/useMobile";
 
@@ -68,6 +69,7 @@ const App = () => {
               <ProtectedMobileLayout>
                 <Routes>
                   <Route path="/ai-coach" element={<AICoachingHub />} />
+                  <Route path="/social" element={<Social />} />
                   <Route path="/progress" element={<Progress />} />
                   <Route path="/journal" element={<Journal />} />
                   <Route path="/insights" element={<Insights />} />

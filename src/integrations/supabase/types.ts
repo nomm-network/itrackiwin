@@ -77,6 +77,83 @@ export type Database = {
           },
         ]
       }
+      challenge_participants: {
+        Row: {
+          challenge_id: string
+          current_value: number | null
+          id: string
+          joined_at: string
+          user_id: string
+        }
+        Insert: {
+          challenge_id: string
+          current_value?: number | null
+          id?: string
+          joined_at?: string
+          user_id: string
+        }
+        Update: {
+          challenge_id?: string
+          current_value?: number | null
+          id?: string
+          joined_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenge_participants_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      challenges: {
+        Row: {
+          challenge_type: string
+          created_at: string
+          creator_id: string
+          description: string | null
+          end_date: string
+          id: string
+          is_public: boolean | null
+          participants_count: number | null
+          start_date: string
+          target_unit: string | null
+          target_value: number
+          title: string
+        }
+        Insert: {
+          challenge_type: string
+          created_at?: string
+          creator_id: string
+          description?: string | null
+          end_date: string
+          id?: string
+          is_public?: boolean | null
+          participants_count?: number | null
+          start_date: string
+          target_unit?: string | null
+          target_value: number
+          title: string
+        }
+        Update: {
+          challenge_type?: string
+          created_at?: string
+          creator_id?: string
+          description?: string | null
+          end_date?: string
+          id?: string
+          is_public?: boolean | null
+          participants_count?: number | null
+          start_date?: string
+          target_unit?: string | null
+          target_value?: number
+          title?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
@@ -411,6 +488,33 @@ export type Database = {
           id?: string
           language_code?: string
           name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      friendships: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
           updated_at?: string
         }
         Relationships: []
@@ -1092,6 +1196,42 @@ export type Database = {
           },
         ]
       }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          bio: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+          is_public: boolean | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_public?: boolean | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          bio?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+          is_public?: boolean | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       progression_policies: {
         Row: {
           algo: Database["public"]["Enums"]["progression_algo"]
@@ -1675,6 +1815,38 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_comments: {
+        Row: {
+          content: string
+          created_at: string
+          id: string
+          user_id: string
+          workout_share_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          id?: string
+          user_id: string
+          workout_share_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+          workout_share_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_comments_workout_share_id_fkey"
+            columns: ["workout_share_id"]
+            isOneToOne: false
+            referencedRelation: "workout_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_exercise_groups: {
         Row: {
           created_at: string
@@ -1782,6 +1954,35 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_likes: {
+        Row: {
+          created_at: string
+          id: string
+          user_id: string
+          workout_share_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          user_id: string
+          workout_share_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          user_id?: string
+          workout_share_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_likes_workout_share_id_fkey"
+            columns: ["workout_share_id"]
+            isOneToOne: false
+            referencedRelation: "workout_shares"
             referencedColumns: ["id"]
           },
         ]
@@ -1951,6 +2152,54 @@ export type Database = {
             columns: ["workout_exercise_id"]
             isOneToOne: false
             referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_shares: {
+        Row: {
+          caption: string | null
+          comments_count: number | null
+          created_at: string
+          id: string
+          is_public: boolean | null
+          likes_count: number | null
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          likes_count?: number | null
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          caption?: string | null
+          comments_count?: number | null
+          created_at?: string
+          id?: string
+          is_public?: boolean | null
+          likes_count?: number | null
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_shares_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_shares_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
         ]
@@ -2482,6 +2731,10 @@ export type Database = {
       start_workout: {
         Args: { p_template_id?: string }
         Returns: string
+      }
+      toggle_workout_like: {
+        Args: { share_id: string }
+        Returns: boolean
       }
     }
     Enums: {
