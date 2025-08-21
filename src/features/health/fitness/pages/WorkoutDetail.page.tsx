@@ -1,3 +1,1 @@
-import { default as WorkoutDetailComponent } from '@/pages/WorkoutDetail';
-
-export default WorkoutDetailComponent;
+export { default } from '@/pages/WorkoutDetail';

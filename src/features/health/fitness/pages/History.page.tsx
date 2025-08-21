@@ -1,3 +1,1 @@
-import { default as HistoryComponent } from '@/pages/History';
-
-export default HistoryComponent;
+export { default } from '@/pages/History';

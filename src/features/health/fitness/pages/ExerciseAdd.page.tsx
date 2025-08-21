@@ -425,14 +425,14 @@ const primaryMusclesOptions = React.useMemo(() => {
               <div className="space-y-2">
                 <Label>Images</Label>
                 <ExerciseImageUploader files={files} onChange={setFiles} />
-                <p className="text-xs text-muted-foreground">First image becomes the thumbnail.</p>
+                <p className="text-xs text-muted-foreground">Upload images for this exercise (first becomes thumbnail).</p>
               </div>
 
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
-                <Button type="button" variant="secondary" asChild className="w-full sm:w-auto">
+              <div className="flex gap-2 pt-2">
+                <Button type="button" variant="secondary" asChild>
                   <Link to="/fitness/exercises">Cancel</Link>
                 </Button>
-                <Button type="submit" disabled={saving} className="w-full sm:w-auto">{saving ? 'Saving…' : 'Create Exercise'}</Button>
+                <Button type="submit" disabled={saving}>{saving ? 'Adding…' : 'Add Exercise'}</Button>
               </div>
 
               {lastError && (
