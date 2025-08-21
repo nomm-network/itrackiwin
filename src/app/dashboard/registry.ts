@@ -68,6 +68,15 @@ export const quickActions: QuickAction[] = [
     subcategory: 'fitness',
     onClickPath: '/fitness/history',
     order: 3
+  },
+  {
+    id: 'fitness.configure',
+    label: 'Configure',
+    icon: React.createElement(Settings, { className: 'h-4 w-4' }),
+    category: 'health',
+    subcategory: 'fitness',
+    onClickPath: '/fitness/configure',
+    order: 4
   }
   // Future quick actions for other categories/subcategories
 ];

@@ -294,6 +294,11 @@ const primaryMusclesOptions = React.useMemo(() => {
                 Templates
               </NavLink>
             </NavigationMenuItem>
+            <NavigationMenuItem>
+              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+                Configure
+              </NavLink>
+            </NavigationMenuItem>
           </NavigationMenuList>
         </NavigationMenu>
       </nav>
