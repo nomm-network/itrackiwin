@@ -23,7 +23,6 @@ export default defineConfig(({ mode }) => ({
       "@hooks": path.resolve(__dirname, "src/hooks"),
       "@lib": path.resolve(__dirname, "src/lib"),
       "@admin": path.resolve(__dirname, "src/admin"),
-      "@supabase": path.resolve(__dirname, "src/integrations/supabase"),
       "@types": path.resolve(__dirname, "src/types"),
       "@pages": path.resolve(__dirname, "src/pages"),
       "@shared": path.resolve(__dirname, "src/shared"),
