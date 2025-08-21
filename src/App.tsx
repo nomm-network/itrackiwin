@@ -53,7 +53,8 @@ const App = () => (
           <Route element={<ProtectedRoute />}>
             <Route path="/progress" element={<Progress />} />
             <Route path="/journal" element={<Journal />} />
-            <Route path="/insights" element={<Insights />} />
+          <Route path="/insights" element={<Insights />} />
+          <Route path="/analytics" element={<Analytics />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/area/:slug" element={<AreaDetail />} />
             {/* Fitness routes */}
