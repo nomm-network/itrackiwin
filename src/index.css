@@ -101,6 +101,16 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    /* Mobile-first optimizations */
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+  }
+
+  /* Ensure proper mobile viewport handling */
+  html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
   }
 }
 
@@ -119,4 +129,31 @@ All colors MUST be HSL.
 
   /* Pulse utility */
   .pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+  /* Mobile-first utilities */
+  .touch-manipulation { touch-action: manipulation; }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  
+  /* Better touch targets */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Smooth scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Mobile-optimized animations */
+  @media (prefers-reduced-motion: reduce) {
+    .smooth-scroll { scroll-behavior: auto; }
+    .hover-scale:hover { transform: none; }
+    .story-link::after { transition: none; }
+  }
 }
