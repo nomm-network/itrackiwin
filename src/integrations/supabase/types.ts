@@ -2445,6 +2445,55 @@ export type Database = {
       }
     }
     Views: {
+      mv_last_set_per_user_exercise: {
+        Row: {
+          completed_at: string | null
+          exercise_id: string | null
+          reps: number | null
+          rn: number | null
+          user_id: string | null
+          weight: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mv_pr_weight_per_user_exercise: {
+        Row: {
+          best_weight: number | null
+          exercise_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mv_user_exercise_1rm: {
         Row: {
           estimated_1rm: number | null
@@ -2865,6 +2914,10 @@ export type Database = {
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      refresh_exercise_views: {
+        Args: { p_exercise_id: string; p_user_id: string }
+        Returns: undefined
       }
       set_limit: {
         Args: { "": number }
