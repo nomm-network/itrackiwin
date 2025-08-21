@@ -22,8 +22,8 @@ export function useIsSuperAdmin() {
       // Use the secure superadmin check with rate limiting
       (async () => {
         try {
-          const { data: superAdminResult, error } = await (supabase as any)
-            .rpc("is_superadmin_with_rate_limit");
+        const { data: superAdminResult, error } = await (supabase as any)
+          .rpc("is_superadmin_simple");
           
           if (error) {
             console.error('Superadmin check failed:', error);
@@ -83,8 +83,8 @@ export function useIsSuperAdmin() {
       }
       
       try {
-        const { data: superAdminResult, error } = await (supabase as any)
-          .rpc("is_superadmin_with_rate_limit");
+      const { data: superAdminResult, error } = await (supabase as any)
+        .rpc("is_superadmin_simple");
         
         if (error) {
           console.error('Initial superadmin check failed:', error);

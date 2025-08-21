@@ -3016,11 +3016,19 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_admin_simple: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
       is_admin_with_rate_limit: {
         Args: { _user_id: string }
         Returns: boolean
       }
       is_superadmin: {
+        Args: Record<PropertyKey, never>
+        Returns: boolean
+      }
+      is_superadmin_simple: {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
