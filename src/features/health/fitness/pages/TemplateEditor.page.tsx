@@ -55,6 +55,24 @@ const TemplateEditor: React.FC = () => {
   const deleteFromTemplate = useDeleteTemplateExercise();
   const updateTemplate = useUpdateTemplate();
 
+  // Get exercise details for template exercises
+  const { data: templateExerciseDetails = [] } = useQuery({
+    queryKey: ["template_exercise_details", templateExercises],
+    queryFn: async () => {
+      if (templateExercises.length === 0) return [];
+      
+      const exerciseIds = templateExercises.map(te => te.exercise_id);
+      const { data, error } = await supabase
+        .from('v_exercises_with_translations')
+        .select('id, name, translations')
+        .in('id', exerciseIds);
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: templateExercises.length > 0
+  });
+
   // Edit states
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -98,7 +116,8 @@ const TemplateEditor: React.FC = () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: true // Always fetch muscle groups
   });
 
   const { data: muscles = [] } = useQuery<Muscle[]>({
@@ -116,7 +135,8 @@ const TemplateEditor: React.FC = () => {
       const { data, error } = await query;
       if (error) throw error;
       return data || [];
-    }
+    },
+    enabled: true // Always fetch muscles
   });
 
   const { data: exercises = [] } = useQuery<Exercise[]>({
@@ -150,7 +170,23 @@ const TemplateEditor: React.FC = () => {
     enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
   });
 
-  // Helper functions
+  // Helper to get exercise name by ID
+  const getExerciseName = (exerciseId: string) => {
+    const exercise = templateExerciseDetails.find(e => e.id === exerciseId);
+    if (!exercise) return `Exercise ${exerciseId}`;
+    
+    // Safely handle translations
+    if (exercise.translations && typeof exercise.translations === 'object') {
+      try {
+        const name = getTranslatedName(exercise.translations as any);
+        if (name) return name;
+      } catch {
+        // Fall back to exercise name
+      }
+    }
+    
+    return exercise.name || `Exercise ${exerciseId}`;
+  };
   const handleUpdateTemplateName = (newName: string) => {
     if (template) {
       updateTemplate.mutate({
@@ -302,39 +338,112 @@ const TemplateEditor: React.FC = () => {
           </CardHeader>
           <CardContent>
             {templateExercises.length > 0 ? (
-              <div className="space-y-4">
-                {templateExercises.map((templateExercise) => (
-                  <div key={templateExercise.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="flex-1">
-                      <h4 className="font-medium">Exercise {templateExercise.exercise_id}</h4>
-                      <p className="text-sm text-muted-foreground">
-                        {templateExercise.default_sets} sets
-                        {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
-                        {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
-                      </p>
-                      {templateExercise.notes && (
-                        <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
-                      )}
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setEditingExerciseId(
-                          editingExerciseId === templateExercise.id ? null : templateExercise.id
-                        )}
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteExercise(templateExercise.id)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
+               <div className="space-y-4">
+                 {templateExercises.map((templateExercise) => (
+                   <div key={templateExercise.id} className="border rounded-lg">
+                     <div className="flex items-center justify-between p-4">
+                       <div className="flex-1">
+                         <h4 className="font-medium">{getExerciseName(templateExercise.exercise_id)}</h4>
+                         <p className="text-sm text-muted-foreground">
+                           {templateExercise.default_sets} sets
+                           {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
+                           {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
+                         </p>
+                         {templateExercise.notes && (
+                           <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
+                         )}
+                       </div>
+                       <div className="flex items-center gap-2">
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => setEditingExerciseId(
+                             editingExerciseId === templateExercise.id ? null : templateExercise.id
+                           )}
+                         >
+                           <Settings className="h-4 w-4" />
+                         </Button>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => handleDeleteExercise(templateExercise.id)}
+                         >
+                           <Trash2 className="h-4 w-4" />
+                         </Button>
+                       </div>
+                     </div>
+                     {/* Exercise Settings Panel */}
+                     {editingExerciseId === templateExercise.id && (
+                       <div className="border-t bg-muted/20 p-4">
+                         <h5 className="font-medium mb-3">Exercise Settings</h5>
+                         <div className="space-y-4">
+                           <div className="grid grid-cols-2 gap-4">
+                             <div>
+                               <label className="text-sm font-medium">Sets</label>
+                               <Input 
+                                 type="number" 
+                                 defaultValue={templateExercise.default_sets}
+                                 className="mt-1"
+                               />
+                             </div>
+                             <div>
+                               <label className="text-sm font-medium">Target Reps</label>
+                               <Input 
+                                 type="number" 
+                                 defaultValue={templateExercise.target_reps || ''}
+                                 placeholder="Optional"
+                                 className="mt-1"
+                               />
+                             </div>
+                           </div>
+                           <div className="grid grid-cols-2 gap-4">
+                             <div>
+                               <label className="text-sm font-medium">Target Weight</label>
+                               <Input 
+                                 type="number" 
+                                 defaultValue={templateExercise.target_weight || ''}
+                                 placeholder="Optional"
+                                 className="mt-1"
+                               />
+                             </div>
+                             <div>
+                               <label className="text-sm font-medium">Weight Unit</label>
+                               <Select defaultValue={templateExercise.weight_unit}>
+                                 <SelectTrigger className="mt-1">
+                                   <SelectValue />
+                                 </SelectTrigger>
+                                 <SelectContent>
+                                   <SelectItem value="kg">kg</SelectItem>
+                                   <SelectItem value="lbs">lbs</SelectItem>
+                                 </SelectContent>
+                               </Select>
+                             </div>
+                           </div>
+                           <div>
+                             <label className="text-sm font-medium">Notes</label>
+                             <textarea 
+                               defaultValue={templateExercise.notes || ''}
+                               placeholder="Exercise notes..."
+                               className="w-full mt-1 p-2 border rounded resize-none"
+                               rows={2}
+                             />
+                           </div>
+                           <div className="flex gap-2">
+                             <Button size="sm" variant="outline">
+                               Save Changes
+                             </Button>
+                             <Button 
+                               size="sm" 
+                               variant="ghost"
+                               onClick={() => setEditingExerciseId(null)}
+                             >
+                               Cancel
+                             </Button>
+                           </div>
+                         </div>
+                       </div>
+                     )}
+                   </div>
                 ))}
               </div>
             ) : (
@@ -366,7 +475,17 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Body Parts</SelectItem>
                   {bodyParts.map((bodyPart) => (
                     <SelectItem key={bodyPart.id} value={bodyPart.id}>
-                      {getTranslatedName(bodyPart.translations)}
+                      {(() => {
+                        if (bodyPart.translations && typeof bodyPart.translations === 'object') {
+                          try {
+                            const name = getTranslatedName(bodyPart.translations as any);
+                            if (name) return name;
+                          } catch {
+                            // Fall back to default name
+                          }
+                        }
+                        return `Body Part ${bodyPart.id}`;
+                      })()}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -379,7 +498,17 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Muscle Groups</SelectItem>
                   {muscleGroups.map((muscleGroup) => (
                     <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
-                      {getTranslatedName(muscleGroup.translations)}
+                      {(() => {
+                        if (muscleGroup.translations && typeof muscleGroup.translations === 'object') {
+                          try {
+                            const name = getTranslatedName(muscleGroup.translations as any);
+                            if (name) return name;
+                          } catch {
+                            // Fall back to default name
+                          }
+                        }
+                        return `Muscle Group ${muscleGroup.id}`;
+                      })()}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -392,7 +521,17 @@ const TemplateEditor: React.FC = () => {
                   <SelectItem value="all">All Muscles</SelectItem>
                   {muscles.map((muscle) => (
                     <SelectItem key={muscle.id} value={muscle.id}>
-                      {getTranslatedName(muscle.translations)}
+                      {(() => {
+                        if (muscle.translations && typeof muscle.translations === 'object') {
+                          try {
+                            const name = getTranslatedName(muscle.translations as any);
+                            if (name) return name;
+                          } catch {
+                            // Fall back to default name
+                          }
+                        }
+                        return `Muscle ${muscle.id}`;
+                      })()}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -407,7 +546,19 @@ const TemplateEditor: React.FC = () => {
                   {exercises.map((exercise) => (
                     <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
-                        <h5 className="font-medium">{getTranslatedName(exercise.translations) || exercise.name}</h5>
+                        <h5 className="font-medium">
+                          {(() => {
+                            if (exercise.translations && typeof exercise.translations === 'object') {
+                              try {
+                                const name = getTranslatedName(exercise.translations as any);
+                                if (name) return name;
+                              } catch {
+                                // Fall back to exercise name
+                              }
+                            }
+                            return exercise.name;
+                          })()}
+                        </h5>
                       </div>
                       <Button
                         variant="outline"
