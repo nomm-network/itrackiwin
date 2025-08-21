@@ -12,26 +12,34 @@ const AdminRoute: React.FC = () => {
   useEffect(() => {
     const checkRoles = async (userId: string) => {
       try {
-        const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_admin', { _user_id: userId });
-        if (rpcErr) throw rpcErr;
-        if (isAdm === true) {
-          setAllowed(true);
+        // Use the secure admin check with rate limiting
+        const { data: isAdm, error: rpcErr } = await (supabase as any).rpc('is_admin_with_rate_limit', { _user_id: userId });
+        
+        if (rpcErr) {
+          // Log the error for security monitoring
+          console.error('Admin check failed:', rpcErr);
+          
+          // If rate limit exceeded, show appropriate message
+          if (rpcErr.message?.includes('Rate limit exceeded')) {
+            setAllowed(false);
+            setLoading(false);
+            return;
+          }
+          
+          // For other errors, deny access (no fallback)
+          setAllowed(false);
           setLoading(false);
           return;
         }
-      } catch {}
-      try {
-        const { data, error } = (supabase as any)
-          .from("user_roles")
-          .select("role")
-          .eq("user_id", userId);
-        if (error) throw error;
-        const roles: Array<{ role: string }> = data ?? [];
-        const has = roles.some((r) => r.role === "admin" || r.role === "superadmin");
-        setAllowed(has);
-      } catch {
+        
+        setAllowed(isAdm === true);
+        setLoading(false);
+      } catch (error) {
+        // Log security event
+        console.error('Unexpected error during admin check:', error);
+        
+        // Always deny access on any error - no fallback mechanism
         setAllowed(false);
-      } finally {
         setLoading(false);
       }
     };

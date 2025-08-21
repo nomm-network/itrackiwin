@@ -50,6 +50,63 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_audit_log: {
+        Row: {
+          action_type: string
+          created_at: string
+          details: Json | null
+          id: string
+          ip_address: unknown | null
+          performed_by: string | null
+          target_user_id: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          performed_by?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          details?: Json | null
+          id?: string
+          ip_address?: unknown | null
+          performed_by?: string | null
+          target_user_id?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
+      admin_check_rate_limit: {
+        Row: {
+          check_count: number | null
+          created_at: string
+          id: string
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          check_count?: number | null
+          created_at?: string
+          id?: string
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          check_count?: number | null
+          created_at?: string
+          id?: string
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       body_parts: {
         Row: {
           created_at: string
@@ -2798,10 +2855,6 @@ export type Database = {
         Args: { p_payload: Json; p_workout_exercise_id: string }
         Returns: string
       }
-      bootstrap_admin_if_empty: {
-        Args: Record<PropertyKey, never>
-        Returns: boolean
-      }
       check_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -2811,6 +2864,10 @@ export type Database = {
           | { p_template_id: string }
           | { template_id: string; workout_id: string }
         Returns: undefined
+      }
+      create_admin_user: {
+        Args: { requester_role?: string; target_user_id: string }
+        Returns: boolean
       }
       create_demo_template_for_current_user: {
         Args: Record<PropertyKey, never>
@@ -2950,6 +3007,14 @@ export type Database = {
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean
+      }
+      is_admin_with_rate_limit: {
+        Args: { _user_id: string }
+        Returns: boolean
+      }
+      log_admin_action: {
+        Args: { action_type: string; details?: Json; target_user_id?: string }
+        Returns: undefined
       }
       refresh_exercise_views: {
         Args: { p_exercise_id: string; p_user_id: string }
