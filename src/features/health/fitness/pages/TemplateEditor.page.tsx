@@ -150,7 +150,50 @@ const TemplateEditor: React.FC = () => {
     enabled: searchQuery.length >= 2 || !!selectedMuscle || !!selectedBodyPart
   });
 
-  // ... keep existing code for all the helper functions and queries ...
+  // Helper functions
+  const handleUpdateTemplateName = (newName: string) => {
+    if (template) {
+      updateTemplate.mutate({
+        templateId: template.id,
+        updates: { name: newName }
+      });
+      setIsEditingName(false);
+    }
+  };
+
+  const handleUpdateTemplateDescription = (newDescription: string) => {
+    if (template) {
+      updateTemplate.mutate({
+        templateId: template.id,
+        updates: { notes: newDescription }
+      });
+      setIsEditingDescription(false);
+    }
+  };
+
+  const handleAddExercise = (exerciseId: string) => {
+    if (templateId) {
+      const nextOrderIndex = Math.max(...templateExercises.map(te => te.order_index), -1) + 1;
+      addToTemplate.mutate({
+        template_id: templateId,
+        exercise_id: exerciseId,
+        order_index: nextOrderIndex,
+        default_sets: 3,
+        weight_unit: 'kg'
+      });
+    }
+  };
+
+  const handleDeleteExercise = (exerciseId: string) => {
+    deleteFromTemplate.mutate(exerciseId);
+  };
+
+  const handleUpdateGrips = (templateExerciseId: string, selectedGrips: string[]) => {
+    upsertPreferences.mutate({
+      template_exercise_id: templateExerciseId,
+      preferred_grips: selectedGrips
+    });
+  };
 
   if (!templateId) {
     return <div>Template not found</div>;
@@ -199,10 +242,200 @@ const TemplateEditor: React.FC = () => {
           </div>
         </div>
 
-        <div className="text-center p-8 text-muted-foreground">
-          <p>Template editor content will be implemented here.</p>
-          <p>Please reference the original TemplateEditor.tsx file for the complete implementation.</p>
-        </div>
+        {/* Template Details */}
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                {isEditingName ? (
+                  <Input
+                    defaultValue={template?.name || ''}
+                    onBlur={(e) => handleUpdateTemplateName(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleUpdateTemplateName(e.currentTarget.value);
+                      }
+                    }}
+                    className="text-xl font-semibold"
+                    autoFocus
+                  />
+                ) : (
+                  <CardTitle 
+                    className="cursor-pointer flex items-center gap-2"
+                    onClick={() => setIsEditingName(true)}
+                  >
+                    {template?.name || 'Untitled Template'}
+                    <Edit2 className="h-4 w-4 opacity-50" />
+                  </CardTitle>
+                )}
+              </div>
+            </div>
+            {isEditingDescription ? (
+              <textarea
+                defaultValue={template?.notes || ''}
+                onBlur={(e) => handleUpdateTemplateDescription(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' && e.ctrlKey) {
+                    handleUpdateTemplateDescription(e.currentTarget.value);
+                  }
+                }}
+                className="w-full p-2 border rounded resize-none"
+                rows={3}
+                placeholder="Add template description..."
+                autoFocus
+              />
+            ) : (
+              <p 
+                className="text-muted-foreground cursor-pointer"
+                onClick={() => setIsEditingDescription(true)}
+              >
+                {template?.notes || 'Click to add description...'}
+              </p>
+            )}
+          </CardHeader>
+        </Card>
+
+        {/* Current Exercises */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Exercises in Template</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {templateExercises.length > 0 ? (
+              <div className="space-y-4">
+                {templateExercises.map((templateExercise) => (
+                  <div key={templateExercise.id} className="flex items-center justify-between p-4 border rounded-lg">
+                    <div className="flex-1">
+                      <h4 className="font-medium">Exercise {templateExercise.exercise_id}</h4>
+                      <p className="text-sm text-muted-foreground">
+                        {templateExercise.default_sets} sets
+                        {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
+                        {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
+                      </p>
+                      {templateExercise.notes && (
+                        <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
+                      )}
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setEditingExerciseId(
+                          editingExerciseId === templateExercise.id ? null : templateExercise.id
+                        )}
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleDeleteExercise(templateExercise.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground py-8">
+                No exercises in this template yet. Add some exercises below.
+              </p>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Add Exercises */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Add Exercises</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Search and Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <Input
+                placeholder="Search exercises..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+              <Select value={selectedBodyPart} onValueChange={setSelectedBodyPart}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Body Part" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Body Parts</SelectItem>
+                  {bodyParts.map((bodyPart) => (
+                    <SelectItem key={bodyPart.id} value={bodyPart.id}>
+                      {getTranslatedName(bodyPart.translations)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Muscle Group" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Muscle Groups</SelectItem>
+                  {muscleGroups.map((muscleGroup) => (
+                    <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
+                      {getTranslatedName(muscleGroup.translations)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Select value={selectedMuscle} onValueChange={setSelectedMuscle}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Muscle" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">All Muscles</SelectItem>
+                  {muscles.map((muscle) => (
+                    <SelectItem key={muscle.id} value={muscle.id}>
+                      {getTranslatedName(muscle.translations)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Exercise Results */}
+            {exercises.length > 0 && (
+              <div className="space-y-2">
+                <h4 className="font-medium">Available Exercises</h4>
+                <div className="grid gap-2 max-h-96 overflow-y-auto">
+                  {exercises.map((exercise) => (
+                    <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <h5 className="font-medium">{getTranslatedName(exercise.translations) || exercise.name}</h5>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleAddExercise(exercise.id)}
+                        disabled={templateExercises.some(te => te.exercise_id === exercise.id)}
+                      >
+                        {templateExercises.some(te => te.exercise_id === exercise.id) ? 'Added' : 'Add'}
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {searchQuery.length >= 2 && exercises.length === 0 && (
+              <p className="text-center text-muted-foreground py-4">
+                No exercises found matching your search.
+              </p>
+            )}
+
+            {searchQuery.length < 2 && !selectedMuscle && !selectedBodyPart && (
+              <p className="text-center text-muted-foreground py-4">
+                Search for exercises or select filters to see available exercises.
+              </p>
+            )}
+          </CardContent>
+        </Card>
       </main>
     </>
   );
