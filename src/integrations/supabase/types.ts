@@ -2824,6 +2824,24 @@ export type Database = {
         Args: { reps: number; weight: number }
         Returns: number
       }
+      exercise_search: {
+        Args: {
+          p_body_part_id?: string
+          p_equipment_id?: string
+          p_limit?: number
+          p_offset?: number
+          p_query?: string
+        }
+        Returns: {
+          body_part_id: string
+          equipment_id: string
+          id: string
+          is_public: boolean
+          name: string
+          similarity_score: number
+          slug: string
+        }[]
+      }
       fn_detect_stagnation: {
         Args: { p_exercise_id: string; p_lookback_sessions?: number }
         Returns: Json
@@ -2941,6 +2959,10 @@ export type Database = {
         Args: { "": number }
         Returns: number
       }
+      set_log: {
+        Args: { p_payload: Json }
+        Returns: Json
+      }
       show_limit: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -2956,6 +2978,10 @@ export type Database = {
       toggle_workout_like: {
         Args: { share_id: string }
         Returns: boolean
+      }
+      workout_open: {
+        Args: { p_workout_id: string }
+        Returns: Json
       }
     }
     Enums: {
