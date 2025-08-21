@@ -177,13 +177,14 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
                 p_lookback_sessions: 5
               });
 
-            if (stagnationData?.stagnation_detected) {
+            const stagnationResult = stagnationData as any;
+            if (stagnationResult?.stagnation_detected) {
               insights.push({
                 type: "stagnation",
                 severity: "medium",
                 title: `${exerciseData.name} Progress Plateau`,
-                description: `No progress detected in last ${stagnationData.sessions_analyzed} sessions`,
-                recommendation: stagnationData.recommendations?.[0] || "Consider changing your approach",
+                description: `No progress detected in last ${stagnationResult.sessions_analyzed} sessions`,
+                recommendation: stagnationResult.recommendations?.[0] || "Consider changing your approach",
                 exerciseId: exerciseData.id
               });
             }

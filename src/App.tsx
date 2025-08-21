@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import Progress from "./pages/Progress";
 import Journal from "./pages/Journal";
 import Insights from "./pages/Insights";
+import Analytics from "./pages/Analytics";
 import Profile from "./pages/Profile";
 import AreaDetail from "./features/area/AreaDetail";
 import Auth from "./pages/Auth";

@@ -1465,6 +1465,72 @@ export type Database = {
           },
         ]
       }
+      user_goals: {
+        Row: {
+          created_at: string
+          current_value: number
+          exercise_id: string | null
+          id: string
+          notes: string | null
+          priority: string
+          status: string
+          target_date: string
+          target_value: number
+          title: string
+          type: string
+          unit: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_value?: number
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          priority: string
+          status?: string
+          target_date: string
+          target_value: number
+          title: string
+          type: string
+          unit: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_value?: number
+          exercise_id?: string | null
+          id?: string
+          notes?: string | null
+          priority?: string
+          status?: string
+          target_date?: string
+          target_value?: number
+          title?: string
+          type?: string
+          unit?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_goals_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_goals_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_gym_profiles: {
         Row: {
           available_dumbbells: number[] | null
