@@ -26,7 +26,7 @@ const FitnessQuickStart: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button 
-              onClick={activeWorkout ? () => navigate(`/fitness/workout/${activeWorkout.id}`) : () => setShowTemplateDialog(true)}
+              onClick={activeWorkout ? () => navigate(`/fitness/session/${activeWorkout.id}`) : () => setShowTemplateDialog(true)}
               className="flex items-center gap-2 h-12"
             >
               <Play className="h-4 w-4" />
