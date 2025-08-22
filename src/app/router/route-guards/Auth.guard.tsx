@@ -30,7 +30,7 @@ export const AuthGuard = () => {
 
   // Check if user needs onboarding (excluding onboarding routes)
   if (needsOnboarding && !location.pathname.startsWith('/onboarding')) {
-    return <Navigate to="/onboarding/welcome" replace />;
+    return <Navigate to="/onboarding" replace />;
   }
 
   // If user completed onboarding but still on onboarding routes, redirect to dashboard
