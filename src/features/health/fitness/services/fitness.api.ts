@@ -920,8 +920,19 @@ export const useAddSet = () => {
         throw new Error(`add_set failed: ${error.message}`);
       }
       
-      // Return the set ID
-      return { id: data };
+      // Get the actual inserted set data
+      const { data: setData, error: setError } = await supabase
+        .from("workout_sets")
+        .select("*")
+        .eq("id", data)
+        .single();
+        
+      if (setError) {
+        console.error('Failed to fetch set data:', setError);
+        return { id: data };
+      }
+      
+      return setData;
     },
     onSuccess: (data) => {
       console.log('🔥 SUCCESS!', data);
