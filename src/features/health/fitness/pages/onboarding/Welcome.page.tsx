@@ -20,7 +20,7 @@ const Welcome: React.FC = () => {
           
           <div className="space-y-4">
             <Button 
-              onClick={() => navigate('/onboarding/settings')}
+              onClick={() => navigate('/fitness/onboarding/settings')}
               className="w-full"
             >
               Continue

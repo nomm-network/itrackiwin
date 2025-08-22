@@ -15,7 +15,7 @@ const Auth = lazy(() => import('@/pages/Auth'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Onboarding pages
-const Onboarding = lazy(() => import('@/pages/Onboarding'));
+const Onboarding = lazy(() => import('@/features/health/fitness/pages/onboarding/Onboarding.page'));
 
 // Protected pages - General
 const UserDashboard = lazy(() => import('@/pages/UserDashboard'));

@@ -5,6 +5,12 @@ export { default as WorkoutSessionPage } from './pages/WorkoutSession.page';
 export { default as TemplatesPage } from './pages/Templates.page';
 export { default as HistoryPage } from './pages/History.page';
 
+// Onboarding pages
+export { default as OnboardingPage } from './pages/onboarding/Onboarding.page';
+export { default as WelcomePage } from './pages/onboarding/Welcome.page';
+export { default as SettingsPage } from './pages/onboarding/Settings.page';
+export { default as FitnessProfilePage } from './pages/onboarding/FitnessProfile.page';
+
 // Components - Only expose what's needed outside the feature
 export { default as DynamicMetricsForm } from './components/DynamicMetricsForm';
 export { default as EffortSelector } from './components/EffortSelector';

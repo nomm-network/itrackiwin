@@ -39,7 +39,7 @@ const Settings: React.FC = () => {
 
       if (error) throw error;
 
-      navigate('/onboarding/profile');
+      navigate('/fitness/onboarding/profile');
     } catch (error) {
       toast({
         title: "Error",
