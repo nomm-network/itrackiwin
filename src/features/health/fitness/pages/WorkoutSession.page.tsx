@@ -337,11 +337,11 @@ const WorkoutSession: React.FC = () => {
                     {isActive && (
                       <div className="p-4 border-t bg-background">
                         {/* Show warmup suggestions if available */}
-                        {(ex as any).warmup_suggestion && (
+                        {(ex as any).warmup_suggestion && (ex as any).warmup_suggestion.warmup_sets && (
                           <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
                             <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 Warmup Suggestions</h4>
                             <div className="space-y-1">
-                              {(ex as any).warmup_suggestion.warmup_sets?.map((set: any, idx: number) => (
+                              {(ex as any).warmup_suggestion.warmup_sets.map((set: any, idx: number) => (
                                 <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
                                   <span>Set {set.set_index}:</span>
                                   <span>{set.weight}kg × {set.reps} reps</span>
@@ -349,6 +349,13 @@ const WorkoutSession: React.FC = () => {
                                 </div>
                               ))}
                             </div>
+                          </div>
+                        )}
+                        
+                        {/* Debug warmup data */}
+                        {process.env.NODE_ENV === 'development' && (
+                          <div className="mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+                            <div>Warmup data: {JSON.stringify((ex as any).warmup_suggestion)}</div>
                           </div>
                         )}
                         

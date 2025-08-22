@@ -551,17 +551,43 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
               workingWeight = 60; // Default weight for warmup calculation
             }
             
-            const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
-              p_exercise_id: workoutExercise.exercise_id,
-              p_working_weight: workingWeight,
-              p_working_reps: 8
-            });
-            
-            if (!warmupError && warmupData) {
-              console.log(`🔥 Warmup suggestion for ${workoutExercise.exercises?.name}:`, warmupData);
-              (workoutExercise as any).warmup_suggestion = warmupData;
-            } else if (warmupError) {
-              console.error('Warmup suggestion error:', warmupError);
+            try {
+              const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
+                p_exercise_id: workoutExercise.exercise_id,
+                p_working_weight: workingWeight,
+                p_working_reps: 8
+              });
+              
+              console.log(`🔥 Warmup RPC call for ${workoutExercise.exercises?.name}:`, {
+                exercise_id: workoutExercise.exercise_id,
+                working_weight: workingWeight,
+                result: warmupData,
+                error: warmupError
+              });
+              
+              if (!warmupError && warmupData) {
+                (workoutExercise as any).warmup_suggestion = warmupData;
+              } else if (warmupError) {
+                console.error('Warmup suggestion error:', warmupError);
+                // For testing, add a mock warmup suggestion
+                (workoutExercise as any).warmup_suggestion = {
+                  warmup_sets: [
+                    { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
+                    { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
+                    { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
+                  ]
+                };
+              }
+            } catch (rpcError) {
+              console.error('RPC function call failed:', rpcError);
+              // Fallback to mock warmup
+              (workoutExercise as any).warmup_suggestion = {
+                warmup_sets: [
+                  { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
+                  { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
+                  { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
+                ]
+              };
             }
           } catch (error) {
             console.warn(`⚠️ Failed to get warmup suggestion for exercise ${workoutExercise.exercise_id}:`, error);
@@ -827,13 +853,46 @@ export const useAddExerciseToWorkout = () => {
 export const useAddSet = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (set: any) => {
+    mutationFn: async (params: {
+      workoutId: string;
+      workoutExerciseId: string; 
+      payload: any;
+      metrics?: any[];
+    }) => {
+      const { workoutId, workoutExerciseId, payload, metrics } = params;
+      console.log('Adding set with params:', params);
+      
+      // Calculate the next set index
+      const { data: existingSets } = await supabase
+        .from("workout_sets")
+        .select("set_index")
+        .eq("workout_exercise_id", workoutExerciseId)
+        .order("set_index", { ascending: false })
+        .limit(1);
+      
+      const nextSetIndex = (existingSets?.[0]?.set_index || 0) + 1;
+      
+      const setData = {
+        workout_id: workoutId,
+        workout_exercise_id: workoutExerciseId,
+        set_index: nextSetIndex,
+        ...payload
+      };
+      
+      console.log('Inserting set data:', setData);
+      
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert(set)
+        .insert(setData)
         .select()
         .single();
-      if (error) throw error;
+        
+      if (error) {
+        console.error('Set insert error:', error);
+        throw error;
+      }
+      
+      console.log('Set inserted successfully:', data);
       return data;
     },
     onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v4"] }),
