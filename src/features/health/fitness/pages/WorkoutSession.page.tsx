@@ -428,14 +428,14 @@ const WorkoutSession: React.FC = () => {
                               <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
                               <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
                               
-                              {/* Debug Insert Query Button - SUPER VISIBLE */}
+                              {/* Add Set Button with Debug Popup */}
                               <AlertDialog>
                                 <AlertDialogTrigger asChild>
                                   <Button 
                                     type="button" 
-                                    variant="destructive" 
                                     size="sm" 
-                                    className="bg-red-600 text-white hover:bg-red-700 border-2 border-red-800 font-bold shadow-lg animate-pulse"
+                                    disabled={addSetMut.isPending} 
+                                    className="flex-1 ml-2"
                                     onClick={(e) => {
                                       e.preventDefault();
                                       const form = e.currentTarget.closest('form') as HTMLFormElement;
@@ -447,13 +447,13 @@ const WorkoutSession: React.FC = () => {
                                       const unit = fd.get("unit");
                                       const hadPain = fd.get("hadPain") === 'on';
                                       
-                                      console.log('🔥 DEBUG BUTTON CLICKED!');
-                                      console.log('🔥 Form data captured:', { reps, weight, rpe, notes, unit, hadPain });
+                                      console.log('🔥 ADD SET CLICKED - SHOWING DEBUG POPUP');
                                       
                                       setDebugInfo(prev => ({
                                         ...prev,
                                         currentFormData: { reps, weight, rpe, notes, unit, hadPain },
                                         workoutExerciseId: ex.id,
+                                        currentForm: form,
                                         insertQuery: {
                                           workout_exercise_id: ex.id,
                                           set_index: 'AUTO_GENERATED',
@@ -466,12 +466,12 @@ const WorkoutSession: React.FC = () => {
                                       }));
                                     }}
                                   >
-                                    🔥 SHOW DEBUG DATA 🔥
+                                    {addSetMut.isPending ? 'Adding...' : 'Add Set'}
                                   </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
                                   <AlertDialogHeader>
-                                    <AlertDialogTitle className="text-xl font-bold text-red-600">🔥 DEBUG INSERT QUERY DATA 🔥</AlertDialogTitle>
+                                    <AlertDialogTitle className="text-xl font-bold text-blue-600">🔍 CONFIRM ADD SET - DEBUG VIEW</AlertDialogTitle>
                                     <AlertDialogDescription asChild>
                                       <div className="space-y-6">
                                         <div className="p-4 border border-red-200 rounded-lg bg-red-50">
@@ -482,7 +482,7 @@ const WorkoutSession: React.FC = () => {
                                         </div>
                                         
                                         <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                                          <h4 className="font-bold text-lg mb-3 text-blue-800">🗄️ Final Insert Query Object:</h4>
+                                          <h4 className="font-bold text-lg mb-3 text-blue-800">🗄️ INSERT QUERY TO EXECUTE:</h4>
                                           <pre className="bg-gray-900 text-cyan-400 p-4 rounded text-sm overflow-auto font-mono">
                                             {JSON.stringify(debugInfo.insertQuery || {}, null, 2)}
                                           </pre>
@@ -501,24 +501,46 @@ const WorkoutSession: React.FC = () => {
                                           </pre>
                                         </div>
                                         
-                                        <div className="p-4 border border-purple-200 rounded-lg bg-purple-50">
-                                          <h4 className="font-bold text-lg mb-3 text-purple-800">🔍 Full Debug State:</h4>
-                                          <pre className="bg-gray-900 text-pink-400 p-4 rounded text-sm overflow-auto font-mono">
-                                            {JSON.stringify(debugInfo, null, 2)}
+                                        <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
+                                          <h4 className="font-bold text-lg mb-3 text-orange-800">⚡ SQL Query Preview:</h4>
+                                          <pre className="bg-gray-900 text-orange-400 p-4 rounded text-sm overflow-auto font-mono">
+{`INSERT INTO public.workout_sets (
+  workout_exercise_id,
+  set_index,
+  reps,
+  weight,
+  rpe,
+  notes,
+  had_pain
+) VALUES (
+  '${debugInfo.workoutExerciseId}',
+  ${debugInfo.insertQuery?.set_index || 'AUTO'},
+  ${debugInfo.insertQuery?.reps || 'NULL'},
+  ${debugInfo.insertQuery?.weight || 'NULL'},
+  ${debugInfo.insertQuery?.rpe ? `'${debugInfo.insertQuery.rpe}'` : 'NULL'},
+  ${debugInfo.insertQuery?.notes ? `'${debugInfo.insertQuery.notes}'` : 'NULL'},
+  ${debugInfo.insertQuery?.had_pain || false}
+);`}
                                           </pre>
                                         </div>
                                       </div>
                                     </AlertDialogDescription>
                                   </AlertDialogHeader>
-                                  <AlertDialogFooter>
-                                    <AlertDialogCancel className="bg-gray-500 text-white hover:bg-gray-600">Close Debug</AlertDialogCancel>
+                                  <AlertDialogFooter className="flex gap-3">
+                                    <AlertDialogCancel className="bg-gray-500 text-white hover:bg-gray-600">Cancel</AlertDialogCancel>
+                                    <AlertDialogAction 
+                                      className="bg-green-600 text-white hover:bg-green-700"
+                                      onClick={async () => {
+                                        if (debugInfo.currentForm) {
+                                          await addSet(ex.id, debugInfo.currentForm);
+                                        }
+                                      }}
+                                    >
+                                      ✅ EXECUTE INSERT QUERY
+                                    </AlertDialogAction>
                                   </AlertDialogFooter>
                                 </AlertDialogContent>
                               </AlertDialog>
-                              
-                              <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1 ml-2">
-                                {addSetMut.isPending ? 'Adding...' : 'Add Set'}
-                              </Button>
                             </div>
                         </form>
                         
