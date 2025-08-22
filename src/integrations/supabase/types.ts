@@ -3976,6 +3976,17 @@ export type Database = {
         Args: { p_key: string; p_language_code?: string }
         Returns: string
       }
+      get_user_exercise_1rm: {
+        Args: { p_exercise_id?: string }
+        Returns: {
+          estimated_1rm: number
+          exercise_id: string
+          last_updated: string
+          max_reps: number
+          max_weight: number
+          total_working_sets: number
+        }[]
+      }
       get_user_last_set_for_exercise: {
         Args: { p_exercise_id: string }
         Returns: {
