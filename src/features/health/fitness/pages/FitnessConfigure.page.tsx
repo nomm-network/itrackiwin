@@ -49,9 +49,9 @@ interface MicroWeight {
 }
 
 interface FitnessProfile {
-  goal: 'lose' | 'maintain' | 'body_recomposition' | 'gain';
-  training_goal: 'hypertrophy' | 'strength' | 'conditioning';
-  experience_level: 'new' | 'returning' | 'intermediate' | 'advanced';
+  primary_weight_goal: 'lose' | 'maintain' | 'recomp' | 'gain' | '';
+  training_focus: 'muscle' | 'strength' | 'general' | 'power' | '';
+  experience: 'new' | 'returning' | 'intermediate' | 'advanced' | '';
   bodyweight?: number;
   height_cm?: number;
   injuries: string[];
@@ -71,9 +71,9 @@ export default function FitnessConfigure() {
   const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
   const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
-    goal: '' as any,
-    training_goal: '' as any,
-    experience_level: '' as any,
+    primary_weight_goal: '' as any,
+    training_focus: '' as any,
+    experience: '' as any,
     injuries: [],
     days_per_week: 0,
     preferred_session_minutes: 0
@@ -91,7 +91,7 @@ export default function FitnessConfigure() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('user_profile_fitness')
+        .from('user_fitness_profile')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -100,9 +100,9 @@ export default function FitnessConfigure() {
       
       if (data) {
         setFitnessProfile({
-          goal: data.goal as 'lose' | 'maintain' | 'gain',
-          training_goal: data.training_goal as 'hypertrophy' | 'strength' | 'conditioning',
-          experience_level: data.experience_level as 'new' | 'returning' | 'intermediate' | 'advanced',
+          primary_weight_goal: data.primary_weight_goal,
+          training_focus: data.training_focus,
+          experience: data.experience,
           bodyweight: data.bodyweight,
           height_cm: data.height_cm,
           injuries: data.injuries || [],
@@ -410,7 +410,7 @@ export default function FitnessConfigure() {
 
   const handleSaveFitnessProfile = async () => {
     // Validate required fields
-    if (!fitnessProfile.goal || !fitnessProfile.training_goal || !fitnessProfile.experience_level || 
+    if (!fitnessProfile.primary_weight_goal || !fitnessProfile.training_focus || !fitnessProfile.experience || 
         !fitnessProfile.days_per_week || !fitnessProfile.preferred_session_minutes ||
         !fitnessProfile.bodyweight || !fitnessProfile.height_cm) {
       toast({
@@ -428,10 +428,17 @@ export default function FitnessConfigure() {
 
       // Use upsert with onConflict to handle duplicate key properly
       const { error } = await supabase
-        .from('user_profile_fitness')
+        .from('user_fitness_profile')
         .upsert({
           user_id: user.id,
-          ...fitnessProfile
+          primary_weight_goal: fitnessProfile.primary_weight_goal,
+          training_focus: fitnessProfile.training_focus,
+          experience: fitnessProfile.experience,
+          days_per_week: fitnessProfile.days_per_week,
+          preferred_session_minutes: fitnessProfile.preferred_session_minutes,
+          bodyweight: fitnessProfile.bodyweight,
+          height_cm: fitnessProfile.height_cm,
+          injuries: fitnessProfile.injuries
         }, {
           onConflict: 'user_id'
         });
@@ -546,14 +553,14 @@ export default function FitnessConfigure() {
                     {[
                       { value: 'lose', label: 'Lose', icon: '📉' },
                       { value: 'maintain', label: 'Maintain', icon: '⚖️' },
-                      { value: 'body_recomposition', label: 'Body Recomposition', icon: '🔄' },
+                      { value: 'recomp', label: 'Body Recomposition', icon: '🔄' },
                       { value: 'gain', label: 'Gain', icon: '📈' }
                     ].map(goal => (
                       <Button
                         key={goal.value}
-                        variant={fitnessProfile.goal === goal.value ? 'default' : 'outline'}
+                        variant={fitnessProfile.primary_weight_goal === goal.value ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, goal: goal.value as any }))}
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, primary_weight_goal: goal.value as any }))}
                         className="flex flex-col h-auto py-3"
                       >
                         <span className="text-lg mb-1">{goal.icon}</span>
@@ -566,17 +573,18 @@ export default function FitnessConfigure() {
                 {/* Training Focus */}
                 <div className="space-y-3">
                   <Label>Training Focus</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <div className="grid grid-cols-4 gap-2">
                     {[
-                      { value: 'hypertrophy', label: 'Muscle', icon: '💪' },
+                      { value: 'muscle', label: 'Muscle', icon: '💪' },
                       { value: 'strength', label: 'Strength', icon: '🏋️' },
-                      { value: 'conditioning', label: 'General Fitness', icon: '🏃' }
+                      { value: 'general', label: 'General Fitness', icon: '🏃' },
+                      { value: 'power', label: 'Power', icon: '⚡' }
                     ].map(focus => (
                       <Button
                         key={focus.value}
-                        variant={fitnessProfile.training_goal === focus.value ? 'default' : 'outline'}
+                        variant={fitnessProfile.training_focus === focus.value ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, training_goal: focus.value as any }))}
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, training_focus: focus.value as any }))}
                         className="flex flex-col h-auto py-3"
                       >
                         <span className="text-lg mb-1">{focus.icon}</span>
@@ -598,9 +606,9 @@ export default function FitnessConfigure() {
                     ].map(exp => (
                       <Button
                         key={exp.value}
-                        variant={fitnessProfile.experience_level === exp.value ? 'default' : 'outline'}
+                        variant={fitnessProfile.experience === exp.value ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, experience_level: exp.value as any }))}
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, experience: exp.value as any }))}
                         className="h-auto py-2 text-xs"
                       >
                         {exp.label}

@@ -19,7 +19,7 @@ export const useFitnessProfileCheck = () => {
     queryFn: async () => {
       if (!user?.id) return null;
       const { data } = await supabase
-        .from('user_profile_fitness')
+        .from('user_fitness_profile')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -30,9 +30,9 @@ export const useFitnessProfileCheck = () => {
 
   const checkAndRedirect = (action: string = 'continue') => {
     if (!fitnessProfile || 
-        !fitnessProfile.goal || 
-        !fitnessProfile.training_goal || 
-        !fitnessProfile.experience_level ||
+        !fitnessProfile.primary_weight_goal || 
+        !fitnessProfile.training_focus || 
+        !fitnessProfile.experience ||
         !fitnessProfile.days_per_week ||
         !fitnessProfile.preferred_session_minutes) {
       toast({
@@ -48,9 +48,9 @@ export const useFitnessProfileCheck = () => {
 
   return {
     hasProfile: !!(fitnessProfile && 
-                   fitnessProfile.goal && 
-                   fitnessProfile.training_goal && 
-                   fitnessProfile.experience_level &&
+                   fitnessProfile.primary_weight_goal && 
+                   fitnessProfile.training_focus && 
+                   fitnessProfile.experience &&
                    fitnessProfile.days_per_week &&
                    fitnessProfile.preferred_session_minutes),
     profile: fitnessProfile,
