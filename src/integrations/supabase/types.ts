@@ -713,6 +713,67 @@ export type Database = {
           },
         ]
       }
+      gym_equipment_availability: {
+        Row: {
+          brand: string | null
+          created_at: string
+          equipment_id: string
+          gym_id: string
+          id: string
+          is_functional: boolean
+          model: string | null
+          notes: string | null
+          quantity: number
+          updated_at: string
+        }
+        Insert: {
+          brand?: string | null
+          created_at?: string
+          equipment_id: string
+          gym_id: string
+          id?: string
+          is_functional?: boolean
+          model?: string | null
+          notes?: string | null
+          quantity?: number
+          updated_at?: string
+        }
+        Update: {
+          brand?: string | null
+          created_at?: string
+          equipment_id?: string
+          gym_id?: string
+          id?: string
+          is_functional?: boolean
+          model?: string | null
+          notes?: string | null
+          quantity?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_equipment_availability_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_availability_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_availability_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gyms: {
         Row: {
           address: string | null
@@ -1896,6 +1957,51 @@ export type Database = {
           },
         ]
       }
+      user_equipment_preferences: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          id: string
+          notes: string | null
+          preference_level: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          id?: string
+          notes?: string | null
+          preference_level?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          id?: string
+          notes?: string | null
+          preference_level?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_equipment_preferences_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_equipment_preferences_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_exercise_estimates: {
         Row: {
           created_at: string | null
@@ -2537,6 +2643,48 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_muscle_priorities: {
+        Row: {
+          created_at: string
+          id: string
+          muscle_id: string
+          priority_level: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          muscle_id: string
+          priority_level?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          muscle_id?: string
+          priority_level?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_muscle_priorities_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_muscle_priorities_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_pinned_subcategories: {
         Row: {
