@@ -875,24 +875,25 @@ export const useAddSet = () => {
       
       console.log('🔥 User authenticated:', user.id);
 
-      // Test the function first
-      try {
-        const { data: testData, error: testError } = await supabase.rpc('can_mutate_workout_set', {
-          _we_id: workoutExerciseId
-        });
-        console.log('🔥 Permission test result:', testData, testError);
-      } catch (err) {
-        console.error('🔥 Permission test failed:', err);
-      }
+      // Get next set index manually (reliable fallback)
+      const { data: existingSets } = await supabase
+        .from("workout_sets")
+        .select("set_index")
+        .eq("workout_exercise_id", workoutExerciseId)
+        .order("set_index", { ascending: false })
+        .limit(1);
+      
+      const nextIndex = existingSets?.length ? existingSets[0].set_index + 1 : 1;
+      console.log('🔥 Next set index:', nextIndex);
 
       const insertData = {
         workout_exercise_id: workoutExerciseId,
+        set_index: nextIndex,
         reps: payload.reps,
         weight: payload.weight,
         rpe: payload.rpe ?? null,
         notes: payload.notes ?? null,
         had_pain: payload.had_pain ?? false,
-        set_index: 1, // Will be overridden by trigger
       };
       
       console.log('🔥 Inserting data:', insertData);
