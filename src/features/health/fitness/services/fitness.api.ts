@@ -476,7 +476,7 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
 
 export const useWorkoutDetail = (workoutId?: UUID) => {
   return useQuery({
-    queryKey: ["workout_detail", workoutId],
+    queryKey: ["workout_detail_v2", workoutId], // Changed key to force refresh
     enabled: !!workoutId,
     queryFn: async () => {
       // Fetch workout data with readiness check
@@ -487,34 +487,23 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
         .single();
       if (workoutError) throw workoutError;
 
-      // Fetch workout exercises with exercise details and muscle groups
+      // Fetch workout exercises with exercise details - SIMPLIFIED QUERY
       const { data: exercises, error: exercisesError } = await supabase
         .from("workout_exercises")
         .select(`
           *,
-          exercises!inner(
+          exercises (
             id,
             name,
-            slug,
-            primary_muscle_id,
-            secondary_muscle_group_ids,
-            muscles!exercises_primary_muscle_id_fkey(
-              id,
-              slug,
-              muscle_groups!muscles_muscle_group_id_fkey(
-                id,
-                slug,
-                body_parts!muscle_groups_body_part_id_fkey(
-                  id,
-                  slug
-                )
-              )
-            )
+            slug
           )
         `)
         .eq("workout_id", workoutId)
         .order("order_index");
-      if (exercisesError) throw exercisesError;
+      if (exercisesError) {
+        console.error("Exercises fetch error:", exercisesError);
+        throw exercisesError;
+      }
 
       // Fetch workout sets for each exercise (show all sets, including incomplete placeholder sets)
       const setsByWe: Record<string, any[]> = {};
@@ -524,7 +513,10 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
           .select("*")
           .in("workout_exercise_id", exercises.map(ex => ex.id))
           .order("set_index");
-        if (setsError) throw setsError;
+        if (setsError) {
+          console.error("Sets fetch error:", setsError);
+          throw setsError;
+        }
 
         // Group sets by workout exercise id
         sets?.forEach(set => {
@@ -534,6 +526,8 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
           setsByWe[set.workout_exercise_id].push(set);
         });
       }
+
+      console.log("Workout data:", { workout, exercises: exercises?.length, totalSets: Object.keys(setsByWe).length });
 
       // Generate warmup and targeting suggestions
       const warmupSuggestions = await generateWorkoutSuggestions(exercises || [], workout);
@@ -784,7 +778,7 @@ export const useAddExerciseToWorkout = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v2"] }),
   });
 };
 
@@ -800,7 +794,7 @@ export const useAddSet = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v2"] }),
   });
 };
 
