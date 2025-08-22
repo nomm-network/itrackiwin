@@ -3098,31 +3098,6 @@ export type Database = {
           },
         ]
       }
-      mv_user_exercise_1rm: {
-        Row: {
-          exercise_id: string | null
-          last_set_at: string | null
-          one_rm: number | null
-          refreshed_at: string | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "workout_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workout_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "v_exercises_with_translations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       v_body_parts_with_translations: {
         Row: {
           created_at: string | null
@@ -3979,14 +3954,13 @@ export type Database = {
         Returns: string
       }
       get_user_exercise_1rm: {
-        Args: { p_exercise_id?: string }
+        Args: { p_user_id?: string }
         Returns: {
-          estimated_1rm: number
           exercise_id: string
-          last_updated: string
-          max_reps: number
-          max_weight: number
-          total_working_sets: number
+          last_set_at: string
+          one_rm: number
+          refreshed_at: string
+          user_id: string
         }[]
       }
       get_user_last_set_for_exercise: {
