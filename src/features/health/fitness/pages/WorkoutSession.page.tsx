@@ -527,7 +527,7 @@ const WorkoutSession: React.FC = () => {
   had_pain
 ) VALUES (
   '${debugFormData?.workoutExerciseId || 'NULL'}',
-  ${debugFormData?.insertQuery?.set_index || 'AUTO'},
+  ${debugFormData?.insertQuery?.set_index === 'AUTO_GENERATED' ? 'AUTO_CALCULATED_BY_TRIGGER' : (debugFormData?.insertQuery?.set_index || 'NULL')},
   ${debugFormData?.insertQuery?.reps || 'NULL'},
   ${debugFormData?.insertQuery?.weight || 'NULL'},
   ${debugFormData?.insertQuery?.rpe ? `'${debugFormData.insertQuery.rpe}'` : 'NULL'},
