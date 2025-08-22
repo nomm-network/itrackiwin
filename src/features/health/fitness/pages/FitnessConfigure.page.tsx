@@ -425,11 +425,14 @@ export default function FitnessConfigure() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Use upsert with onConflict to handle duplicate key properly
       const { error } = await supabase
         .from('user_profile_fitness')
         .upsert({
           user_id: user.id,
           ...fitnessProfile
+        }, {
+          onConflict: 'user_id'
         });
 
       if (error) throw error;
@@ -438,10 +441,14 @@ export default function FitnessConfigure() {
         title: "Profile Saved!",
         description: "Your fitness profile has been updated successfully.",
       });
+      
+      // Reload the profile to ensure UI is in sync
+      loadFitnessProfile();
     } catch (error: any) {
+      console.error('Fitness profile save error:', error);
       toast({
         title: "Error",
-        description: error.message,
+        description: error.message || "Failed to save profile. Please try again.",
         variant: "destructive",
       });
     } finally {
