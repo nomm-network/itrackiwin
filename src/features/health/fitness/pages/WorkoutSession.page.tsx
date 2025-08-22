@@ -4,7 +4,8 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useDeleteWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -16,6 +17,7 @@ import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestio
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
+import { X } from "lucide-react";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -50,6 +52,7 @@ const WorkoutSession: React.FC = () => {
   useSEO(data?.workout?.title || 'Session');
 
   const endMut = useEndWorkout();
+  const deleteMut = useDeleteWorkout();
   const addExMut = useAddExerciseToWorkout();
   const addSetMut = useAddSet();
 
@@ -75,6 +78,21 @@ const WorkoutSession: React.FC = () => {
     await endMut.mutateAsync(id);
     toast({ title: "Workout ended", description: "Session marked as complete." });
     navigate('/fitness/history');
+  };
+
+  const deleteWorkout = async () => {
+    if (!id) return;
+    try {
+      await deleteMut.mutateAsync(id);
+      toast({ title: "Workout deleted", description: "Workout has been permanently removed." });
+      navigate('/dashboard');
+    } catch (error) {
+      toast({ 
+        title: "Error", 
+        description: "Failed to delete workout. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const addExercise = async (exerciseId: string) => {
@@ -219,6 +237,35 @@ const WorkoutSession: React.FC = () => {
               <UnitToggle />
               <Button variant="secondary" onClick={() => navigate('/fitness')}>Back</Button>
               <Button onClick={endWorkout} disabled={endMut.isPending}>End Workout</Button>
+              <AlertDialog>
+                <AlertDialogTrigger asChild>
+                  <Button 
+                    variant="outline" 
+                    size="icon"
+                    className="text-destructive hover:text-destructive"
+                    disabled={deleteMut.isPending}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </AlertDialogTrigger>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Workout?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      This will permanently delete your workout and all its data. This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                    <AlertDialogAction 
+                      onClick={deleteWorkout}
+                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    >
+                      Delete Workout
+                    </AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
             </div>
           </div>
           
