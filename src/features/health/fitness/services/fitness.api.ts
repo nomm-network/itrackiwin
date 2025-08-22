@@ -892,7 +892,7 @@ export const useAddSet = () => {
         rpe: payload.rpe ?? null,
         notes: payload.notes ?? null,
         had_pain: payload.had_pain ?? false,
-        /* set_index omitted – trigger fills it */
+        set_index: 1, // Will be overridden by trigger
       };
       
       console.log('🔥 Inserting data:', insertData);

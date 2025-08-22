@@ -2807,7 +2807,7 @@ export type Database = {
           reps: number | null
           rest_seconds: number | null
           rpe: number | null
-          set_index: number
+          set_index: number | null
           set_kind: Database["public"]["Enums"]["set_type"] | null
           settings: Json | null
           weight: number | null
@@ -2827,7 +2827,7 @@ export type Database = {
           reps?: number | null
           rest_seconds?: number | null
           rpe?: number | null
-          set_index: number
+          set_index?: number | null
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           weight?: number | null
@@ -2847,7 +2847,7 @@ export type Database = {
           reps?: number | null
           rest_seconds?: number | null
           rpe?: number | null
-          set_index?: number
+          set_index?: number | null
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           weight?: number | null
