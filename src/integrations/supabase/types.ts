@@ -606,115 +606,6 @@ export type Database = {
         }
         Relationships: []
       }
-      experience_level_params: {
-        Row: {
-          allow_high_complexity: boolean
-          created_at: string
-          experience_level_id: string
-          main_rest_seconds_max: number
-          main_rest_seconds_min: number
-          start_intensity_high: number
-          start_intensity_low: number
-          updated_at: string
-          warmup_set_count_max: number
-          warmup_set_count_min: number
-          weekly_progress_pct: number
-        }
-        Insert: {
-          allow_high_complexity?: boolean
-          created_at?: string
-          experience_level_id: string
-          main_rest_seconds_max: number
-          main_rest_seconds_min: number
-          start_intensity_high: number
-          start_intensity_low: number
-          updated_at?: string
-          warmup_set_count_max: number
-          warmup_set_count_min: number
-          weekly_progress_pct: number
-        }
-        Update: {
-          allow_high_complexity?: boolean
-          created_at?: string
-          experience_level_id?: string
-          main_rest_seconds_max?: number
-          main_rest_seconds_min?: number
-          start_intensity_high?: number
-          start_intensity_low?: number
-          updated_at?: string
-          warmup_set_count_max?: number
-          warmup_set_count_min?: number
-          weekly_progress_pct?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "experience_level_params_experience_level_id_fkey"
-            columns: ["experience_level_id"]
-            isOneToOne: true
-            referencedRelation: "experience_levels"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      experience_level_translations: {
-        Row: {
-          created_at: string
-          description: string | null
-          experience_level_id: string
-          id: string
-          language_code: string
-          name: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          description?: string | null
-          experience_level_id: string
-          id?: string
-          language_code: string
-          name: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          description?: string | null
-          experience_level_id?: string
-          id?: string
-          language_code?: string
-          name?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "experience_level_translations_experience_level_id_fkey"
-            columns: ["experience_level_id"]
-            isOneToOne: false
-            referencedRelation: "experience_levels"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      experience_levels: {
-        Row: {
-          created_at: string
-          id: string
-          slug: string
-          sort_order: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          slug: string
-          sort_order?: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          slug?: string
-          sort_order?: number
-        }
-        Relationships: []
-      }
       friendships: {
         Row: {
           addressee_id: string
@@ -2705,15 +2596,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "user_profile_fitness_experience_level_id_fkey"
-            columns: ["experience_level_id"]
-            isOneToOne: false
-            referencedRelation: "experience_levels"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       user_roles: {
         Row: {
