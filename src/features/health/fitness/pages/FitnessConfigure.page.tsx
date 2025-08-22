@@ -6,9 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Edit3, Trash2, Search, Plus, User } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MapPin, Edit3, Trash2, Search, Plus, User, Target, Calendar, Clock } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { NavLink, useNavigate } from "react-router-dom";
 
 interface UserGym {
@@ -47,8 +48,20 @@ interface MicroWeight {
   user_gym_id: string;
 }
 
+interface FitnessProfile {
+  goal: 'lose' | 'maintain' | 'gain';
+  training_goal: 'hypertrophy' | 'strength' | 'conditioning';
+  experience_level: 'new' | 'returning' | 'intermediate' | 'advanced';
+  bodyweight?: number;
+  height_cm?: number;
+  injuries: string[];
+  days_per_week: number;
+  preferred_session_minutes: number;
+}
+
 export default function FitnessConfigure() {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userGyms, setUserGyms] = useState<UserGym[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -57,11 +70,50 @@ export default function FitnessConfigure() {
   const [newWeight, setNewWeight] = useState("");
   const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
+  const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
+    goal: 'maintain',
+    training_goal: 'hypertrophy',
+    experience_level: 'new',
+    injuries: [],
+    days_per_week: 3,
+    preferred_session_minutes: 60
+  });
+  const [isProfileLoading, setIsProfileLoading] = useState(false);
   
   // Check for tab parameter in URL
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
   const [activeTab, setActiveTab] = useState(tabParam === 'profile' ? 'profile' : 'gyms');
+
+  const loadFitnessProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_profile_fitness')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      
+      if (data) {
+        setFitnessProfile({
+          goal: data.goal as 'lose' | 'maintain' | 'gain',
+          training_goal: data.training_goal as 'hypertrophy' | 'strength' | 'conditioning',
+          experience_level: data.experience_level as 'new' | 'returning' | 'intermediate' | 'advanced',
+          bodyweight: data.bodyweight,
+          height_cm: data.height_cm,
+          injuries: data.injuries || [],
+          days_per_week: data.days_per_week,
+          preferred_session_minutes: data.preferred_session_minutes
+        });
+      }
+    } catch (error: any) {
+      console.error('Failed to load fitness profile:', error.message);
+    }
+  };
 
   const loadUserGyms = async () => {
     try {
@@ -109,6 +161,7 @@ export default function FitnessConfigure() {
   useEffect(() => {
     loadUserGyms();
     loadMicroWeights();
+    loadFitnessProfile();
   }, []);
 
   const searchNearbyGyms = async () => {
@@ -355,6 +408,36 @@ export default function FitnessConfigure() {
     }
   };
 
+  const handleSaveFitnessProfile = async () => {
+    setIsProfileLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('user_profile_fitness')
+        .upsert({
+          user_id: user.id,
+          ...fitnessProfile
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile Saved!",
+        description: "Your fitness profile has been updated successfully.",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsProfileLoading(false);
+    }
+  };
+
   const removeMicroWeight = async (id: string) => {
     try {
       const { error } = await supabase
@@ -436,15 +519,152 @@ export default function FitnessConfigure() {
                   Configure your personal fitness goals and preferences
                 </CardDescription>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-muted-foreground">
-                  Set up your fitness profile to get personalized workout recommendations and track your progress effectively.
-                </p>
+              <CardContent className="space-y-6">
+                {/* Goals */}
+                <div className="space-y-3">
+                  <Label>Primary Goal</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'lose', label: 'Lose', icon: '📉' },
+                      { value: 'maintain', label: 'Maintain', icon: '⚖️' },
+                      { value: 'gain', label: 'Gain', icon: '📈' }
+                    ].map(goal => (
+                      <Button
+                        key={goal.value}
+                        variant={fitnessProfile.goal === goal.value ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, goal: goal.value as any }))}
+                        className="flex flex-col h-auto py-3"
+                      >
+                        <span className="text-lg mb-1">{goal.icon}</span>
+                        <span className="text-xs">{goal.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Training Focus */}
+                <div className="space-y-3">
+                  <Label>Training Focus</Label>
+                  <div className="grid grid-cols-3 gap-2">
+                    {[
+                      { value: 'hypertrophy', label: 'Muscle', icon: '💪' },
+                      { value: 'strength', label: 'Strength', icon: '🏋️' },
+                      { value: 'conditioning', label: 'Cardio', icon: '🏃' }
+                    ].map(focus => (
+                      <Button
+                        key={focus.value}
+                        variant={fitnessProfile.training_goal === focus.value ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, training_goal: focus.value as any }))}
+                        className="flex flex-col h-auto py-3"
+                      >
+                        <span className="text-lg mb-1">{focus.icon}</span>
+                        <span className="text-xs">{focus.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Experience */}
+                <div className="space-y-3">
+                  <Label>Experience Level</Label>
+                  <div className="grid grid-cols-2 gap-2">
+                    {[
+                      { value: 'new', label: 'New to fitness' },
+                      { value: 'returning', label: 'Returning after break' },
+                      { value: 'intermediate', label: 'Regular exerciser' },
+                      { value: 'advanced', label: 'Very experienced' }
+                    ].map(exp => (
+                      <Button
+                        key={exp.value}
+                        variant={fitnessProfile.experience_level === exp.value ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, experience_level: exp.value as any }))}
+                        className="h-auto py-2 text-xs"
+                      >
+                        {exp.label}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Quick Stats */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Bodyweight (kg)</Label>
+                    <Input
+                      type="number"
+                      placeholder="70"
+                      value={fitnessProfile.bodyweight || ''}
+                      onChange={(e) => setFitnessProfile(prev => ({ 
+                        ...prev, 
+                        bodyweight: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label>Height (cm)</Label>
+                    <Input
+                      type="number"
+                      placeholder="175"
+                      value={fitnessProfile.height_cm || ''}
+                      onChange={(e) => setFitnessProfile(prev => ({ 
+                        ...prev, 
+                        height_cm: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                    />
+                  </div>
+                </div>
+
+                {/* Training Schedule */}
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      Days/week
+                    </Label>
+                    <Select 
+                      value={fitnessProfile.days_per_week.toString()} 
+                      onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, days_per_week: Number(value) }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {[3, 4, 5, 6].map(days => (
+                          <SelectItem key={days} value={days.toString()}>{days} days</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      Session length
+                    </Label>
+                    <Select 
+                      value={fitnessProfile.preferred_session_minutes.toString()} 
+                      onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, preferred_session_minutes: Number(value) }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="45">45 min</SelectItem>
+                        <SelectItem value="60">60 min</SelectItem>
+                        <SelectItem value="75">75 min</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
                 <Button 
-                  onClick={() => navigate('/fitness/onboarding/profile')}
-                  className="w-full sm:w-auto"
+                  onClick={handleSaveFitnessProfile} 
+                  className="w-full" 
+                  disabled={isProfileLoading}
                 >
-                  Configure Fitness Profile
+                  {isProfileLoading ? 'Saving...' : 'Save Fitness Profile'}
                 </Button>
               </CardContent>
             </Card>
