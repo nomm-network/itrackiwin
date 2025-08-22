@@ -11,7 +11,10 @@ import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
-import EffortSelector, { EffortLevel } from "@/components/fitness/EffortSelector";
+import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
+import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
+import WarmupFeedback from "@/features/health/fitness/components/WarmupFeedback";
+import { generateQuickWarmup } from "@/features/health/fitness/utils/warmupGenerator";
 import RestTimer from "@/components/fitness/RestTimer";
 import WorkoutClock from "@/components/fitness/WorkoutClock";
 import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestions";
@@ -63,11 +66,14 @@ const WorkoutSession: React.FC = () => {
   
   // Enhanced workout state
   const [showReadinessCheck, setShowReadinessCheck] = useState(false);
-  const [currentSetEffort, setCurrentSetEffort] = useState<EffortLevel>();
+  const [currentSetEffort, setCurrentSetEffort] = useState<EffortRating>();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(180);
   const [lastCompletedSetId, setLastCompletedSetId] = useState<string>();
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
+  const [showRMModal, setShowRMModal] = useState<{exerciseId: string, exerciseName: string} | null>(null);
+  const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
+  const [currentSetData, setCurrentSetData] = useState<{effort?: EffortRating, hadPain?: boolean}>({});
   
 
   // Hooks for suggestions and timers
@@ -106,10 +112,6 @@ const WorkoutSession: React.FC = () => {
 
   const addSet = async (workoutExerciseId: string, form: HTMLFormElement) => {
     try {
-      console.log('🔥 Starting addSet function');
-      console.log('workoutExerciseId:', workoutExerciseId);
-      console.log('workoutId (id):', id);
-      
       const fd = new FormData(form);
       
       const reps = fd.get("reps");
@@ -117,9 +119,6 @@ const WorkoutSession: React.FC = () => {
       const rpe = fd.get("rpe");
       const notes = fd.get("notes");
       const unit = fd.get("unit");
-      const hadPain = fd.get("hadPain") === 'on';
-      
-      console.log('🔥 Raw form data:', { reps, weight, rpe, notes, unit, hadPain });
       
       // Validate required fields
       if (!reps || !weight) {
@@ -134,22 +133,20 @@ const WorkoutSession: React.FC = () => {
       const payload = {
         reps: parseInt(reps as string),
         weight: parseFloat(weight as string),
+        rpe: rpe ? parseFloat(rpe as string) : undefined,
+        notes: notes ? String(notes) : undefined,
+        weight_unit: String(unit),
+        effort_rating: currentSetData.effort,
+        had_pain: currentSetData.hadPain || false,
       };
       
-      console.log('🔥 Final payload:', payload);
-      
-      const mutationParams = {
+      const result = await addSetMut.mutateAsync({
         workoutExerciseId,
         payload
-      };
-      
-      console.log('🔥 Mutation params:', mutationParams);
-      
-      const result = await addSetMut.mutateAsync(mutationParams);
-      
-      console.log('🔥 Set added successfully:', result);
+      });
       
       form.reset();
+      setCurrentSetData({});
       
       // Store the set ID for effort tracking
       setLastCompletedSetId(result?.id || Math.random().toString());
@@ -159,26 +156,25 @@ const WorkoutSession: React.FC = () => {
         description: `Added ${payload.weight}kg × ${payload.reps} reps`,
       });
     } catch (error) {
-      console.error('🔥 Error in addSet function:', error);
-      console.error('🔥 Error details:', JSON.stringify(error, null, 2));
+      console.error('Error in addSet function:', error);
       toast({
         title: "Error",
-        description: "Failed to add set. Check console for details.",
+        description: "Failed to add set. Please try again.",
         variant: "destructive"
       });
     }
   };
 
-  const handleEffortSelect = (effort: EffortLevel) => {
+  const handleEffortSelect = (effort: EffortRating) => {
     setCurrentSetEffort(effort);
     
-    // Calculate rest time based on effort
-    const restTimes: Record<EffortLevel, number> = {
-      'very_easy': 60,
-      'easy': 90,
-      'moderate': 180,
-      'hard': 240,
-      'very_hard': 300,
+    // Calculate rest time based on effort (-2 = very hard, +2 = very easy)
+    const restTimes: Record<EffortRating, number> = {
+      2: 60,   // very easy
+      1: 90,   // easy
+      0: 180,  // moderate
+      [-1]: 240, // hard
+      [-2]: 300, // very hard
     };
     
     const suggestedRest = restTimes[effort];
@@ -187,9 +183,10 @@ const WorkoutSession: React.FC = () => {
     timerActions.setDuration(suggestedRest);
     timerActions.start();
     
+    const effortLabel = effort === 2 ? 'very easy' : effort === 1 ? 'easy' : effort === 0 ? 'moderate' : effort === -1 ? 'hard' : 'very hard';
     toast({
       title: "Set completed!",
-      description: `${effort.replace('_', ' ')} effort - Rest for ${Math.floor(suggestedRest / 60)}:${(suggestedRest % 60).toString().padStart(2, '0')}`,
+      description: `${effortLabel} effort - Rest for ${Math.floor(suggestedRest / 60)}:${(suggestedRest % 60).toString().padStart(2, '0')}`,
     });
   };
 
@@ -343,28 +340,30 @@ const WorkoutSession: React.FC = () => {
                     {/* Exercise Details - Expandable */}
                     {isActive && (
                       <div className="p-4 border-t bg-background">
-                        {/* Show warmup suggestions if available */}
-                        {(ex as any).warmup_suggestion && (ex as any).warmup_suggestion.warmup_sets && (
-                          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                            <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 Warmup Suggestions</h4>
-                            <div className="space-y-1">
-                              {(ex as any).warmup_suggestion.warmup_sets.map((set: any, idx: number) => (
-                                <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                                  <span>Set {set.set_index}:</span>
-                                  <span>{set.weight}kg × {set.reps} reps</span>
-                                  <span className="text-blue-500">({set.rest_seconds}s rest)</span>
+                        {/* Show warmup suggestions */}
+                        {(() => {
+                          // Get the target weight for the first working set (estimate based on previous sessions or default)
+                          const targetWeight = 60; // This would come from exercise history or estimates
+                          const warmup = generateQuickWarmup(ex.exercises?.id || '', targetWeight);
+                          
+                          if (warmup.warmupSets.length > 0) {
+                            return (
+                              <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                                <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">🔥 Warmup Plan</h4>
+                                <div className="space-y-1">
+                                  {warmup.warmupSets.map((set, idx) => (
+                                    <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                      <span>Set {set.setIndex}:</span>
+                                      <span>{set.weight}kg × {set.reps} reps</span>
+                                      <span className="text-blue-500">({set.restSeconds}s rest)</span>
+                                    </div>
+                                  ))}
                                 </div>
-                              ))}
-                            </div>
-                          </div>
-                        )}
-                        
-                        {/* Debug warmup data */}
-                        {process.env.NODE_ENV === 'development' && (
-                          <div className="mb-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
-                            <div>Warmup data: {JSON.stringify((ex as any).warmup_suggestion)}</div>
-                          </div>
-                        )}
+                              </div>
+                            );
+                          }
+                          return null;
+                        })()}
                         
                         {/* Show completed sets */}
                         <div className="space-y-2 mb-4">
@@ -384,39 +383,59 @@ const WorkoutSession: React.FC = () => {
                         
                          {/* Add Set Form */}
                         <form 
-                          className="grid grid-cols-6 gap-2"
+                          className="space-y-3"
                           onSubmit={(e) => {
                             e.preventDefault();
                             addSet(ex.id, e.currentTarget);
                           }}
                         >
-                          <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
-                          <Input name="reps" placeholder="Reps" inputMode="numeric" />
-                          <Input name="rpe" placeholder="RPE" inputMode="decimal" />
-                          <Input name="notes" placeholder="Notes" className="col-span-2" />
-                          <input type="hidden" name="unit" value={unit} />
-                            <div className="col-span-6 flex items-center gap-2">
-                              <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
-                              <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
-                              
-                              <Button 
-                                type="submit" 
-                                size="sm" 
-                                disabled={addSetMut.isPending} 
-                                className="flex-1 ml-2"
-                              >
-                                {addSetMut.isPending ? 'Adding...' : 'Add Set'}
-                              </Button>
+                          <div className="grid grid-cols-4 gap-2">
+                            <Input name="weight" placeholder={`Weight (${unit})`} inputMode="decimal" />
+                            <Input name="reps" placeholder="Reps" inputMode="numeric" />
+                            <Input name="rpe" placeholder="RPE" inputMode="decimal" />
+                            <Input name="notes" placeholder="Notes" />
+                            <input type="hidden" name="unit" value={unit} />
+                          </div>
+                          
+                          {/* Effort and Pain Selection */}
+                          <div className="space-y-2">
+                            <div>
+                              <label className="text-sm font-medium">How did that feel?</label>
+                              <EffortChips
+                                value={currentSetData.effort}
+                                onChange={(effort) => setCurrentSetData(prev => ({ ...prev, effort }))}
+                                className="mt-1"
+                              />
                             </div>
+                            
+                            <div className="flex items-center gap-2">
+                              <input 
+                                type="checkbox" 
+                                id={`pain-${ex.id}`} 
+                                className="w-4 h-4" 
+                                checked={currentSetData.hadPain || false}
+                                onChange={(e) => setCurrentSetData(prev => ({ ...prev, hadPain: e.target.checked }))}
+                              />
+                              <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain during set</label>
+                            </div>
+                          </div>
+                          
+                          <Button 
+                            type="submit" 
+                            size="sm" 
+                            disabled={addSetMut.isPending} 
+                            className="w-full"
+                          >
+                            {addSetMut.isPending ? 'Adding Set...' : 'Add Set'}
+                          </Button>
                         </form>
                         
-                        {/* Effort selector appears after completing a set */}
-                        {lastCompletedSetId && !showRestTimer && (
+                        {/* Show warmup feedback after last set */}
+                        {completedExercises.has(ex.id) && (
                           <div className="mt-3">
-                            <EffortSelector
-                              onEffortSelect={handleEffortSelect}
-                              onPainReport={handlePainReport}
-                              selectedEffort={currentSetEffort}
+                            <WarmupFeedback
+                              workoutExerciseId={ex.id}
+                              onComplete={() => setCompletedExercises(prev => new Set([...prev, ex.id]))}
                             />
                           </div>
                         )}
@@ -474,6 +493,16 @@ const WorkoutSession: React.FC = () => {
           </div>
         </section>
       </main>
+      
+      {/* 10RM Estimate Modal */}
+      {showRMModal && (
+        <TenRMEstimateModal
+          isOpen={!!showRMModal}
+          onClose={() => setShowRMModal(null)}
+          exerciseId={showRMModal.exerciseId}
+          exerciseName={showRMModal.exerciseName}
+        />
+      )}
     </>
   );
 };

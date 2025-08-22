@@ -1896,6 +1896,54 @@ export type Database = {
           },
         ]
       }
+      user_exercise_estimates: {
+        Row: {
+          created_at: string | null
+          estimated_weight: number
+          exercise_id: string
+          id: string
+          source: string | null
+          type: string
+          unit: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          estimated_weight: number
+          exercise_id: string
+          id?: string
+          source?: string | null
+          type?: string
+          unit?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          estimated_weight?: number
+          exercise_id?: string
+          id?: string
+          source?: string | null
+          type?: string
+          unit?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_estimates_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_estimates_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_exercise_overrides: {
         Row: {
           available_inclines: number[] | null
@@ -1962,6 +2010,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_fitness_profile: {
+        Row: {
+          bodyweight: number | null
+          created_at: string | null
+          goal: string | null
+          height_cm: number | null
+          injuries: Json | null
+          prefer_short_rests: boolean | null
+          sex: string | null
+          training_age_months: number | null
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bodyweight?: number | null
+          created_at?: string | null
+          goal?: string | null
+          height_cm?: number | null
+          injuries?: Json | null
+          prefer_short_rests?: boolean | null
+          sex?: string | null
+          training_age_months?: number | null
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bodyweight?: number | null
+          created_at?: string | null
+          goal?: string | null
+          height_cm?: number | null
+          injuries?: Json | null
+          prefer_short_rests?: boolean | null
+          sex?: string | null
+          training_age_months?: number | null
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
       }
       user_goals: {
         Row: {
@@ -2555,6 +2642,41 @@ export type Database = {
           },
         ]
       }
+      workout_exercise_feedback: {
+        Row: {
+          created_at: string | null
+          notes: string | null
+          warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_top_weight: number | null
+          warmup_total_reps: number | null
+          workout_exercise_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          notes?: string | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_top_weight?: number | null
+          warmup_total_reps?: number | null
+          workout_exercise_id: string
+        }
+        Update: {
+          created_at?: string | null
+          notes?: string | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_top_weight?: number | null
+          warmup_total_reps?: number | null
+          workout_exercise_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercise_feedback_workout_exercise_id_fkey"
+            columns: ["workout_exercise_id"]
+            isOneToOne: true
+            referencedRelation: "workout_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_exercise_groups: {
         Row: {
           created_at: string
@@ -2799,6 +2921,7 @@ export type Database = {
           distance: number | null
           duration_seconds: number | null
           effort: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating: number | null
           had_pain: boolean | null
           heart_rate: number | null
           id: string
@@ -2819,6 +2942,7 @@ export type Database = {
           distance?: number | null
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating?: number | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
@@ -2839,6 +2963,7 @@ export type Database = {
           distance?: number | null
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating?: number | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
@@ -5416,6 +5541,7 @@ export type Database = {
         | "top_set"
         | "backoff"
         | "cooldown"
+      warmup_quality: "not_enough" | "excellent" | "too_much"
       weight_unit: "kg" | "lb"
     }
     CompositeTypes: {
@@ -5577,6 +5703,7 @@ export const Constants = {
         "backoff",
         "cooldown",
       ],
+      warmup_quality: ["not_enough", "excellent", "too_much"],
       weight_unit: ["kg", "lb"],
     },
   },

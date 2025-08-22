@@ -12,6 +12,7 @@ const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 const FitnessConfigurePage = lazy(() => import("./pages/FitnessConfigure.page"));
 const MyGymPage = lazy(() => import("./pages/MyGym.page"));
 const TemplateRotationPage = lazy(() => import("./pages/TemplateRotation.page"));
+const FitnessProfilePage = lazy(() => import("./components/FitnessProfile"));
 
 export const FitnessRoutes = (
   <Routes>
@@ -24,6 +25,7 @@ export const FitnessRoutes = (
     <Route path="configure" element={<FitnessConfigurePage />} />
     <Route path="my-gym" element={<MyGymPage />} />
     <Route path="templates/rotation" element={<TemplateRotationPage />} />
+    <Route path="profile" element={<FitnessProfilePage />} />
     <Route path="history" element={<HistoryPage />} />
     <Route path="history/:id" element={<WorkoutDetailPage />} />
   </Routes>
