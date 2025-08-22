@@ -2799,19 +2799,19 @@ export type Database = {
           distance: number | null
           duration_seconds: number | null
           effort: Database["public"]["Enums"]["effort_code"] | null
-          had_pain: boolean
+          had_pain: boolean | null
           heart_rate: number | null
           id: string
-          is_completed: boolean
+          is_completed: boolean | null
           notes: string | null
           reps: number | null
           rest_seconds: number | null
           rpe: number | null
           set_index: number
-          set_kind: Database["public"]["Enums"]["set_type"]
+          set_kind: Database["public"]["Enums"]["set_type"] | null
           settings: Json | null
           weight: number | null
-          weight_unit: string
+          weight_unit: string | null
           workout_exercise_id: string
         }
         Insert: {
@@ -2819,19 +2819,19 @@ export type Database = {
           distance?: number | null
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
-          had_pain?: boolean
+          had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
-          is_completed?: boolean
+          is_completed?: boolean | null
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
           rpe?: number | null
           set_index: number
-          set_kind?: Database["public"]["Enums"]["set_type"]
+          set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           weight?: number | null
-          weight_unit?: string
+          weight_unit?: string | null
           workout_exercise_id: string
         }
         Update: {
@@ -2839,19 +2839,19 @@ export type Database = {
           distance?: number | null
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
-          had_pain?: boolean
+          had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
-          is_completed?: boolean
+          is_completed?: boolean | null
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
           rpe?: number | null
           set_index?: number
-          set_kind?: Database["public"]["Enums"]["set_type"]
+          set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           weight?: number | null
-          weight_unit?: string
+          weight_unit?: string | null
           workout_exercise_id?: string
         }
         Relationships: [

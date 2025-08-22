@@ -921,21 +921,16 @@ export const useAddSet = () => {
         
       console.log('🔥 Next set index will be:', nextSetIndex);
       
-      // Direct insert with calculated set_index
+      // Simple insert with minimal required fields
       const insertData = {
         workout_exercise_id: workoutExerciseId,
         set_index: nextSetIndex,
         reps: payload.reps,
         weight: payload.weight,
-        weight_unit: payload.weight_unit || 'kg',
-        is_completed: true,
-        set_kind: 'normal' as const,
         had_pain: payload.had_pain || false,
-        rpe: payload.rpe,
-        notes: payload.notes
       };
       
-      console.log('🔥 Inserting:', insertData);
+      console.log('🔥 Minimal insert:', insertData);
       
       const { data, error } = await supabase
         .from("workout_sets")
