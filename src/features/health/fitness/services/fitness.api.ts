@@ -864,40 +864,94 @@ export const useAddSet = () => {
         is_completed?: boolean;
       };
     }) => {
+      console.log('🔥 Starting addSet mutation with params:', params);
+      
       const { workoutExerciseId, payload } = params;
       
+      // Check authentication
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        console.error('🔥 Auth error:', authError);
+        throw new Error('User not authenticated');
+      }
+      console.log('🔥 User authenticated:', user.id);
+      
+      // Verify workout exercise exists and belongs to user
+      const { data: workoutExercise, error: weError } = await supabase
+        .from("workout_exercises")
+        .select(`
+          id,
+          workout_id,
+          exercise_id,
+          workouts!inner(id, user_id)
+        `)
+        .eq("id", workoutExerciseId)
+        .single();
+      
+      if (weError) {
+        console.error('🔥 Workout exercise fetch error:', weError);
+        throw new Error(`Workout exercise not found: ${weError.message}`);
+      }
+      
+      if (workoutExercise.workouts.user_id !== user.id) {
+        console.error('🔥 User mismatch:', { expected: user.id, actual: workoutExercise.workouts.user_id });
+        throw new Error('Workout does not belong to current user');
+      }
+      
+      console.log('🔥 Workout exercise verified:', workoutExercise);
+      
       // Get next set index
-      const { data: existingSets } = await supabase
+      const { data: existingSets, error: setsError } = await supabase
         .from("workout_sets")
         .select("set_index")
         .eq("workout_exercise_id", workoutExerciseId)
         .order("set_index", { ascending: false })
         .limit(1);
       
+      if (setsError) {
+        console.error('🔥 Error fetching existing sets:', setsError);
+        throw new Error(`Failed to get set index: ${setsError.message}`);
+      }
+      
       const nextIndex = (existingSets?.[0]?.set_index || 0) + 1;
+      console.log('🔥 Next set index will be:', nextIndex);
+      
+      // Prepare insert data
+      const insertData = {
+        workout_exercise_id: workoutExerciseId,
+        set_index: nextIndex,
+        reps: payload.reps,
+        weight: payload.weight,
+        weight_unit: payload.weight_unit || 'kg',
+        rpe: payload.rpe || null,
+        notes: payload.notes || null,
+        is_completed: payload.is_completed !== false,
+        set_kind: 'normal' as const
+      };
+      
+      console.log('🔥 Inserting set data:', insertData);
       
       // Insert directly
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert({
-          workout_exercise_id: workoutExerciseId,
-          set_index: nextIndex,
-          reps: payload.reps,
-          weight: payload.weight,
-          weight_unit: payload.weight_unit || 'kg',
-          rpe: payload.rpe || null,
-          notes: payload.notes || null,
-          is_completed: payload.is_completed !== false,
-          set_kind: 'normal'
-        })
+        .insert(insertData)
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        console.error('🔥 Insert error:', error);
+        throw new Error(`Failed to insert set: ${error.message}`);
+      }
+      
+      console.log('🔥 Set inserted successfully:', data);
       return data;
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('🔥 Mutation successful, invalidating queries');
       qc.invalidateQueries({ queryKey: ["workout_detail_v4"] });
+    },
+    onError: (error) => {
+      console.error('🔥 Mutation error:', error);
     }
   });
 };
