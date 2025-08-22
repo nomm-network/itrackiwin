@@ -6087,7 +6087,12 @@ export type Database = {
       app_role: "superadmin" | "admin" | "mentor" | "user"
       body_side: "left" | "right" | "bilateral" | "unspecified"
       effort_code: "++" | "+" | "-" | "--"
-      experience_level: "new" | "returning" | "intermediate" | "advanced"
+      experience_level:
+        | "new"
+        | "returning"
+        | "intermediate"
+        | "advanced"
+        | "very_experienced"
       fitness_goal:
         | "lose_weight"
         | "maintain_weight"
@@ -6271,7 +6276,13 @@ export const Constants = {
       app_role: ["superadmin", "admin", "mentor", "user"],
       body_side: ["left", "right", "bilateral", "unspecified"],
       effort_code: ["++", "+", "-", "--"],
-      experience_level: ["new", "returning", "intermediate", "advanced"],
+      experience_level: [
+        "new",
+        "returning",
+        "intermediate",
+        "advanced",
+        "very_experienced",
+      ],
       fitness_goal: [
         "lose_weight",
         "maintain_weight",
