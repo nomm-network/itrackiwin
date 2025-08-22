@@ -476,7 +476,7 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
 
 export const useWorkoutDetail = (workoutId?: UUID) => {
   return useQuery({
-    queryKey: ["workout_detail_v3", workoutId], // Changed again to force refresh
+    queryKey: ["workout_detail_v4", workoutId], // Changed to force refresh
     enabled: !!workoutId,
     queryFn: async () => {
       console.log("Fetching workout detail for ID:", workoutId);
@@ -534,6 +534,33 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
             }
             setsByWe[set.workout_exercise_id].push(set);
           });
+        }
+      }
+
+      // Add warmup suggestions for each exercise
+      if (exercises?.length) {
+        for (const workoutExercise of exercises) {
+          try {
+            // Get the working weight from the first non-warmup set
+            const exerciseSets = setsByWe[workoutExercise.id] || [];
+            const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup');
+            const workingWeight = workingSets.length > 0 ? workingSets[0].weight : undefined;
+            
+            if (workingWeight) {
+              const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
+                p_exercise_id: workoutExercise.exercise_id,
+                p_working_weight: workingWeight,
+                p_working_reps: 8
+              });
+              
+              if (!warmupError && warmupData) {
+                console.log(`🔥 Warmup suggestion for ${workoutExercise.exercises?.name}:`, warmupData);
+                (workoutExercise as any).warmup_suggestion = warmupData;
+              }
+            }
+          } catch (error) {
+            console.warn(`⚠️ Failed to get warmup suggestion for exercise ${workoutExercise.exercise_id}:`, error);
+          }
         }
       }
 
