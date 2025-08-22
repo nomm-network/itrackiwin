@@ -107,6 +107,60 @@ export type Database = {
         }
         Relationships: []
       }
+      auto_deload_triggers: {
+        Row: {
+          created_at: string
+          deload_percentage: number | null
+          exercise_id: string
+          id: string
+          is_triggered: boolean | null
+          threshold_value: number | null
+          trigger_type: string
+          triggered_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          deload_percentage?: number | null
+          exercise_id: string
+          id?: string
+          is_triggered?: boolean | null
+          threshold_value?: number | null
+          trigger_type: string
+          triggered_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          deload_percentage?: number | null
+          exercise_id?: string
+          id?: string
+          is_triggered?: boolean | null
+          threshold_value?: number | null
+          trigger_type?: string
+          triggered_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "auto_deload_triggers_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "auto_deload_triggers_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       bar_types: {
         Row: {
           default_weight: number
@@ -1508,6 +1562,78 @@ export type Database = {
         }
         Relationships: []
       }
+      progressive_overload_plans: {
+        Row: {
+          created_at: string
+          current_reps: number | null
+          current_sets: number | null
+          current_weight: number | null
+          exercise_id: string
+          failed_sessions: number | null
+          id: string
+          is_active: boolean | null
+          last_progression_date: string | null
+          rep_range_max: number | null
+          rep_range_min: number | null
+          strategy: string
+          successful_sessions: number | null
+          updated_at: string
+          user_id: string
+          weight_increment: number | null
+        }
+        Insert: {
+          created_at?: string
+          current_reps?: number | null
+          current_sets?: number | null
+          current_weight?: number | null
+          exercise_id: string
+          failed_sessions?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_progression_date?: string | null
+          rep_range_max?: number | null
+          rep_range_min?: number | null
+          strategy: string
+          successful_sessions?: number | null
+          updated_at?: string
+          user_id: string
+          weight_increment?: number | null
+        }
+        Update: {
+          created_at?: string
+          current_reps?: number | null
+          current_sets?: number | null
+          current_weight?: number | null
+          exercise_id?: string
+          failed_sessions?: number | null
+          id?: string
+          is_active?: boolean | null
+          last_progression_date?: string | null
+          rep_range_max?: number | null
+          rep_range_min?: number | null
+          strategy?: string
+          successful_sessions?: number | null
+          updated_at?: string
+          user_id?: string
+          weight_increment?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progressive_overload_plans_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progressive_overload_plans_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       readiness_checkins: {
         Row: {
           alcohol: boolean | null
@@ -1516,7 +1642,9 @@ export type Database = {
           energy: number | null
           id: string
           illness: boolean | null
+          mood: number | null
           notes: string | null
+          recovery_score: number | null
           sleep_hours: number | null
           sleep_quality: number | null
           soreness: number | null
@@ -1532,7 +1660,9 @@ export type Database = {
           energy?: number | null
           id?: string
           illness?: boolean | null
+          mood?: number | null
           notes?: string | null
+          recovery_score?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
           soreness?: number | null
@@ -1548,7 +1678,9 @@ export type Database = {
           energy?: number | null
           id?: string
           illness?: boolean | null
+          mood?: number | null
           notes?: string | null
+          recovery_score?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
           soreness?: number | null
@@ -1570,6 +1702,60 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      rest_timer_sessions: {
+        Row: {
+          actual_rest_seconds: number | null
+          completed_at: string | null
+          created_at: string
+          id: string
+          interruption_reason: string | null
+          planned_rest_seconds: number
+          started_at: string
+          user_id: string
+          was_interrupted: boolean | null
+          workout_set_id: string | null
+        }
+        Insert: {
+          actual_rest_seconds?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interruption_reason?: string | null
+          planned_rest_seconds: number
+          started_at?: string
+          user_id: string
+          was_interrupted?: boolean | null
+          workout_set_id?: string | null
+        }
+        Update: {
+          actual_rest_seconds?: number | null
+          completed_at?: string | null
+          created_at?: string
+          id?: string
+          interruption_reason?: string | null
+          planned_rest_seconds?: number
+          started_at?: string
+          user_id?: string
+          was_interrupted?: boolean | null
+          workout_set_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "rest_timer_sessions_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_set_id"]
+          },
+          {
+            foreignKeyName: "rest_timer_sessions_workout_set_id_fkey"
+            columns: ["workout_set_id"]
+            isOneToOne: false
+            referencedRelation: "workout_sets"
             referencedColumns: ["id"]
           },
         ]
@@ -3097,6 +3283,69 @@ export type Database = {
             columns: ["workout_share_id"]
             isOneToOne: false
             referencedRelation: "workout_shares"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workout_session_feedback: {
+        Row: {
+          created_at: string
+          difficulty: number | null
+          energy_after: number | null
+          enjoyment: number | null
+          id: string
+          joint_stiffness: number | null
+          muscle_soreness: number | null
+          notes: string | null
+          perceived_exertion: number | null
+          user_id: string
+          what_to_improve: string | null
+          what_went_well: string | null
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          difficulty?: number | null
+          energy_after?: number | null
+          enjoyment?: number | null
+          id?: string
+          joint_stiffness?: number | null
+          muscle_soreness?: number | null
+          notes?: string | null
+          perceived_exertion?: number | null
+          user_id: string
+          what_to_improve?: string | null
+          what_went_well?: string | null
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          difficulty?: number | null
+          energy_after?: number | null
+          enjoyment?: number | null
+          id?: string
+          joint_stiffness?: number | null
+          muscle_soreness?: number | null
+          notes?: string | null
+          perceived_exertion?: number | null
+          user_id?: string
+          what_to_improve?: string | null
+          what_went_well?: string | null
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_session_feedback_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_session_feedback_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
             referencedColumns: ["id"]
           },
         ]
