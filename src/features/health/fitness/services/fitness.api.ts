@@ -869,7 +869,15 @@ export const useAddSet = () => {
       
       const { workoutExerciseId, payload } = params;
       
-      // Get next set index - simple approach
+      // Check authentication first
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) {
+        throw new Error('Authentication required');
+      }
+      
+      console.log('🔥 Authenticated user:', user.id);
+      
+      // Get next set index
       const { data: existingSets } = await supabase
         .from("workout_sets")
         .select("set_index")
@@ -879,7 +887,9 @@ export const useAddSet = () => {
       
       const nextIndex = existingSets?.length ? existingSets[0].set_index + 1 : 1;
       
-      // Simple insert - only required fields
+      console.log('🔥 Next index:', nextIndex);
+      
+      // Insert the set with authentication context
       const { data, error } = await supabase
         .from("workout_sets")
         .insert({
@@ -893,9 +903,10 @@ export const useAddSet = () => {
       
       if (error) {
         console.error('🔥 INSERT ERROR:', error);
-        throw error;
+        throw new Error(`Failed to add set: ${error.message}`);
       }
       
+      console.log('🔥 Set added successfully:', data);
       return data;
     },
     onSuccess: (data) => {
