@@ -3,13 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useSaveWarmupFeedback } from "../hooks/useWarmupPlan.hook";
 
 type WarmupQuality = 'not_enough' | 'excellent' | 'too_much';
 
 interface WarmupFeedbackProps {
-  workoutExerciseId: string;
+  exerciseId: string;
   onComplete?: () => void;
   className?: string;
 }
@@ -41,37 +40,36 @@ const warmupOptions: Array<{
 ];
 
 const WarmupFeedback: React.FC<WarmupFeedbackProps> = ({
-  workoutExerciseId,
+  exerciseId,
   onComplete,
   className
 }) => {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const saveFeedbackMutation = useSaveWarmupFeedback();
 
-  const saveFeedback = useMutation({
-    mutationFn: async (quality: WarmupQuality) => {
-      const { error } = await supabase
-        .from('workout_exercise_feedback')
-        .upsert({
-          workout_exercise_id: workoutExerciseId,
-          warmup_quality: quality,
+  const handleFeedback = (quality: WarmupQuality) => {
+    saveFeedbackMutation.mutate({
+      exerciseId,
+      feedback: quality
+    }, {
+      onSuccess: () => {
+        const option = warmupOptions.find(opt => opt.value === quality);
+        toast({
+          title: "Feedback saved",
+          description: `Noted: ${option?.description}. ${quality === 'excellent' ? "I'll keep this for next time 👍" : "We'll adjust future warm-ups."}`,
         });
-
-      if (error) throw error;
-    },
-    onSuccess: (_, quality) => {
-      const option = warmupOptions.find(opt => opt.value === quality);
-      toast({
-        title: "Feedback saved",
-        description: `Noted: ${option?.description}. We'll adjust future warm-ups.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['workout-feedback'] });
-      onComplete?.();
-    },
-    onError: (error) => {
-      console.error('Error saving warmup feedback:', error);
-    },
-  });
+        onComplete?.();
+      },
+      onError: (error) => {
+        console.error('Error saving warmup feedback:', error);
+        toast({
+          title: "Error",
+          description: "Failed to save feedback. Please try again.",
+          variant: "destructive",
+        });
+      }
+    });
+  };
 
   return (
     <Card className={cn("p-3", className)}>
@@ -84,8 +82,8 @@ const WarmupFeedback: React.FC<WarmupFeedbackProps> = ({
               key={option.value}
               variant="outline"
               size="sm"
-              onClick={() => saveFeedback.mutate(option.value)}
-              disabled={saveFeedback.isPending}
+              onClick={() => handleFeedback(option.value)}
+              disabled={saveFeedbackMutation.isPending}
               className="flex flex-col items-center p-2 h-auto min-w-[80px]"
             >
               <span className="text-lg">{option.emoji}</span>

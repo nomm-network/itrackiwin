@@ -433,10 +433,10 @@ const WorkoutSession: React.FC = () => {
                         {/* Show warmup feedback after last set */}
                         {completedExercises.has(ex.id) && (
                           <div className="mt-3">
-                            <WarmupFeedback
-                              workoutExerciseId={ex.id}
-                              onComplete={() => setCompletedExercises(prev => new Set([...prev, ex.id]))}
-                            />
+                             <WarmupFeedback
+                               exerciseId={ex.exercise_id}
+                               onComplete={() => setCompletedExercises(prev => new Set([...prev, ex.id]))}
+                             />
                           </div>
                         )}
                       </div>
