@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Clock, Target, TrendingUp } from "lucide-react";
+import { Clock, Target, TrendingUp, Timer } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface WorkoutClockProps {
@@ -47,7 +47,8 @@ const WorkoutClock: React.FC<WorkoutClockProps> = ({
   // Calculate ETA based on average time per set
   const calculateETA = () => {
     if (completedSets === 0 || totalSets === 0) {
-      return estimatedDurationSeconds ? formatDuration(estimatedDurationSeconds) : "Calculating...";
+      // Return icon instead of text when calculating
+      return estimatedDurationSeconds ? formatDuration(estimatedDurationSeconds) : <Timer className="h-4 w-4 animate-spin" />;
     }
     
     const avgTimePerSet = elapsedSeconds / completedSets;
@@ -95,7 +96,7 @@ const WorkoutClock: React.FC<WorkoutClockProps> = ({
               <Target className="h-4 w-4 mr-1" />
               <span className="text-xs">ETA</span>
             </div>
-            <div className="text-lg font-mono font-semibold">
+            <div className="text-lg font-mono font-semibold flex items-center justify-center">
               {calculateETA()}
             </div>
           </div>

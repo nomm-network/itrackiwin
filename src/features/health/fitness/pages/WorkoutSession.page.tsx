@@ -17,7 +17,7 @@ import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestio
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
-import { X } from "lucide-react";
+import { Settings, Timer } from "lucide-react";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -217,16 +217,22 @@ const WorkoutSession: React.FC = () => {
           {/* Current Gym Header */}
           {selectedGym && (
             <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-              <div>
-                <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
-                <p className="font-medium">{selectedGym.name}</p>
+              <div className="flex items-center gap-2">
+                <div>
+                  <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
+                  <p className="font-medium">{selectedGym.name}</p>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="icon"
+                  onClick={() => navigate('/fitness/configure')}
+                  className="h-8 w-8"
+                >
+                  <Settings className="h-4 w-4" />
+                </Button>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => navigate('/fitness/configure')}
-              >
-                Change
+              <Button onClick={endWorkout} disabled={endMut.isPending} size="sm">
+                End Workout
               </Button>
             </div>
           )}
@@ -238,36 +244,6 @@ const WorkoutSession: React.FC = () => {
             <div className="flex items-center gap-3">
               <UnitToggle />
               <Button variant="secondary" onClick={() => navigate('/fitness')}>Back</Button>
-              <Button onClick={endWorkout} disabled={endMut.isPending}>End Workout</Button>
-              <AlertDialog>
-                <AlertDialogTrigger asChild>
-                  <Button 
-                    variant="outline" 
-                    size="icon"
-                    className="text-destructive hover:text-destructive"
-                    disabled={deleteMut.isPending}
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                </AlertDialogTrigger>
-                <AlertDialogContent>
-                  <AlertDialogHeader>
-                    <AlertDialogTitle>Delete Workout?</AlertDialogTitle>
-                    <AlertDialogDescription>
-                      This will permanently delete your workout and all its data. This action cannot be undone.
-                    </AlertDialogDescription>
-                  </AlertDialogHeader>
-                  <AlertDialogFooter>
-                    <AlertDialogCancel>Cancel</AlertDialogCancel>
-                    <AlertDialogAction 
-                      onClick={deleteWorkout}
-                      className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    >
-                      Delete Workout
-                    </AlertDialogAction>
-                  </AlertDialogFooter>
-                </AlertDialogContent>
-              </AlertDialog>
             </div>
           </div>
           
@@ -292,6 +268,22 @@ const WorkoutSession: React.FC = () => {
                     <h3 className="font-medium">{ex.exercises?.name || 'Unknown Exercise'}</h3>
                     <span className="text-xs text-muted-foreground">Order: {ex.order_index}</span>
                   </div>
+                  
+                  {/* Show warmup suggestions if available */}
+                  {(ex as any).warmup_suggestion && (
+                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                      <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 Warmup Suggestions</h4>
+                      <div className="space-y-1">
+                        {(ex as any).warmup_suggestion.warmup_sets?.map((set: any, idx: number) => (
+                          <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                            <span>Set {set.set_index}:</span>
+                            <span>{set.weight}kg × {set.reps} reps</span>
+                            <span className="text-blue-500">({set.rest_seconds}s rest)</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Show exercise name and basic info */}
                   <div className="space-y-2">
