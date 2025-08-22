@@ -59,19 +59,24 @@ export const useOneRMProgress = (timeframe: string = "3m", exerciseId?: string) 
       const { startDate, endDate } = getDateRange(timeframe);
       
       // Use the new safe function instead of the problematic materialized view
-      const { data, error } = await supabase.rpc('get_user_exercise_1rm', {
-        p_exercise_id: exerciseId || null
-      });
+      const { data, error } = await supabase.rpc('get_user_exercise_1rm');
 
       if (error) throw error;
       
-      // Filter by date range and transform data
-      return (data || [])
-        .filter(item => item.last_updated >= startDate && item.last_updated <= endDate)
+      // Filter by exercise if specified and date range
+      let filteredData = data || [];
+      if (exerciseId) {
+        filteredData = filteredData.filter(item => item.exercise_id === exerciseId);
+      }
+      
+      // Transform data to match expected format
+      return filteredData
+        .filter(item => item.last_set_at >= startDate && item.last_set_at <= endDate)
         .map(item => ({
-          date: item.last_updated,
-          value: item.estimated_1rm || 0,
-          exercise: exerciseId || 'All'
+          date: item.last_set_at,
+          value: item.one_rm || 0,
+          exerciseId: item.exercise_id,
+          exerciseName: exerciseId || 'All'
         }))
         .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },

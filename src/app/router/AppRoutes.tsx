@@ -49,31 +49,76 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Protected routes wrapper */}
-          <Route path="/*" element={
+          {/* Main Dashboard - New unified dashboard */}
+          <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <Routes>
-                {/* Main Dashboard - New unified dashboard */}
-                <Route path="/dashboard" element={<Dashboard />} />
-                
-                {/* Legacy routes - keeping for compatibility */}
-                <Route path={Paths.dashboard} element={<UserDashboard />} />
-                <Route path={Paths.progress} element={<Progress />} />
-                <Route path={Paths.journal} element={<Journal />} />
-                <Route path={Paths.insights} element={<Insights />} />
-                <Route path={Paths.analytics} element={<Analytics />} />
-                <Route path={Paths.profile} element={<Profile />} />
-                <Route path={Paths.achievements} element={<Achievements />} />
-                <Route path={Paths.aiCoach} element={<AICoachingHub />} />
-                <Route path={Paths.social} element={<Social />} />
-                <Route path={Paths.area()} element={<AreaDetail />} />
+              <Dashboard />
+            </ProtectedMobileLayout>
+          } />
 
-                {/* Fitness feature routes - delegated to feature */}
-                <Route path={`${Paths.health.fitness.root}/*`} element={FitnessRoutes} />
+          {/* Protected routes */}
+          <Route path={Paths.dashboard} element={
+            <ProtectedMobileLayout>
+              <UserDashboard />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.progress} element={
+            <ProtectedMobileLayout>
+              <Progress />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.journal} element={
+            <ProtectedMobileLayout>
+              <Journal />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.insights} element={
+            <ProtectedMobileLayout>
+              <Insights />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.analytics} element={
+            <ProtectedMobileLayout>
+              <Analytics />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.profile} element={
+            <ProtectedMobileLayout>
+              <Profile />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.achievements} element={
+            <ProtectedMobileLayout>
+              <Achievements />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.aiCoach} element={
+            <ProtectedMobileLayout>
+              <AICoachingHub />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.social} element={
+            <ProtectedMobileLayout>
+              <Social />
+            </ProtectedMobileLayout>
+          } />
+          <Route path={Paths.area()} element={
+            <ProtectedMobileLayout>
+              <AreaDetail />
+            </ProtectedMobileLayout>
+          } />
 
-                {/* Admin routes - delegated to admin feature */}
-                <Route path={`${Paths.admin.root}/*`} element={<AdminRoutes />} />
-              </Routes>
+          {/* Fitness feature routes - delegated to feature */}
+          <Route path={`${Paths.health.fitness.root}/*`} element={
+            <ProtectedMobileLayout>
+              {FitnessRoutes}
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Admin routes - delegated to admin feature */}
+          <Route path={`${Paths.admin.root}/*`} element={
+            <ProtectedMobileLayout>
+              <AdminRoutes />
             </ProtectedMobileLayout>
           } />
 
