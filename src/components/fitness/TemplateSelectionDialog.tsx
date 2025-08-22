@@ -54,7 +54,9 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     setIsStarting(true);
     
     try {
+      console.log('Starting workout from template:', templateId);
       const workoutId = await startFromTemplate.mutateAsync(templateId);
+      console.log('Created workout ID:', workoutId);
       navigate(`/fitness/session/${workoutId}`);
       onOpenChange(false);
       toast.success('Workout started!');

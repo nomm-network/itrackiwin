@@ -232,7 +232,9 @@ const WorkoutSession: React.FC = () => {
           )}
           
           <div className="flex items-center justify-between">
-            <h1 className="text-xl font-semibold">{data?.workout?.title || 'Free Session'}</h1>
+            <h1 className="text-xl font-semibold">
+              {data?.workout?.title || (data?.exercises?.length > 0 ? 'Template Workout' : 'Free Session')}
+            </h1>
             <div className="flex items-center gap-3">
               <UnitToggle />
               <Button variant="secondary" onClick={() => navigate('/fitness')}>Back</Button>
