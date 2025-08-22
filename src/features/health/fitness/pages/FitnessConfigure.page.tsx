@@ -49,7 +49,7 @@ interface MicroWeight {
 }
 
 interface FitnessProfile {
-  goal: 'lose' | 'maintain' | 'gain';
+  goal: 'lose' | 'maintain' | 'body_recomposition' | 'gain';
   training_goal: 'hypertrophy' | 'strength' | 'conditioning';
   experience_level: 'new' | 'returning' | 'intermediate' | 'advanced';
   bodyweight?: number;
@@ -540,11 +540,12 @@ export default function FitnessConfigure() {
               <CardContent className="space-y-6">
                 {/* Goals */}
                 <div className="space-y-3">
-                  <Label>Primary Goal</Label>
-                  <div className="grid grid-cols-3 gap-2">
+                  <Label>Primary Weight Goal</Label>
+                  <div className="grid grid-cols-4 gap-2">
                     {[
                       { value: 'lose', label: 'Lose', icon: '📉' },
                       { value: 'maintain', label: 'Maintain', icon: '⚖️' },
+                      { value: 'body_recomposition', label: 'Body Recomposition', icon: '🔄' },
                       { value: 'gain', label: 'Gain', icon: '📈' }
                     ].map(goal => (
                       <Button
