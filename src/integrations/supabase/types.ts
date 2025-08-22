@@ -2011,6 +2011,54 @@ export type Database = {
           },
         ]
       }
+      user_exercise_warmups: {
+        Row: {
+          exercise_id: string
+          id: string
+          last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          plan_text: string
+          source: string
+          success_streak: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          exercise_id: string
+          id?: string
+          last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
+          plan_text: string
+          source?: string
+          success_streak?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          exercise_id?: string
+          id?: string
+          last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
+          plan_text?: string
+          source?: string
+          success_streak?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_warmups_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_warmups_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_fitness_profile: {
         Row: {
           bodyweight: number | null
@@ -2730,6 +2778,8 @@ export type Database = {
           is_superset_group: string | null
           notes: string | null
           order_index: number
+          warmup_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          warmup_snapshot: string | null
           workout_id: string
         }
         Insert: {
@@ -2739,6 +2789,10 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index: number
+          warmup_feedback?:
+            | Database["public"]["Enums"]["warmup_feedback"]
+            | null
+          warmup_snapshot?: string | null
           workout_id: string
         }
         Update: {
@@ -2748,6 +2802,10 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index?: number
+          warmup_feedback?:
+            | Database["public"]["Enums"]["warmup_feedback"]
+            | null
+          warmup_snapshot?: string | null
           workout_id?: string
         }
         Relationships: [
@@ -5512,6 +5570,25 @@ export type Database = {
         }
         Returns: string
       }
+      upsert_user_exercise_warmup: {
+        Args: {
+          _exercise_id: string
+          _feedback?: Database["public"]["Enums"]["warmup_feedback"]
+          _plan_text: string
+          _source?: string
+          _user_id: string
+        }
+        Returns: {
+          exercise_id: string
+          id: string
+          last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          plan_text: string
+          source: string
+          success_streak: number
+          updated_at: string
+          user_id: string
+        }
+      }
       workout_open: {
         Args: { p_workout_id: string }
         Returns: Json
@@ -5541,6 +5618,7 @@ export type Database = {
         | "top_set"
         | "backoff"
         | "cooldown"
+      warmup_feedback: "not_enough" | "excellent" | "too_much"
       warmup_quality: "not_enough" | "excellent" | "too_much"
       weight_unit: "kg" | "lb"
     }
@@ -5703,6 +5781,7 @@ export const Constants = {
         "backoff",
         "cooldown",
       ],
+      warmup_feedback: ["not_enough", "excellent", "too_much"],
       warmup_quality: ["not_enough", "excellent", "too_much"],
       weight_unit: ["kg", "lb"],
     },
