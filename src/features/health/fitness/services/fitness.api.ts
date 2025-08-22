@@ -897,6 +897,9 @@ export const useAddSet = () => {
       };
       
       console.log('🔥 Inserting data:', insertData);
+      console.log('🔥🔥🔥 EXACT SQL QUERY THAT WILL BE EXECUTED:');
+      console.log(`INSERT INTO public.workout_sets (workout_exercise_id, set_index, reps, weight, rpe, notes, had_pain) VALUES ('${insertData.workout_exercise_id}', ${insertData.set_index}, ${insertData.reps}, ${insertData.weight}, ${insertData.rpe ? `'${insertData.rpe}'` : 'NULL'}, ${insertData.notes ? `'${insertData.notes}'` : 'NULL'}, ${insertData.had_pain});`);
+      console.log('🔥🔥🔥 END EXACT SQL QUERY');
 
       const { data, error } = await supabase
         .from("workout_sets")
