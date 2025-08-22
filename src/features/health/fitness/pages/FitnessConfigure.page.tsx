@@ -49,14 +49,17 @@ interface MicroWeight {
 }
 
 interface FitnessProfile {
-  primary_weight_goal: 'lose' | 'maintain' | 'recomp' | 'gain' | '';
-  training_focus: 'muscle' | 'strength' | 'general' | 'power' | '';
+  primaryWeightGoal: 'lose' | 'maintain' | 'recomp' | 'gain' | '';
+  trainingFocus: 'muscle' | 'strength' | 'general' | 'power' | '';
   experience: 'new' | 'returning' | 'intermediate' | 'advanced' | '';
   bodyweight?: number;
-  height_cm?: number;
+  heightCm?: number;
+  sex?: string;
   injuries: string[];
-  days_per_week: number;
-  preferred_session_minutes: number;
+  daysPerWeek: number;
+  preferredSessionMinutes: number;
+  trainingAgeMonths?: number;
+  preferShortRests?: boolean;
 }
 
 export default function FitnessConfigure() {
@@ -71,12 +74,12 @@ export default function FitnessConfigure() {
   const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
   const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
-    primary_weight_goal: '' as any,
-    training_focus: '' as any,
-    experience: '' as any,
+    primaryWeightGoal: '',
+    trainingFocus: '',
+    experience: '',
     injuries: [],
-    days_per_week: 0,
-    preferred_session_minutes: 0
+    daysPerWeek: 0,
+    preferredSessionMinutes: 0
   });
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   
@@ -91,23 +94,26 @@ export default function FitnessConfigure() {
       if (!user) return;
 
       const { data, error } = await supabase
-        .from('user_fitness_profile')
+        .from('user_profile_fitness')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (error && error.code !== 'PGRST116') throw error;
       
       if (data) {
         setFitnessProfile({
-          primary_weight_goal: data.primary_weight_goal,
-          training_focus: data.training_focus,
-          experience: data.experience,
-          bodyweight: data.bodyweight,
-          height_cm: data.height_cm,
-          injuries: data.injuries || [],
-          days_per_week: data.days_per_week,
-          preferred_session_minutes: data.preferred_session_minutes
+          primaryWeightGoal: (data.goal as 'lose' | 'maintain' | 'recomp' | 'gain') || '',
+          trainingFocus: (data.training_goal as 'muscle' | 'strength' | 'general' | 'power') || '',
+          experience: (data.experience_level as 'new' | 'returning' | 'intermediate' | 'advanced') || '',
+          bodyweight: data.bodyweight || 0,
+          heightCm: data.height_cm || 0,
+          sex: '',
+          injuries: Array.isArray(data.injuries) ? data.injuries : [],
+          daysPerWeek: data.days_per_week || 3,
+          preferredSessionMinutes: data.preferred_session_minutes || 60,
+          trainingAgeMonths: 0,
+          preferShortRests: false
         });
       }
     } catch (error: any) {
@@ -410,9 +416,9 @@ export default function FitnessConfigure() {
 
   const handleSaveFitnessProfile = async () => {
     // Validate required fields
-    if (!fitnessProfile.primary_weight_goal || !fitnessProfile.training_focus || !fitnessProfile.experience || 
-        !fitnessProfile.days_per_week || !fitnessProfile.preferred_session_minutes ||
-        !fitnessProfile.bodyweight || !fitnessProfile.height_cm) {
+    if (!fitnessProfile.primaryWeightGoal || !fitnessProfile.trainingFocus || !fitnessProfile.experience || 
+        !fitnessProfile.daysPerWeek || !fitnessProfile.preferredSessionMinutes ||
+        !fitnessProfile.bodyweight || !fitnessProfile.heightCm) {
       toast({
         title: "Incomplete Profile",
         description: "Please fill in all required fields before saving.",
@@ -428,16 +434,16 @@ export default function FitnessConfigure() {
 
       // Use upsert with onConflict to handle duplicate key properly
       const { error } = await supabase
-        .from('user_fitness_profile')
+        .from('user_profile_fitness')
         .upsert({
           user_id: user.id,
-          primary_weight_goal: fitnessProfile.primary_weight_goal,
-          training_focus: fitnessProfile.training_focus,
-          experience: fitnessProfile.experience,
-          days_per_week: fitnessProfile.days_per_week,
-          preferred_session_minutes: fitnessProfile.preferred_session_minutes,
+          goal: fitnessProfile.primaryWeightGoal,
+          training_goal: fitnessProfile.trainingFocus,
+          experience_level: fitnessProfile.experience,
+          days_per_week: fitnessProfile.daysPerWeek,
+          preferred_session_minutes: fitnessProfile.preferredSessionMinutes,
           bodyweight: fitnessProfile.bodyweight,
-          height_cm: fitnessProfile.height_cm,
+          height_cm: fitnessProfile.heightCm,
           injuries: fitnessProfile.injuries
         }, {
           onConflict: 'user_id'
@@ -558,9 +564,9 @@ export default function FitnessConfigure() {
                     ].map(goal => (
                       <Button
                         key={goal.value}
-                        variant={fitnessProfile.primary_weight_goal === goal.value ? 'default' : 'outline'}
+                        variant={fitnessProfile.primaryWeightGoal === goal.value ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, primary_weight_goal: goal.value as any }))}
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, primaryWeightGoal: goal.value as any }))}
                         className="flex flex-col h-auto py-3"
                       >
                         <span className="text-lg mb-1">{goal.icon}</span>
@@ -582,9 +588,9 @@ export default function FitnessConfigure() {
                     ].map(focus => (
                       <Button
                         key={focus.value}
-                        variant={fitnessProfile.training_focus === focus.value ? 'default' : 'outline'}
+                        variant={fitnessProfile.trainingFocus === focus.value ? 'default' : 'outline'}
                         size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, training_focus: focus.value as any }))}
+                        onClick={() => setFitnessProfile(prev => ({ ...prev, trainingFocus: focus.value as any }))}
                         className="flex flex-col h-auto py-3"
                       >
                         <span className="text-lg mb-1">{focus.icon}</span>
@@ -636,10 +642,10 @@ export default function FitnessConfigure() {
                     <Input
                       type="number"
                       placeholder="175"
-                      value={fitnessProfile.height_cm || ''}
+                      value={fitnessProfile.heightCm || ''}
                       onChange={(e) => setFitnessProfile(prev => ({ 
                         ...prev, 
-                        height_cm: e.target.value ? Number(e.target.value) : undefined 
+                        heightCm: e.target.value ? Number(e.target.value) : undefined 
                       }))}
                     />
                   </div>
@@ -653,8 +659,8 @@ export default function FitnessConfigure() {
                       Days/week
                     </Label>
                      <Select 
-                       value={fitnessProfile.days_per_week ? fitnessProfile.days_per_week.toString() : ''} 
-                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, days_per_week: Number(value) }))}
+                       value={fitnessProfile.daysPerWeek ? fitnessProfile.daysPerWeek.toString() : ''} 
+                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, daysPerWeek: Number(value) }))}
                      >
                       <SelectTrigger>
                         <SelectValue />
@@ -672,8 +678,8 @@ export default function FitnessConfigure() {
                       Session length
                     </Label>
                      <Select 
-                       value={fitnessProfile.preferred_session_minutes ? fitnessProfile.preferred_session_minutes.toString() : ''} 
-                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, preferred_session_minutes: Number(value) }))}
+                       value={fitnessProfile.preferredSessionMinutes ? fitnessProfile.preferredSessionMinutes.toString() : ''} 
+                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, preferredSessionMinutes: Number(value) }))}
                      >
                       <SelectTrigger>
                         <SelectValue />

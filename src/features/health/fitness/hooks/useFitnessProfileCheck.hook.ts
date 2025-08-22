@@ -15,14 +15,18 @@ export const useFitnessProfileCheck = () => {
   });
 
   const { data: fitnessProfile } = useQuery({
-    queryKey: ['user-fitness-profile', user?.id],
+    queryKey: ['user-profile-fitness', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const { data } = await supabase
-        .from('user_fitness_profile')
+      const { data, error } = await supabase
+        .from('user_profile_fitness')
         .select('*')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('Error fetching fitness profile:', error);
+      }
       return data;
     },
     enabled: !!user?.id
@@ -30,9 +34,7 @@ export const useFitnessProfileCheck = () => {
 
   const checkAndRedirect = (action: string = 'continue') => {
     if (!fitnessProfile || 
-        !fitnessProfile.primary_weight_goal_id || 
-        !fitnessProfile.training_focus_id || 
-        !fitnessProfile.experience ||
+        !fitnessProfile.goal ||
         !fitnessProfile.days_per_week ||
         !fitnessProfile.preferred_session_minutes) {
       toast({
@@ -48,9 +50,7 @@ export const useFitnessProfileCheck = () => {
 
   return {
     hasProfile: !!(fitnessProfile && 
-                   fitnessProfile.primary_weight_goal_id && 
-                   fitnessProfile.training_focus_id && 
-                   fitnessProfile.experience &&
+                   fitnessProfile.goal && 
                    fitnessProfile.days_per_week &&
                    fitnessProfile.preferred_session_minutes),
     profile: fitnessProfile,
