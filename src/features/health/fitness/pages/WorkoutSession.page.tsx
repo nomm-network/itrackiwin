@@ -424,13 +424,91 @@ const WorkoutSession: React.FC = () => {
                           <Input name="rpe" placeholder="RPE" inputMode="decimal" />
                           <Input name="notes" placeholder="Notes" className="col-span-2" />
                           <input type="hidden" name="unit" value={unit} />
-                          <div className="col-span-6 flex items-center gap-2">
-                            <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
-                            <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
-                            <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1 ml-4">
-                              {addSetMut.isPending ? 'Adding...' : 'Add Set'}
-                            </Button>
-                          </div>
+                           <div className="col-span-6 flex items-center gap-2">
+                             <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
+                             <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
+                             
+                             {/* Debug Insert Query Button */}
+                             <AlertDialog>
+                               <AlertDialogTrigger asChild>
+                                 <Button 
+                                   type="button" 
+                                   variant="outline" 
+                                   size="sm" 
+                                   className="bg-red-500 text-white hover:bg-red-600"
+                                   onClick={(e) => {
+                                     e.preventDefault();
+                                     const form = e.currentTarget.closest('form') as HTMLFormElement;
+                                     const fd = new FormData(form);
+                                     const reps = fd.get("reps");
+                                     const weight = fd.get("weight");
+                                     const rpe = fd.get("rpe");
+                                     const notes = fd.get("notes");
+                                     const unit = fd.get("unit");
+                                     const hadPain = fd.get("hadPain") === 'on';
+                                     
+                                     setDebugInfo(prev => ({
+                                       ...prev,
+                                       currentFormData: { reps, weight, rpe, notes, unit, hadPain },
+                                       workoutExerciseId: ex.id,
+                                       insertQuery: {
+                                         workout_exercise_id: ex.id,
+                                         set_index: 'AUTO_GENERATED',
+                                         reps: reps ? parseInt(reps as string) : null,
+                                         weight: weight ? parseFloat(weight as string) : null,
+                                         rpe: rpe || null,
+                                         notes: notes || null,
+                                         had_pain: hadPain
+                                       }
+                                     }));
+                                   }}
+                                 >
+                                   🔥 DEBUG
+                                 </Button>
+                               </AlertDialogTrigger>
+                               <AlertDialogContent className="max-w-2xl">
+                                 <AlertDialogHeader>
+                                   <AlertDialogTitle>🔥 Debug Insert Query Data</AlertDialogTitle>
+                                   <AlertDialogDescription asChild>
+                                     <div className="space-y-4">
+                                       <div>
+                                         <h4 className="font-semibold mb-2">Form Data:</h4>
+                                         <pre className="bg-muted p-3 rounded text-xs overflow-auto">
+                                           {JSON.stringify(debugInfo.currentFormData, null, 2)}
+                                         </pre>
+                                       </div>
+                                       
+                                       <div>
+                                         <h4 className="font-semibold mb-2">Insert Query Object:</h4>
+                                         <pre className="bg-muted p-3 rounded text-xs overflow-auto">
+                                           {JSON.stringify(debugInfo.insertQuery, null, 2)}
+                                         </pre>
+                                       </div>
+                                       
+                                       <div>
+                                         <h4 className="font-semibold mb-2">Context:</h4>
+                                         <pre className="bg-muted p-3 rounded text-xs overflow-auto">
+                                           {JSON.stringify({
+                                             workoutId: debugInfo.workoutId,
+                                             userId: debugInfo.userId,
+                                             workoutExerciseId: debugInfo.workoutExerciseId,
+                                             exerciseName: ex.exercises?.name
+                                           }, null, 2)}
+                                         </pre>
+                                       </div>
+                                     </div>
+                                   </AlertDialogDescription>
+                                 </AlertDialogHeader>
+                                 <AlertDialogFooter>
+                                   <AlertDialogCancel>Close</AlertDialogCancel>
+                                 </AlertDialogFooter>
+                               </AlertDialogContent>
+                             </AlertDialog>
+                             
+                             <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1 ml-2">
+                               {addSetMut.isPending ? 'Adding...' : 'Add Set'}
+                             </Button>
+                           </div>
                         </form>
                         
                         {/* Effort selector appears after completing a set */}
