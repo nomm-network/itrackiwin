@@ -8,7 +8,7 @@ import { Search, Play, Target, Clock } from 'lucide-react';
 import { useTemplates, useCloneTemplateToWorkout, useStartWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import ReadinessCheckIn, { ReadinessData } from './ReadinessCheckIn';
+
 
 interface TemplateSelectionDialogProps {
   open: boolean;
@@ -17,8 +17,6 @@ interface TemplateSelectionDialogProps {
 
 const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open, onOpenChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [showReadinessCheck, setShowReadinessCheck] = useState(false);
   const [isStarting, setIsStarting] = useState(false);
 
   // Reset state when dialog is closed
@@ -26,8 +24,6 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     onOpenChange(newOpen);
     if (!newOpen) {
       setSearchQuery('');
-      setSelectedTemplate(null);
-      setShowReadinessCheck(false);
       setIsStarting(false);
     }
   };
@@ -53,40 +49,15 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     return filtered.slice(0, 10); // Limit to 10 templates
   }, [templates, searchQuery]);
 
-  const handleTemplateSelect = (templateId: string) => {
-    setSelectedTemplate(templateId);
-    setShowReadinessCheck(true);
-  };
-
-  const handleStartWithoutTemplate = () => {
-    setSelectedTemplate(null);
-    setShowReadinessCheck(true);
-  };
-
-  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
-    if (isStarting) return; // Prevent double submissions
-    
+  const handleTemplateSelect = async (templateId: string) => {
+    if (isStarting) return;
     setIsStarting(true);
     
     try {
-      let workoutId: string;
-      
-      if (selectedTemplate) {
-        workoutId = await startFromTemplate.mutateAsync(selectedTemplate);
-      } else {
-        // Start a free workout without template
-        workoutId = await startFreeWorkout.mutateAsync(null);
-      }
-      
-      // Navigate first, then close dialog and show success message
+      const workoutId = await startFromTemplate.mutateAsync(templateId);
       navigate(`/fitness/session/${workoutId}`);
-      
-      // Small delay to ensure navigation starts before closing dialog
-      setTimeout(() => {
-        onOpenChange(false);
-        toast.success('Workout started!');
-      }, 100);
-      
+      onOpenChange(false);
+      toast.success('Workout started!');
     } catch (error) {
       console.error('Failed to start workout:', error);
       toast.error('Failed to start workout');
@@ -94,48 +65,22 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     }
   };
 
-  const handleSkipReadiness = async () => {
-    await handleReadinessSubmit({
-      energy: 7,
-      sleep_quality: 7,
-      sleep_hours: 8,
-      soreness: 3,
-      stress: 3,
-      illness: false,
-      alcohol: false,
-      supplements: [],
-      notes: ''
-    });
+  const handleStartWithoutTemplate = async () => {
+    if (isStarting) return;
+    setIsStarting(true);
+    
+    try {
+      const workoutId = await startFreeWorkout.mutateAsync(null);
+      navigate(`/fitness/session/${workoutId}`);
+      onOpenChange(false);
+      toast.success('Workout started!');
+    } catch (error) {
+      console.error('Failed to start workout:', error);
+      toast.error('Failed to start workout');
+      setIsStarting(false);
+    }
   };
 
-  const handleBack = () => {
-    setShowReadinessCheck(false);
-    setSelectedTemplate(null);
-  };
-
-  if (showReadinessCheck) {
-    return (
-      <Dialog open={open} onOpenChange={handleOpenChange}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={handleBack}
-              className="w-fit mb-2"
-            >
-              ← Back to Templates
-            </Button>
-          </DialogHeader>
-          <ReadinessCheckIn 
-            onSubmit={handleReadinessSubmit}
-            onSkip={handleSkipReadiness}
-            isLoading={isStarting}
-          />
-        </DialogContent>
-      </Dialog>
-    );
-  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -160,7 +105,10 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
           </div>
 
           {/* Quick Start Option */}
-          <Card className="cursor-pointer hover:bg-accent/50 transition-colors" onClick={handleStartWithoutTemplate}>
+          <Card 
+            className={`cursor-pointer hover:bg-accent/50 transition-colors ${isStarting ? 'pointer-events-none opacity-50' : ''}`} 
+            onClick={handleStartWithoutTemplate}
+          >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -194,7 +142,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
               {filteredTemplates.map((template) => (
                 <Card 
                   key={template.id} 
-                  className="cursor-pointer hover:bg-accent/50 transition-colors"
+                  className={`cursor-pointer hover:bg-accent/50 transition-colors ${isStarting ? 'pointer-events-none opacity-50' : ''}`}
                   onClick={() => handleTemplateSelect(template.id)}
                 >
                   <CardContent className="p-4">
