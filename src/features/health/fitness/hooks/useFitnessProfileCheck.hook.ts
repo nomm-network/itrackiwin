@@ -29,10 +29,15 @@ export const useFitnessProfileCheck = () => {
   });
 
   const checkAndRedirect = (action: string = 'continue') => {
-    if (!fitnessProfile) {
+    if (!fitnessProfile || 
+        !fitnessProfile.goal || 
+        !fitnessProfile.training_goal || 
+        !fitnessProfile.experience_level ||
+        !fitnessProfile.days_per_week ||
+        !fitnessProfile.preferred_session_minutes) {
       toast({
         title: "Fitness Profile Required",
-        description: `Please set up your fitness profile to ${action}.`,
+        description: `Please complete your fitness profile to ${action}.`,
         variant: "destructive"
       });
       navigate('/fitness/configure?tab=profile');
@@ -42,7 +47,12 @@ export const useFitnessProfileCheck = () => {
   };
 
   return {
-    hasProfile: !!fitnessProfile,
+    hasProfile: !!(fitnessProfile && 
+                   fitnessProfile.goal && 
+                   fitnessProfile.training_goal && 
+                   fitnessProfile.experience_level &&
+                   fitnessProfile.days_per_week &&
+                   fitnessProfile.preferred_session_minutes),
     profile: fitnessProfile,
     checkAndRedirect
   };

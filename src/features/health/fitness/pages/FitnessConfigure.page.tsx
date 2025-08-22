@@ -71,19 +71,19 @@ export default function FitnessConfigure() {
   const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
   const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
-    goal: 'maintain',
-    training_goal: 'hypertrophy',
-    experience_level: 'new',
+    goal: '' as any,
+    training_goal: '' as any,
+    experience_level: '' as any,
     injuries: [],
-    days_per_week: 3,
-    preferred_session_minutes: 60
+    days_per_week: 0,
+    preferred_session_minutes: 0
   });
   const [isProfileLoading, setIsProfileLoading] = useState(false);
   
   // Check for tab parameter in URL
   const urlParams = new URLSearchParams(window.location.search);
   const tabParam = urlParams.get('tab');
-  const [activeTab, setActiveTab] = useState(tabParam === 'profile' ? 'profile' : 'gyms');
+  const [activeTab, setActiveTab] = useState(tabParam || 'profile');
 
   const loadFitnessProfile = async () => {
     try {
@@ -409,6 +409,17 @@ export default function FitnessConfigure() {
   };
 
   const handleSaveFitnessProfile = async () => {
+    // Validate required fields
+    if (!fitnessProfile.goal || !fitnessProfile.training_goal || !fitnessProfile.experience_level || 
+        !fitnessProfile.days_per_week || !fitnessProfile.preferred_session_minutes) {
+      toast({
+        title: "Incomplete Profile",
+        description: "Please fill in all required fields before saving.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsProfileLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -624,10 +635,10 @@ export default function FitnessConfigure() {
                       <Calendar className="h-3 w-3" />
                       Days/week
                     </Label>
-                    <Select 
-                      value={fitnessProfile.days_per_week.toString()} 
-                      onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, days_per_week: Number(value) }))}
-                    >
+                     <Select 
+                       value={fitnessProfile.days_per_week ? fitnessProfile.days_per_week.toString() : ''} 
+                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, days_per_week: Number(value) }))}
+                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
@@ -643,10 +654,10 @@ export default function FitnessConfigure() {
                       <Clock className="h-3 w-3" />
                       Session length
                     </Label>
-                    <Select 
-                      value={fitnessProfile.preferred_session_minutes.toString()} 
-                      onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, preferred_session_minutes: Number(value) }))}
-                    >
+                     <Select 
+                       value={fitnessProfile.preferred_session_minutes ? fitnessProfile.preferred_session_minutes.toString() : ''} 
+                       onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, preferred_session_minutes: Number(value) }))}
+                     >
                       <SelectTrigger>
                         <SelectValue />
                       </SelectTrigger>
