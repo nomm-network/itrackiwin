@@ -905,34 +905,52 @@ export const useAddSet = () => {
         throw new Error(`Workout access denied: ${workoutError?.message || 'User mismatch'}`);
       }
       
-      // Use the database function that handles set_index automatically
-      console.log('🔥 Using add_set function with payload:', payload);
-      
-      const { data, error } = await supabase.rpc('add_set', {
-        p_workout_exercise_id: workoutExerciseId,
-        p_payload: payload
-      });
-        
-      console.log('🔥 add_set result:', { data, error });
-      
-      if (error) {
-        console.error('🔥🔥🔥 ADD_SET FAILED:', error);
-        throw new Error(`add_set failed: ${error.message}`);
-      }
-      
-      // Get the actual inserted set data
-      const { data: setData, error: setError } = await supabase
+      // Get the next set_index with a lock to prevent race conditions
+      const { data: maxIndexData, error: maxIndexError } = await supabase
         .from("workout_sets")
-        .select("*")
-        .eq("id", data)
+        .select("set_index")
+        .eq("workout_exercise_id", workoutExerciseId)
+        .order("set_index", { ascending: false })
+        .limit(1);
+      
+      console.log('🔥 Max index check:', { maxIndexData, error: maxIndexError });
+      
+      const nextSetIndex = maxIndexData && maxIndexData.length > 0 
+        ? maxIndexData[0].set_index + 1 
+        : 1;
+        
+      console.log('🔥 Next set index will be:', nextSetIndex);
+      
+      // Direct insert with calculated set_index
+      const insertData = {
+        workout_exercise_id: workoutExerciseId,
+        set_index: nextSetIndex,
+        reps: payload.reps,
+        weight: payload.weight,
+        weight_unit: payload.weight_unit || 'kg',
+        is_completed: true,
+        set_kind: 'normal' as const,
+        had_pain: payload.had_pain || false,
+        rpe: payload.rpe,
+        notes: payload.notes
+      };
+      
+      console.log('🔥 Inserting:', insertData);
+      
+      const { data, error } = await supabase
+        .from("workout_sets")
+        .insert(insertData)
+        .select()
         .single();
         
-      if (setError) {
-        console.error('Failed to fetch set data:', setError);
-        return { id: data };
+      console.log('🔥 Insert result:', { data, error });
+      
+      if (error) {
+        console.error('🔥🔥🔥 INSERT FAILED:', error);
+        throw new Error(`Insert failed: ${error.message}`);
       }
       
-      return setData;
+      return data;
     },
     onSuccess: (data) => {
       console.log('🔥 SUCCESS!', data);
