@@ -862,6 +862,7 @@ export const useAddSet = () => {
         rpe?: number;
         notes?: string;
         is_completed?: boolean;
+        had_pain?: boolean;
       };
     }) => {
       console.log('🔥🔥🔥 STARTING ADD SET:', params);
@@ -904,16 +905,34 @@ export const useAddSet = () => {
         throw new Error(`Workout access denied: ${workoutError?.message || 'User mismatch'}`);
       }
       
-      // Simple insert without any extra fields
+      // Get the next set_index for this workout exercise
+      const { data: existingSets, error: setsError } = await supabase
+        .from("workout_sets")
+        .select("set_index")
+        .eq("workout_exercise_id", workoutExerciseId)
+        .order("set_index", { ascending: false })
+        .limit(1);
+        
+      console.log('🔥 Existing sets check:', { existingSets, error: setsError });
+      
+      const nextSetIndex = existingSets && existingSets.length > 0 
+        ? existingSets[0].set_index + 1 
+        : 1;
+        
+      console.log('🔥 Next set index will be:', nextSetIndex);
+      
+      // Simple insert with calculated set_index
       const insertData = {
         workout_exercise_id: workoutExerciseId,
-        set_index: 1,
+        set_index: nextSetIndex,
         reps: payload.reps,
         weight: payload.weight,
-        weight_unit: 'kg',
+        weight_unit: payload.weight_unit || 'kg',
         is_completed: true,
         set_kind: 'normal' as const,
-        had_pain: false  // 🔥 MISSING REQUIRED FIELD!
+        had_pain: payload.had_pain || false,
+        rpe: payload.rpe,
+        notes: payload.notes
       };
       
       console.log('🔥 Inserting:', insertData);
