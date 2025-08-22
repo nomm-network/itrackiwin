@@ -569,7 +569,7 @@ export default function FitnessConfigure() {
                     {[
                       { value: 'hypertrophy', label: 'Muscle', icon: '💪' },
                       { value: 'strength', label: 'Strength', icon: '🏋️' },
-                      { value: 'conditioning', label: 'Cardio', icon: '🏃' }
+                      { value: 'conditioning', label: 'General Fitness', icon: '🏃' }
                     ].map(focus => (
                       <Button
                         key={focus.value}
