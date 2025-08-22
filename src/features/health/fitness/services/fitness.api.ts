@@ -905,24 +905,15 @@ export const useAddSet = () => {
         throw new Error(`Workout access denied: ${workoutError?.message || 'User mismatch'}`);
       }
       
-      // Get the next set_index for the entire workout (not per exercise)
-      const { data: workoutExercises, error: workoutExError } = await supabase
-        .from("workout_exercises")
-        .select("id")
-        .eq("workout_id", workout.id);
-        
-      if (workoutExError || !workoutExercises) {
-        throw new Error(`Failed to get workout exercises: ${workoutExError?.message}`);
-      }
-      
+      // Get the next set_index for this specific exercise in this workout session
       const { data: maxIndexData, error: maxIndexError } = await supabase
         .from("workout_sets")
         .select("set_index")
-        .in("workout_exercise_id", workoutExercises.map(we => we.id))
+        .eq("workout_exercise_id", workoutExerciseId)
         .order("set_index", { ascending: false })
         .limit(1);
       
-      console.log('🔥 Max index check for entire workout:', { maxIndexData, error: maxIndexError });
+      console.log('🔥 Max index check for this exercise:', { maxIndexData, error: maxIndexError });
       
       const nextSetIndex = maxIndexData && maxIndexData.length > 0 
         ? maxIndexData[0].set_index + 1 
