@@ -66,6 +66,7 @@ const WorkoutSession: React.FC = () => {
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(180);
   const [lastCompletedSetId, setLastCompletedSetId] = useState<string>();
+  const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
 
   // Hooks for suggestions and timers
   const { state: timerState, actions: timerActions } = useRestTimer(restDuration, () => {
@@ -102,39 +103,66 @@ const WorkoutSession: React.FC = () => {
   };
 
   const addSet = async (workoutExerciseId: string, form: HTMLFormElement) => {
-    const fd = new FormData(form);
-    const payload = {
-      reps: Number(fd.get("reps")) || null,
-      weight: Number(fd.get("weight")) || null,
-      weight_unit: (fd.get("unit") as string) || 'kg',
-      rpe: fd.get("rpe") ? Number(fd.get("rpe")) : null,
-      notes: (fd.get("notes") as string) || null,
-      is_completed: true,
-    };
-    
-    // Get metrics for this workout exercise if any
-    const exerciseMetrics = metricValues[workoutExerciseId];
-    const metrics = exerciseMetrics ? Object.entries(exerciseMetrics)
-      .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-      .map(([metricDefId, value]) => ({
-        metric_def_id: metricDefId,
-        value,
-        value_type: 'numeric' as const // For now, we'll default to numeric
-      })) : undefined;
-    
-    const result = await addSetMut.mutateAsync({ 
-      workoutId: id!, 
-      workoutExerciseId, 
-      payload,
-      metrics
-    });
-    
-    form.reset();
-    // Clear metrics for this exercise
-    setMetricValues(prev => ({ ...prev, [workoutExerciseId]: {} }));
-    
-    // Store the set ID for effort tracking
-    setLastCompletedSetId(typeof result === 'string' ? result : Math.random().toString());
+    try {
+      console.log('Adding set for workout exercise:', workoutExerciseId);
+      const fd = new FormData(form);
+      
+      const reps = fd.get("reps");
+      const weight = fd.get("weight");
+      const rpe = fd.get("rpe");
+      const notes = fd.get("notes");
+      
+      console.log('Form data:', { reps, weight, rpe, notes });
+      
+      const payload = {
+        reps: reps ? Number(reps) : null,
+        weight: weight ? Number(weight) : null,
+        weight_unit: (fd.get("unit") as string) || 'kg',
+        rpe: rpe ? Number(rpe) : null,
+        notes: (notes as string) || null,
+        is_completed: true,
+      };
+      
+      console.log('Payload:', payload);
+      
+      // Get metrics for this workout exercise if any
+      const exerciseMetrics = metricValues[workoutExerciseId];
+      const metrics = exerciseMetrics ? Object.entries(exerciseMetrics)
+        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
+        .map(([metricDefId, value]) => ({
+          metric_def_id: metricDefId,
+          value,
+          value_type: 'numeric' as const // For now, we'll default to numeric
+        })) : undefined;
+      
+      const result = await addSetMut.mutateAsync({ 
+        workoutId: id!, 
+        workoutExerciseId, 
+        payload,
+        metrics
+      });
+      
+      console.log('Set added successfully:', result);
+      
+      form.reset();
+      // Clear metrics for this exercise
+      setMetricValues(prev => ({ ...prev, [workoutExerciseId]: {} }));
+      
+      // Store the set ID for effort tracking
+      setLastCompletedSetId(typeof result === 'string' ? result : Math.random().toString());
+      
+      toast({
+        title: "Set added!",
+        description: "Your set has been recorded successfully.",
+      });
+    } catch (error) {
+      console.error('Error adding set:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add set. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const handleEffortSelect = (effort: EffortLevel) => {
@@ -262,70 +290,107 @@ const WorkoutSession: React.FC = () => {
               <CardTitle>Exercises</CardTitle>
             </CardHeader>
             <CardContent className="space-y-6">
-              {(data?.exercises || []).map(ex => (
-                <div key={ex.id} className="border rounded-md p-4">
-                  <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium">{ex.exercises?.name || 'Unknown Exercise'}</h3>
-                    <span className="text-xs text-muted-foreground">Order: {ex.order_index}</span>
-                  </div>
-                  
-                  {/* Show warmup suggestions if available */}
-                  {(ex as any).warmup_suggestion && (
-                    <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                      <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 Warmup Suggestions</h4>
-                      <div className="space-y-1">
-                        {(ex as any).warmup_suggestion.warmup_sets?.map((set: any, idx: number) => (
-                          <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                            <span>Set {set.set_index}:</span>
-                            <span>{set.weight}kg × {set.reps} reps</span>
-                            <span className="text-blue-500">({set.rest_seconds}s rest)</span>
-                          </div>
-                        ))}
+              {(data?.exercises || []).map((ex, index) => {
+                const isActive = activeExerciseId === ex.id || (!activeExerciseId && index === 0);
+                const completedSets = (data?.setsByWe[ex.id] || []).filter(set => set.is_completed);
+                const isCompleted = completedSets.length > 0;
+                
+                return (
+                  <div key={ex.id} className="border rounded-md overflow-hidden">
+                    {/* Exercise Header - Always Visible */}
+                    <div 
+                      className="p-4 bg-muted/30 cursor-pointer hover:bg-muted/50 transition-colors"
+                      onClick={() => setActiveExerciseId(isActive ? null : ex.id)}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <h3 className="font-medium">{ex.exercises?.name || 'Unknown Exercise'}</h3>
+                          {isCompleted && (
+                            <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded">
+                              {completedSets.length} sets
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs text-muted-foreground">#{ex.order_index}</span>
+                          <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                            {isActive ? '−' : '+'}
+                          </Button>
+                        </div>
                       </div>
+                      
+                      {/* Collapsed Summary */}
+                      {!isActive && isCompleted && (
+                        <div className="mt-2 text-xs text-muted-foreground">
+                          Last: {completedSets[completedSets.length - 1]?.weight || '-'}kg × {completedSets[completedSets.length - 1]?.reps || '-'} reps
+                        </div>
+                      )}
                     </div>
-                  )}
-                  
-                  {/* Show exercise name and basic info */}
-                  <div className="space-y-2">
-                    {(data?.setsByWe[ex.id] || []).filter(set => set.is_completed).map(set => (
-                      <div key={set.id} className="flex items-center gap-3 text-sm">
-                        <span className="w-12">Set {set.set_index}</span>
-                        <span className="w-24">{set.weight ?? '-'} {set.weight ? unit : ''}</span>
-                        <span className="w-16">x {set.reps ?? '-'}</span>
-                        <span className="w-16">RPE {set.rpe ?? '-'}</span>
-                        <span className="text-muted-foreground">{set.notes || ''}</span>
+                    
+                    {/* Exercise Details - Expandable */}
+                    {isActive && (
+                      <div className="p-4 border-t bg-background">
+                        {/* Show warmup suggestions if available */}
+                        {(ex as any).warmup_suggestion && (
+                          <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
+                            <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">💡 Warmup Suggestions</h4>
+                            <div className="space-y-1">
+                              {(ex as any).warmup_suggestion.warmup_sets?.map((set: any, idx: number) => (
+                                <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
+                                  <span>Set {set.set_index}:</span>
+                                  <span>{set.weight}kg × {set.reps} reps</span>
+                                  <span className="text-blue-500">({set.rest_seconds}s rest)</span>
+                                </div>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Show completed sets */}
+                        <div className="space-y-2 mb-4">
+                          {completedSets.map(set => (
+                            <div key={set.id} className="flex items-center gap-3 text-sm p-2 bg-muted/20 rounded">
+                              <span className="w-12 font-medium">Set {set.set_index}</span>
+                              <span className="w-24">{set.weight ?? '-'} {set.weight ? unit : ''}</span>
+                              <span className="w-16">× {set.reps ?? '-'}</span>
+                              <span className="w-16">RPE {set.rpe ?? '-'}</span>
+                              <span className="text-muted-foreground text-xs">{set.notes || ''}</span>
+                            </div>
+                          ))}
+                          {completedSets.length === 0 && (
+                            <p className="text-sm text-muted-foreground">No completed sets yet. Add your first set below.</p>
+                          )}
+                        </div>
+                        
+                        {/* Add Set Form */}
+                        <form className="grid grid-cols-6 gap-2" onSubmit={(e) => { e.preventDefault(); addSet(ex.id, e.currentTarget); }}>
+                          <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
+                          <Input name="reps" placeholder="Reps" inputMode="numeric" />
+                          <Input name="rpe" placeholder="RPE" inputMode="decimal" />
+                          <Input name="notes" placeholder="Notes" className="col-span-2" />
+                          <input type="hidden" name="unit" value={unit} />
+                          <div className="col-span-6 flex gap-2">
+                            <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1">
+                              {addSetMut.isPending ? 'Adding...' : 'Add Set'}
+                            </Button>
+                          </div>
+                        </form>
+                        
+                        {/* Effort selector appears after completing a set */}
+                        {lastCompletedSetId && !showRestTimer && (
+                          <div className="mt-3">
+                            <EffortSelector
+                              onEffortSelect={handleEffortSelect}
+                              onPainReport={handlePainReport}
+                              selectedEffort={currentSetEffort}
+                            />
+                          </div>
+                        )}
                       </div>
-                    ))}
-                    {/* Show message if no completed sets yet */}
-                    {(data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length === 0 && (
-                      <p className="text-sm text-muted-foreground">No completed sets yet. Add your first set below.</p>
                     )}
                   </div>
-                  <form className="mt-3 grid grid-cols-6 gap-2" onSubmit={(e) => { e.preventDefault(); addSet(ex.id, e.currentTarget); }}>
-                    <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
-                    <Input name="reps" placeholder="Reps" inputMode="numeric" />
-                    <Input name="rpe" placeholder="RPE" inputMode="decimal" />
-                    <Input name="notes" placeholder="Notes" className="col-span-2" />
-                    <input type="hidden" name="unit" value={unit} />
-                    <div className="col-span-6 flex gap-2">
-                      <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1">
-                        Add Set
-                      </Button>
-                    </div>
-                  </form>
-                  
-                  {/* Effort selector appears after completing a set */}
-                  {lastCompletedSetId && !showRestTimer && (
-                    <div className="mt-3">
-                      <EffortSelector
-                        onEffortSelect={handleEffortSelect}
-                        onPainReport={handlePainReport}
-                        selectedEffort={currentSetEffort}
-                      />
-                    </div>
-                  )}
-                </div>
-              ))}
+                );
+              })}
               {(data?.exercises?.length || 0) === 0 && (
                 <p className="text-sm text-muted-foreground">No exercises yet. Add one from the right.</p>
               )}

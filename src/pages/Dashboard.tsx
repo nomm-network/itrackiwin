@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { categories, getCategoryBySlug } from '@/app/dashboard/config';
-import { getWidgetsByCategory, getQuickActionsByCategory } from '@/app/dashboard/registry';
+import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/registry';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
@@ -20,7 +20,7 @@ const Dashboard: React.FC = () => {
   
   const category = getCategoryBySlug(currentCategory);
   const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
-  const actions = getQuickActionsByCategory(currentCategory, currentSubcategory);
+  const actions = useDynamicQuickActions(currentCategory, currentSubcategory);
 
   const handleCategoryChange = (newCategory: string) => {
     const cat = getCategoryBySlug(newCategory);

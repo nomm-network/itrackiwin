@@ -1,6 +1,7 @@
 import React from 'react';
 import type { DashboardWidget, QuickAction } from './types';
 import { Play, Target, Calendar, Settings } from 'lucide-react';
+import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
 
 // Fitness widgets - lazy loaded for performance
 const FitnessQuickStart = React.lazy(() => import('@/features/health/fitness/ui/widgets/FitnessQuickStart'));
@@ -40,6 +41,22 @@ export const widgets: DashboardWidget[] = [
   // { id: 'sleep.score', title: 'Sleep Score', ... }
   // { id: 'wealth.budget', title: 'Budget Overview', ... }
 ];
+
+// Dynamic quick actions that depend on data
+const DynamicFitnessStartAction = () => {
+  const { data: recentWorkouts } = useRecentWorkouts(5);
+  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
+  
+  return {
+    id: 'fitness.start',
+    label: activeWorkout ? 'Continue Workout' : 'Start Workout',
+    icon: React.createElement(Play, { className: 'h-4 w-4' }),
+    category: 'health',
+    subcategory: 'fitness',
+    onClickPath: activeWorkout ? `/fitness/session/${activeWorkout.id}` : undefined,
+    order: 1
+  };
+};
 
 export const quickActions: QuickAction[] = [
   {
@@ -93,4 +110,30 @@ export const getQuickActionsByCategory = (category: string, subcategory?: string
   return quickActions
     .filter(a => a.category === category && (!subcategory || a.subcategory === subcategory))
     .sort((a, b) => (a.order || 0) - (b.order || 0));
+};
+
+export const useDynamicQuickActions = (category: string, subcategory?: string) => {
+  const { data: recentWorkouts } = useRecentWorkouts(5);
+  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
+  
+  const dynamicActions = React.useMemo(() => {
+    const baseActions = getQuickActionsByCategory(category, subcategory);
+    
+    if (category === 'health' && subcategory === 'fitness') {
+      return baseActions.map(action => {
+        if (action.id === 'fitness.start') {
+          return {
+            ...action,
+            label: activeWorkout ? 'Continue Workout' : 'Start Workout',
+            onClickPath: activeWorkout ? `/fitness/session/${activeWorkout.id}` : undefined
+          };
+        }
+        return action;
+      });
+    }
+    
+    return baseActions;
+  }, [category, subcategory, activeWorkout]);
+  
+  return dynamicActions;
 };
