@@ -149,47 +149,6 @@ const WorkoutSession: React.FC = () => {
       
       console.log('🔥 Mutation params:', mutationParams);
       
-      // 🔥🔥🔥 POPUP WITH INSERT QUERY 🔥🔥🔥
-      const insertSQL = `INSERT INTO workout_sets (
-  workout_exercise_id,
-  set_index,
-  reps,
-  weight,
-  weight_unit,
-  rpe,
-  notes,
-  is_completed,
-  set_kind,
-  had_pain
-) VALUES (
-  '${workoutExerciseId}',
-  1,
-  ${payload.reps},
-  ${payload.weight},
-  '${payload.weight_unit}',
-  ${payload.rpe || 'NULL'},
-  ${payload.notes ? `'${payload.notes}'` : 'NULL'},
-  ${payload.is_completed},
-  'normal',
-  ${payload.had_pain}
-);`;
-
-      const confirmed = window.confirm(`🔥 ABOUT TO INSERT SET 🔥
-
-Auth User: ${debugInfo.userId?.slice(0,8) || 'NONE'}
-Workout ID: ${id?.slice(0,8) || 'NONE'} 
-Exercise ID: ${workoutExerciseId?.slice(0,8) || 'NONE'}
-
-INSERT QUERY:
-${insertSQL}
-
-Proceed with insert?`);
-      
-      if (!confirmed) {
-        console.log('🔥 User cancelled insert');
-        return;
-      }
-      
       const result = await addSetMut.mutateAsync(mutationParams);
       
       console.log('🔥 Set added successfully:', result);
