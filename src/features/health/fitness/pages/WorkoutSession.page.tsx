@@ -61,7 +61,7 @@ const WorkoutSession: React.FC = () => {
   const [metricValues, setMetricValues] = React.useState<Record<string, Record<string, any>>>({});
   
   // Enhanced workout state
-  const [showReadinessCheck, setShowReadinessCheck] = useState(!data?.workout);
+  const [showReadinessCheck, setShowReadinessCheck] = useState(false);
   const [currentSetEffort, setCurrentSetEffort] = useState<EffortLevel>();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(180);
@@ -220,13 +220,19 @@ const WorkoutSession: React.FC = () => {
   const completedSets = (data?.exercises || []).reduce((total, ex) => {
     return total + (data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length;
   }, 0);
+  // Only show readiness check for brand new workouts (no exercises added yet)
+  React.useEffect(() => {
+    if (data?.workout && data.exercises.length === 0 && completedSets === 0) {
+      setShowReadinessCheck(true);
+    }
+  }, [data?.workout, data?.exercises, completedSets]);
 
   // Show readiness check if workout just started
   if (showReadinessCheck) {
     return (
       <>
         <PageNav current="Pre-Workout Check" />
-        <main className="container py-6 flex items-center justify-center min-h-[60vh]">
+        <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
           <ReadinessCheckIn
             onSubmit={handleReadinessSubmit}
             onSkip={handleSkipReadiness}

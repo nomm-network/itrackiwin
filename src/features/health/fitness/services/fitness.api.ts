@@ -541,22 +541,27 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
       if (exercises?.length) {
         for (const workoutExercise of exercises) {
           try {
-            // Get the working weight from the first non-warmup set
+            // Get the working weight from recent sets or exercise defaults
             const exerciseSets = setsByWe[workoutExercise.id] || [];
-            const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup');
-            const workingWeight = workingSets.length > 0 ? workingSets[0].weight : undefined;
+            const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup' && set.weight);
+            let workingWeight = workingSets.length > 0 ? workingSets[workingSets.length - 1].weight : undefined;
             
-            if (workingWeight) {
-              const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
-                p_exercise_id: workoutExercise.exercise_id,
-                p_working_weight: workingWeight,
-                p_working_reps: 8
-              });
-              
-              if (!warmupError && warmupData) {
-                console.log(`🔥 Warmup suggestion for ${workoutExercise.exercises?.name}:`, warmupData);
-                (workoutExercise as any).warmup_suggestion = warmupData;
-              }
+            // For new exercises without weight history, use a default based on exercise type
+            if (!workingWeight) {
+              workingWeight = 60; // Default weight for warmup calculation
+            }
+            
+            const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
+              p_exercise_id: workoutExercise.exercise_id,
+              p_working_weight: workingWeight,
+              p_working_reps: 8
+            });
+            
+            if (!warmupError && warmupData) {
+              console.log(`🔥 Warmup suggestion for ${workoutExercise.exercises?.name}:`, warmupData);
+              (workoutExercise as any).warmup_suggestion = warmupData;
+            } else if (warmupError) {
+              console.error('Warmup suggestion error:', warmupError);
             }
           } catch (error) {
             console.warn(`⚠️ Failed to get warmup suggestion for exercise ${workoutExercise.exercise_id}:`, error);
@@ -815,7 +820,7 @@ export const useAddExerciseToWorkout = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v3"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v4"] }),
   });
 };
 
@@ -831,7 +836,7 @@ export const useAddSet = () => {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v3"] }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v4"] }),
   });
 };
 
