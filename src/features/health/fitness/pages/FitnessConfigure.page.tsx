@@ -11,6 +11,7 @@ import { MapPin, Edit3, Trash2, Search, Plus, User, Target, Calendar, Clock } fr
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { NavLink, useNavigate } from "react-router-dom";
+import { useExperienceLevels } from '../hooks/useExperienceLevels.hook';
 
 interface UserGym {
   id: string;
@@ -51,7 +52,7 @@ interface MicroWeight {
 interface FitnessProfile {
   primaryWeightGoal: 'lose' | 'maintain' | 'recomp' | 'gain' | '';
   trainingFocus: 'muscle' | 'strength' | 'general' | 'power' | '';
-  experience: 'new' | 'returning' | 'intermediate' | 'advanced' | '';
+  experience_level_id: string;
   bodyweight?: number;
   heightCm?: number;
   sex?: string;
@@ -65,6 +66,7 @@ interface FitnessProfile {
 export default function FitnessConfigure() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { data: experienceLevels, isLoading: isLoadingExperienceLevels } = useExperienceLevels();
   const [userGyms, setUserGyms] = useState<UserGym[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -76,7 +78,7 @@ export default function FitnessConfigure() {
   const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
     primaryWeightGoal: '',
     trainingFocus: '',
-    experience: '',
+    experience_level_id: '',
     injuries: [],
     daysPerWeek: 0,
     preferredSessionMinutes: 0
@@ -105,7 +107,7 @@ export default function FitnessConfigure() {
         setFitnessProfile({
           primaryWeightGoal: (data.goal as 'lose' | 'maintain' | 'recomp' | 'gain') || '',
           trainingFocus: (data.training_goal as 'muscle' | 'strength' | 'general' | 'power') || '',
-          experience: (data.experience_level as 'new' | 'returning' | 'intermediate' | 'advanced') || '',
+          experience_level_id: data.experience_level_id || '',
           bodyweight: data.bodyweight || 0,
           heightCm: data.height_cm || 0,
           sex: '',
@@ -416,7 +418,7 @@ export default function FitnessConfigure() {
 
   const handleSaveFitnessProfile = async () => {
     // Validate required fields
-    if (!fitnessProfile.primaryWeightGoal || !fitnessProfile.trainingFocus || !fitnessProfile.experience || 
+    if (!fitnessProfile.primaryWeightGoal || !fitnessProfile.trainingFocus || !fitnessProfile.experience_level_id || 
         !fitnessProfile.daysPerWeek || !fitnessProfile.preferredSessionMinutes ||
         !fitnessProfile.bodyweight || !fitnessProfile.heightCm) {
       toast({
@@ -439,7 +441,8 @@ export default function FitnessConfigure() {
           user_id: user.id,
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
-          experience_level: fitnessProfile.experience,
+          experience_level_id: fitnessProfile.experience_level_id,
+          experience_level: 'intermediate', // Fallback for existing schema
           days_per_week: fitnessProfile.daysPerWeek,
           preferred_session_minutes: fitnessProfile.preferredSessionMinutes,
           bodyweight: fitnessProfile.bodyweight,
@@ -604,22 +607,23 @@ export default function FitnessConfigure() {
                 <div className="space-y-3">
                   <Label>Experience Level</Label>
                   <div className="grid grid-cols-2 gap-2">
-                    {[
-                      { value: 'new', label: 'New to fitness' },
-                      { value: 'returning', label: 'Returning after break' },
-                      { value: 'intermediate', label: 'Regular exerciser' },
-                      { value: 'advanced', label: 'Very experienced' }
-                    ].map(exp => (
-                      <Button
-                        key={exp.value}
-                        variant={fitnessProfile.experience === exp.value ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => setFitnessProfile(prev => ({ ...prev, experience: exp.value as any }))}
-                        className="h-auto py-2 text-xs"
-                      >
-                        {exp.label}
-                      </Button>
-                    ))}
+                    {isLoadingExperienceLevels ? (
+                      <div className="col-span-2 text-center text-sm text-muted-foreground">
+                        Loading experience levels...
+                      </div>
+                    ) : (
+                      experienceLevels?.map(level => (
+                        <Button
+                          key={level.id}
+                          variant={fitnessProfile.experience_level_id === level.id ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setFitnessProfile(prev => ({ ...prev, experience_level_id: level.id }))}
+                          className="h-auto py-2 text-xs"
+                        >
+                          {level.name}
+                        </Button>
+                      ))
+                    )}
                   </div>
                 </div>
 
