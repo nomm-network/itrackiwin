@@ -6,6 +6,7 @@ import { useNavigate, NavLink } from "react-router-dom";
 import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/health/fitness/services/fitness.api";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { useTranslations } from "@/hooks/useTranslations";
+import { useFitnessProfileCheck } from "@/features/health/fitness/hooks/useFitnessProfileCheck.hook";
 
 const Templates: React.FC = () => {
   const { getTranslatedName } = useTranslations();
@@ -15,8 +16,11 @@ const Templates: React.FC = () => {
   const startFrom = useCloneTemplateToWorkout();
   const deleteTemplate = useDeleteTemplate();
   const cloneTemplate = useCloneTemplate();
+  const { checkAndRedirect } = useFitnessProfileCheck();
 
   const startTemplate = async (templateId: string) => {
+    if (!checkAndRedirect('start a workout from template')) return;
+    
     const id = await startFrom.mutateAsync(templateId);
     navigate(`/fitness/session/${id}`);
   };
@@ -65,6 +69,8 @@ const Templates: React.FC = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold">Workout Templates</h1>
           <Button onClick={async () => { 
+            if (!checkAndRedirect('create templates')) return;
+            
             const name = prompt('Template name', 'Push Day') || 'New Template'; 
             const id = await create.mutateAsync(name); 
             navigate(`/fitness/templates/${id}/edit`);
@@ -118,6 +124,8 @@ const Templates: React.FC = () => {
               <CardContent className="p-8 text-center">
                 <p className="text-muted-foreground mb-4">No templates yet.</p>
                 <Button onClick={async () => { 
+                  if (!checkAndRedirect('create templates')) return;
+                  
                   const name = prompt('Template name', 'Push Day') || 'New Template'; 
                   const id = await create.mutateAsync(name); 
                   navigate(`/fitness/templates/${id}/edit`);

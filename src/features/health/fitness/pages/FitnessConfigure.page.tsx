@@ -6,10 +6,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Edit3, Trash2, Search, Plus } from 'lucide-react';
+import { MapPin, Edit3, Trash2, Search, Plus, User } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 interface UserGym {
   id: string;
@@ -48,6 +48,7 @@ interface MicroWeight {
 }
 
 export default function FitnessConfigure() {
+  const navigate = useNavigate();
   const [userGyms, setUserGyms] = useState<UserGym[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -56,7 +57,11 @@ export default function FitnessConfigure() {
   const [newWeight, setNewWeight] = useState("");
   const [newWeightUnit, setNewWeightUnit] = useState("kg");
   const [isLoading, setIsLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("gyms");
+  
+  // Check for tab parameter in URL
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const [activeTab, setActiveTab] = useState(tabParam === 'profile' ? 'profile' : 'gyms');
 
   const loadUserGyms = async () => {
     try {
@@ -414,10 +419,36 @@ export default function FitnessConfigure() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="profile">Fitness Profile</TabsTrigger>
             <TabsTrigger value="gyms">Gyms</TabsTrigger>
             <TabsTrigger value="microweights">Micro Weights</TabsTrigger>
           </TabsList>
+
+          <TabsContent value="profile" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <User className="h-5 w-5" />
+                  Fitness Profile
+                </CardTitle>
+                <CardDescription>
+                  Configure your personal fitness goals and preferences
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  Set up your fitness profile to get personalized workout recommendations and track your progress effectively.
+                </p>
+                <Button 
+                  onClick={() => navigate('/fitness/onboarding/profile')}
+                  className="w-full sm:w-auto"
+                >
+                  Configure Fitness Profile
+                </Button>
+              </CardContent>
+            </Card>
+          </TabsContent>
 
           <TabsContent value="gyms" className="space-y-6">
             {/* Current Gyms */}

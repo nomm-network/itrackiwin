@@ -5,14 +5,26 @@ import { Play, Clock, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
 import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
+import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 
 const FitnessQuickStart: React.FC = () => {
   const navigate = useNavigate();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const { data: recentWorkouts } = useRecentWorkouts(5);
+  const { checkAndRedirect } = useFitnessProfileCheck();
   
   // Check if there's an active workout (started but not ended)
   const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
+
+  const handleStartWorkout = () => {
+    if (!checkAndRedirect('start a workout')) return;
+    
+    if (activeWorkout) {
+      navigate(`/fitness/session/${activeWorkout.id}`);
+    } else {
+      setShowTemplateDialog(true);
+    }
+  };
 
   return (
     <>
@@ -26,7 +38,7 @@ const FitnessQuickStart: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button 
-              onClick={activeWorkout ? () => navigate(`/fitness/session/${activeWorkout.id}`) : () => setShowTemplateDialog(true)}
+              onClick={handleStartWorkout}
               className="flex items-center gap-2 h-12"
             >
               <Play className="h-4 w-4" />
