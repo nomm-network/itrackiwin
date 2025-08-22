@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useDeleteWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
+import { supabase } from "@/integrations/supabase/client";
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -247,10 +248,59 @@ const WorkoutSession: React.FC = () => {
       </>
     );
   }
+  
+  // DEBUG: Get current user session for debugging
+  const [debugInfo, setDebugInfo] = React.useState<any>({});
+  
+  React.useEffect(() => {
+    const getDebugInfo = async () => {
+      const { data: session } = await supabase.auth.getSession();
+      setDebugInfo({
+        workoutId: id,
+        userId: session?.session?.user?.id,
+        isAuthenticated: !!session?.session?.user,
+        workoutData: data?.workout,
+        activeExerciseId,
+        firstExercise: data?.exercises?.[0],
+        firstExerciseId: data?.exercises?.[0]?.id,
+        totalExercises: data?.exercises?.length || 0,
+      });
+    };
+    getDebugInfo();
+  }, [id, data, activeExerciseId]);
 
   return (
     <>
       <PageNav current="Workout Session" />
+      
+      {/* 🔥🔥🔥 DEBUG AREA - WILL DELETE LATER 🔥🔥🔥 */}
+      <div className="bg-red-100 border border-red-400 p-4 m-4 text-xs">
+        <h3 className="font-bold text-red-800 mb-2">🔥 DEBUG INFO FOR INSERT OPERATION 🔥</h3>
+        <div className="grid grid-cols-2 gap-4 text-red-700">
+          <div>
+            <strong>Auth Status:</strong>
+            <div>User ID: {debugInfo.userId || "❌ NOT FOUND"}</div>
+            <div>Authenticated: {debugInfo.isAuthenticated ? "✅ YES" : "❌ NO"}</div>
+          </div>
+          <div>
+            <strong>Workout Data:</strong>
+            <div>Workout ID: {debugInfo.workoutId || "❌ NOT FOUND"}</div>
+            <div>Workout Title: {debugInfo.workoutData?.title || "❌ NOT FOUND"}</div>
+          </div>
+          <div>
+            <strong>Exercise Data:</strong>
+            <div>Total Exercises: {debugInfo.totalExercises}</div>
+            <div>First Exercise ID: {debugInfo.firstExerciseId || "❌ NONE"}</div>
+            <div>Active Exercise: {debugInfo.activeExerciseId || "❌ NONE"}</div>
+          </div>
+          <div>
+            <strong>Form Data (will show on submit):</strong>
+            <div>Check console for detailed logs</div>
+            <div>Watch network tab for API calls</div>
+          </div>
+        </div>
+      </div>
+      
       <main className="container py-6 space-y-6">
         {/* Header with workout clock */}
         <div className="space-y-4">
