@@ -116,8 +116,9 @@ const WorkoutSession: React.FC = () => {
       const rpe = fd.get("rpe");
       const notes = fd.get("notes");
       const unit = fd.get("unit");
+      const hadPain = fd.get("hadPain") === 'on';
       
-      console.log('🔥 Raw form data:', { reps, weight, rpe, notes, unit });
+      console.log('🔥 Raw form data:', { reps, weight, rpe, notes, unit, hadPain });
       
       // Validate required fields
       if (!reps || !weight) {
@@ -136,6 +137,7 @@ const WorkoutSession: React.FC = () => {
         rpe: rpe ? parseFloat(rpe as string) : null,
         notes: (notes as string) || null,
         is_completed: true,
+        had_pain: hadPain,
       };
       
       console.log('🔥 Final payload:', payload);
@@ -157,7 +159,8 @@ const WorkoutSession: React.FC = () => {
   rpe,
   notes,
   is_completed,
-  set_kind
+  set_kind,
+  had_pain
 ) VALUES (
   '${workoutExerciseId}',
   1,
@@ -167,7 +170,8 @@ const WorkoutSession: React.FC = () => {
   ${payload.rpe || 'NULL'},
   ${payload.notes ? `'${payload.notes}'` : 'NULL'},
   ${payload.is_completed},
-  'normal'
+  'normal',
+  ${payload.had_pain}
 );`;
 
       const confirmed = window.confirm(`🔥 ABOUT TO INSERT SET 🔥
@@ -197,7 +201,7 @@ Proceed with insert?`);
       
       toast({
         title: "Set added!",
-        description: `Added ${payload.weight}${payload.weight_unit} × ${payload.reps} reps`,
+        description: `Added ${payload.weight}${payload.weight_unit} × ${payload.reps} reps ${payload.had_pain ? '(with pain)' : ''}`,
       });
     } catch (error) {
       console.error('🔥 Error in addSet function:', error);
@@ -459,15 +463,17 @@ Proceed with insert?`);
                           )}
                         </div>
                         
-                        {/* Add Set Form */}
+                         {/* Add Set Form */}
                         <form className="grid grid-cols-6 gap-2" onSubmit={(e) => { e.preventDefault(); addSet(ex.id, e.currentTarget); }}>
                           <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
                           <Input name="reps" placeholder="Reps" inputMode="numeric" />
                           <Input name="rpe" placeholder="RPE" inputMode="decimal" />
                           <Input name="notes" placeholder="Notes" className="col-span-2" />
                           <input type="hidden" name="unit" value={unit} />
-                          <div className="col-span-6 flex gap-2">
-                            <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1">
+                          <div className="col-span-6 flex items-center gap-2">
+                            <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
+                            <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
+                            <Button type="submit" size="sm" disabled={addSetMut.isPending} className="flex-1 ml-4">
                               {addSetMut.isPending ? 'Adding...' : 'Add Set'}
                             </Button>
                           </div>
