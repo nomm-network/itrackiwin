@@ -104,62 +104,68 @@ const WorkoutSession: React.FC = () => {
 
   const addSet = async (workoutExerciseId: string, form: HTMLFormElement) => {
     try {
-      console.log('Adding set for workout exercise:', workoutExerciseId);
+      console.log('🔥 Starting addSet function');
+      console.log('workoutExerciseId:', workoutExerciseId);
+      console.log('workoutId (id):', id);
+      
       const fd = new FormData(form);
       
       const reps = fd.get("reps");
       const weight = fd.get("weight");
       const rpe = fd.get("rpe");
       const notes = fd.get("notes");
+      const unit = fd.get("unit");
       
-      console.log('Form data:', { reps, weight, rpe, notes });
+      console.log('🔥 Raw form data:', { reps, weight, rpe, notes, unit });
+      
+      // Validate required fields
+      if (!reps || !weight) {
+        toast({
+          title: "Missing data",
+          description: "Please enter both weight and reps.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       const payload = {
-        reps: reps ? Number(reps) : null,
-        weight: weight ? Number(weight) : null,
-        weight_unit: (fd.get("unit") as string) || 'kg',
-        rpe: rpe ? Number(rpe) : null,
+        reps: parseInt(reps as string),
+        weight: parseFloat(weight as string),
+        weight_unit: (unit as string) || 'kg',
+        rpe: rpe ? parseFloat(rpe as string) : null,
         notes: (notes as string) || null,
         is_completed: true,
       };
       
-      console.log('Payload:', payload);
+      console.log('🔥 Final payload:', payload);
       
-      // Get metrics for this workout exercise if any
-      const exerciseMetrics = metricValues[workoutExerciseId];
-      const metrics = exerciseMetrics ? Object.entries(exerciseMetrics)
-        .filter(([_, value]) => value !== undefined && value !== null && value !== '')
-        .map(([metricDefId, value]) => ({
-          metric_def_id: metricDefId,
-          value,
-          value_type: 'numeric' as const // For now, we'll default to numeric
-        })) : undefined;
+      const mutationParams = {
+        workoutId: id!,
+        workoutExerciseId,
+        payload
+      };
       
-      const result = await addSetMut.mutateAsync({ 
-        workoutId: id!, 
-        workoutExerciseId, 
-        payload,
-        metrics
-      });
+      console.log('🔥 Mutation params:', mutationParams);
       
-      console.log('Set added successfully:', result);
+      const result = await addSetMut.mutateAsync(mutationParams);
+      
+      console.log('🔥 Set added successfully:', result);
       
       form.reset();
-      // Clear metrics for this exercise
-      setMetricValues(prev => ({ ...prev, [workoutExerciseId]: {} }));
       
       // Store the set ID for effort tracking
-      setLastCompletedSetId(typeof result === 'string' ? result : Math.random().toString());
+      setLastCompletedSetId(typeof result === 'string' ? result : result?.id || Math.random().toString());
       
       toast({
         title: "Set added!",
-        description: "Your set has been recorded successfully.",
+        description: `Added ${payload.weight}${payload.weight_unit} × ${payload.reps} reps`,
       });
     } catch (error) {
-      console.error('Error adding set:', error);
+      console.error('🔥 Error in addSet function:', error);
+      console.error('🔥 Error details:', JSON.stringify(error, null, 2));
       toast({
         title: "Error",
-        description: "Failed to add set. Please try again.",
+        description: "Failed to add set. Check console for details.",
         variant: "destructive"
       });
     }

@@ -856,46 +856,92 @@ export const useAddSet = () => {
     mutationFn: async (params: {
       workoutId: string;
       workoutExerciseId: string; 
-      payload: any;
-      metrics?: any[];
+      payload: {
+        reps: number;
+        weight: number;
+        weight_unit: string;
+        rpe?: number | null;
+        notes?: string | null;
+        is_completed: boolean;
+      };
     }) => {
-      const { workoutId, workoutExerciseId, payload, metrics } = params;
-      console.log('Adding set with params:', params);
+      const { workoutId, workoutExerciseId, payload } = params;
+      console.log('🔥 useAddSet mutation called with:', params);
+      
+      // Verify the workout exercise exists and belongs to the user
+      const { data: workoutExercise, error: weError } = await supabase
+        .from("workout_exercises")
+        .select(`
+          id,
+          workout_id,
+          workouts!inner(user_id)
+        `)
+        .eq("id", workoutExerciseId)
+        .single();
+      
+      if (weError) {
+        console.error('🔥 Workout exercise verification error:', weError);
+        throw new Error(`Workout exercise not found: ${weError.message}`);
+      }
+      
+      if (workoutExercise.workouts.user_id !== (await supabase.auth.getUser()).data.user?.id) {
+        throw new Error('Unauthorized: workout does not belong to user');
+      }
+      
+      console.log('🔥 Workout exercise verified:', workoutExercise);
       
       // Calculate the next set index
-      const { data: existingSets } = await supabase
+      const { data: existingSets, error: setsError } = await supabase
         .from("workout_sets")
         .select("set_index")
         .eq("workout_exercise_id", workoutExerciseId)
         .order("set_index", { ascending: false })
         .limit(1);
       
+      if (setsError) {
+        console.error('🔥 Error fetching existing sets:', setsError);
+        throw setsError;
+      }
+      
       const nextSetIndex = (existingSets?.[0]?.set_index || 0) + 1;
+      console.log('🔥 Next set index:', nextSetIndex);
       
       const setData = {
         workout_id: workoutId,
         workout_exercise_id: workoutExerciseId,
         set_index: nextSetIndex,
-        ...payload
+        reps: payload.reps,
+        weight: payload.weight,
+        weight_unit: payload.weight_unit,
+        rpe: payload.rpe,
+        notes: payload.notes,
+        is_completed: payload.is_completed,
+        set_kind: 'normal' as const
       };
       
-      console.log('Inserting set data:', setData);
+      console.log('🔥 Final set data to insert:', setData);
       
-      const { data, error } = await supabase
+      const { data: insertedSet, error: insertError } = await supabase
         .from("workout_sets")
         .insert(setData)
         .select()
         .single();
         
-      if (error) {
-        console.error('Set insert error:', error);
-        throw error;
+      if (insertError) {
+        console.error('🔥 Set insert error:', insertError);
+        throw insertError;
       }
       
-      console.log('Set inserted successfully:', data);
-      return data;
+      console.log('🔥 Set inserted successfully:', insertedSet);
+      return insertedSet;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workout_detail_v4"] }),
+    onSuccess: () => {
+      console.log('🔥 Invalidating workout_detail_v4 queries');
+      qc.invalidateQueries({ queryKey: ["workout_detail_v4"] });
+    },
+    onError: (error) => {
+      console.error('🔥 useAddSet mutation error:', error);
+    }
   });
 };
 
