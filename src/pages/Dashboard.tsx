@@ -9,11 +9,13 @@ import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/re
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
+import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const { checkAndRedirect } = useFitnessProfileCheck();
   
   const currentCategory = searchParams.get('cat') || 'health';
   const currentSubcategory = searchParams.get('sub') || 'fitness';
@@ -33,6 +35,11 @@ const Dashboard: React.FC = () => {
   };
 
   const handleActionClick = (action: any) => {
+    // Check fitness profile for fitness-related actions
+    if (action.id.startsWith('fitness.')) {
+      if (!checkAndRedirect('access this feature')) return;
+    }
+    
     // Special handling for fitness start workout action
     if (action.id === 'fitness.start') {
       setShowTemplateDialog(true);
