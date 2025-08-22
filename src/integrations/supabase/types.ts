@@ -2554,6 +2554,7 @@ export type Database = {
           days_per_week: number | null
           experience_level: string
           goal: string
+          height: number | null
           height_cm: number | null
           id: string
           injuries: string[] | null
@@ -2568,6 +2569,7 @@ export type Database = {
           days_per_week?: number | null
           experience_level: string
           goal: string
+          height?: number | null
           height_cm?: number | null
           id?: string
           injuries?: string[] | null
@@ -2582,6 +2584,7 @@ export type Database = {
           days_per_week?: number | null
           experience_level?: string
           goal?: string
+          height?: number | null
           height_cm?: number | null
           id?: string
           injuries?: string[] | null
