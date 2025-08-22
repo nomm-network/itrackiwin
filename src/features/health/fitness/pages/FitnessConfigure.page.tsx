@@ -411,7 +411,8 @@ export default function FitnessConfigure() {
   const handleSaveFitnessProfile = async () => {
     // Validate required fields
     if (!fitnessProfile.goal || !fitnessProfile.training_goal || !fitnessProfile.experience_level || 
-        !fitnessProfile.days_per_week || !fitnessProfile.preferred_session_minutes) {
+        !fitnessProfile.days_per_week || !fitnessProfile.preferred_session_minutes ||
+        !fitnessProfile.bodyweight || !fitnessProfile.height_cm) {
       toast({
         title: "Incomplete Profile",
         description: "Please fill in all required fields before saving.",
