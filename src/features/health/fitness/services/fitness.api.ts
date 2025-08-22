@@ -905,52 +905,23 @@ export const useAddSet = () => {
         throw new Error(`Workout access denied: ${workoutError?.message || 'User mismatch'}`);
       }
       
-      // Get the next set_index for this workout exercise
-      const { data: existingSets, error: setsError } = await supabase
-        .from("workout_sets")
-        .select("set_index")
-        .eq("workout_exercise_id", workoutExerciseId)
-        .order("set_index", { ascending: false })
-        .limit(1);
+      // Use the database function that handles set_index automatically
+      console.log('🔥 Using add_set function with payload:', payload);
+      
+      const { data, error } = await supabase.rpc('add_set', {
+        p_workout_exercise_id: workoutExerciseId,
+        p_payload: payload
+      });
         
-      console.log('🔥 Existing sets check:', { existingSets, error: setsError });
-      
-      const nextSetIndex = existingSets && existingSets.length > 0 
-        ? existingSets[0].set_index + 1 
-        : 1;
-        
-      console.log('🔥 Next set index will be:', nextSetIndex);
-      
-      // Simple insert with calculated set_index
-      const insertData = {
-        workout_exercise_id: workoutExerciseId,
-        set_index: nextSetIndex,
-        reps: payload.reps,
-        weight: payload.weight,
-        weight_unit: payload.weight_unit || 'kg',
-        is_completed: true,
-        set_kind: 'normal' as const,
-        had_pain: payload.had_pain || false,
-        rpe: payload.rpe,
-        notes: payload.notes
-      };
-      
-      console.log('🔥 Inserting:', insertData);
-      
-      const { data, error } = await supabase
-        .from("workout_sets")
-        .insert(insertData)
-        .select()
-        .single();
-        
-      console.log('🔥 Insert result:', { data, error });
+      console.log('🔥 add_set result:', { data, error });
       
       if (error) {
-        console.error('🔥🔥🔥 INSERT FAILED:', error);
-        throw new Error(`Insert failed: ${error.message}`);
+        console.error('🔥🔥🔥 ADD_SET FAILED:', error);
+        throw new Error(`add_set failed: ${error.message}`);
       }
       
-      return data;
+      // Return the set ID
+      return { id: data };
     },
     onSuccess: (data) => {
       console.log('🔥 SUCCESS!', data);
