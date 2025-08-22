@@ -869,80 +869,31 @@ export const useAddSet = () => {
       
       const { workoutExerciseId, payload } = params;
       
-      // Test auth first
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      console.log('🔥 Auth session:', { session: !!session, error: sessionError });
-      
-      if (!session?.user) {
-        throw new Error('No authenticated user');
-      }
-      
-      console.log('🔥 User ID:', session.user.id);
-      
-      // Test if workout exercise exists
-      const { data: we, error: weError } = await supabase
-        .from("workout_exercises")
-        .select("id, workout_id")
-        .eq("id", workoutExerciseId)
-        .single();
-        
-      console.log('🔥 Workout exercise check:', { we, error: weError });
-      
-      if (weError || !we) {
-        throw new Error(`Workout exercise not found: ${weError?.message}`);
-      }
-      
-      // Test if user owns the workout
-      const { data: workout, error: workoutError } = await supabase
-        .from("workouts")
-        .select("id, user_id")
-        .eq("id", we.workout_id)
-        .single();
-        
-      console.log('🔥 Workout check:', { workout, error: workoutError });
-      
-      if (workoutError || !workout || workout.user_id !== session.user.id) {
-        throw new Error(`Workout access denied: ${workoutError?.message || 'User mismatch'}`);
-      }
-      
-      // Get the next set_index for this specific exercise in this workout session
-      const { data: maxIndexData, error: maxIndexError } = await supabase
+      // Get next set index - simple approach
+      const { data: existingSets } = await supabase
         .from("workout_sets")
         .select("set_index")
         .eq("workout_exercise_id", workoutExerciseId)
         .order("set_index", { ascending: false })
         .limit(1);
       
-      console.log('🔥 Max index check for this exercise:', { maxIndexData, error: maxIndexError });
+      const nextIndex = existingSets?.length ? existingSets[0].set_index + 1 : 1;
       
-      const nextSetIndex = maxIndexData && maxIndexData.length > 0 
-        ? maxIndexData[0].set_index + 1 
-        : 1;
-        
-      console.log('🔥 Next set index will be:', nextSetIndex);
-      
-      // Simple insert with minimal required fields
-      const insertData = {
-        workout_exercise_id: workoutExerciseId,
-        set_index: nextSetIndex,
-        reps: payload.reps,
-        weight: payload.weight,
-        had_pain: payload.had_pain || false,
-      };
-      
-      console.log('🔥 Minimal insert:', insertData);
-      
+      // Simple insert - only required fields
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert(insertData)
+        .insert({
+          workout_exercise_id: workoutExerciseId,
+          set_index: nextIndex,
+          reps: payload.reps,
+          weight: payload.weight
+        })
         .select()
         .single();
-        
-      console.log('🔥 Insert result:', { data, error });
       
       if (error) {
-        console.error('🔥🔥🔥 INSERT FAILED:', error);
-        throw new Error(`Insert failed: ${error.message}`);
+        console.error('🔥 INSERT ERROR:', error);
+        throw error;
       }
       
       return data;

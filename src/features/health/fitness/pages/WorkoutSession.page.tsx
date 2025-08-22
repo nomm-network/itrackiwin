@@ -133,11 +133,6 @@ const WorkoutSession: React.FC = () => {
       const payload = {
         reps: parseInt(reps as string),
         weight: parseFloat(weight as string),
-        weight_unit: (unit as string) || 'kg',
-        rpe: rpe ? parseFloat(rpe as string) : null,
-        notes: (notes as string) || null,
-        is_completed: true,
-        had_pain: hadPain,
       };
       
       console.log('🔥 Final payload:', payload);
@@ -160,7 +155,7 @@ const WorkoutSession: React.FC = () => {
       
       toast({
         title: "Set added!",
-        description: `Added ${payload.weight}${payload.weight_unit} × ${payload.reps} reps ${payload.had_pain ? '(with pain)' : ''}`,
+        description: `Added ${payload.weight}kg × ${payload.reps} reps`,
       });
     } catch (error) {
       console.error('🔥 Error in addSet function:', error);
