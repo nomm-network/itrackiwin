@@ -558,7 +558,7 @@ export default function FitnessConfigure() {
                 {/* Goals */}
                 <div className="space-y-3">
                   <Label>Primary Weight Goal</Label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {[
                       { value: 'lose', label: 'Lose', icon: '📉' },
                       { value: 'maintain', label: 'Maintain', icon: '⚖️' },
@@ -582,7 +582,7 @@ export default function FitnessConfigure() {
                 {/* Training Focus */}
                 <div className="space-y-3">
                   <Label>Training Focus</Label>
-                  <div className="grid grid-cols-4 gap-2">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                     {[
                       { value: 'muscle', label: 'Muscle', icon: '💪' },
                       { value: 'strength', label: 'Strength', icon: '🏋️' },
