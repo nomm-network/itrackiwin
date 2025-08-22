@@ -515,7 +515,7 @@ const WorkoutSession: React.FC = () => {
                                   </div>
                                   
                                   <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                                    <h4 className="font-bold text-lg mb-3 text-orange-800">⚡ SQL Query Preview (For Display Only):</h4>
+                                    <h4 className="font-bold text-lg mb-3 text-orange-800">⚡ SQL Query Preview (Display Only):</h4>
                                     <pre className="bg-gray-900 text-orange-400 p-4 rounded text-sm overflow-auto font-mono">
 {`INSERT INTO public.workout_sets (
   workout_exercise_id,
@@ -527,7 +527,7 @@ const WorkoutSession: React.FC = () => {
   had_pain
 ) VALUES (
   '${debugFormData?.workoutExerciseId || 'NULL'}',
-  ${debugFormData?.insertQuery?.reps ? 'AUTO_CALCULATED_BY_DB_TRIGGER' : 'NULL'},
+  1,  -- Auto-calculated by trigger
   ${debugFormData?.insertQuery?.reps || 'NULL'},
   ${debugFormData?.insertQuery?.weight || 'NULL'},
   ${debugFormData?.insertQuery?.rpe || 'NULL'},
@@ -535,9 +535,8 @@ const WorkoutSession: React.FC = () => {
   ${debugFormData?.insertQuery?.had_pain || false}
 );
 
--- NOTE: This is just a preview.
--- The actual query uses numeric values, not strings.
--- set_index is auto-calculated by database trigger.`}
+-- NOTE: set_index will be auto-calculated by database trigger
+-- This is just a preview for debugging purposes`}
                                     </pre>
                                   </div>
                                 </div>
