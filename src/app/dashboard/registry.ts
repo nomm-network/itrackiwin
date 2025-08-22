@@ -48,7 +48,8 @@ export const quickActions: QuickAction[] = [
     icon: React.createElement(Play, { className: 'h-4 w-4' }),
     category: 'health',
     subcategory: 'fitness',
-    onClickPath: '/fitness',
+    // Custom onClick will be handled in the dashboard component that renders this
+    onClickPath: undefined,
     order: 1
   },
   {

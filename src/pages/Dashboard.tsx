@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,10 +8,12 @@ import { categories, getCategoryBySlug } from '@/app/dashboard/config';
 import { getWidgetsByCategory, getQuickActionsByCategory } from '@/app/dashboard/registry';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
+import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
+  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   
   const currentCategory = searchParams.get('cat') || 'health';
   const currentSubcategory = searchParams.get('sub') || 'fitness';
@@ -31,7 +33,10 @@ const Dashboard: React.FC = () => {
   };
 
   const handleActionClick = (action: any) => {
-    if (action.onClickPath) {
+    // Special handling for fitness start workout action
+    if (action.id === 'fitness.start') {
+      setShowTemplateDialog(true);
+    } else if (action.onClickPath) {
       navigate(action.onClickPath);
     } else if (action.onClick) {
       action.onClick();
@@ -163,6 +168,11 @@ const Dashboard: React.FC = () => {
           </TabsContent>
         ))}
       </Tabs>
+      
+      <TemplateSelectionDialog 
+        open={showTemplateDialog}
+        onOpenChange={setShowTemplateDialog}
+      />
     </div>
   );
 };
