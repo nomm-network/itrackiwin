@@ -154,7 +154,7 @@ const WorkoutSession: React.FC = () => {
       form.reset();
       
       // Store the set ID for effort tracking
-      setLastCompletedSetId(result || Math.random().toString());
+      setLastCompletedSetId(result?.id || Math.random().toString());
       
       toast({
         title: "Set added!",

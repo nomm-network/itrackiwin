@@ -866,18 +866,32 @@ export const useAddSet = () => {
     }) => {
       const { workoutExerciseId, payload } = params;
       
-      // Use the database function to add the set
-      const { data, error } = await supabase.rpc('add_set', {
-        p_workout_exercise_id: workoutExerciseId,
-        p_payload: {
+      // Get next set index
+      const { data: existingSets } = await supabase
+        .from("workout_sets")
+        .select("set_index")
+        .eq("workout_exercise_id", workoutExerciseId)
+        .order("set_index", { ascending: false })
+        .limit(1);
+      
+      const nextIndex = (existingSets?.[0]?.set_index || 0) + 1;
+      
+      // Insert directly
+      const { data, error } = await supabase
+        .from("workout_sets")
+        .insert({
+          workout_exercise_id: workoutExerciseId,
+          set_index: nextIndex,
           reps: payload.reps,
           weight: payload.weight,
           weight_unit: payload.weight_unit || 'kg',
           rpe: payload.rpe || null,
           notes: payload.notes || null,
-          is_completed: payload.is_completed !== false
-        }
-      });
+          is_completed: payload.is_completed !== false,
+          set_kind: 'normal'
+        })
+        .select()
+        .single();
       
       if (error) throw error;
       return data;
