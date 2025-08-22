@@ -3098,33 +3098,6 @@ export type Database = {
           },
         ]
       }
-      mv_user_exercise_1rm: {
-        Row: {
-          estimated_1rm: number | null
-          exercise_id: string | null
-          last_updated: string | null
-          max_reps: number | null
-          max_weight: number | null
-          total_working_sets: number | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "workout_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "exercises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workout_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "v_exercises_with_translations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       v_body_parts_with_translations: {
         Row: {
           created_at: string | null
