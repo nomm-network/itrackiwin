@@ -69,9 +69,6 @@ const WorkoutSession: React.FC = () => {
   const [lastCompletedSetId, setLastCompletedSetId] = useState<string>();
   const [activeExerciseId, setActiveExerciseId] = useState<string | null>(null);
   
-  // Debug popup state
-  const [showDebugPopup, setShowDebugPopup] = useState(false);
-  const [debugFormData, setDebugFormData] = useState<any>(null);
 
   // Hooks for suggestions and timers
   const { state: timerState, actions: timerActions } = useRestTimer(restDuration, () => {
@@ -249,47 +246,11 @@ const WorkoutSession: React.FC = () => {
     );
   }
   
-  // DEBUG: Get current user session for debugging
-  const [debugInfo, setDebugInfo] = React.useState<any>({});
-  
-  React.useEffect(() => {
-    const getDebugInfo = async () => {
-      const { data: session } = await supabase.auth.getSession();
-      setDebugInfo({
-        workoutId: id,
-        userId: session?.session?.user?.id,
-        isAuthenticated: !!session?.session?.user,
-        workoutData: data?.workout,
-        activeExerciseId,
-        firstExercise: data?.exercises?.[0],
-        firstExerciseId: data?.exercises?.[0]?.id,
-        totalExercises: data?.exercises?.length || 0,
-      });
-    };
-    getDebugInfo();
-  }, [id, data, activeExerciseId]);
 
   return (
     <>
       <PageNav current="Workout Session" />
       
-      {/* 🔥🔥🔥 DEBUG AREA - WILL DELETE LATER 🔥🔥🔥 */}
-      <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 text-white p-2 text-xs border-b-4 border-red-700">
-        <div className="container">
-          <h3 className="font-bold mb-1">🔥 DEBUG INSERT DATA 🔥</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-            <div>
-              <strong>Auth:</strong> {debugInfo.isAuthenticated ? "✅" : "❌"} | ID: {debugInfo.userId?.slice(0,8) || "NONE"}
-            </div>
-            <div>
-              <strong>Workout:</strong> {debugInfo.workoutId?.slice(0,8) || "NONE"} | Title: {debugInfo.workoutData?.title || "NONE"}
-            </div>
-            <div>
-              <strong>Exercises:</strong> {debugInfo.totalExercises} total | Active: {debugInfo.activeExerciseId?.slice(0,8) || "NONE"}
-            </div>
-          </div>
-        </div>
-      </div>
       
       <main className="container py-6 space-y-6">
         {/* Header with workout clock */}
@@ -422,7 +383,13 @@ const WorkoutSession: React.FC = () => {
                         </div>
                         
                          {/* Add Set Form */}
-                        <form className="grid grid-cols-6 gap-2">{/* REMOVED ONSUBMIT FOR DEBUG */}
+                        <form 
+                          className="grid grid-cols-6 gap-2"
+                          onSubmit={(e) => {
+                            e.preventDefault();
+                            addSet(ex.id, e.currentTarget);
+                          }}
+                        >
                           <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
                           <Input name="reps" placeholder="Reps" inputMode="numeric" />
                           <Input name="rpe" placeholder="RPE" inputMode="decimal" />
@@ -432,141 +399,16 @@ const WorkoutSession: React.FC = () => {
                               <input type="checkbox" name="hadPain" id={`pain-${ex.id}`} className="w-4 h-4" />
                               <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain</label>
                               
-                              {/* Add Set Button - State Controlled */}
                               <Button 
-                                type="button" 
+                                type="submit" 
                                 size="sm" 
                                 disabled={addSetMut.isPending} 
-                                className="flex-1 ml-2 bg-red-600 hover:bg-red-700 text-white font-bold"
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  console.log('🔥🔥🔥 ADD SET BUTTON CLICKED!');
-                                  
-                                  const form = e.currentTarget.closest('form') as HTMLFormElement;
-                                  const fd = new FormData(form);
-                                  const reps = fd.get("reps");
-                                  const weight = fd.get("weight");
-                                  const rpe = fd.get("rpe");
-                                  const notes = fd.get("notes");
-                                  const unit = fd.get("unit");
-                                  const hadPain = fd.get("hadPain") === 'on';
-                                  
-                                  console.log('🔥 Form data captured:', { reps, weight, rpe, notes, unit, hadPain });
-                                  
-                                  // Set debug data
-                                  setDebugFormData({
-                                    currentFormData: { reps, weight, rpe, notes, unit, hadPain },
-                                    workoutExerciseId: ex.id,
-                                    currentForm: form,
-                                    insertQuery: {
-                                      workout_exercise_id: ex.id,
-                                      set_index: 'AUTO_GENERATED',
-                                      reps: reps ? parseInt(reps as string) : null,
-                                      weight: weight ? parseFloat(weight as string) : null,
-                                      rpe: rpe || null,
-                                      notes: notes || null,
-                                      had_pain: hadPain
-                                    },
-                                    exerciseName: ex.exercises?.name
-                                  });
-                                  
-                                  // Show popup
-                                  setShowDebugPopup(true);
-                                  console.log('🔥 Debug popup should be showing now!');
-                                }}
+                                className="flex-1 ml-2"
                               >
-                                {addSetMut.isPending ? 'Adding...' : '🔥 ADD SET (DEBUG) 🔥'}
+                                {addSetMut.isPending ? 'Adding...' : 'Add Set'}
                               </Button>
                             </div>
                         </form>
-                        
-                        {/* STATE-CONTROLLED DEBUG POPUP */}
-                        <AlertDialog open={showDebugPopup} onOpenChange={setShowDebugPopup}>
-                          <AlertDialogContent className="max-w-4xl max-h-[80vh] overflow-auto">
-                            <AlertDialogHeader>
-                              <AlertDialogTitle className="text-xl font-bold text-red-600">🔥 DEBUG - ADD SET CONFIRMATION 🔥</AlertDialogTitle>
-                              <AlertDialogDescription asChild>
-                                <div className="space-y-6">
-                                  <div className="p-4 border border-red-200 rounded-lg bg-red-50">
-                                    <h4 className="font-bold text-lg mb-3 text-red-800">📝 Raw Form Data:</h4>
-                                    <pre className="bg-gray-900 text-green-400 p-4 rounded text-sm overflow-auto font-mono">
-                                      {JSON.stringify(debugFormData?.currentFormData || {}, null, 2)}
-                                    </pre>
-                                  </div>
-                                  
-                                  <div className="p-4 border border-blue-200 rounded-lg bg-blue-50">
-                                    <h4 className="font-bold text-lg mb-3 text-blue-800">🗄️ INSERT QUERY TO EXECUTE:</h4>
-                                    <pre className="bg-gray-900 text-cyan-400 p-4 rounded text-sm overflow-auto font-mono">
-                                      {JSON.stringify(debugFormData?.insertQuery || {}, null, 2)}
-                                    </pre>
-                                  </div>
-                                  
-                                  <div className="p-4 border border-green-200 rounded-lg bg-green-50">
-                                    <h4 className="font-bold text-lg mb-3 text-green-800">🎯 Context Information:</h4>
-                                    <pre className="bg-gray-900 text-yellow-400 p-4 rounded text-sm overflow-auto font-mono">
-                                      {JSON.stringify({
-                                        workoutId: debugInfo.workoutId,
-                                        userId: debugInfo.userId,
-                                        workoutExerciseId: debugFormData?.workoutExerciseId,
-                                        exerciseName: debugFormData?.exerciseName,
-                                        timestamp: new Date().toISOString()
-                                      }, null, 2)}
-                                    </pre>
-                                  </div>
-                                  
-                                  <div className="p-4 border border-orange-200 rounded-lg bg-orange-50">
-                                    <h4 className="font-bold text-lg mb-3 text-orange-800">⚡ SQL Query Preview (Display Only):</h4>
-                                    <pre className="bg-gray-900 text-orange-400 p-4 rounded text-sm overflow-auto font-mono">
-{`INSERT INTO public.workout_sets (
-  workout_exercise_id,
-  set_index,
-  reps,
-  weight,
-  rpe,
-  notes,
-  had_pain
-) VALUES (
-  '${debugFormData?.workoutExerciseId || 'NULL'}',
-  1,  -- Auto-calculated by trigger
-  ${debugFormData?.insertQuery?.reps || 'NULL'},
-  ${debugFormData?.insertQuery?.weight || 'NULL'},
-  ${debugFormData?.insertQuery?.rpe || 'NULL'},
-  ${debugFormData?.insertQuery?.notes ? `'${debugFormData.insertQuery.notes}'` : 'NULL'},
-  ${debugFormData?.insertQuery?.had_pain || false}
-);
-
--- NOTE: set_index will be auto-calculated by database trigger
--- This is just a preview for debugging purposes`}
-                                    </pre>
-                                  </div>
-                                </div>
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter className="flex gap-3">
-                              <AlertDialogCancel 
-                                className="bg-gray-500 text-white hover:bg-gray-600"
-                                onClick={() => {
-                                  console.log('🔥 Debug popup cancelled');
-                                  setShowDebugPopup(false);
-                                }}
-                              >
-                                Cancel
-                              </AlertDialogCancel>
-                              <AlertDialogAction 
-                                className="bg-green-600 text-white hover:bg-green-700"
-                                onClick={async () => {
-                                  console.log('🔥 Executing insert query!');
-                                  if (debugFormData?.currentForm && debugFormData?.workoutExerciseId) {
-                                    setShowDebugPopup(false);
-                                    await addSet(debugFormData.workoutExerciseId, debugFormData.currentForm);
-                                  }
-                                }}
-                              >
-                                ✅ EXECUTE INSERT QUERY
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
                         
                         {/* Effort selector appears after completing a set */}
                         {lastCompletedSetId && !showRestTimer && (
