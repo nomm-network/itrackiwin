@@ -3612,10 +3612,8 @@ export type Database = {
         Returns: undefined
       }
       clone_template_to_workout: {
-        Args:
-          | { p_template_id: string }
-          | { template_id: string; workout_id: string }
-        Returns: undefined
+        Args: { p_template_id: string }
+        Returns: string
       }
       closest_machine_weight: {
         Args: { aux: number[]; desired: number; stack: number[] }
