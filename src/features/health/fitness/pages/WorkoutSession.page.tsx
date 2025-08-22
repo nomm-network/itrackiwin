@@ -287,9 +287,36 @@ const WorkoutSession: React.FC = () => {
               {(data?.exercises || []).map(ex => (
                 <div key={ex.id} className="border rounded-md p-4">
                   <div className="flex items-center justify-between mb-3">
-                    <h3 className="font-medium">{ex.exercise_id}</h3>
+                    <h3 className="font-medium">{ex.exercises?.name || 'Unknown Exercise'}</h3>
                     <span className="text-xs text-muted-foreground">Order: {ex.order_index}</span>
                   </div>
+                  
+                  {/* Warmup and target suggestions */}
+                  {data?.warmupSuggestions && (
+                    <div className="mb-4 p-3 bg-muted/30 rounded-lg">
+                      <h4 className="text-sm font-medium mb-2 text-primary">Suggested Sets</h4>
+                      <div className="space-y-1 text-xs">
+                        {data.warmupSuggestions.warmupSets
+                          .filter((w: any) => w.exercise === ex.exercises?.name)
+                          .map((warmup: any, i: number) => (
+                            <div key={i}>
+                              {warmup.sets.map((set: any, j: number) => (
+                                <div key={j} className="text-orange-600">
+                                  Warmup {j + 1}: {set.weight} × {set.reps} reps
+                                </div>
+                              ))}
+                            </div>
+                          ))}
+                        {data.warmupSuggestions.targetSets
+                          .filter((t: any) => t.exercise === ex.exercises?.name)
+                          .map((target: any, i: number) => (
+                            <div key={i} className="text-green-600">
+                              Working: {target.workingSets} sets × {target.targetReps} reps @ {target.intensity}
+                            </div>
+                          ))}
+                      </div>
+                    </div>
+                  )}
                   <div className="space-y-2">
                     {(data?.setsByWe[ex.id] || []).map(set => (
                       <div key={set.id} className="flex items-center gap-3 text-sm">

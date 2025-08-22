@@ -399,34 +399,131 @@ export const useDeleteWorkout = () => {
   });
 };
 
+// Generate workout suggestions based on muscle groups and readiness
+const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
+  if (!exercises.length) return { warmupSets: [], targetSets: [] };
+
+  // Get readiness data
+  const readinessData = workout.readiness_checkins?.[0];
+  
+  // Analyze muscle groups involved
+  const muscleGroups = new Set();
+  const bodyParts = new Set();
+  
+  exercises.forEach(ex => {
+    if (ex.exercises?.muscles?.muscle_groups) {
+      muscleGroups.add(ex.exercises.muscles.muscle_groups.slug);
+      bodyParts.add(ex.exercises.muscles.muscle_groups.body_parts?.slug);
+    }
+    // Add secondary muscle groups
+    if (ex.exercises?.secondary_muscle_group_ids) {
+      ex.exercises.secondary_muscle_group_ids.forEach((id: string) => {
+        muscleGroups.add(id);
+      });
+    }
+  });
+
+  // Calculate warmup needs based on muscle activation
+  const warmupSets = [];
+  const targetSets = [];
+  
+  // Base warmup on readiness and muscle groups
+  const energyLevel = readinessData?.energy || 3;
+  const soreness = readinessData?.soreness || 2;
+  
+  // Generate warmup recommendations
+  const warmupIntensity = energyLevel >= 4 && soreness <= 2 ? 'moderate' : 'extended';
+  
+  exercises.forEach((ex, index) => {
+    const exerciseName = ex.exercises?.name || 'Unknown Exercise';
+    
+    if (warmupIntensity === 'extended') {
+      // More warmup sets for lower energy/higher soreness
+      warmupSets.push({
+        exercise: exerciseName,
+        sets: [
+          { weight: '40%', reps: 12, type: 'warmup' },
+          { weight: '60%', reps: 8, type: 'warmup' },
+          { weight: '75%', reps: 5, type: 'warmup' }
+        ]
+      });
+    } else {
+      // Standard warmup
+      warmupSets.push({
+        exercise: exerciseName,
+        sets: [
+          { weight: '50%', reps: 10, type: 'warmup' },
+          { weight: '70%', reps: 6, type: 'warmup' }
+        ]
+      });
+    }
+    
+    // Target working sets based on exercise position and readiness
+    const isMainLift = index < 2; // First 2 exercises are main lifts
+    const targetReps = isMainLift ? (energyLevel >= 4 ? '5-6' : '6-8') : '8-12';
+    const workingSets = isMainLift ? 3 : 3;
+    
+    targetSets.push({
+      exercise: exerciseName,
+      workingSets,
+      targetReps,
+      intensity: energyLevel >= 4 ? '85-90%' : '80-85%'
+    });
+  });
+
+  return { warmupSets, targetSets };
+};
+
 export const useWorkoutDetail = (workoutId?: UUID) => {
   return useQuery({
     queryKey: ["workout_detail", workoutId],
     enabled: !!workoutId,
     queryFn: async () => {
-      // Fetch workout data
+      // Fetch workout data with readiness check
       const { data: workout, error: workoutError } = await supabase
         .from("workouts")
-        .select("*")
+        .select("*, readiness_checkins(*)")
         .eq("id", workoutId)
         .single();
       if (workoutError) throw workoutError;
 
-      // Fetch workout exercises
+      // Fetch workout exercises with exercise details and muscle groups
       const { data: exercises, error: exercisesError } = await supabase
         .from("workout_exercises")
-        .select("*")
+        .select(`
+          *,
+          exercises!inner(
+            id,
+            name,
+            slug,
+            primary_muscle_id,
+            secondary_muscle_group_ids,
+            muscles!exercises_primary_muscle_id_fkey(
+              id,
+              slug,
+              muscle_groups!muscles_muscle_group_id_fkey(
+                id,
+                slug,
+                body_parts!muscle_groups_body_part_id_fkey(
+                  id,
+                  slug
+                )
+              )
+            )
+          )
+        `)
         .eq("workout_id", workoutId)
         .order("order_index");
       if (exercisesError) throw exercisesError;
 
-      // Fetch workout sets for each exercise
+      // Fetch workout sets for each exercise (only show completed sets, not empty placeholders)
       const setsByWe: Record<string, any[]> = {};
       if (exercises?.length) {
         const { data: sets, error: setsError } = await supabase
           .from("workout_sets")
           .select("*")
           .in("workout_exercise_id", exercises.map(ex => ex.id))
+          .eq("is_completed", true)  // Only show completed sets
           .order("set_index");
         if (setsError) throw setsError;
 
@@ -439,10 +536,14 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
         });
       }
 
+      // Generate warmup and targeting suggestions
+      const warmupSuggestions = await generateWorkoutSuggestions(exercises || [], workout);
+
       return {
         workout,
         exercises: exercises || [],
-        setsByWe
+        setsByWe,
+        warmupSuggestions
       };
     },
   });
