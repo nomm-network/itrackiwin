@@ -141,12 +141,50 @@ const WorkoutSession: React.FC = () => {
       console.log('🔥 Final payload:', payload);
       
       const mutationParams = {
-        workoutId: id!,
         workoutExerciseId,
         payload
       };
       
       console.log('🔥 Mutation params:', mutationParams);
+      
+      // 🔥🔥🔥 POPUP WITH INSERT QUERY 🔥🔥🔥
+      const insertSQL = `INSERT INTO workout_sets (
+  workout_exercise_id,
+  set_index,
+  reps,
+  weight,
+  weight_unit,
+  rpe,
+  notes,
+  is_completed,
+  set_kind
+) VALUES (
+  '${workoutExerciseId}',
+  1,
+  ${payload.reps},
+  ${payload.weight},
+  '${payload.weight_unit}',
+  ${payload.rpe || 'NULL'},
+  ${payload.notes ? `'${payload.notes}'` : 'NULL'},
+  ${payload.is_completed},
+  'normal'
+);`;
+
+      const confirmed = window.confirm(`🔥 ABOUT TO INSERT SET 🔥
+
+Auth User: ${debugInfo.userId?.slice(0,8) || 'NONE'}
+Workout ID: ${id?.slice(0,8) || 'NONE'} 
+Exercise ID: ${workoutExerciseId?.slice(0,8) || 'NONE'}
+
+INSERT QUERY:
+${insertSQL}
+
+Proceed with insert?`);
+      
+      if (!confirmed) {
+        console.log('🔥 User cancelled insert');
+        return;
+      }
       
       const result = await addSetMut.mutateAsync(mutationParams);
       
@@ -274,29 +312,19 @@ const WorkoutSession: React.FC = () => {
       <PageNav current="Workout Session" />
       
       {/* 🔥🔥🔥 DEBUG AREA - WILL DELETE LATER 🔥🔥🔥 */}
-      <div className="bg-red-100 border border-red-400 p-4 m-4 text-xs">
-        <h3 className="font-bold text-red-800 mb-2">🔥 DEBUG INFO FOR INSERT OPERATION 🔥</h3>
-        <div className="grid grid-cols-2 gap-4 text-red-700">
-          <div>
-            <strong>Auth Status:</strong>
-            <div>User ID: {debugInfo.userId || "❌ NOT FOUND"}</div>
-            <div>Authenticated: {debugInfo.isAuthenticated ? "✅ YES" : "❌ NO"}</div>
-          </div>
-          <div>
-            <strong>Workout Data:</strong>
-            <div>Workout ID: {debugInfo.workoutId || "❌ NOT FOUND"}</div>
-            <div>Workout Title: {debugInfo.workoutData?.title || "❌ NOT FOUND"}</div>
-          </div>
-          <div>
-            <strong>Exercise Data:</strong>
-            <div>Total Exercises: {debugInfo.totalExercises}</div>
-            <div>First Exercise ID: {debugInfo.firstExerciseId || "❌ NONE"}</div>
-            <div>Active Exercise: {debugInfo.activeExerciseId || "❌ NONE"}</div>
-          </div>
-          <div>
-            <strong>Form Data (will show on submit):</strong>
-            <div>Check console for detailed logs</div>
-            <div>Watch network tab for API calls</div>
+      <div className="fixed top-0 left-0 right-0 z-50 bg-red-500 text-white p-2 text-xs border-b-4 border-red-700">
+        <div className="container">
+          <h3 className="font-bold mb-1">🔥 DEBUG INSERT DATA 🔥</h3>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+            <div>
+              <strong>Auth:</strong> {debugInfo.isAuthenticated ? "✅" : "❌"} | ID: {debugInfo.userId?.slice(0,8) || "NONE"}
+            </div>
+            <div>
+              <strong>Workout:</strong> {debugInfo.workoutId?.slice(0,8) || "NONE"} | Title: {debugInfo.workoutData?.title || "NONE"}
+            </div>
+            <div>
+              <strong>Exercises:</strong> {debugInfo.totalExercises} total | Active: {debugInfo.activeExerciseId?.slice(0,8) || "NONE"}
+            </div>
           </div>
         </div>
       </div>
