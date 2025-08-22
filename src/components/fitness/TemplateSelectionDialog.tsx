@@ -67,6 +67,10 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     if (isStarting) return; // Prevent double submissions
     
     setIsStarting(true);
+    
+    // Close dialog immediately to prevent UI confusion
+    onOpenChange(false);
+    
     try {
       let workoutId: string;
       
@@ -77,14 +81,14 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
         workoutId = await startFreeWorkout.mutateAsync(null);
       }
       
-      // Close dialog first, then navigate
-      handleOpenChange(false);
       navigate(`/fitness/session/${workoutId}`);
       toast.success('Workout started!');
     } catch (error) {
       console.error('Failed to start workout:', error);
       toast.error('Failed to start workout');
-      setIsStarting(false); // Reset loading state on error
+      // Reopen dialog on error
+      onOpenChange(true);
+      setIsStarting(false);
     }
   };
 
