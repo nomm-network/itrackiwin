@@ -5646,8 +5646,10 @@ export type Database = {
       app_role: "superadmin" | "admin" | "mentor" | "user"
       body_side: "left" | "right" | "bilateral" | "unspecified"
       effort_code: "++" | "+" | "-" | "--"
+      experience_level: "new" | "returning" | "intermediate" | "advanced"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
+      primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
       progression_algo:
         | "rep_range_linear"
         | "percent_1rm"
@@ -5656,6 +5658,12 @@ export type Database = {
         | "reverse_pyramid"
         | "dup"
         | "custom"
+      progression_model:
+        | "double_progression"
+        | "linear_load"
+        | "rep_targets"
+        | "percent_1rm"
+        | "rpe_based"
       set_type:
         | "normal"
         | "warmup"
@@ -5666,6 +5674,7 @@ export type Database = {
         | "top_set"
         | "backoff"
         | "cooldown"
+      training_focus: "muscle" | "strength" | "general" | "power"
       warmup_feedback: "not_enough" | "excellent" | "too_much"
       warmup_quality: "not_enough" | "excellent" | "too_much"
       weight_unit: "kg" | "lb"
@@ -5807,8 +5816,10 @@ export const Constants = {
       app_role: ["superadmin", "admin", "mentor", "user"],
       body_side: ["left", "right", "bilateral", "unspecified"],
       effort_code: ["++", "+", "-", "--"],
+      experience_level: ["new", "returning", "intermediate", "advanced"],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
+      primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
       progression_algo: [
         "rep_range_linear",
         "percent_1rm",
@@ -5817,6 +5828,13 @@ export const Constants = {
         "reverse_pyramid",
         "dup",
         "custom",
+      ],
+      progression_model: [
+        "double_progression",
+        "linear_load",
+        "rep_targets",
+        "percent_1rm",
+        "rpe_based",
       ],
       set_type: [
         "normal",
@@ -5829,6 +5847,7 @@ export const Constants = {
         "backoff",
         "cooldown",
       ],
+      training_focus: ["muscle", "strength", "general", "power"],
       warmup_feedback: ["not_enough", "excellent", "too_much"],
       warmup_quality: ["not_enough", "excellent", "too_much"],
       weight_unit: ["kg", "lb"],
