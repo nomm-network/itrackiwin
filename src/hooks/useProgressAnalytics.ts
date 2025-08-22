@@ -58,32 +58,22 @@ export const useOneRMProgress = (timeframe: string = "3m", exerciseId?: string) 
     queryFn: async (): Promise<ProgressDataPoint[]> => {
       const { startDate, endDate } = getDateRange(timeframe);
       
-      let query = supabase
-        .from('mv_user_exercise_1rm')
-        .select(`
-          exercise_id,
-          estimated_1rm,
-          last_updated,
-          exercises!inner(name)
-        `)
-        .gte('last_updated', startDate)
-        .lte('last_updated', endDate)
-        .order('last_updated', { ascending: true });
+      // Use the new safe function instead of the problematic materialized view
+      const { data, error } = await supabase.rpc('get_user_exercise_1rm', {
+        p_exercise_id: exerciseId || null
+      });
 
-      if (exerciseId && exerciseId !== "all") {
-        query = query.eq('exercise_id', exerciseId);
-      }
-
-      const { data, error } = await query;
-      
       if (error) throw error;
       
-      return data?.map(item => ({
-        date: format(new Date(item.last_updated), 'yyyy-MM-dd'),
-        value: item.estimated_1rm,
-        exerciseId: item.exercise_id,
-        exerciseName: (item.exercises as any)?.name
-      })) || [];
+      // Filter by date range and transform data
+      return (data || [])
+        .filter(item => item.last_updated >= startDate && item.last_updated <= endDate)
+        .map(item => ({
+          date: item.last_updated,
+          value: item.estimated_1rm || 0,
+          exercise: exerciseId || 'All'
+        }))
+        .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
