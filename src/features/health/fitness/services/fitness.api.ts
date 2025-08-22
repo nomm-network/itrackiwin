@@ -858,55 +858,32 @@ export const useAddSet = () => {
       payload: {
         reps: number;
         weight: number;
-        weight_unit?: string;
         rpe?: number;
         notes?: string;
-        is_completed?: boolean;
         had_pain?: boolean;
       };
     }) => {
-      console.log('🔥🔥🔥 STARTING ADD SET:', params);
-      
       const { workoutExerciseId, payload } = params;
       
-      // Check authentication first
+      // Ensure auth; also ensures the Supabase client sends the JWT (auth.uid() available)
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) {
-        throw new Error('Authentication required');
-      }
-      
-      console.log('🔥 Authenticated user:', user.id);
-      
-      // Get next set index
-      const { data: existingSets } = await supabase
-        .from("workout_sets")
-        .select("set_index")
-        .eq("workout_exercise_id", workoutExerciseId)
-        .order("set_index", { ascending: false })
-        .limit(1);
-      
-      const nextIndex = existingSets?.length ? existingSets[0].set_index + 1 : 1;
-      
-      console.log('🔥 Next index:', nextIndex);
-      
-      // Insert the set with authentication context
+      if (authError || !user) throw new Error("Authentication required");
+
       const { data, error } = await supabase
         .from("workout_sets")
         .insert({
           workout_exercise_id: workoutExerciseId,
-          set_index: nextIndex,
           reps: payload.reps,
-          weight: payload.weight
+          weight: payload.weight,
+          rpe: payload.rpe ?? null,
+          notes: payload.notes ?? null,
+          had_pain: payload.had_pain ?? false,
+          /* set_index omitted – trigger fills it */
         })
         .select()
         .single();
-      
-      if (error) {
-        console.error('🔥 INSERT ERROR:', error);
-        throw new Error(`Failed to add set: ${error.message}`);
-      }
-      
-      console.log('🔥 Set added successfully:', data);
+
+      if (error) throw error;
       return data;
     },
     onSuccess: (data) => {

@@ -3580,6 +3580,10 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      can_mutate_workout_set: {
+        Args: { _we_id: string }
+        Returns: boolean
+      }
       check_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
