@@ -418,7 +418,7 @@ const WorkoutSession: React.FC = () => {
                         </div>
                         
                          {/* Add Set Form */}
-                        <form className="grid grid-cols-6 gap-2" onSubmit={(e) => { e.preventDefault(); addSet(ex.id, e.currentTarget); }}>
+                        <form className="grid grid-cols-6 gap-2">{/* REMOVED ONSUBMIT FOR DEBUG */}
                           <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />
                           <Input name="reps" placeholder="Reps" inputMode="numeric" />
                           <Input name="rpe" placeholder="RPE" inputMode="decimal" />
