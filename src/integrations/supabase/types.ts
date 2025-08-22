@@ -2547,6 +2547,51 @@ export type Database = {
           },
         ]
       }
+      user_profile_fitness: {
+        Row: {
+          bodyweight: number | null
+          created_at: string | null
+          days_per_week: number | null
+          experience_level: string
+          goal: string
+          height_cm: number | null
+          id: string
+          injuries: string[] | null
+          preferred_session_minutes: number | null
+          training_goal: string
+          updated_at: string | null
+          user_id: string
+        }
+        Insert: {
+          bodyweight?: number | null
+          created_at?: string | null
+          days_per_week?: number | null
+          experience_level: string
+          goal: string
+          height_cm?: number | null
+          id?: string
+          injuries?: string[] | null
+          preferred_session_minutes?: number | null
+          training_goal: string
+          updated_at?: string | null
+          user_id: string
+        }
+        Update: {
+          bodyweight?: number | null
+          created_at?: string | null
+          days_per_week?: number | null
+          experience_level?: string
+          goal?: string
+          height_cm?: number | null
+          id?: string
+          injuries?: string[] | null
+          preferred_session_minutes?: number | null
+          training_goal?: string
+          updated_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

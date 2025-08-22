@@ -2,9 +2,11 @@ import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Paths } from '../paths';
+import { useOnboarding } from '@/hooks/useOnboarding';
 
 export const AuthGuard = () => {
   const location = useLocation();
+  const { needsOnboarding, isComplete } = useOnboarding();
 
   const { data: session, isLoading } = useQuery({
     queryKey: ['session'],
@@ -22,5 +24,19 @@ export const AuthGuard = () => {
     );
   }
 
-  return session?.user ? <Outlet /> : <Navigate to={Paths.auth} state={{ from: location }} replace />;
+  if (!session?.user) {
+    return <Navigate to={Paths.auth} state={{ from: location }} replace />;
+  }
+
+  // Check if user needs onboarding (excluding onboarding routes)
+  if (needsOnboarding && !location.pathname.startsWith('/onboarding')) {
+    return <Navigate to="/onboarding/welcome" replace />;
+  }
+
+  // If user completed onboarding but still on onboarding routes, redirect to dashboard
+  if (isComplete && location.pathname.startsWith('/onboarding')) {
+    return <Navigate to="/dashboard" replace />;
+  }
+
+  return <Outlet />;
 };

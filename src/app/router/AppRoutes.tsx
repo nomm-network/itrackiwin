@@ -14,6 +14,11 @@ const Index = lazy(() => import('@/pages/Index'));
 const Auth = lazy(() => import('@/pages/Auth'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
+// Onboarding pages
+const Welcome = lazy(() => import('@/pages/onboarding/Welcome'));
+const OnboardingSettings = lazy(() => import('@/pages/onboarding/Settings'));
+const OnboardingProfile = lazy(() => import('@/pages/onboarding/FitnessProfile'));
+
 // Protected pages - General
 const UserDashboard = lazy(() => import('@/pages/UserDashboard'));
 const Progress = lazy(() => import('@/pages/Progress'));
@@ -41,6 +46,11 @@ export function AppRoutes() {
           {/* Public routes */}
           <Route path={Paths.root} element={<Index />} />
           <Route path={Paths.auth} element={<Auth />} />
+          
+          {/* Onboarding routes */}
+          <Route path="/onboarding/welcome" element={<Welcome />} />
+          <Route path="/onboarding/settings" element={<OnboardingSettings />} />
+          <Route path="/onboarding/profile" element={<OnboardingProfile />} />
 
           {/* Public orbits page for authenticated users */}
           <Route path="/explore" element={
