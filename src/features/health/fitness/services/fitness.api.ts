@@ -912,7 +912,8 @@ export const useAddSet = () => {
         weight: payload.weight,
         weight_unit: 'kg',
         is_completed: true,
-        set_kind: 'normal' as const
+        set_kind: 'normal' as const,
+        had_pain: false  // 🔥 MISSING REQUIRED FIELD!
       };
       
       console.log('🔥 Inserting:', insertData);
