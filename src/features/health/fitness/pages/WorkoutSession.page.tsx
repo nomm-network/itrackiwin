@@ -318,7 +318,7 @@ const WorkoutSession: React.FC = () => {
                     </div>
                   )}
                   <div className="space-y-2">
-                    {(data?.setsByWe[ex.id] || []).map(set => (
+                    {(data?.setsByWe[ex.id] || []).filter(set => set.is_completed).map(set => (
                       <div key={set.id} className="flex items-center gap-3 text-sm">
                         <span className="w-12">Set {set.set_index}</span>
                         <span className="w-24">{set.weight ?? '-'} {set.weight ? unit : ''}</span>
@@ -327,6 +327,10 @@ const WorkoutSession: React.FC = () => {
                         <span className="text-muted-foreground">{set.notes || ''}</span>
                       </div>
                     ))}
+                    {/* Show message if no completed sets yet */}
+                    {(data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length === 0 && (
+                      <p className="text-sm text-muted-foreground">No completed sets yet. Add your first set below.</p>
+                    )}
                   </div>
                   <form className="mt-3 grid grid-cols-6 gap-2" onSubmit={(e) => { e.preventDefault(); addSet(ex.id, e.currentTarget); }}>
                     <Input name="weight" placeholder={`Weight (${unit})`} className="col-span-2" inputMode="decimal" />

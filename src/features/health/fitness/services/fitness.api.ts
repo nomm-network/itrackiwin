@@ -516,14 +516,13 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
         .order("order_index");
       if (exercisesError) throw exercisesError;
 
-      // Fetch workout sets for each exercise (only show completed sets, not empty placeholders)
+      // Fetch workout sets for each exercise (show all sets, including incomplete placeholder sets)
       const setsByWe: Record<string, any[]> = {};
       if (exercises?.length) {
         const { data: sets, error: setsError } = await supabase
           .from("workout_sets")
           .select("*")
           .in("workout_exercise_id", exercises.map(ex => ex.id))
-          .eq("is_completed", true)  // Only show completed sets
           .order("set_index");
         if (setsError) throw setsError;
 
