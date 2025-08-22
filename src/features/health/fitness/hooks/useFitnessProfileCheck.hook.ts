@@ -30,8 +30,8 @@ export const useFitnessProfileCheck = () => {
 
   const checkAndRedirect = (action: string = 'continue') => {
     if (!fitnessProfile || 
-        !fitnessProfile.primary_weight_goal || 
-        !fitnessProfile.training_focus || 
+        !fitnessProfile.primary_weight_goal_id || 
+        !fitnessProfile.training_focus_id || 
         !fitnessProfile.experience ||
         !fitnessProfile.days_per_week ||
         !fitnessProfile.preferred_session_minutes) {
@@ -48,8 +48,8 @@ export const useFitnessProfileCheck = () => {
 
   return {
     hasProfile: !!(fitnessProfile && 
-                   fitnessProfile.primary_weight_goal && 
-                   fitnessProfile.training_focus && 
+                   fitnessProfile.primary_weight_goal_id && 
+                   fitnessProfile.training_focus_id && 
                    fitnessProfile.experience &&
                    fitnessProfile.days_per_week &&
                    fitnessProfile.preferred_session_minutes),
