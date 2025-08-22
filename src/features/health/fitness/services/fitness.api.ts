@@ -404,18 +404,45 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
     queryKey: ["workout_detail", workoutId],
     enabled: !!workoutId,
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch workout data
+      const { data: workout, error: workoutError } = await supabase
         .from("workouts")
         .select("*")
         .eq("id", workoutId)
         .single();
-      if (error) throw error;
-      // Add compatibility wrapper for existing page expectations
+      if (workoutError) throw workoutError;
+
+      // Fetch workout exercises
+      const { data: exercises, error: exercisesError } = await supabase
+        .from("workout_exercises")
+        .select("*")
+        .eq("workout_id", workoutId)
+        .order("order_index");
+      if (exercisesError) throw exercisesError;
+
+      // Fetch workout sets for each exercise
+      const setsByWe: Record<string, any[]> = {};
+      if (exercises?.length) {
+        const { data: sets, error: setsError } = await supabase
+          .from("workout_sets")
+          .select("*")
+          .in("workout_exercise_id", exercises.map(ex => ex.id))
+          .order("set_index");
+        if (setsError) throw setsError;
+
+        // Group sets by workout exercise id
+        sets?.forEach(set => {
+          if (!setsByWe[set.workout_exercise_id]) {
+            setsByWe[set.workout_exercise_id] = [];
+          }
+          setsByWe[set.workout_exercise_id].push(set);
+        });
+      }
+
       return {
-        ...data,
-        workout: data,
-        exercises: [],
-        setsByWe: {}
+        workout,
+        exercises: exercises || [],
+        setsByWe
       };
     },
   });

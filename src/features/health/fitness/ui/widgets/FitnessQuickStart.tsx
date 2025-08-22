@@ -4,10 +4,15 @@ import { Button } from '@/components/ui/button';
 import { Play, Clock, Target } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
+import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
 
 const FitnessQuickStart: React.FC = () => {
   const navigate = useNavigate();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const { data: recentWorkouts } = useRecentWorkouts(5);
+  
+  // Check if there's an active workout (started but not ended)
+  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
 
   return (
     <>
@@ -21,11 +26,11 @@ const FitnessQuickStart: React.FC = () => {
         <CardContent className="space-y-4">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <Button 
-              onClick={() => setShowTemplateDialog(true)}
+              onClick={activeWorkout ? () => navigate(`/fitness/workout/${activeWorkout.id}`) : () => setShowTemplateDialog(true)}
               className="flex items-center gap-2 h-12"
             >
               <Play className="h-4 w-4" />
-              Start Workout
+              {activeWorkout ? 'Continue Workout' : 'Start Workout'}
             </Button>
             <Button 
               variant="outline"
