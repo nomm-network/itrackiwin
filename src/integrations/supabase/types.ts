@@ -2098,6 +2098,33 @@ export type Database = {
         }
         Relationships: []
       }
+      user_gamification: {
+        Row: {
+          created_at: string
+          current_level: number
+          id: string
+          total_xp: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          total_xp?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          id?: string
+          total_xp?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_goals: {
         Row: {
           created_at: string
@@ -5664,6 +5691,14 @@ export type Database = {
       body_side: "left" | "right" | "bilateral" | "unspecified"
       effort_code: "++" | "+" | "-" | "--"
       experience_level: "new" | "returning" | "intermediate" | "advanced"
+      fitness_goal:
+        | "lose_weight"
+        | "maintain_weight"
+        | "gain_weight"
+        | "build_muscle"
+        | "increase_strength"
+        | "improve_endurance"
+        | "general_fitness"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
@@ -5691,7 +5726,13 @@ export type Database = {
         | "top_set"
         | "backoff"
         | "cooldown"
-      training_focus: "muscle" | "strength" | "general" | "power"
+      training_focus:
+        | "muscle"
+        | "strength"
+        | "general"
+        | "power"
+        | "cardio"
+        | "bodybuilding"
       warmup_feedback: "not_enough" | "excellent" | "too_much"
       warmup_quality: "not_enough" | "excellent" | "too_much"
       weight_unit: "kg" | "lb"
@@ -5834,6 +5875,15 @@ export const Constants = {
       body_side: ["left", "right", "bilateral", "unspecified"],
       effort_code: ["++", "+", "-", "--"],
       experience_level: ["new", "returning", "intermediate", "advanced"],
+      fitness_goal: [
+        "lose_weight",
+        "maintain_weight",
+        "gain_weight",
+        "build_muscle",
+        "increase_strength",
+        "improve_endurance",
+        "general_fitness",
+      ],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
@@ -5864,7 +5914,14 @@ export const Constants = {
         "backoff",
         "cooldown",
       ],
-      training_focus: ["muscle", "strength", "general", "power"],
+      training_focus: [
+        "muscle",
+        "strength",
+        "general",
+        "power",
+        "cardio",
+        "bodybuilding",
+      ],
       warmup_feedback: ["not_enough", "excellent", "too_much"],
       warmup_quality: ["not_enough", "excellent", "too_much"],
       weight_unit: ["kg", "lb"],

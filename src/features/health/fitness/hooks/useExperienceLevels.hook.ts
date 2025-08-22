@@ -11,37 +11,16 @@ export interface ExperienceLevel {
 }
 
 export const useExperienceLevels = () => {
-  const { i18n } = useTranslation();
-
   return useQuery({
-    queryKey: ['experience-levels', i18n.language],
+    queryKey: ['experience-levels'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('experience_levels')
-        .select(`
-          id,
-          slug,
-          sort_order,
-          experience_level_translations!inner (
-            name,
-            description
-          )
-        `)
-        .eq('experience_level_translations.language_code', i18n.language)
-        .order('sort_order');
-
-      if (error) {
-        console.error('Error fetching experience levels:', error);
-        throw error;
-      }
-
-      return data?.map(level => ({
-        id: level.id,
-        slug: level.slug,
-        sort_order: level.sort_order,
-        name: level.experience_level_translations[0]?.name || level.slug,
-        description: level.experience_level_translations[0]?.description
-      })) || [];
+      // Return static experience levels since we're using enum now
+      return [
+        { id: 'new', slug: 'new', sort_order: 1, name: 'New to Exercise', description: 'Just starting your fitness journey' },
+        { id: 'returning', slug: 'returning', sort_order: 2, name: 'Returning', description: 'Getting back into fitness after a break' },
+        { id: 'intermediate', slug: 'intermediate', sort_order: 3, name: 'Intermediate', description: 'Consistent training for several months' },
+        { id: 'advanced', slug: 'advanced', sort_order: 4, name: 'Advanced', description: 'Years of training experience' }
+      ];
     }
   });
 };
