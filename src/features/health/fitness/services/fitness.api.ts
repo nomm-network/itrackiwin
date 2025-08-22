@@ -863,27 +863,57 @@ export const useAddSet = () => {
         had_pain?: boolean;
       };
     }) => {
+      console.log('🔥 ADD SET START:', params);
       const { workoutExerciseId, payload } = params;
       
       // Ensure auth; also ensures the Supabase client sends the JWT (auth.uid() available)
       const { data: { user }, error: authError } = await supabase.auth.getUser();
-      if (authError || !user) throw new Error("Authentication required");
+      if (authError || !user) {
+        console.error('🔥 AUTH ERROR:', authError);
+        throw new Error("Authentication required");
+      }
+      
+      console.log('🔥 User authenticated:', user.id);
+
+      // Test the function first
+      try {
+        const { data: testData, error: testError } = await supabase.rpc('can_mutate_workout_set', {
+          _we_id: workoutExerciseId
+        });
+        console.log('🔥 Permission test result:', testData, testError);
+      } catch (err) {
+        console.error('🔥 Permission test failed:', err);
+      }
+
+      const insertData = {
+        workout_exercise_id: workoutExerciseId,
+        reps: payload.reps,
+        weight: payload.weight,
+        rpe: payload.rpe ?? null,
+        notes: payload.notes ?? null,
+        had_pain: payload.had_pain ?? false,
+        /* set_index omitted – trigger fills it */
+      };
+      
+      console.log('🔥 Inserting data:', insertData);
 
       const { data, error } = await supabase
         .from("workout_sets")
-        .insert({
-          workout_exercise_id: workoutExerciseId,
-          reps: payload.reps,
-          weight: payload.weight,
-          rpe: payload.rpe ?? null,
-          notes: payload.notes ?? null,
-          had_pain: payload.had_pain ?? false,
-          /* set_index omitted – trigger fills it */
-        })
+        .insert(insertData)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('🔥 INSERT ERROR DETAILS:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        throw error;
+      }
+      
+      console.log('🔥 INSERT SUCCESS:', data);
       return data;
     },
     onSuccess: (data) => {
