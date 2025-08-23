@@ -22,6 +22,7 @@ import { GymConstraintsFilter } from '@/features/health/fitness/components/GymCo
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
 import { useLogSet } from '../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface WorkoutSessionProps {
@@ -89,18 +90,29 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   const handleWorkoutComplete = async () => {
     try {
-      // Mark workout as completed
-      // This would call the appropriate API
-      
+      // Mark workout as completed in the database
+      const { error } = await supabase
+        .from('workouts')
+        .update({ 
+          ended_at: new Date().toISOString(),
+          perceived_exertion: null // Could be set via a form later
+        })
+        .eq('id', workout.id);
+
+      if (error) throw error;
+
       // Advance program state if this was from a program
       if (workout.program_block_id) {
         await advanceProgramState.mutateAsync(workout.program_block_id);
       }
       
-      // Show recalibration
-      setShowRecalibration(true);
-      
       toast.success('Workout completed! 🎉');
+      
+      // Navigate back to dashboard after a short delay
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 1500);
+      
     } catch (error) {
       console.error('Failed to complete workout:', error);
       toast.error('Failed to complete workout');
