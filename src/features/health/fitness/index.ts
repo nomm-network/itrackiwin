@@ -17,14 +17,21 @@ export { default as EffortSelector } from './components/EffortSelector';
 export { ExperienceLevelSelector } from './components/ExperienceLevelSelector';
 export { SexSelector } from './components/SexSelector';
 export { SexBasedTrainingDemo } from './components/SexBasedTrainingDemo';
+export { MuscleGroupPicker } from './components/MuscleGroupPicker';
+export { MuscleGroupPriorityDemo } from './components/MuscleGroupPriorityDemo';
+export { FitnessConfigurationHub } from './components/FitnessConfigurationHub';
 
 // Hooks - Public API only
 export * from './hooks/useMetrics.hook';
 export * from './hooks/useExperienceLevels.hook';
 export * from './hooks/useExperienceLevelConfigs.hook';
 export * from './hooks/useFitnessProfile.hook';
+export * from './hooks/useMuscleGroups.hook';
+export * from './hooks/useMusclePriorities.hook';
 export * from './utils/sexBasedTraining';
 export * from './utils/sexBasedTrainingTests';
+export * from './utils/musclePriorityTests';
+export * from './services/musclePriorityService';
 export { 
   useExercises, 
   useExercise, 
