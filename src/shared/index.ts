@@ -1,3 +1,4 @@
-// Barrel exports for shared utilities
-export { default as ProtectedMobileLayout } from './components/layout/ProtectedMobileLayout';
-export * from './hooks/useIsSuperAdmin';
+// Shared barrel exports
+export * from './hooks';
+export * from './types';
+export * from './utils';

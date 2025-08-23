@@ -1,6 +1,2 @@
-// Gym feature exports
-export * from './api';
-export * from './components';
+// Export typed hooks - Public API
 export * from './hooks';
-export * from './pages';
-export * from './lib';
