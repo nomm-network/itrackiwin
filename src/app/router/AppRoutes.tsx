@@ -28,6 +28,7 @@ const MobilePolishDemo = lazy(() => import('@/pages/MobilePolishDemo'));
 const PersonaSeedingPage = lazy(() => import('@/pages/PersonaSeeding'));
 const PersonaDashboard = lazy(() => import('@/pages/PersonaDashboard'));
 const SafeguardTesting = lazy(() => import('@/pages/SafeguardTesting'));
+const SessionRunnerDemo = lazy(() => import('@/pages/SessionRunnerDemo'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Achievements = lazy(() => import('@/pages/Achievements'));
@@ -127,6 +128,7 @@ export function AppRoutes() {
           <Route path="/persona-seeding" element={<PersonaSeedingPage />} />
           <Route path="/persona-dashboard" element={<PersonaDashboard />} />
           <Route path="/safeguard-testing" element={<SafeguardTesting />} />
+          <Route path="/session-runner-demo" element={<SessionRunnerDemo />} />
 
           {/* Redirect fitness to dashboard */}
           <Route path={Paths.health.fitness.root} element={
