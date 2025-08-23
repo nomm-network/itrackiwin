@@ -136,6 +136,10 @@ export class WarmupPolicyEngine {
   private static async getExperienceLevelConfig(experienceLevel?: string): Promise<ExperienceLevelConfig | null> {
     if (!experienceLevel) return null;
     
+    // Type guard for experience level
+    const validLevels = ['new', 'returning', 'intermediate', 'advanced', 'very_experienced'] as const;
+    if (!validLevels.includes(experienceLevel as any)) return null;
+    
     const { data, error } = await supabase
       .from('experience_level_configs')
       .select('*')
@@ -168,7 +172,7 @@ export class WarmupPolicyEngine {
     return {
       userId,
       exerciseId,
-      lastFeedback: data.last_feedback,
+      lastFeedback: data.last_feedback as WarmupFeedback,
       successStreak: data.success_streak || 0,
       preferredSetCount: data.preferred_set_count,
       preferredIntensityAdjustment: data.preferred_intensity_adjustment,
