@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { categories, getCategoryBySlug } from '@/app/dashboard/config';
+import { useLifeCategoriesWithSubcategories, getCategoryBySlug } from '@/hooks/useLifeCategories';
 import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/registry';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
@@ -17,15 +17,18 @@ const Dashboard: React.FC = () => {
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const { checkAndRedirect } = useFitnessProfileCheck();
   
+  // Use real database data instead of static config
+  const { data: categories, isLoading } = useLifeCategoriesWithSubcategories('en');
+  
   const currentCategory = searchParams.get('cat') || 'health';
   const currentSubcategory = searchParams.get('sub') || 'fitness';
   
-  const category = getCategoryBySlug(currentCategory);
+  const category = getCategoryBySlug(categories || [], currentCategory);
   const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
   const actions = useDynamicQuickActions(currentCategory, currentSubcategory);
 
   const handleCategoryChange = (newCategory: string) => {
-    const cat = getCategoryBySlug(newCategory);
+    const cat = getCategoryBySlug(categories || [], newCategory);
     const defaultSub = cat?.subcategories?.[0]?.id || '';
     setSearchParams({ cat: newCategory, sub: defaultSub });
   };
@@ -59,6 +62,14 @@ const Dashboard: React.FC = () => {
       default: return 'col-span-2';
     }
   };
+
+  if (isLoading || !categories) {
+    return (
+      <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 md:pb-6">
+        <div className="text-center">Loading dashboard...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 md:pb-6">
@@ -169,7 +180,7 @@ const Dashboard: React.FC = () => {
                 category={cat.name}
                 subcategory={
                   currentSubcategory 
-                    ? getCategoryBySlug(currentCategory)?.subcategories?.find(s => s.id === currentSubcategory)?.name
+                    ? getCategoryBySlug(categories, currentCategory)?.subcategories?.find(s => s.id === currentSubcategory)?.name
                     : undefined
                 }
                 icon={cat.icon}
