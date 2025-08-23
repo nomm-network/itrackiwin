@@ -1,5 +1,5 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Paths } from './paths';
 import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
@@ -114,7 +114,12 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Fitness feature routes - delegated to feature */}
+          {/* Redirect fitness to dashboard */}
+          <Route path={Paths.health.fitness.root} element={
+            <Navigate to={Paths.dashboard} replace />
+          } />
+          
+          {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
             <ProtectedMobileLayout>
               {FitnessRoutes}
