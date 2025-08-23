@@ -2022,33 +2022,42 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          height_cm: number | null
           id: string
           is_public: boolean | null
+          sex: string | null
           updated_at: string
           user_id: string
           username: string | null
+          weight_kg: number | null
         }
         Insert: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          height_cm?: number | null
           id?: string
           is_public?: boolean | null
+          sex?: string | null
           updated_at?: string
           user_id: string
           username?: string | null
+          weight_kg?: number | null
         }
         Update: {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          height_cm?: number | null
           id?: string
           is_public?: boolean | null
+          sex?: string | null
           updated_at?: string
           user_id?: string
           username?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -4012,6 +4021,7 @@ export type Database = {
           notes: string | null
           order_index: number
           warmup_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot: string | null
           workout_id: string
         }
@@ -4025,6 +4035,7 @@ export type Database = {
           warmup_feedback?:
             | Database["public"]["Enums"]["warmup_feedback"]
             | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
           workout_id: string
         }
@@ -4038,6 +4049,7 @@ export type Database = {
           warmup_feedback?:
             | Database["public"]["Enums"]["warmup_feedback"]
             | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
           workout_id?: string
         }
@@ -7173,13 +7185,15 @@ export type Database = {
         Returns: string
       }
       upsert_user_exercise_warmup: {
-        Args: {
-          _exercise_id: string
-          _feedback?: Database["public"]["Enums"]["warmup_feedback"]
-          _plan_text: string
-          _source?: string
-          _user_id: string
-        }
+        Args:
+          | {
+              _exercise_id: string
+              _feedback?: Database["public"]["Enums"]["warmup_feedback"]
+              _plan_text: string
+              _source?: string
+              _user_id: string
+            }
+          | { p_exercise_id: string; p_pretty_text: string; p_source?: Json }
         Returns: {
           adaptation_history: Json | null
           exercise_id: string
