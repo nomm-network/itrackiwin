@@ -45,6 +45,11 @@ export * from './services/exerciseSubstitution.service';
 export { RecalibrationEngine } from './services/recalibrationEngine.service';
 export { useRecalibration, useRecalibrationHistory } from './hooks/useRecalibration.hook';
 
+// Warmup policy engine
+export { WarmupPolicyEngine } from './services/warmupPolicyEngine.service';
+export { useGenerateWarmup, useWarmupFeedback, useWarmupPreferences } from './hooks/useWarmupPolicy.hook';
+export { WarmupPlanPanel } from './components/WarmupPlanPanel';
+
 export { 
   useExercises, 
   useExercise, 
