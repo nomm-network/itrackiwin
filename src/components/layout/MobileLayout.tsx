@@ -19,7 +19,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
   const navigation = [
     { name: t('dashboard'), href: "/dashboard", icon: Home },
-    { name: t('fitness'), href: "/fitness", icon: Dumbbell },
     { name: "Social", href: "/social", icon: Users },
     { name: "AI Coach", href: "/ai-coach", icon: Target },
     { name: "Achievements", href: "/achievements", icon: Award },
