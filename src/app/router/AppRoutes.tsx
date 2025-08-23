@@ -22,6 +22,11 @@ const UserDashboard = lazy(() => import('@/pages/UserDashboard'));
 const Progress = lazy(() => import('@/pages/Progress'));
 const Journal = lazy(() => import('@/pages/Journal'));
 const Insights = lazy(() => import('@/pages/Insights'));
+const TranslatedProfileDemo = lazy(() => import('@/pages/TranslatedProfileDemo'));
+const TranslatedAICoach = lazy(() => import('@/pages/TranslatedAICoach'));
+const MobilePolishDemo = lazy(() => import('@/pages/MobilePolishDemo'));
+const PersonaSeedingPage = lazy(() => import('@/pages/PersonaSeeding'));
+const PersonaDashboard = lazy(() => import('@/pages/PersonaDashboard'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Achievements = lazy(() => import('@/pages/Achievements'));
@@ -113,6 +118,13 @@ export function AppRoutes() {
               <AreaDetail />
             </ProtectedMobileLayout>
           } />
+
+          {/* Demo and Development Routes */}
+          <Route path="/translated-profile-demo" element={<TranslatedProfileDemo />} />
+          <Route path="/translated-ai-coach" element={<TranslatedAICoach />} />
+          <Route path="/mobile-polish-demo" element={<MobilePolishDemo />} />
+          <Route path="/persona-seeding" element={<PersonaSeedingPage />} />
+          <Route path="/persona-dashboard" element={<PersonaDashboard />} />
 
           {/* Redirect fitness to dashboard */}
           <Route path={Paths.health.fitness.root} element={
