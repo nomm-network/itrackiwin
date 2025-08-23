@@ -25,14 +25,15 @@ interface ProfileData {
 }
 
 interface FitnessProfile {
-  sex?: 'male' | 'female' | 'other';
-  bodyweight?: number;
-  height?: number;
-  activity_level?: string;
+  sex?: 'male' | 'female' | 'other' | 'prefer_not_to_say';
+  bodyweight?: number | null;
+  height?: number | null;
+  height_cm?: number | null;
   experience_level?: 'new' | 'returning' | 'intermediate' | 'advanced' | 'very_experienced';
   goal?: string;
-  days_per_week?: number;
-  injuries?: string[];
+  training_goal?: string;
+  days_per_week?: number | null;
+  injuries?: string[] | null;
 }
 
 const TranslatedProfilePage: React.FC = () => {
@@ -126,9 +127,9 @@ const TranslatedProfilePage: React.FC = () => {
       // Load fitness profile
       const { data: fitnessData } = await supabase
         .from('user_profile_fitness')
-        .select('sex, bodyweight, height, activity_level, experience_level, goal, days_per_week, injuries')
+        .select('sex, bodyweight, height, height_cm, experience_level, goal, training_goal, days_per_week, injuries')
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (fitnessData) {
         setFitnessProfile(fitnessData);
@@ -180,9 +181,10 @@ const TranslatedProfilePage: React.FC = () => {
           sex: fitnessProfile.sex,
           bodyweight: fitnessProfile.bodyweight,
           height: fitnessProfile.height,
-          activity_level: fitnessProfile.activity_level,
-          experience_level: fitnessProfile.experience_level,
-          goal: fitnessProfile.goal,
+          height_cm: fitnessProfile.height_cm,
+          experience_level: fitnessProfile.experience_level || 'new',
+          goal: fitnessProfile.goal || 'general_fitness',
+          training_goal: fitnessProfile.training_goal || 'general_fitness',
           days_per_week: fitnessProfile.days_per_week,
           injuries: fitnessProfile.injuries
         });
@@ -335,13 +337,13 @@ const TranslatedProfilePage: React.FC = () => {
                 <Label>{translations['profile.sex'] || 'Sex'}</Label>
                 <Select
                   value={fitnessProfile.sex || ''}
-                  onValueChange={(value) => setFitnessProfile({ ...fitnessProfile, sex: value })}
+                  onValueChange={(value: 'male' | 'female' | 'other' | 'prefer_not_to_say') => setFitnessProfile({ ...fitnessProfile, sex: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['male', 'female', 'other'].map(option => {
+                    {['male', 'female', 'other', 'prefer_not_to_say'].map(option => {
                       const display = enumDisplaySync('sex', option);
                       return (
                         <SelectItem key={option} value={option}>
@@ -354,20 +356,6 @@ const TranslatedProfilePage: React.FC = () => {
                     })}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Age */}
-              <div className="space-y-2">
-                <Label htmlFor="age">{translations['profile.age'] || 'Age'}</Label>
-                <Input
-                  id="age"
-                  type="number"
-                  value={fitnessProfile.age || ''}
-                  onChange={(e) => setFitnessProfile({ 
-                    ...fitnessProfile, 
-                    age: e.target.value ? parseInt(e.target.value) : undefined 
-                  })}
-                />
               </div>
 
               {/* Height */}
@@ -395,27 +383,27 @@ const TranslatedProfilePage: React.FC = () => {
                   id="weight"
                   type="number"
                   step="0.1"
-                  value={fitnessProfile.weight_kg || ''}
+                  value={fitnessProfile.bodyweight || ''}
                   onChange={(e) => setFitnessProfile({ 
                     ...fitnessProfile, 
-                    weight_kg: e.target.value ? parseFloat(e.target.value) : undefined 
+                    bodyweight: e.target.value ? parseFloat(e.target.value) : undefined 
                   })}
                 />
               </div>
 
-              {/* Activity Level */}
+              {/* Experience Level */}
               <div className="space-y-2">
-                <Label>{translations['profile.activity_level'] || 'Activity Level'}</Label>
+                <Label>{translations['profile.experience_level'] || 'Experience Level'}</Label>
                 <Select
-                  value={fitnessProfile.activity_level || ''}
-                  onValueChange={(value) => setFitnessProfile({ ...fitnessProfile, activity_level: value })}
+                  value={fitnessProfile.experience_level || ''}
+                  onValueChange={(value: 'new' | 'returning' | 'intermediate' | 'advanced' | 'very_experienced') => setFitnessProfile({ ...fitnessProfile, experience_level: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    {['sedentary', 'light', 'moderate', 'active', 'very_active'].map(option => {
-                      const display = enumDisplaySync('activity_level', option);
+                    {['new', 'returning', 'intermediate', 'advanced', 'very_experienced'].map(option => {
+                      const display = enumDisplaySync('experience_level', option);
                       return (
                         <SelectItem key={option} value={option}>
                           <span className="flex items-center gap-2">
@@ -433,8 +421,8 @@ const TranslatedProfilePage: React.FC = () => {
               <div className="space-y-2">
                 <Label>{translations['profile.primary_goal'] || 'Primary Goal'}</Label>
                 <Select
-                  value={fitnessProfile.primary_goal || ''}
-                  onValueChange={(value) => setFitnessProfile({ ...fitnessProfile, primary_goal: value })}
+                  value={fitnessProfile.goal || ''}
+                  onValueChange={(value) => setFitnessProfile({ ...fitnessProfile, goal: value })}
                 >
                   <SelectTrigger>
                     <SelectValue />
