@@ -1,6 +1,7 @@
 import { CategoryConfig } from "./types";
+import { normalizeCategoriesSubcategories } from "@/lib/dashboardUtils";
 
-export const categories: CategoryConfig[] = [
+const rawCategories: CategoryConfig[] = [
   {
     id: "health",
     name: "Health",
@@ -73,6 +74,9 @@ export const categories: CategoryConfig[] = [
     ]
   }
 ];
+
+// Normalize all categories to show exactly 5 subcategories each
+export const categories = normalizeCategoriesSubcategories(rawCategories, 5);
 
 export const getCategoryBySlug = (slug: string) => 
   categories.find(cat => cat.id === slug);

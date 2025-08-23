@@ -106,10 +106,18 @@ const Dashboard: React.FC = () => {
                     <Badge
                       key={sub.id}
                       variant={currentSubcategory === sub.id ? "default" : "outline"}
-                      className="cursor-pointer whitespace-nowrap flex-shrink-0 px-3 py-2 text-sm"
-                      onClick={() => handleSubcategoryChange(sub.id)}
+                      className={`cursor-pointer whitespace-nowrap flex-shrink-0 px-3 py-2 text-sm ${
+                        (sub as any).isPlaceholder 
+                          ? 'opacity-50 cursor-not-allowed' 
+                          : ''
+                      }`}
+                      onClick={() => {
+                        if (!(sub as any).isPlaceholder) {
+                          handleSubcategoryChange(sub.id);
+                        }
+                      }}
                     >
-                      <span className="mr-1">{sub.icon}</span>
+                      <span className="mr-1">{sub.icon || '📋'}</span>
                       {sub.name}
                     </Badge>
                   ))}
