@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
 import { Plus, Copy, TrendingUp, Activity, Clock } from 'lucide-react';
 import { toast } from 'sonner';
+import { usePRDetection } from '@/hooks/usePRDetection';
 
 interface SetData {
   weight?: number;
@@ -21,6 +22,9 @@ interface QuickSetEntryProps {
   onSetComplete: (setData: SetData) => void;
   onRestTimerStart: (duration: number) => void;
   isLoading?: boolean;
+  workoutExerciseId?: string;
+  exercise?: { id: string; name: string };
+  workoutId?: string;
 }
 
 export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
@@ -29,8 +33,12 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
   targetSet,
   onSetComplete,
   onRestTimerStart,
-  isLoading = false
+  isLoading = false,
+  workoutExerciseId,
+  exercise,
+  workoutId
 }) => {
+  const { checkForPRs } = usePRDetection();
   const [weight, setWeight] = useState<string>('');
   const [reps, setReps] = useState<string>('');
   const [rpe, setRpe] = useState<string>('');
@@ -67,7 +75,7 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
     toast.success(`Applied ${action.replace('_', ' ')}`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!weight || !reps) {
@@ -83,6 +91,20 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
     };
 
     onSetComplete(setData);
+    
+    // Check for PRs after set completion
+    if (workoutExerciseId && exercise && setData.weight && setData.reps) {
+      await checkForPRs(
+        {
+          workout_exercise_id: workoutExerciseId,
+          weight: setData.weight,
+          reps: setData.reps,
+          weight_unit: unit
+        },
+        exercise,
+        workoutId
+      );
+    }
     
     // Auto-start rest timer based on RPE/effort
     const suggestedRest = calculateRestTime(setData.rpe);
