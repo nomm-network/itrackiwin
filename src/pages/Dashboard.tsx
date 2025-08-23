@@ -20,8 +20,8 @@ const Dashboard: React.FC = () => {
   // Use real database data instead of static config
   const { data: categories, isLoading } = useLifeCategoriesWithSubcategories('en');
   
-  const currentCategory = searchParams.get('cat') || 'health';
-  const currentSubcategory = searchParams.get('sub') || 'fitness';
+  const currentCategory = searchParams.get('cat') || 'b54c368d-cd4f-4276-aa82-668da614e50d'; // health category ID
+  const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247'; // fitness subcategory ID
   
   const category = getCategoryBySlug(categories || [], currentCategory);
   const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);

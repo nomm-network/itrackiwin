@@ -44,7 +44,7 @@ export function useLifeCategories(language: string = 'en') {
         slug: category.slug || category.id,
         name: category.translations?.[language]?.name || category.translations?.en?.name || 'Unnamed Category',
         description: category.translations?.[language]?.description || category.translations?.en?.description || '',
-        icon: category.icon || '📊',
+        icon: category.icon || getDefaultCategoryIcon(category.slug),
         color: category.color || 'hsl(200 100% 50%)',
         display_order: category.display_order,
         translations: category.translations
@@ -94,7 +94,7 @@ export function useLifeCategoriesWithSubcategories(language: string = 'en') {
         subcategories: categorySubcategories.map(sub => ({
           id: sub.slug || sub.id,
           name: sub.name,
-          icon: '📋' // Default icon for subcategories
+          icon: getDefaultSubcategoryIcon(sub.name, category.slug)
         }))
       };
     });
@@ -105,6 +105,30 @@ export function useLifeCategoriesWithSubcategories(language: string = 'en') {
     isLoading: categoriesLoading || subcategoriesLoading
   };
 }
+
+// Helper function to get default category icons
+const getDefaultCategoryIcon = (slug: string | null) => {
+  switch (slug) {
+    case 'health': return '🏥';
+    case 'wealth': return '💰';
+    case 'relationships': return '❤️';
+    case 'mind': return '🧠';
+    case 'purpose': return '🎯';
+    case 'lifestyle': return '🌟';
+    default: return '📊';
+  }
+};
+
+// Helper function to get default subcategory icons
+const getDefaultSubcategoryIcon = (name: string, categorySlug: string | null) => {
+  if (categorySlug === 'health') {
+    if (name.toLowerCase().includes('fitness')) return '💪';
+    if (name.toLowerCase().includes('nutrition')) return '🥗';
+    if (name.toLowerCase().includes('sleep')) return '😴';
+    if (name.toLowerCase().includes('mental')) return '🧘';
+  }
+  return '📋';
+};
 
 // Helper functions for compatibility with existing code
 export const getCategoryBySlug = (categories: LifeCategory[], slug: string) => 

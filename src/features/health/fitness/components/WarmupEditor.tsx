@@ -21,6 +21,7 @@ interface WarmupEditorProps {
   exerciseId: string;
   exerciseName: string;
   children?: React.ReactNode;
+  onClose?: () => void;
 }
 
 interface WarmupData {
@@ -32,7 +33,7 @@ interface WarmupData {
   updated_at?: string;
 }
 
-export function WarmupEditor({ exerciseId, exerciseName, children }: WarmupEditorProps) {
+export function WarmupEditor({ exerciseId, exerciseName, children, onClose }: WarmupEditorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [warmupText, setWarmupText] = useState('');
   const [hasChanges, setHasChanges] = useState(false);
@@ -125,11 +126,16 @@ export function WarmupEditor({ exerciseId, exerciseName, children }: WarmupEdito
     setHasChanges(value !== (existingWarmup?.plan_text || ''));
   };
 
+  const handleClose = () => {
+    setIsOpen(false);
+    onClose?.();
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={setIsOpen}>
+    <Sheet open={isOpen} onOpenChange={handleClose}>
       <SheetTrigger asChild>
         {children || (
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={() => setIsOpen(true)}>
             <Settings className="h-4 w-4 mr-2" />
             Edit Warmup
           </Button>
@@ -188,6 +194,10 @@ export function WarmupEditor({ exerciseId, exerciseName, children }: WarmupEdito
           >
             <Save className="h-4 w-4 mr-2" />
             {saveWarmupMutation.isPending ? 'Saving...' : 'Save Warmup'}
+          </Button>
+          
+          <Button variant="outline" onClick={handleClose}>
+            Close
           </Button>
         </SheetFooter>
       </SheetContent>

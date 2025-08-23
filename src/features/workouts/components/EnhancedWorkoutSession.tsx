@@ -190,24 +190,62 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
       {/* Current Exercise */}
       {currentExercise && (
-        <ExerciseCard
-          exercise={currentExercise}
-          completedSets={currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}
-          targetSets={currentExercise.sets?.length || 3}
-          isActive={true}
-          currentSetId={currentExercise.id}
-          selectedGripIds={currentExercise.default_grip_ids || []}
-          onSelect={() => {}}
-          onAddSet={() => {
-            // This would trigger a set logging interface
-            handleSetComplete(currentExercise.id, { weight: 0, reps: 0, rpe: 5 });
-          }}
-          onNextExercise={() => handleExerciseComplete(currentExercise.id)}
-          onGripChange={(gripIds) => {
-            // Handle grip change
-            console.log('Grip changed:', gripIds);
-          }}
-        />
+        <div className="space-y-4">
+          {/* Exercise Info Card */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">
+                  {currentExercise.exercise?.name || currentExercise.name || 'Exercise'}
+                </h3>
+                <Badge variant="outline">
+                  {currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}/
+                  {currentExercise.sets?.length || 3} sets
+                </Badge>
+              </div>
+              
+              {/* Sets Display */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+                {(currentExercise.sets || []).map((set: any, index: number) => (
+                  <div 
+                    key={set.id || index}
+                    className={`p-3 rounded border ${
+                      set.is_completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Set {set.set_index || index + 1}</span>
+                      {set.is_completed && <CheckCircle className="h-4 w-4 text-green-600" />}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {set.weight ? `${set.weight}kg × ${set.reps} reps` : 'Not completed'}
+                      {set.rpe && ` • RPE ${set.rpe}`}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          <ExerciseCard
+            exercise={currentExercise}
+            completedSets={currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}
+            targetSets={currentExercise.sets?.length || 3}
+            isActive={true}
+            currentSetId={currentExercise.id}
+            selectedGripIds={currentExercise.default_grip_ids || []}
+            onSelect={() => {}}
+            onAddSet={() => {
+              // This would trigger a set logging interface
+              handleSetComplete(currentExercise.id, { weight: 0, reps: 0, rpe: 5 });
+            }}
+            onNextExercise={() => handleExerciseComplete(currentExercise.id)}
+            onGripChange={(gripIds) => {
+              // Handle grip change
+              console.log('Grip changed:', gripIds);
+            }}
+          />
+        </div>
       )}
 
       {/* Workout Actions */}
@@ -223,7 +261,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         
         <Button
           onClick={handleWorkoutComplete}
-          disabled={completedExercises.size < totalExercises}
+          disabled={false} // Allow completion at any time
           className="flex-1 bg-green-600 hover:bg-green-700"
         >
           <CheckCircle className="h-4 w-4 mr-2" />
@@ -234,13 +272,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       {/* Warmup Editor */}
       {showWarmupEditor && currentExercise && (
         <WarmupEditor
-          exerciseId={currentExercise.exercise_id}
-          exerciseName={currentExercise.name || 'Exercise'}
-        >
-          <Button variant="outline" onClick={() => setShowWarmupEditor(false)}>
-            Close
-          </Button>
-        </WarmupEditor>
+          exerciseId={currentExercise.exercise_id || currentExercise.id}
+          exerciseName={currentExercise.exercise?.name || currentExercise.name || 'Exercise'}
+          onClose={() => setShowWarmupEditor(false)}
+        />
       )}
 
       {/* Recalibration Panel */}
