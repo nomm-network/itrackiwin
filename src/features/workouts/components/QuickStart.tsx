@@ -8,9 +8,9 @@ export default function QuickStart() {
   const navigate = useNavigate();
 
   const handleStartWorkout = () => {
-    startWorkout(undefined, {
-      onSuccess: (workout) => {
-        navigate(`/workouts/${workout.id}`);
+    startWorkout({}, {
+      onSuccess: (result) => {
+        navigate(`/app/workouts/${result.workoutId}`);
       }
     });
   };
