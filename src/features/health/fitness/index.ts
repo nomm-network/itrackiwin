@@ -42,8 +42,7 @@ export * from './services/templateGenerator.service';
 export * from './services/exerciseSubstitution.service';
 
 // Recalibration engine
-export { RecalibrationEngine } from './services/recalibrationEngine.service';
-export { useRecalibration, useRecalibrationHistory } from './hooks/useRecalibration.hook';
+export * from './hooks/useRecalibration.hook';
 
 // Warmup policy engine
 export { WarmupPolicyEngine } from './services/warmupPolicyEngine.service';

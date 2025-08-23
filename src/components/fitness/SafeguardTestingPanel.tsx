@@ -16,7 +16,7 @@ export const SafeguardTestingPanel: React.FC = () => {
   }>>([]);
 
   const { generateWorkout, isGenerating } = useQuickStart();
-  const recalibration = useRecalibration();
+  const recalibration = useRecalibration('test-exercise-id');
 
   const addTestResult = (test: string, result: 'success' | 'blocked' | 'error', message: string) => {
     setTestResults(prev => [{
@@ -95,10 +95,8 @@ export const SafeguardTestingPanel: React.FC = () => {
       
       for (let i = 0; i < 6; i++) {
         try {
-          await recalibration.mutateAsync({ 
-            userId: user.id, 
-            dryRun: true 
-          });
+          // Recalibration is now a query, not a mutation
+          await recalibration.refetch();
           successCount++;
         } catch (error: any) {
           if (error.message.includes('Rate limit exceeded')) {

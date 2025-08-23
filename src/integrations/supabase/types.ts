@@ -5749,6 +5749,10 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_workout_recalibration: {
+        Args: { p_exercise_ids: string[]; p_user_id: string }
+        Returns: Json
+      }
       gettransactionid: {
         Args: Record<PropertyKey, never>
         Returns: unknown
@@ -5904,6 +5908,14 @@ export type Database = {
       pgis_geometry_union_parallel_serialfn: {
         Args: { "": unknown }
         Returns: string
+      }
+      plan_next_prescription: {
+        Args: {
+          p_exercise_id: string
+          p_lookback_sessions?: number
+          p_user_id: string
+        }
+        Returns: Json
       }
       point: {
         Args: { "": unknown }

@@ -1,76 +1,169 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
-export interface RecalibrationRequest {
-  userId?: string;
-  dryRun?: boolean;
-  batchMode?: boolean;
+export interface RecalibrationPrescription {
+  exercise_id: string;
+  warmup_text: string;
+  top_set: {
+    weight: number;
+    reps: number;
+    weight_unit: string;
+    set_kind: string;
+  };
+  backoff: {
+    weight: number;
+    reps: number;
+    sets: number;
+    weight_unit: string;
+    set_kind: string;
+  };
+  progression_factor: number;
+  muscle_priority: number;
+  consistency_score: number;
+  analysis: {
+    recent_feels: string[];
+    recent_rpes: number[];
+    last_top_weight: number;
+    warmup_feedback: string;
+    avg_rpe: number;
+  };
+  notes: string[];
+  generated_at: string;
 }
 
-export interface RecalibrationResult {
-  templateId: string;
-  exerciseId: string;
-  action: 'increase_load' | 'increase_reps' | 'deload' | 'rebalance_volume' | 'no_change';
-  oldValue: number;
-  newValue: number;
-  reason: string;
-  confidence: number;
-}
+export const useRecalibration = (exerciseId: string) => {
+  return useQuery({
+    queryKey: ['recalibration', exerciseId],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-export interface RecalibrationSummary {
-  userId: string;
-  results: RecalibrationResult[];
-  muscleVolumeChanges: Record<string, { old: number; new: number; reason: string }>;
-  totalChanges: number;
-  dryRun: boolean;
-  timestamp: string;
-}
+      const { data, error } = await supabase
+        .rpc('plan_next_prescription', {
+          p_user_id: user.id,
+          p_exercise_id: exerciseId,
+          p_lookback_sessions: 3
+        });
 
-export const useRecalibration = () => {
+      if (error) throw error;
+      return data as unknown as RecalibrationPrescription;
+    },
+    enabled: !!exerciseId,
+    staleTime: 300000, // 5 minutes
+  });
+};
+
+export const useWorkoutRecalibration = (exerciseIds: string[]) => {
+  return useQuery({
+    queryKey: ['workout-recalibration', exerciseIds],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .rpc('get_workout_recalibration', {
+          p_user_id: user.id,
+          p_exercise_ids: exerciseIds
+        });
+
+      if (error) throw error;
+      return data as unknown as {
+        user_id: string;
+        recommendations: RecalibrationPrescription[];
+        generated_at: string;
+      };
+    },
+    enabled: exerciseIds.length > 0,
+    staleTime: 300000,
+  });
+};
+
+export const useSaveWarmupFeedback = () => {
+  const queryClient = useQueryClient();
+
   return useMutation({
-    mutationFn: async (request: RecalibrationRequest): Promise<RecalibrationSummary> => {
-      // Generate idempotency key to prevent duplicate recalibrations
-      const idempotencyKey = `recalibrate-${request.userId || 'unknown'}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+    mutationFn: async ({ 
+      exerciseId, 
+      quality 
+    }: { 
+      exerciseId: string; 
+      quality: 'not_enough' | 'excellent' | 'too_much';
+    }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase.functions.invoke('recalibrate-user-plans', {
-        body: {
-          ...request,
-          idempotencyKey
-        }
-      });
+      // Update the workout_exercises table with warmup quality
+      const { data, error } = await supabase
+        .from('workout_exercises')
+        .update({ warmup_quality: quality })
+        .eq('exercise_id', exerciseId)
+        .eq('id', (
+          await supabase
+            .from('workout_exercises')
+            .select('id')
+            .eq('exercise_id', exerciseId)
+            .order('id', { ascending: false })
+            .limit(1)
+            .single()
+        ).data?.id);
 
-      if (error) {
-        console.error('Recalibration error:', error);
-        throw new Error(error.message || 'Failed to run recalibration');
-      }
-
+      if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      const { totalChanges, dryRun } = data;
-      if (dryRun) {
-        toast.success(`Dry run complete: ${totalChanges} potential adjustments identified`);
-      } else {
-        toast.success(`Recalibration complete: ${totalChanges} adjustments applied`);
-      }
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recalibration'] });
+      toast({
+        title: "Warmup Feedback Saved",
+        description: "Your feedback will improve future warmup recommendations.",
+      });
     },
     onError: (error) => {
-      console.error('Recalibration failed:', error);
-      toast.error(`Recalibration failed: ${error.message}`);
+      console.error('Error saving warmup feedback:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save warmup feedback. Please try again.",
+        variant: "destructive",
+      });
     }
   });
 };
 
-export const useRecalibrationHistory = (userId: string) => {
-  return useQuery({
-    queryKey: ['recalibration-history', userId],
-    queryFn: async () => {
-      // This would fetch historical recalibration data
-      // For now, return empty array as we don't have a history table
-      return [];
+export const useSaveSetFeel = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ 
+      setId, 
+      feel 
+    }: { 
+      setId: string; 
+      feel: '++' | '+' | '=' | '-' | '--';
+    }) => {
+      const { data, error } = await supabase
+        .from('workout_sets')
+        .update({ 
+          settings: { feel } 
+        })
+        .eq('id', setId);
+
+      if (error) throw error;
+      return data;
     },
-    enabled: !!userId,
-    staleTime: 5 * 60 * 1000 // 5 minutes
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['recalibration'] });
+      toast({
+        title: "Set Feel Saved",
+        description: "Your feedback will improve future recommendations.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error saving set feel:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save set feedback. Please try again.",
+        variant: "destructive",
+      });
+    }
   });
 };
