@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash } from "lucide-react";
+import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -10,6 +10,8 @@ import { GymDetectionDialog } from "@/features/health/fitness/components/GymDete
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
+import { useNextProgramBlock } from "@/hooks/useTrainingPrograms";
+import { useStartQuickWorkout } from "@/features/workouts/hooks/useStartQuickWorkout";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
@@ -23,6 +25,8 @@ const MobileFitness: React.FC = () => {
   const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
   const { data: defaultGym } = useDefaultGym();
   const { gym: selectedGym } = useMyGym();
+  const { data: nextBlock } = useNextProgramBlock();
+  const startQuickWorkout = useStartQuickWorkout();
   const [quickWeight, setQuickWeight] = useState<number | null>(null);
   const [quickReps, setQuickReps] = useState<number | null>(null);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
@@ -38,36 +42,50 @@ const MobileFitness: React.FC = () => {
     { date: '1/24', value: 55 },
   ];
 
-  const handleQuickStart = () => {
+  const handleQuickStart = async () => {
     if (!defaultGym) {
       setShowGymDetection(true);
-    } else {
+      return;
+    }
+
+    try {
+      if (nextBlock) {
+        // Start from program
+        const result = await startQuickWorkout.mutateAsync({ useProgram: true });
+        navigate(`/app/workouts/${result.workoutId}`);
+      } else {
+        // Show template selection or start free workout
+        const result = await startQuickWorkout.mutateAsync({});
+        navigate(`/app/workouts/${result.workoutId}`);
+      }
+    } catch (error) {
+      console.error('Failed to start workout:', error);
       navigate("/fitness/session/new");
     }
   };
 
   const handleGymSelected = () => {
-    navigate("/fitness/session/new");
+    handleQuickStart();
   };
 
   const quickActions = [
     {
-      label: t('quickStart'),
+      label: nextBlock ? 'Start Program' : t('quickStart'),
       icon: Play,
       onClick: handleQuickStart,
-      color: "bg-green-500 hover:bg-green-600 text-white"
+      color: nextBlock ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-500 hover:bg-green-600 text-white"
+    },
+    {
+      label: 'Programs',
+      icon: Repeat,
+      href: "/app/programs",
+      color: "bg-indigo-500 hover:bg-indigo-600 text-white"
     },
     {
       label: t('templates'),
       icon: Dumbbell,
       href: "/fitness/templates",
       color: "bg-blue-500 hover:bg-blue-600 text-white"
-    },
-    {
-      label: t('exercises'),
-      icon: BarChart3,
-      href: "/fitness/exercises",
-      color: "bg-purple-500 hover:bg-purple-600 text-white"
     },
     {
       label: t('history'),

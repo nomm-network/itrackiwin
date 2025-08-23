@@ -39,6 +39,11 @@ const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const Orbits = lazy(() => import('@/pages/Orbits'));
 
+// Fitness & Programs
+const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
+const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
+const LazyWorkoutPage = lazy(() => import('@/app/workouts/[workoutId]/page'));
+
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -139,6 +144,25 @@ export function AppRoutes() {
             <Navigate to={Paths.dashboard} replace />
           } />
           
+          {/* Training Programs */}
+          <Route path="/app/programs" element={
+            <ProtectedMobileLayout>
+              <LazyProgramsPage />
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Workout Sessions */}
+          <Route path="/app/workouts/start-quick" element={
+            <ProtectedMobileLayout>
+              <LazyStartQuickWorkout />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/app/workouts/:workoutId" element={
+            <ProtectedMobileLayout>
+              <LazyWorkoutPage />
+            </ProtectedMobileLayout>
+          } />
+
           {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
             <ProtectedMobileLayout>

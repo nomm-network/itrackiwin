@@ -8,6 +8,7 @@ import { Search, Play, Target, Clock } from 'lucide-react';
 import { useTemplates, useCloneTemplateToWorkout, useStartWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
 
 
 interface TemplateSelectionDialogProps {
@@ -32,6 +33,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
   const { data: templates = [], isLoading } = useTemplates();
   const startFromTemplate = useCloneTemplateToWorkout();
   const startFreeWorkout = useStartWorkout();
+  const startQuickWorkout = useStartQuickWorkout();
 
   // Filter and limit templates based on search query
   const filteredTemplates = useMemo(() => {
@@ -55,9 +57,9 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     
     try {
       console.log('Starting workout from template:', templateId);
-      const workoutId = await startFromTemplate.mutateAsync(templateId);
-      console.log('Created workout ID:', workoutId);
-      navigate(`/fitness/session/${workoutId}`);
+      const result = await startQuickWorkout.mutateAsync({ templateId });
+      console.log('Created workout ID:', result.workoutId);
+      navigate(`/app/workouts/${result.workoutId}`);
       onOpenChange(false);
       toast.success('Workout started!');
     } catch (error) {
@@ -72,8 +74,8 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     setIsStarting(true);
     
     try {
-      const workoutId = await startFreeWorkout.mutateAsync(null);
-      navigate(`/fitness/session/${workoutId}`);
+      const result = await startQuickWorkout.mutateAsync({});
+      navigate(`/app/workouts/${result.workoutId}`);
       onOpenChange(false);
       toast.success('Workout started!');
     } catch (error) {
