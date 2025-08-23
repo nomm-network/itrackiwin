@@ -10,6 +10,7 @@ const AdminMenu: React.FC = () => {
     { label: t('navigation.translations'), href: '/admin/translations' },
     { label: 'Exercise Management', href: '/admin/exercises' },
     { label: 'Muscles', href: '/admin/muscles' },
+    { label: 'Coach Logs', href: '/admin/coach-logs' },
     { 
       label: 'Others', 
       href: '/admin/others',

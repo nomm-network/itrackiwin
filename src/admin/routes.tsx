@@ -12,6 +12,7 @@ const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
 const AdminCategoryPage = lazy(() => import("./pages/AdminCategoryPage"));
 const AdminSubcategoryPage = lazy(() => import("./pages/AdminSubcategoryPage"));
+const AdminCoachLogs = lazy(() => import("./pages/AdminCoachLogs"));
 
 export function AdminRoutes() {
   return (
@@ -27,6 +28,7 @@ export function AdminRoutes() {
               <Route path="others/grips" element={<AdminGripsManagement />} />
               <Route path="others/gyms" element={<AdminGymsManagement />} />
               <Route path="translations/*" element={<AdminTranslations />} />
+              <Route path="coach-logs" element={<AdminCoachLogs />} />
               <Route path="category/:categoryId" element={<AdminCategoryPage />} />
               <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
             </Routes>

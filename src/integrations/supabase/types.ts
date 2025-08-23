@@ -336,6 +336,51 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_logs: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          execution_time_ms: number | null
+          function_name: string
+          id: string
+          inputs: Json
+          metadata: Json | null
+          outputs: Json
+          session_id: string | null
+          step: string
+          success: boolean
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          function_name: string
+          id?: string
+          inputs?: Json
+          metadata?: Json | null
+          outputs?: Json
+          session_id?: string | null
+          step: string
+          success?: boolean
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          execution_time_ms?: number | null
+          function_name?: string
+          id?: string
+          inputs?: Json
+          metadata?: Json | null
+          outputs?: Json
+          session_id?: string | null
+          step?: string
+          success?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
@@ -5386,6 +5431,21 @@ export type Database = {
       log_admin_action: {
         Args: { action_type: string; details?: Json; target_user_id?: string }
         Returns: undefined
+      }
+      log_coach_decision: {
+        Args: {
+          p_error_message?: string
+          p_execution_time_ms?: number
+          p_function_name: string
+          p_inputs?: Json
+          p_metadata?: Json
+          p_outputs?: Json
+          p_session_id?: string
+          p_step: string
+          p_success?: boolean
+          p_user_id: string
+        }
+        Returns: string
       }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
