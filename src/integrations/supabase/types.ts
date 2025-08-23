@@ -381,6 +381,48 @@ export type Database = {
         }
         Relationships: []
       }
+      data_quality_reports: {
+        Row: {
+          created_at: string
+          equipment_constraints_coverage_pct: number
+          exercises_with_equipment_constraints: number
+          exercises_with_movement_pattern: number
+          exercises_with_primary_muscle: number
+          id: string
+          issues_found: Json
+          movement_pattern_coverage_pct: number
+          primary_muscle_coverage_pct: number
+          report_type: string
+          total_exercises: number
+        }
+        Insert: {
+          created_at?: string
+          equipment_constraints_coverage_pct?: number
+          exercises_with_equipment_constraints?: number
+          exercises_with_movement_pattern?: number
+          exercises_with_primary_muscle?: number
+          id?: string
+          issues_found?: Json
+          movement_pattern_coverage_pct?: number
+          primary_muscle_coverage_pct?: number
+          report_type?: string
+          total_exercises?: number
+        }
+        Update: {
+          created_at?: string
+          equipment_constraints_coverage_pct?: number
+          exercises_with_equipment_constraints?: number
+          exercises_with_movement_pattern?: number
+          exercises_with_primary_muscle?: number
+          id?: string
+          issues_found?: Json
+          movement_pattern_coverage_pct?: number
+          primary_muscle_coverage_pct?: number
+          report_type?: string
+          total_exercises?: number
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           created_at: string
@@ -5721,6 +5763,10 @@ export type Database = {
       refresh_materialized_views_secure: {
         Args: Record<PropertyKey, never>
         Returns: undefined
+      }
+      run_data_quality_check: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       set_limit: {
         Args: { "": number }
