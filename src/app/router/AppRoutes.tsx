@@ -31,7 +31,6 @@ const SafeguardTesting = lazy(() => import('@/pages/SafeguardTesting'));
 const SessionRunnerDemo = lazy(() => import('@/pages/SessionRunnerDemo'));
 const PRAnnouncementDemo = lazy(() => import('@/pages/PRAnnouncementDemo'));
 const DataQualityReport = lazy(() => import('@/pages/DataQualityReport'));
-const PRAnnouncementDemo = lazy(() => import('@/pages/PRAnnouncementDemo'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Achievements = lazy(() => import('@/pages/Achievements'));
