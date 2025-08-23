@@ -25,7 +25,7 @@ const FitnessQuickStart: React.FC = () => {
     if (!checkAndRedirect('start a workout')) return;
     
     if (activeWorkout) {
-      navigate(`/fitness/session/${activeWorkout.id}`);
+      navigate(`/app/workouts/${activeWorkout.id}`);
       return;
     }
 
