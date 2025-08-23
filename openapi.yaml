@@ -1,0 +1,811 @@
+openapi: 3.0.3
+info:
+  title: Fitness Application API
+  description: |
+    Comprehensive fitness application API providing endpoints for:
+    - Fitness profile management
+    - Workout template generation and management
+    - Exercise alternatives suggestion
+    - Equipment capabilities analysis
+    - Admin recalibration triggers
+    
+    All endpoints require authentication via Bearer token in the Authorization header.
+  version: 1.0.0
+  contact:
+    name: Fitness API Support
+    email: support@fitness-app.com
+
+servers:
+  - url: https://fsayiuhncisevhipbrak.supabase.co/functions/v1
+    description: Production server
+
+security:
+  - bearerAuth: []
+
+paths:
+  /fitness-profile:
+    get:
+      summary: Get user fitness profile
+      description: Retrieves the authenticated user's fitness profile including experience level, goals, and muscle group priorities
+      tags:
+        - Fitness Profile
+      responses:
+        '200':
+          description: Fitness profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        oneOf:
+                          - $ref: '#/components/schemas/FitnessProfile'
+                          - type: 'null'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    put:
+      summary: Update user fitness profile
+      description: Updates the authenticated user's fitness profile
+      tags:
+        - Fitness Profile
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateFitnessProfile'
+      responses:
+        '200':
+          description: Fitness profile updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/FitnessProfile'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workout-templates:
+    get:
+      summary: List workout templates
+      description: Retrieves paginated list of user's workout templates
+      tags:
+        - Workout Templates
+      parameters:
+        - name: page
+          in: query
+          description: Page number (1-based)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 50
+            default: 10
+      responses:
+        '200':
+          description: Templates retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWorkoutTemplates'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+    post:
+      summary: Create or generate workout template
+      description: Creates a custom workout template or generates one using AI
+      tags:
+        - Workout Templates
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - allOf:
+                    - $ref: '#/components/schemas/CreateWorkoutTemplate'
+                    - type: object
+                      properties:
+                        generate:
+                          type: boolean
+                          const: false
+                - allOf:
+                    - $ref: '#/components/schemas/GenerateTemplateRequest'
+                    - type: object
+                      properties:
+                        generate:
+                          type: boolean
+                          const: true
+      responses:
+        '201':
+          description: Template created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WorkoutTemplate'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /workout-templates/{templateId}:
+    get:
+      summary: Get specific workout template
+      description: Retrieves a specific workout template by ID
+      tags:
+        - Workout Templates
+      parameters:
+        - name: templateId
+          in: path
+          required: true
+          description: UUID of the workout template
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Template retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        $ref: '#/components/schemas/WorkoutTemplate'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /exercise-alternatives:
+    post:
+      summary: Suggest exercise alternatives
+      description: Suggests alternative exercises based on various criteria
+      tags:
+        - Exercise Alternatives
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/SuggestAlternativesRequest'
+      responses:
+        '200':
+          description: Alternatives suggested successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ExerciseAlternative'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /equipment-capabilities:
+    get:
+      summary: Get equipment capabilities
+      description: Retrieves equipment capabilities, either for specific equipment or paginated list
+      tags:
+        - Equipment Capabilities
+      parameters:
+        - name: equipment_id
+          in: query
+          description: UUID of specific equipment (optional)
+          schema:
+            type: string
+            format: uuid
+        - name: page
+          in: query
+          description: Page number (1-based, only when equipment_id not specified)
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - name: limit
+          in: query
+          description: Number of items per page (only when equipment_id not specified)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 20
+      responses:
+        '200':
+          description: Equipment capabilities retrieved successfully
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - allOf:
+                      - $ref: '#/components/schemas/ApiResponse'
+                      - type: object
+                        properties:
+                          data:
+                            $ref: '#/components/schemas/EquipmentCapability'
+                  - $ref: '#/components/schemas/PaginatedEquipmentCapabilities'
+        '404':
+          $ref: '#/components/responses/NotFoundError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+  /recalibrate-trigger:
+    post:
+      summary: Trigger user plan recalibration (Admin only)
+      description: Triggers recalibration of user workout plans. Requires admin privileges.
+      tags:
+        - Admin
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RecalibrationTrigger'
+      responses:
+        '200':
+          description: Recalibration triggered successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          message:
+                            type: string
+                          result:
+                            type: object
+                          triggered_at:
+                            type: string
+                            format: date-time
+                          triggered_by:
+                            type: string
+                            format: uuid
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '401':
+          $ref: '#/components/responses/UnauthorizedError'
+        '403':
+          $ref: '#/components/responses/ForbiddenError'
+        '500':
+          $ref: '#/components/responses/InternalError'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: Supabase authentication token
+
+  schemas:
+    ApiResponse:
+      type: object
+      required:
+        - success
+        - timestamp
+      properties:
+        success:
+          type: boolean
+        timestamp:
+          type: string
+          format: date-time
+        error:
+          type: string
+
+    PaginationInfo:
+      type: object
+      required:
+        - page
+        - limit
+        - total
+        - has_more
+      properties:
+        page:
+          type: integer
+          minimum: 1
+        limit:
+          type: integer
+          minimum: 1
+        total:
+          type: integer
+          minimum: 0
+        has_more:
+          type: boolean
+
+    ExperienceLevel:
+      type: string
+      enum:
+        - new
+        - returning
+        - intermediate
+        - advanced
+        - very_experienced
+
+    MuscleGroupPriority:
+      type: object
+      required:
+        - muscle_group_id
+        - priority
+      properties:
+        muscle_group_id:
+          type: string
+          format: uuid
+        priority:
+          type: integer
+          minimum: 1
+          maximum: 5
+
+    FitnessProfile:
+      type: object
+      required:
+        - user_id
+        - experience_level
+        - sex
+        - goals
+        - muscle_group_priorities
+        - training_frequency
+        - session_duration_minutes
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevel'
+        sex:
+          type: string
+          enum: [male, female, other]
+        age:
+          type: number
+          minimum: 13
+          maximum: 120
+        weight:
+          type: number
+          minimum: 30
+          maximum: 300
+        height:
+          type: number
+          minimum: 100
+          maximum: 250
+        goals:
+          type: array
+          items:
+            type: string
+        muscle_group_priorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MuscleGroupPriority'
+        training_frequency:
+          type: integer
+          minimum: 1
+          maximum: 7
+        session_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 180
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    UpdateFitnessProfile:
+      type: object
+      properties:
+        experience_level:
+          $ref: '#/components/schemas/ExperienceLevel'
+        sex:
+          type: string
+          enum: [male, female, other]
+        age:
+          type: number
+          minimum: 13
+          maximum: 120
+        weight:
+          type: number
+          minimum: 30
+          maximum: 300
+        height:
+          type: number
+          minimum: 100
+          maximum: 250
+        goals:
+          type: array
+          items:
+            type: string
+        muscle_group_priorities:
+          type: array
+          items:
+            $ref: '#/components/schemas/MuscleGroupPriority'
+        training_frequency:
+          type: integer
+          minimum: 1
+          maximum: 7
+        session_duration_minutes:
+          type: integer
+          minimum: 15
+          maximum: 180
+
+    TemplateExercise:
+      type: object
+      required:
+        - exercise_id
+        - order_index
+        - default_sets
+        - target_reps
+      properties:
+        exercise_id:
+          type: string
+          format: uuid
+        order_index:
+          type: integer
+          minimum: 0
+        default_sets:
+          type: integer
+          minimum: 1
+          maximum: 10
+        target_reps:
+          type: integer
+          minimum: 1
+          maximum: 100
+        target_weight:
+          type: number
+          minimum: 0
+        rest_seconds:
+          type: integer
+          minimum: 30
+          maximum: 600
+
+    WorkoutTemplate:
+      type: object
+      required:
+        - user_id
+        - name
+        - exercises
+      properties:
+        id:
+          type: string
+          format: uuid
+        user_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        exercises:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateExercise'
+        estimated_duration:
+          type: integer
+          minimum: 15
+          maximum: 180
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+
+    CreateWorkoutTemplate:
+      type: object
+      required:
+        - name
+        - exercises
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 100
+        description:
+          type: string
+          maxLength: 500
+        exercises:
+          type: array
+          items:
+            $ref: '#/components/schemas/TemplateExercise'
+        estimated_duration:
+          type: integer
+          minimum: 15
+          maximum: 180
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+
+    GenerateTemplateRequest:
+      type: object
+      required:
+        - user_id
+      properties:
+        user_id:
+          type: string
+          format: uuid
+        target_muscle_groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+        session_duration:
+          type: integer
+          minimum: 15
+          maximum: 180
+        equipment_ids:
+          type: array
+          items:
+            type: string
+            format: uuid
+        difficulty_preference:
+          type: string
+          enum: [auto, beginner, intermediate, advanced]
+          default: auto
+
+    ExerciseAlternative:
+      type: object
+      required:
+        - exercise_id
+        - name
+        - reason
+        - similarity_score
+        - equipment_required
+      properties:
+        exercise_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        reason:
+          type: string
+        similarity_score:
+          type: number
+          minimum: 0
+          maximum: 1
+        equipment_required:
+          type: array
+          items:
+            type: string
+
+    SuggestAlternativesRequest:
+      type: object
+      required:
+        - exercise_id
+      properties:
+        exercise_id:
+          type: string
+          format: uuid
+        reason:
+          type: string
+          enum: [equipment_unavailable, injury_concern, preference, progression]
+        available_equipment:
+          type: array
+          items:
+            type: string
+            format: uuid
+        limit:
+          type: integer
+          minimum: 1
+          maximum: 10
+          default: 5
+
+    EquipmentCapability:
+      type: object
+      required:
+        - equipment_id
+        - name
+        - supported_exercises
+        - muscle_groups
+        - difficulty_level
+        - space_requirement
+        - setup_time_minutes
+      properties:
+        equipment_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        supported_exercises:
+          type: array
+          items:
+            type: string
+            format: uuid
+        muscle_groups:
+          type: array
+          items:
+            type: string
+            format: uuid
+        difficulty_level:
+          type: string
+          enum: [beginner, intermediate, advanced]
+        space_requirement:
+          type: string
+          enum: [minimal, moderate, large]
+        setup_time_minutes:
+          type: integer
+          minimum: 0
+          maximum: 30
+
+    RecalibrationTrigger:
+      type: object
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          description: Specific user to recalibrate (optional, all users if not specified)
+        force_recalibration:
+          type: boolean
+          default: false
+        target_exercises:
+          type: array
+          items:
+            type: string
+            format: uuid
+        recalibration_type:
+          type: string
+          enum: [performance, preference, equipment, all]
+          default: all
+
+    PaginatedWorkoutTemplates:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/WorkoutTemplate'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+    PaginatedEquipmentCapabilities:
+      type: object
+      required:
+        - data
+        - pagination
+      properties:
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/EquipmentCapability'
+        pagination:
+          $ref: '#/components/schemas/PaginationInfo'
+
+  responses:
+    UnauthorizedError:
+      description: Authentication required
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    const: false
+                  error:
+                    type: string
+                    example: "Authorization header required"
+
+    ForbiddenError:
+      description: Admin access required
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    const: false
+                  error:
+                    type: string
+                    example: "Admin access required"
+
+    ValidationError:
+      description: Request validation failed
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    const: false
+                  error:
+                    type: string
+                    example: "Validation error"
+
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    const: false
+                  error:
+                    type: string
+                    example: "Resource not found"
+
+    InternalError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            allOf:
+              - $ref: '#/components/schemas/ApiResponse'
+              - type: object
+                properties:
+                  success:
+                    const: false
+                  error:
+                    type: string
+                    example: "Internal server error"
+
+tags:
+  - name: Fitness Profile
+    description: User fitness profile management
+  - name: Workout Templates
+    description: Workout template creation and management
+  - name: Exercise Alternatives
+    description: Exercise alternative suggestions
+  - name: Equipment Capabilities
+    description: Equipment capabilities and compatibility
+  - name: Admin
+    description: Administrative functions

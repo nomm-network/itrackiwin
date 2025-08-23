@@ -5,3 +5,4 @@ export * from './auth';
 export * from './i18n';
 export * from './routing';
 export * from './store';
+export * from './api';
