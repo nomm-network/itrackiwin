@@ -52,7 +52,7 @@ interface MicroWeight {
 interface FitnessProfile {
   primaryWeightGoal: 'lose' | 'maintain' | 'recomp' | 'gain' | '';
   trainingFocus: 'muscle' | 'strength' | 'general' | 'power' | '';
-  experience_level_id: string;
+  experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced" | "";
   bodyweight?: number;
   heightCm?: number;
   sex?: string;
@@ -78,7 +78,7 @@ export default function FitnessConfigure() {
   const [fitnessProfile, setFitnessProfile] = useState<FitnessProfile>({
     primaryWeightGoal: '',
     trainingFocus: '',
-    experience_level_id: '',
+    experience_level: '',
     injuries: [],
     daysPerWeek: 0,
     preferredSessionMinutes: 0
@@ -107,7 +107,7 @@ export default function FitnessConfigure() {
         setFitnessProfile({
           primaryWeightGoal: (data.goal as 'lose' | 'maintain' | 'recomp' | 'gain') || '',
           trainingFocus: (data.training_goal as 'muscle' | 'strength' | 'general' | 'power') || '',
-          experience_level_id: data.experience_level_id || '',
+          experience_level: (data.experience_level as "new" | "returning" | "intermediate" | "advanced" | "very_experienced") || '',
           bodyweight: data.bodyweight || 0,
           heightCm: data.height_cm || 0,
           sex: '',
@@ -418,7 +418,7 @@ export default function FitnessConfigure() {
 
   const handleSaveFitnessProfile = async () => {
     // Validate required fields
-    if (!fitnessProfile.primaryWeightGoal || !fitnessProfile.trainingFocus || !fitnessProfile.experience_level_id || 
+    if (!fitnessProfile.primaryWeightGoal || !fitnessProfile.trainingFocus || !fitnessProfile.experience_level || 
         !fitnessProfile.daysPerWeek || !fitnessProfile.preferredSessionMinutes ||
         !fitnessProfile.bodyweight || !fitnessProfile.heightCm) {
       toast({
@@ -441,8 +441,7 @@ export default function FitnessConfigure() {
           user_id: user.id,
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
-          experience_level_id: fitnessProfile.experience_level_id,
-          experience_level: 'intermediate', // Fallback for existing schema
+          experience_level: fitnessProfile.experience_level,
           days_per_week: fitnessProfile.daysPerWeek,
           preferred_session_minutes: fitnessProfile.preferredSessionMinutes,
           bodyweight: fitnessProfile.bodyweight,
@@ -614,10 +613,10 @@ export default function FitnessConfigure() {
                     ) : (
                       experienceLevels?.map(level => (
                         <Button
-                          key={level.id}
-                          variant={fitnessProfile.experience_level_id === level.id ? 'default' : 'outline'}
+                          key={level.slug}
+                          variant={fitnessProfile.experience_level === level.slug ? 'default' : 'outline'}
                           size="sm"
-                          onClick={() => setFitnessProfile(prev => ({ ...prev, experience_level_id: level.id }))}
+                          onClick={() => setFitnessProfile(prev => ({ ...prev, experience_level: level.slug as any }))}
                           className="h-auto py-2 text-xs"
                         >
                           {level.name}

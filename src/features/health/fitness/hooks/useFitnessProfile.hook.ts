@@ -7,8 +7,7 @@ export interface FitnessProfile {
   user_id: string;
   goal: string;
   training_goal: string;
-  experience_level: string;
-  experience_level_id?: string;
+  experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced";
   bodyweight?: number;
   height_cm?: number;
   height?: number;
@@ -42,7 +41,7 @@ export const useUpsertFitnessProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level: string }) => {
+    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced" }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -53,7 +52,12 @@ export const useUpsertFitnessProfile = () => {
           goal: profile.goal,
           training_goal: profile.training_goal,
           experience_level: profile.experience_level,
-          ...profile
+          bodyweight: profile.bodyweight,
+          height_cm: profile.height_cm,
+          height: profile.height,
+          injuries: profile.injuries,
+          days_per_week: profile.days_per_week,
+          preferred_session_minutes: profile.preferred_session_minutes
         })
         .select()
         .single();

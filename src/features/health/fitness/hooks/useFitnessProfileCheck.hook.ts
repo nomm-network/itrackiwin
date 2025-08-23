@@ -37,7 +37,7 @@ export const useFitnessProfileCheck = () => {
         !fitnessProfile.goal ||
         !fitnessProfile.days_per_week ||
         !fitnessProfile.preferred_session_minutes ||
-        !fitnessProfile.experience_level_id) {
+        !fitnessProfile.experience_level) {
       toast({
         title: "Fitness Profile Required",
         description: `Please complete your fitness profile to ${action}.`,
@@ -54,7 +54,7 @@ export const useFitnessProfileCheck = () => {
                    fitnessProfile.goal && 
                    fitnessProfile.days_per_week &&
                    fitnessProfile.preferred_session_minutes &&
-                   fitnessProfile.experience_level_id),
+                   fitnessProfile.experience_level),
     profile: fitnessProfile,
     checkAndRedirect
   };

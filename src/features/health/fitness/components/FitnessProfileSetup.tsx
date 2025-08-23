@@ -31,7 +31,7 @@ export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void })
       await upsertProfile.mutateAsync({
         goal: formData.goal,
         training_goal: formData.training_goal,
-        experience_level: formData.experience_level,
+        experience_level: formData.experience_level as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
         bodyweight: formData.bodyweight ? Number(formData.bodyweight) : undefined,
         height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
         days_per_week: formData.days_per_week ? Number(formData.days_per_week) : undefined,
