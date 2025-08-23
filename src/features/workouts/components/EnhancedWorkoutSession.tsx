@@ -192,8 +192,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       {currentExercise && (
         <ExerciseCard
           exercise={currentExercise}
-          completedSets={0} // This would come from actual data
-          targetSets={currentExercise.sets || 3}
+          completedSets={currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}
+          targetSets={currentExercise.sets?.length || 3}
           isActive={true}
           currentSetId={currentExercise.id}
           selectedGripIds={currentExercise.default_grip_ids || []}
