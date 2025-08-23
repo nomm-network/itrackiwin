@@ -5206,6 +5206,10 @@ export type Database = {
             }
         Returns: string
       }
+      advance_program_state: {
+        Args: { _completed_block_id: string; _user_id: string }
+        Returns: boolean
+      }
       audit_security_definer_functions: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -5664,6 +5668,19 @@ export type Database = {
           id: string
           name: string
           slug: string
+        }[]
+      }
+      get_next_program_block: {
+        Args: { _user_id: string }
+        Returns: {
+          cycles_completed: number
+          focus_tags: string[]
+          next_block_id: string
+          order_index: number
+          program_id: string
+          template_name: string
+          total_blocks: number
+          workout_template_id: string
         }[]
       }
       get_proj4_from_srid: {
