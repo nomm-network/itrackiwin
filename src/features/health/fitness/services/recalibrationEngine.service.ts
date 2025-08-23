@@ -1,5 +1,3 @@
-import { supabase } from '@/integrations/supabase/client';
-
 export interface PerformanceMetrics {
   exerciseId: string;
   templateId: string;
@@ -45,104 +43,123 @@ export class RecalibrationEngine {
     const results: RecalibrationResult[] = [];
     const muscleVolumeChanges: Record<string, { old: number; new: number; reason: string }> = {};
 
-    // Get user's active templates
-    const { data: templates, error: templatesError }: any = await supabase
-      .from('workout_templates')
-      .select('id, name')
-      .eq('user_id', userId)
-      .eq('is_active', true);
+    try {
+      // Import supabase client at runtime
+      const supabaseModule = await import('@/integrations/supabase/client');
+      const supabase = supabaseModule.supabase as any;
 
-    if (templatesError) {
-      throw new Error(`Failed to fetch templates: ${templatesError.message}`);
-    }
-
-    for (const template of templates || []) {
-      console.log(`Processing template: ${template.name} (${template.id})`);
+      // Get user's active templates
+      const templatesResult = await supabase
+        .from('workout_templates')
+        .select('id, name')
+        .eq('user_id', userId)
+        .eq('is_active', true);
       
-      // Get template exercises
-      const { data: templateExercises } = await supabase
-        .from('template_exercises')
-        .select('id, exercise_id, default_sets, target_reps, target_settings')
-        .eq('template_id', template.id) as any;
+      const templates = templatesResult.data || [];
+      
+      if (templatesResult.error) {
+        throw new Error(`Failed to fetch templates: ${templatesResult.error.message}`);
+      }
 
-      for (const templateExercise of templateExercises || []) {
-        if (templateExercise?.exercise_id) {
-          const metrics = await this.calculatePerformanceMetrics(
-            userId, 
-            templateExercise.exercise_id, 
-            template.id
-          );
+      for (const template of templates) {
+        console.log(`Processing template: ${template.name} (${template.id})`);
+        
+        // Get template exercises
+        const exercisesResult = await supabase
+          .from('template_exercises')
+          .select('id, exercise_id, default_sets, target_reps, target_settings')
+          .eq('template_id', template.id);
+          
+        const templateExercises = exercisesResult.data || [];
 
-          if (metrics) {
-            const result = await this.determineAdjustment(templateExercise, metrics);
-            if (result) {
-              results.push(result);
-              
-              if (!dryRun && result.confidence >= this.MIN_CONFIDENCE) {
-                await this.applyAdjustment(templateExercise.id, result);
+        for (const templateExercise of templateExercises) {
+          if (templateExercise?.exercise_id) {
+            const metrics = await this.calculatePerformanceMetrics(
+              supabase,
+              userId, 
+              templateExercise.exercise_id, 
+              template.id
+            );
+
+            if (metrics) {
+              const result = await this.determineAdjustment(templateExercise, metrics);
+              if (result) {
+                results.push(result);
+                
+                if (!dryRun && result.confidence >= this.MIN_CONFIDENCE) {
+                  await this.applyAdjustment(supabase, templateExercise.id, result);
+                }
               }
             }
           }
         }
       }
+
+      // Weekly volume rebalancing
+      const volumeChanges = await this.rebalanceVolume(supabase, userId, dryRun);
+      Object.assign(muscleVolumeChanges, volumeChanges);
+
+      console.log(`Recalibration complete. ${results.length} adjustments identified`);
+      
+      return {
+        userId,
+        results,
+        muscleVolumeChanges,
+        totalChanges: results.length + Object.keys(volumeChanges).length,
+        dryRun,
+        timestamp: new Date()
+      };
+    } catch (error) {
+      console.error('Recalibration error:', error);
+      throw error;
     }
-
-    // Weekly volume rebalancing
-    const volumeChanges = await this.rebalanceVolume(userId, dryRun);
-    Object.assign(muscleVolumeChanges, volumeChanges);
-
-    console.log(`Recalibration complete. ${results.length} adjustments identified`);
-    
-    return {
-      userId,
-      results,
-      muscleVolumeChanges,
-      totalChanges: results.length + Object.keys(volumeChanges).length,
-      dryRun,
-      timestamp: new Date()
-    };
   }
 
   private static async calculatePerformanceMetrics(
+    supabase: any,
     userId: string, 
     exerciseId: string, 
     templateId: string
   ): Promise<PerformanceMetrics | null> {
-    // Get last 30 workout sets for this exercise - simplify query to avoid deep type issues
-    const setsQuery = await supabase
+    // Get recent workout sets - simplified approach
+    const setsResult = await supabase
       .from('workout_sets')
       .select('reps, weight, rpe, completed_at, workout_exercise_id')
       .eq('is_completed', true)
       .not('rpe', 'is', null)
       .order('completed_at', { ascending: false })
-      .limit(30);
+      .limit(100);
     
-    const { data: allSets } = setsQuery;
-    
-    // Filter sets for this specific exercise and user
-    const { data: userExerciseSets } = await supabase
+    if (!setsResult.data || setsResult.data.length < 5) {
+      return null;
+    }
+
+    // Get workout exercises for this exercise
+    const exercisesResult = await supabase
       .from('workout_exercises')
       .select('id, exercise_id, workout_id')
       .eq('exercise_id', exerciseId);
     
-    const { data: userWorkouts } = await supabase
+    // Get user workouts
+    const workoutsResult = await supabase
       .from('workouts')
       .select('id, user_id, started_at')
       .eq('user_id', userId);
     
-    // Manually join the data
-    const exerciseWorkoutIds = new Set(
-      userExerciseSets
-        ?.filter(we => userWorkouts?.some(w => w.id === we.workout_id))
-        ?.map(we => we.id) || []
+    // Filter sets that belong to this user and exercise
+    const userWorkoutIds = new Set(workoutsResult.data?.map((w: any) => w.id) || []);
+    const exerciseWorkoutExerciseIds = new Set(
+      exercisesResult.data
+        ?.filter((we: any) => userWorkoutIds.has(we.workout_id))
+        ?.map((we: any) => we.id) || []
     );
     
-    const recentSets = allSets?.filter(set => 
-      exerciseWorkoutIds.has(set.workout_exercise_id)
-    );
+    const recentSets = setsResult.data.filter((set: any) => 
+      exerciseWorkoutExerciseIds.has(set.workout_exercise_id)
+    ).slice(0, 30);
 
     if (!recentSets || recentSets.length < 5) {
-      return null; // Not enough data
+      return null;
     }
 
     // Group by session and calculate metrics
@@ -187,23 +204,23 @@ export class RecalibrationEngine {
 
   private static calculateAverageRIR(sessions: any[][]): number {
     const allRpe = sessions.flat().map(set => set.rpe).filter(Boolean);
+    if (allRpe.length === 0) return 5;
     const avgRpe = allRpe.reduce((sum, rpe) => sum + rpe, 0) / allRpe.length;
-    return Math.max(0, 10 - avgRpe); // RIR = 10 - RPE
+    return Math.max(0, 10 - avgRpe);
   }
 
   private static calculateRepsVsRange(sessions: any[][]): number {
-    // This would compare achieved reps vs target rep range from template
-    // For now, simplified calculation
     const allReps = sessions.flat().map(set => set.reps);
+    if (allReps.length === 0) return 1;
     const avgReps = allReps.reduce((sum, reps) => sum + reps, 0) / allReps.length;
-    return avgReps / 8; // Assuming target of 8 reps, adjust based on template
+    return avgReps / 8; // Assuming target of 8 reps
   }
 
   private static countConsecutiveOvershoots(sessions: any[][]): number {
     let count = 0;
     for (const session of sessions) {
       const avgRir = this.calculateAverageRIR([session]);
-      if (avgRir >= 4) { // Easy sessions (RIR 4+)
+      if (avgRir >= 4) {
         count++;
       } else {
         break;
@@ -216,7 +233,7 @@ export class RecalibrationEngine {
     let count = 0;
     for (const session of sessions) {
       const avgRir = this.calculateAverageRIR([session]);
-      if (avgRir <= 1) { // Very hard sessions (RIR 0-1)
+      if (avgRir <= 1) {
         count++;
       } else {
         break;
@@ -243,13 +260,10 @@ export class RecalibrationEngine {
     metrics: PerformanceMetrics
   ): Promise<RecalibrationResult | null> {
     const { avgRir, consecutiveOvershoots, consecutiveUndershoots } = metrics;
-    
-    // Increase load if consecutive overshoots
-    // Get current weight from target_settings
     const currentWeight = templateExercise.target_settings?.weight || 60;
     
     if (consecutiveOvershoots >= this.OVERSHOOT_THRESHOLD) {
-      const increasePercent = Math.min(0.05, 0.02 * consecutiveOvershoots); // 2-5%
+      const increasePercent = Math.min(0.05, 0.02 * consecutiveOvershoots);
       const newWeight = currentWeight * (1 + increasePercent);
       
       return {
@@ -257,15 +271,14 @@ export class RecalibrationEngine {
         exerciseId: templateExercise.exercise_id,
         action: 'increase_load',
         oldValue: currentWeight,
-        newValue: Math.round(newWeight * 4) / 4, // Round to nearest 0.25
+        newValue: Math.round(newWeight * 4) / 4,
         reason: `${consecutiveOvershoots} consecutive easy sessions (avg RIR: ${avgRir.toFixed(1)})`,
         confidence: Math.min(0.9, 0.6 + (consecutiveOvershoots * 0.1))
       };
     }
 
-    // Deload if consecutive undershoots
     if (consecutiveUndershoots >= this.UNDERSHOOT_THRESHOLD) {
-      const deloadPercent = 0.1; // 10% deload
+      const deloadPercent = 0.1;
       const newWeight = currentWeight * (1 - deloadPercent);
       
       return {
@@ -283,13 +296,13 @@ export class RecalibrationEngine {
   }
 
   private static async applyAdjustment(
+    supabase: any,
     templateExerciseId: string, 
     result: RecalibrationResult
   ): Promise<void> {
     const updateData: any = {};
     
     if (result.action === 'increase_load' || result.action === 'deload') {
-      // Update target_settings with new weight
       updateData.target_settings = { weight: result.newValue };
     } else if (result.action === 'increase_reps') {
       updateData.target_reps = result.newValue;
@@ -304,31 +317,31 @@ export class RecalibrationEngine {
   }
 
   private static async rebalanceVolume(
+    supabase: any,
     userId: string, 
     dryRun: boolean
   ): Promise<Record<string, { old: number; new: number; reason: string }>> {
-    // Get recent soreness data from readiness checkins
-    const { data: recentCheckins } = await supabase
+    const checkinsResult = await supabase
       .from('readiness_checkins')
       .select('soreness, created_at')
       .eq('user_id', userId)
       .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString())
       .order('created_at', { ascending: false });
-
+    
+    const recentCheckins = checkinsResult.data;
     const avgSoreness = recentCheckins?.length 
-      ? recentCheckins.reduce((sum, c) => sum + (c.soreness || 3), 0) / recentCheckins.length
+      ? recentCheckins.reduce((sum: number, c: any) => sum + (c.soreness || 3), 0) / recentCheckins.length
       : 3;
 
-    // Simple volume adjustment based on soreness
     const volumeChanges: Record<string, { old: number; new: number; reason: string }> = {};
     
-    if (avgSoreness >= 4) { // High soreness
+    if (avgSoreness >= 4) {
       volumeChanges['all_muscles'] = {
         old: 100,
         new: 90,
         reason: `High average soreness (${avgSoreness.toFixed(1)}/5) - reducing volume by 10%`
       };
-    } else if (avgSoreness <= 2) { // Low soreness
+    } else if (avgSoreness <= 2) {
       volumeChanges['all_muscles'] = {
         old: 100,
         new: 110,
