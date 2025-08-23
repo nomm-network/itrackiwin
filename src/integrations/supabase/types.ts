@@ -753,6 +753,87 @@ export type Database = {
           },
         ]
       }
+      exercise_similars: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          reason: string | null
+          similar_exercise_id: string
+          similarity_score: number | null
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          reason?: string | null
+          similar_exercise_id: string
+          similarity_score?: number | null
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          reason?: string | null
+          similar_exercise_id?: string
+          similarity_score?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_similars_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
+            columns: ["similar_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
+            columns: ["similar_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
+            columns: ["similar_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
+            columns: ["similar_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercises: {
         Row: {
           body_part: string | null

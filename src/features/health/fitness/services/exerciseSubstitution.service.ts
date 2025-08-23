@@ -92,7 +92,8 @@ export async function findAlternatives(
         secondary_muscle_group_ids,
         equipment_id,
         equipment(slug),
-        body_part_id
+        body_part_id,
+        primary_muscle:muscles(slug, name)
       `)
       .eq('id', exerciseId)
       .single();
@@ -101,67 +102,122 @@ export async function findAlternatives(
       throw new Error('Original exercise not found');
     }
 
-    // Get potential alternatives
-    const { data: potentialAlternatives } = await supabase
-      .from('exercises')
-      .select(`
-        id, name, slug,
-        primary_muscle_id,
-        secondary_muscle_group_ids, 
-        equipment_id,
-        equipment(slug),
-        body_part_id,
-        popularity_rank
-      `)
-      .eq('is_public', true)
-      .neq('id', exerciseId)
-      .not('id', 'in', `(${constraints.excludeExerciseIds?.join(',') || 'null'})`)
-      .limit(50);
-
-    if (!potentialAlternatives?.length) {
-      return [];
-    }
-
-    // Score and filter alternatives
     const scoredAlternatives: ExerciseAlternative[] = [];
 
-    for (const alternative of potentialAlternatives) {
-      const score = calculateMatchScore(originalExercise, alternative, targetMuscles);
-      
-      // Must have at least 40% match to be considered
-      if (score.total < 40) continue;
+    // First, check for curated similarities
+    const { data: curatedSimilars } = await supabase
+      .from('exercise_similars')
+      .select(`
+        similar_exercise_id,
+        reason,
+        similarity_score,
+        similar_exercise:exercises!similar_exercise_id(
+          id, name, slug,
+          primary_muscle_id,
+          secondary_muscle_group_ids, 
+          equipment_id,
+          equipment(slug),
+          body_part_id,
+          primary_muscle:muscles(slug, name)
+        )
+      `)
+      .eq('exercise_id', exerciseId);
 
-      // Check equipment availability
-      if (!isEquipmentAvailable(alternative.equipment?.slug, equipmentCaps)) continue;
+    // Process curated similarities first
+    if (curatedSimilars?.length) {
+      for (const similar of curatedSimilars) {
+        const exercise = similar.similar_exercise;
+        if (!exercise) continue;
 
-      // Apply constraints
-      if (!meetsConstraints(alternative, constraints)) continue;
+        // Check equipment availability
+        if (!isEquipmentAvailable(exercise.equipment?.slug, equipmentCaps)) continue;
 
-      scoredAlternatives.push({
-        exerciseId: alternative.id,
-        name: alternative.name,
-        slug: alternative.slug,
-        matchScore: score.total,
-        matchReasons: score.reasons,
-      equipment: alternative.equipment ? {
-        id: alternative.equipment_id || 'unknown',
-        slug: alternative.equipment.slug
-      } : undefined,
-        movementPattern: inferMovementPattern(alternative.slug)?.primary
-      });
+        // Apply constraints
+        if (!meetsConstraints(exercise, constraints)) continue;
+
+        scoredAlternatives.push({
+          exerciseId: exercise.id,
+          name: exercise.name,
+          slug: exercise.slug,
+          matchScore: Math.round((similar.similarity_score || 0.9) * 100),
+          matchReasons: similar.reason ? [similar.reason] : ['Curated match'],
+          equipment: exercise.equipment ? {
+            id: exercise.equipment_id || 'unknown',
+            slug: exercise.equipment.slug
+          } : undefined,
+          movementPattern: inferMovementPattern(exercise.slug)?.primary
+        });
+      }
     }
 
-    // Sort by match score and popularity
-    return scoredAlternatives
-      .sort((a, b) => {
-        // Primary sort by match score
-        if (Math.abs(a.matchScore - b.matchScore) > 5) {
-          return b.matchScore - a.matchScore;
+    // If we need more alternatives, find computed ones
+    if (scoredAlternatives.length < 8) {
+      let query = supabase
+        .from('exercises')
+        .select(`
+          id, name, slug,
+          primary_muscle_id,
+          secondary_muscle_group_ids, 
+          equipment_id,
+          equipment(slug),
+          body_part_id,
+          popularity_rank,
+          primary_muscle:muscles(slug, name)
+        `)
+        .eq('is_public', true)
+        .neq('id', exerciseId)
+        .not('id', 'in', `(${constraints.excludeExerciseIds?.join(',') || 'null'})`);
+
+      // Prioritize same body part/primary muscle for better matches
+      if (originalExercise.primary_muscle_id) {
+        query = query.eq('primary_muscle_id', originalExercise.primary_muscle_id);
+      }
+
+      const { data: potentialAlternatives } = await query.limit(30);
+
+      if (potentialAlternatives?.length) {
+        // Exclude already found curated alternatives
+        const existingIds = new Set(scoredAlternatives.map(a => a.exerciseId));
+
+        for (const alternative of potentialAlternatives) {
+          if (existingIds.has(alternative.id)) continue;
+
+          const score = calculateEnhancedMatchScore(
+            originalExercise, 
+            alternative, 
+            targetMuscles,
+            equipmentCaps
+          );
+          
+          // Must have at least 50% match for computed alternatives
+          if (score.total < 50) continue;
+
+          // Check equipment availability
+          if (!isEquipmentAvailable(alternative.equipment?.slug, equipmentCaps)) continue;
+
+          // Apply constraints
+          if (!meetsConstraints(alternative, constraints)) continue;
+
+          scoredAlternatives.push({
+            exerciseId: alternative.id,
+            name: alternative.name,
+            slug: alternative.slug,
+            matchScore: score.total,
+            matchReasons: score.reasons,
+            equipment: alternative.equipment ? {
+              id: alternative.equipment_id || 'unknown',
+              slug: alternative.equipment.slug
+            } : undefined,
+            movementPattern: inferMovementPattern(alternative.slug)?.primary
+          });
         }
-        // Secondary sort by name for consistency
-        return a.name.localeCompare(b.name);
-      })
-      .slice(0, 10); // Return top 10 alternatives
+      }
+    }
+
+    // Sort by match score and return top alternatives
+    return scoredAlternatives
+      .sort((a, b) => b.matchScore - a.matchScore)
+      .slice(0, 12);
 
   } catch (error) {
     console.error('Failed to find alternatives:', error);
@@ -229,6 +285,43 @@ function calculateMatchScore(
   }
 
   return { total: Math.round(score), reasons };
+}
+
+function calculateEnhancedMatchScore(
+  original: any,
+  alternative: any,
+  targetMuscles?: string[],
+  equipmentCaps?: EquipmentCapabilities
+): { total: number; reasons: string[] } {
+  const baseScore = calculateMatchScore(original, alternative, targetMuscles);
+  let score = baseScore.total;
+  const reasons = [...baseScore.reasons];
+
+  // Bonus for equipment user has more capability with
+  if (equipmentCaps && alternative.equipment?.slug) {
+    const equipmentSlug = alternative.equipment.slug;
+    
+    if (equipmentCaps.bars.available && ['barbell', 'ez-bar', 'trap-bar'].some(eq => equipmentSlug.includes(eq))) {
+      score += 5;
+      reasons.push('Available barbell equipment');
+    }
+    if (equipmentCaps.cables.available && equipmentSlug.includes('cable')) {
+      score += 5;
+      reasons.push('Available cable equipment');
+    }
+    if (equipmentCaps.machines.available && equipmentSlug.includes('machine')) {
+      score += 5;
+      reasons.push('Available machine equipment');
+    }
+  }
+
+  // Bonus for muscle priority consideration (would need user priorities context)
+  if (targetMuscles?.includes(alternative.primary_muscle?.slug)) {
+    score += 8;
+    reasons.push('Matches priority muscle group');
+  }
+
+  return { total: Math.round(Math.min(score, 100)), reasons };
 }
 
 function inferMovementPattern(exerciseSlug: string): Partial<MovementPattern> | null {
