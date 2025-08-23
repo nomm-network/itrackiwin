@@ -143,7 +143,7 @@ export class WarmupPolicyEngine {
     const { data, error } = await supabase
       .from('experience_level_configs')
       .select('*')
-      .eq('experience_level', experienceLevel)
+      .eq('experience_level', experienceLevel as any)
       .single();
     
     if (error) {
@@ -172,11 +172,11 @@ export class WarmupPolicyEngine {
     return {
       userId,
       exerciseId,
-      lastFeedback: data.last_feedback as WarmupFeedback,
+      lastFeedback: data.last_feedback ? (data.last_feedback as unknown as WarmupFeedback) : undefined,
       successStreak: data.success_streak || 0,
-      preferredSetCount: data.preferred_set_count,
-      preferredIntensityAdjustment: data.preferred_intensity_adjustment,
-      adaptationHistory: data.adaptation_history || []
+      preferredSetCount: (data as any).preferred_set_count,
+      preferredIntensityAdjustment: (data as any).preferred_intensity_adjustment,
+      adaptationHistory: (data as any).adaptation_history || []
     };
   }
   
@@ -308,13 +308,15 @@ export class WarmupPolicyEngine {
       .upsert({
         user_id: prefs.userId,
         exercise_id: prefs.exerciseId,
-        last_feedback: prefs.lastFeedback,
+        last_feedback: prefs.lastFeedback?.quality as any,
         success_streak: prefs.successStreak,
         preferred_set_count: prefs.preferredSetCount,
         preferred_intensity_adjustment: prefs.preferredIntensityAdjustment,
         adaptation_history: prefs.adaptationHistory,
-        updated_at: new Date().toISOString()
-      }, {
+        updated_at: new Date().toISOString(),
+        plan_text: '', // Required field
+        source: 'auto' // Required field
+      } as any, {
         onConflict: 'user_id,exercise_id'
       });
     

@@ -112,7 +112,7 @@ export const useWarmupHistory = (userId: string, exerciseId: string) => {
         throw error;
       }
       
-      return data?.adaptation_history || [];
+      return (data as any)?.adaptation_history || [];
     },
     enabled: !!userId && !!exerciseId,
     staleTime: 10 * 60 * 1000 // 10 minutes
