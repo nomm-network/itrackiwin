@@ -40,6 +40,11 @@ export * from './services/musclePriorityService';
 export * from './services/equipmentCapabilities.service';
 export * from './services/templateGenerator.service';
 export * from './services/exerciseSubstitution.service';
+
+// Recalibration engine
+export { RecalibrationEngine } from './services/recalibrationEngine.service';
+export { useRecalibration, useRecalibrationHistory } from './hooks/useRecalibration.hook';
+
 export { 
   useExercises, 
   useExercise, 
