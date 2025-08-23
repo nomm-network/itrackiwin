@@ -15,11 +15,16 @@ export { default as FitnessProfilePage } from './pages/onboarding/FitnessProfile
 export { default as DynamicMetricsForm } from './components/DynamicMetricsForm';
 export { default as EffortSelector } from './components/EffortSelector';
 export { ExperienceLevelSelector } from './components/ExperienceLevelSelector';
+export { SexSelector } from './components/SexSelector';
+export { SexBasedTrainingDemo } from './components/SexBasedTrainingDemo';
 
 // Hooks - Public API only
 export * from './hooks/useMetrics.hook';
 export * from './hooks/useExperienceLevels.hook';
 export * from './hooks/useExperienceLevelConfigs.hook';
+export * from './hooks/useFitnessProfile.hook';
+export * from './utils/sexBasedTraining';
+export * from './utils/sexBasedTrainingTests';
 export { 
   useExercises, 
   useExercise, 

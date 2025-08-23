@@ -7,12 +7,15 @@ import { Input } from '@/components/ui/input';
 import { useUpsertFitnessProfile } from '../hooks/useFitnessProfile.hook';
 import { Loader2 } from 'lucide-react';
 import { ExperienceLevelSelector } from './ExperienceLevelSelector';
+import { SexSelector } from './SexSelector';
+import { SexType } from '../hooks/useFitnessProfile.hook';
 
 export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void }) => {
   const [formData, setFormData] = useState({
     goal: '',
     training_goal: '',
     experience_level: '',
+    sex: '',
     bodyweight: '',
     height_cm: '',
     days_per_week: '',
@@ -33,6 +36,7 @@ export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void })
         goal: formData.goal,
         training_goal: formData.training_goal,
         experience_level: formData.experience_level as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
+        sex: formData.sex as SexType | undefined,
         bodyweight: formData.bodyweight ? Number(formData.bodyweight) : undefined,
         height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
         days_per_week: formData.days_per_week ? Number(formData.days_per_week) : undefined,
@@ -95,6 +99,18 @@ export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void })
             <ExperienceLevelSelector
               value={formData.experience_level}
               onChange={(level) => setFormData({ ...formData, experience_level: level })}
+            />
+          </div>
+
+          {/* Biological Sex */}
+          <div className="space-y-3">
+            <Label>Biological Sex</Label>
+            <p className="text-sm text-muted-foreground">
+              This helps personalize your training program (volume distribution, progression rates).
+            </p>
+            <SexSelector
+              value={formData.sex as SexType}
+              onChange={(sex) => setFormData({ ...formData, sex })}
             />
           </div>
 

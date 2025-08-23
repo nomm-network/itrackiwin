@@ -3144,6 +3144,7 @@ export type Database = {
           id: string
           injuries: string[] | null
           preferred_session_minutes: number | null
+          sex: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at: string | null
           user_id: string
@@ -3159,6 +3160,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at?: string | null
           user_id: string
@@ -3174,6 +3176,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal?: string
           updated_at?: string | null
           user_id?: string
@@ -6399,6 +6402,7 @@ export type Database = {
         | "top_set"
         | "backoff"
         | "cooldown"
+      sex_type: "male" | "female" | "other" | "prefer_not_to_say"
       training_focus:
         | "muscle"
         | "strength"
@@ -6593,6 +6597,7 @@ export const Constants = {
         "backoff",
         "cooldown",
       ],
+      sex_type: ["male", "female", "other", "prefer_not_to_say"],
       training_focus: [
         "muscle",
         "strength",

@@ -2,12 +2,15 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
+export type SexType = "male" | "female" | "other" | "prefer_not_to_say";
+
 export interface FitnessProfile {
   id: string;
   user_id: string;
   goal: string;
   training_goal: string;
   experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced";
+  sex?: SexType;
   bodyweight?: number;
   height_cm?: number;
   height?: number;
@@ -41,7 +44,7 @@ export const useUpsertFitnessProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced" }) => {
+    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced"; sex?: SexType }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -52,6 +55,7 @@ export const useUpsertFitnessProfile = () => {
           goal: profile.goal,
           training_goal: profile.training_goal,
           experience_level: profile.experience_level,
+          sex: profile.sex,
           bodyweight: profile.bodyweight,
           height_cm: profile.height_cm,
           height: profile.height,
