@@ -36,13 +36,13 @@ export const PRIORITY_CONFIGS: Record<number, PriorityConfig> = {
 /**
  * Generates a normalized weight map from user muscle priorities
  */
-export const generatePriorityWeightMap = (priorities: MusclePriorityWithName[]): PriorityWeightMap => {
+export const generatePriorityWeightMap = (priorities: any[]): PriorityWeightMap => {
   const weightMap: PriorityWeightMap = {};
   
   priorities.forEach(priority => {
     const config = PRIORITY_CONFIGS[priority.priority_level];
     if (config) {
-      weightMap[priority.muscle_slug] = config.volumeMultiplier;
+      weightMap[priority.muscle_group_id] = config.volumeMultiplier;
     }
   });
   

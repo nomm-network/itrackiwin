@@ -20,6 +20,7 @@ export { SexBasedTrainingDemo } from './components/SexBasedTrainingDemo';
 export { MuscleGroupPicker } from './components/MuscleGroupPicker';
 export { MuscleGroupPriorityDemo } from './components/MuscleGroupPriorityDemo';
 export { FitnessConfigurationHub } from './components/FitnessConfigurationHub';
+export { TemplateGeneratorDialog } from './components/TemplateGeneratorDialog';
 
 // Hooks - Public API only
 export * from './hooks/useMetrics.hook';
@@ -29,11 +30,13 @@ export * from './hooks/useFitnessProfile.hook';
 export * from './hooks/useMuscleGroups.hook';
 export * from './hooks/useMusclePriorities.hook';
 export * from './hooks/useEquipmentCapabilities.hook';
+export * from './hooks/useTemplateGenerator.hook';
 export * from './utils/sexBasedTraining';
 export * from './utils/sexBasedTrainingTests';
 export * from './utils/musclePriorityTests';
 export * from './services/musclePriorityService';
 export * from './services/equipmentCapabilities.service';
+export * from './services/templateGenerator.service';
 export { 
   useExercises, 
   useExercise, 
