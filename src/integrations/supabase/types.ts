@@ -2576,6 +2576,88 @@ export type Database = {
           },
         ]
       }
+      training_program_blocks: {
+        Row: {
+          created_at: string
+          focus_tags: string[] | null
+          id: string
+          notes: string | null
+          order_index: number
+          program_id: string
+          workout_template_id: string
+        }
+        Insert: {
+          created_at?: string
+          focus_tags?: string[] | null
+          id?: string
+          notes?: string | null
+          order_index: number
+          program_id: string
+          workout_template_id: string
+        }
+        Update: {
+          created_at?: string
+          focus_tags?: string[] | null
+          id?: string
+          notes?: string | null
+          order_index?: number
+          program_id?: string
+          workout_template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_program_blocks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_program_blocks_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "training_program_blocks_workout_template_id_fkey"
+            columns: ["workout_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      training_programs: {
+        Row: {
+          created_at: string
+          goal: string | null
+          id: string
+          is_active: boolean
+          name: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          goal?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       user_achievements: {
         Row: {
           achievement_id: string
@@ -3665,6 +3747,38 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_program_state: {
+        Row: {
+          last_completed_index: number
+          program_id: string
+          total_cycles_completed: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_completed_index?: number
+          program_id: string
+          total_cycles_completed?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_completed_index?: number
+          program_id?: string
+          total_cycles_completed?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_program_state_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_roles: {
         Row: {
