@@ -13,8 +13,8 @@ export const widgets: DashboardWidget[] = [
     id: 'fitness.quickstart',
     title: 'Quick Start',
     size: 'md',
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     Component: FitnessQuickStart,
     order: 1
   },
@@ -22,8 +22,8 @@ export const widgets: DashboardWidget[] = [
     id: 'fitness.stats',
     title: 'Fitness Overview',
     size: 'lg',
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     Component: FitnessStats,
     order: 2
   },
@@ -31,8 +31,8 @@ export const widgets: DashboardWidget[] = [
     id: 'fitness.readiness',
     title: 'Readiness',
     size: 'sm',
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     Component: FitnessReadiness,
     order: 3
   }
@@ -63,8 +63,8 @@ export const quickActions: QuickAction[] = [
     id: 'fitness.start',
     label: 'Start Workout',
     icon: React.createElement(Play, { className: 'h-4 w-4' }),
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     // Custom onClick will be handled in the dashboard component that renders this
     onClickPath: undefined,
     order: 1
@@ -73,8 +73,8 @@ export const quickActions: QuickAction[] = [
     id: 'fitness.templates',
     label: 'Templates',
     icon: React.createElement(Target, { className: 'h-4 w-4' }),
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/templates',
     order: 2
   },
@@ -82,8 +82,8 @@ export const quickActions: QuickAction[] = [
     id: 'fitness.history',
     label: 'History',
     icon: React.createElement(Calendar, { className: 'h-4 w-4' }),
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/history',
     order: 3
   },
@@ -91,8 +91,8 @@ export const quickActions: QuickAction[] = [
     id: 'fitness.configure',
     label: 'Configure',
     icon: React.createElement(Settings, { className: 'h-4 w-4' }),
-    category: 'health',
-    subcategory: 'fitness',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/configure',
     order: 4
   }
@@ -119,7 +119,7 @@ export const useDynamicQuickActions = (category: string, subcategory?: string) =
   const dynamicActions = React.useMemo(() => {
     const baseActions = getQuickActionsByCategory(category, subcategory);
     
-    if (category === 'health' && subcategory === 'fitness') {
+    if (category === 'b54c368d-cd4f-4276-aa82-668da614e50d' && subcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247') {
       return baseActions.map(action => {
         if (action.id === 'fitness.start') {
           return {

@@ -1,6 +1,6 @@
 export type WidgetSize = "sm" | "md" | "lg" | "xl";
 
-export type Category = "health" | "mind" | "relationships" | "wealth" | "purpose" | "lifestyle";
+export type Category = string; // Database UUIDs for categories
 
 export interface DashboardWidget {
   id: string;
@@ -26,7 +26,7 @@ export interface QuickAction {
 }
 
 export interface CategoryConfig {
-  id: Category;
+  id: string; // Database UUID
   name: string;
   icon: string;
   color: string;
