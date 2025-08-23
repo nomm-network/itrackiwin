@@ -79,7 +79,11 @@ export class FitnessApiClient {
     const queryString = params.toString();
     const endpoint = `/workout-templates${queryString ? `?${queryString}` : ''}`;
     
-    return this.request<WorkoutTemplate[]>(endpoint) as Promise<PaginatedResponse<WorkoutTemplate>>;
+    const response = await this.request<{ data: WorkoutTemplate[], pagination: any }>(endpoint);
+    return {
+      data: response.data.data,
+      pagination: response.data.pagination
+    };
   }
 
   async getWorkoutTemplate(templateId: string): Promise<ApiResponse<WorkoutTemplate>> {
@@ -123,9 +127,13 @@ export class FitnessApiClient {
     const endpoint = `/equipment-capabilities${queryString ? `?${queryString}` : ''}`;
     
     if (options?.equipment_id) {
-      return this.request<EquipmentCapability>(endpoint) as Promise<ApiResponse<EquipmentCapability>>;
+      return this.request<EquipmentCapability>(endpoint);
     } else {
-      return this.request<EquipmentCapability[]>(endpoint) as Promise<PaginatedResponse<EquipmentCapability>>;
+      const response = await this.request<{ data: EquipmentCapability[], pagination: any }>(endpoint);
+      return {
+        data: response.data.data,
+        pagination: response.data.pagination
+      };
     }
   }
 
