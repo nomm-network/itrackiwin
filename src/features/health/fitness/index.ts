@@ -28,10 +28,12 @@ export * from './hooks/useExperienceLevelConfigs.hook';
 export * from './hooks/useFitnessProfile.hook';
 export * from './hooks/useMuscleGroups.hook';
 export * from './hooks/useMusclePriorities.hook';
+export * from './hooks/useEquipmentCapabilities.hook';
 export * from './utils/sexBasedTraining';
 export * from './utils/sexBasedTrainingTests';
 export * from './utils/musclePriorityTests';
 export * from './services/musclePriorityService';
+export * from './services/equipmentCapabilities.service';
 export { 
   useExercises, 
   useExercise, 
