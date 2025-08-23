@@ -39,10 +39,64 @@ export default async (req: Request): Promise<Response> => {
   )
 
   try {
-    const { userId, templateId, now }: GenerateWorkoutRequest = await req.json();
+    const requestBody = await req.json();
+    const { userId, templateId, now, idempotencyKey }: GenerateWorkoutRequest & { idempotencyKey?: string } = requestBody;
     
     if (!userId) {
       throw new Error('userId is required');
+    }
+
+    // Check rate limit
+    const { data: rateLimitOk } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_operation_type: 'generate_workout',
+      p_max_requests: 10, // Max 10 workouts per hour
+      p_window_minutes: 60
+    });
+
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Please wait before generating another workout.' }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Handle idempotency
+    if (idempotencyKey) {
+      const requestHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(requestBody)));
+      const hashArray = Array.from(new Uint8Array(requestHash));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const { data: idempotencyCheck } = await supabase.rpc('check_idempotency', {
+        p_key: idempotencyKey,
+        p_user_id: userId,
+        p_operation_type: 'generate_workout',
+        p_request_hash: hashHex
+      });
+
+      if (idempotencyCheck?.cached) {
+        console.log(`Returning cached response for idempotency key: ${idempotencyKey}`);
+        return new Response(JSON.stringify(idempotencyCheck.response), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-Idempotency-Cached': 'true'
+          },
+        });
+      }
+
+      if (idempotencyCheck?.error) {
+        return new Response(
+          JSON.stringify({ error: idempotencyCheck.message }),
+          { 
+            status: 409, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
     }
 
     console.log(`Generating workout for user ${userId}, template ${templateId}`);
@@ -169,6 +223,21 @@ export default async (req: Request): Promise<Response> => {
       gymId,
       createdAt: workout.created_at
     };
+
+    // Store idempotency result if key provided
+    if (idempotencyKey) {
+      const requestHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(requestBody)));
+      const hashArray = Array.from(new Uint8Array(requestHash));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      await supabase.rpc('store_idempotency_result', {
+        p_key: idempotencyKey,
+        p_user_id: userId,
+        p_operation_type: 'generate_workout',
+        p_request_hash: hashHex,
+        p_response_data: response
+      });
+    }
 
     console.log(`Generated workout ${workout.id} with ${workoutData.length} exercises`);
 

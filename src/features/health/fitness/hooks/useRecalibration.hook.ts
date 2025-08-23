@@ -30,8 +30,14 @@ export interface RecalibrationSummary {
 export const useRecalibration = () => {
   return useMutation({
     mutationFn: async (request: RecalibrationRequest): Promise<RecalibrationSummary> => {
+      // Generate idempotency key to prevent duplicate recalibrations
+      const idempotencyKey = `recalibrate-${request.userId || 'unknown'}-${Date.now()}-${Math.random().toString(36).substring(7)}`;
+
       const { data, error } = await supabase.functions.invoke('recalibrate-user-plans', {
-        body: request
+        body: {
+          ...request,
+          idempotencyKey
+        }
       });
 
       if (error) {

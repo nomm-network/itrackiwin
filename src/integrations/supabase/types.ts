@@ -1165,6 +1165,39 @@ export type Database = {
         }
         Relationships: []
       }
+      idempotency_keys: {
+        Row: {
+          created_at: string
+          expires_at: string
+          id: string
+          key: string
+          operation_type: string
+          request_hash: string
+          response_data: Json | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          key: string
+          operation_type: string
+          request_hash: string
+          response_data?: Json | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          id?: string
+          key?: string
+          operation_type?: string
+          request_hash?: string
+          response_data?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       languages: {
         Row: {
           code: string
@@ -4942,6 +4975,28 @@ export type Database = {
         Args: { p_user_id: string }
         Returns: undefined
       }
+      check_idempotency: {
+        Args: {
+          p_key: string
+          p_operation_type: string
+          p_request_hash: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      check_rate_limit: {
+        Args: {
+          p_max_requests?: number
+          p_operation_type: string
+          p_user_id: string
+          p_window_minutes?: number
+        }
+        Returns: boolean
+      }
+      cleanup_expired_idempotency_keys: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       clone_template_to_workout: {
         Args: { p_template_id: string }
         Returns: string
@@ -6755,6 +6810,16 @@ export type Database = {
       start_workout: {
         Args: { p_template_id?: string }
         Returns: string
+      }
+      store_idempotency_result: {
+        Args: {
+          p_key: string
+          p_operation_type: string
+          p_request_hash: string
+          p_response_data: Json
+          p_user_id: string
+        }
+        Returns: undefined
       }
       text: {
         Args: { "": unknown }

@@ -284,8 +284,8 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    const { userId, dryRun = true, batchMode = false }: RecalibrationRequest = 
-      await req.json().catch(() => ({}));
+    const requestBody = await req.json().catch(() => ({}));
+    const { userId, dryRun = true, batchMode = false, idempotencyKey }: RecalibrationRequest & { idempotencyKey?: string } = requestBody;
 
     console.log('Recalibration request:', { userId, dryRun, batchMode });
 
@@ -336,7 +336,75 @@ Deno.serve(async (req) => {
       );
     }
 
+    // Check rate limit for recalibration
+    const { data: rateLimitOk } = await supabase.rpc('check_rate_limit', {
+      p_user_id: userId,
+      p_operation_type: 'recalibrate',
+      p_max_requests: 5, // Max 5 recalibrations per day
+      p_window_minutes: 1440 // 24 hours
+    });
+
+    if (!rateLimitOk) {
+      return new Response(
+        JSON.stringify({ error: 'Rate limit exceeded. Recalibration can only be run 5 times per day.' }),
+        { 
+          status: 429, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        }
+      );
+    }
+
+    // Handle idempotency
+    if (idempotencyKey) {
+      const requestHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(requestBody)));
+      const hashArray = Array.from(new Uint8Array(requestHash));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      const { data: idempotencyCheck } = await supabase.rpc('check_idempotency', {
+        p_key: idempotencyKey,
+        p_user_id: userId,
+        p_operation_type: 'recalibrate',
+        p_request_hash: hashHex
+      });
+
+      if (idempotencyCheck?.cached) {
+        console.log(`Returning cached recalibration response for key: ${idempotencyKey}`);
+        return new Response(JSON.stringify(idempotencyCheck.response), {
+          headers: { 
+            ...corsHeaders, 
+            'Content-Type': 'application/json',
+            'X-Idempotency-Cached': 'true'
+          },
+        });
+      }
+
+      if (idempotencyCheck?.error) {
+        return new Response(
+          JSON.stringify({ error: idempotencyCheck.message }),
+          { 
+            status: 409, 
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+          }
+        );
+      }
+    }
+
     const result = await RecalibrationEngine.recalibrateUserPlans(supabase, userId, dryRun);
+
+    // Store idempotency result if key provided
+    if (idempotencyKey) {
+      const requestHash = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(JSON.stringify(requestBody)));
+      const hashArray = Array.from(new Uint8Array(requestHash));
+      const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+
+      await supabase.rpc('store_idempotency_result', {
+        p_key: idempotencyKey,
+        p_user_id: userId,
+        p_operation_type: 'recalibrate',
+        p_request_hash: hashHex,
+        p_response_data: result
+      });
+    }
 
     return new Response(
       JSON.stringify(result),
