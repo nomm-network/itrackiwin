@@ -249,27 +249,27 @@ const WorkoutSession: React.FC = () => {
       <PageNav current="Workout Session" />
       
       
-      <main className="container py-6 space-y-6">
+      <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
         {/* Header with workout clock */}
-        <div className="space-y-4">
+        <div className="space-y-fluid-xs">
           {/* Current Gym Header */}
           {selectedGym && (
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div className="flex items-center justify-between p-fluid-xs bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2">
                 <div>
-                  <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
-                  <p className="font-medium">{selectedGym.name}</p>
+                  <h3 className="font-semibold text-fluid-sm text-muted-foreground">Current Gym</h3>
+                  <p className="font-medium text-fluid-base">{selectedGym.name}</p>
                 </div>
                 <Button 
                   variant="outline" 
                   size="icon"
                   onClick={() => navigate('/fitness/configure')}
-                  className="h-8 w-8"
+                  className="touch-target"
                 >
                   <Settings className="h-4 w-4" />
                 </Button>
               </div>
-              <Button onClick={endWorkout} disabled={endMut.isPending} size="sm">
+              <Button onClick={endWorkout} disabled={endMut.isPending} size="sm" className="touch-target">
                 End Workout
               </Button>
             </div>
@@ -294,12 +294,12 @@ const WorkoutSession: React.FC = () => {
           )}
         </div>
 
-        <section className="grid lg:grid-cols-4 gap-6">
+        <section className="grid lg:grid-cols-4 gap-fluid-s">
           <Card className="lg:col-span-3">
             <CardHeader>
               <CardTitle>Exercises</CardTitle>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="space-y-fluid-s">
               {(data?.exercises || []).map((ex, index) => {
                 const isActive = activeExerciseId === ex.id || (!activeExerciseId && index === 0);
                 const completedSets = (data?.setsByWe[ex.id] || []).filter(set => set.is_completed);
