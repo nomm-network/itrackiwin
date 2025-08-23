@@ -2490,30 +2490,39 @@ export type Database = {
       }
       user_exercise_warmups: {
         Row: {
+          adaptation_history: Json | null
           exercise_id: string
           id: string
           last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
           plan_text: string
+          preferred_intensity_adjustment: number | null
+          preferred_set_count: number | null
           source: string
           success_streak: number
           updated_at: string
           user_id: string
         }
         Insert: {
+          adaptation_history?: Json | null
           exercise_id: string
           id?: string
           last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
           plan_text: string
+          preferred_intensity_adjustment?: number | null
+          preferred_set_count?: number | null
           source?: string
           success_streak?: number
           updated_at?: string
           user_id: string
         }
         Update: {
+          adaptation_history?: Json | null
           exercise_id?: string
           id?: string
           last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
           plan_text?: string
+          preferred_intensity_adjustment?: number | null
+          preferred_set_count?: number | null
           source?: string
           success_streak?: number
           updated_at?: string
@@ -6342,10 +6351,13 @@ export type Database = {
           _user_id: string
         }
         Returns: {
+          adaptation_history: Json | null
           exercise_id: string
           id: string
           last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
           plan_text: string
+          preferred_intensity_adjustment: number | null
+          preferred_set_count: number | null
           source: string
           success_streak: number
           updated_at: string
