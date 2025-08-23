@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { useUpsertFitnessProfile } from '../hooks/useFitnessProfile.hook';
 import { Loader2 } from 'lucide-react';
+import { ExperienceLevelSelector } from './ExperienceLevelSelector';
 
 export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void }) => {
   const [formData, setFormData] = useState({
@@ -89,19 +90,12 @@ export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void })
           </div>
 
           {/* Experience Level */}
-          <div className="space-y-2">
-            <Label htmlFor="experience_level">Experience Level</Label>
-            <Select value={formData.experience_level} onValueChange={(value) => setFormData({ ...formData, experience_level: value })}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select your experience level" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="new">New to Exercise</SelectItem>
-                <SelectItem value="returning">Returning After Break</SelectItem>
-                <SelectItem value="intermediate">Intermediate</SelectItem>
-                <SelectItem value="advanced">Advanced</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="space-y-3">
+            <Label>Experience Level</Label>
+            <ExperienceLevelSelector
+              value={formData.experience_level}
+              onChange={(level) => setFormData({ ...formData, experience_level: level })}
+            />
           </div>
 
           {/* Body Stats */}

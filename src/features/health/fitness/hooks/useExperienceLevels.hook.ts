@@ -14,12 +14,13 @@ export const useExperienceLevels = () => {
   return useQuery({
     queryKey: ['experience-levels'],
     queryFn: async () => {
-      // Return static experience levels since we're using enum now
+      // Return experience levels matching the database enum
       return [
         { id: 'new', slug: 'new', sort_order: 1, name: 'New to Exercise', description: 'Just starting your fitness journey' },
         { id: 'returning', slug: 'returning', sort_order: 2, name: 'Returning', description: 'Getting back into fitness after a break' },
         { id: 'intermediate', slug: 'intermediate', sort_order: 3, name: 'Intermediate', description: 'Consistent training for several months' },
-        { id: 'advanced', slug: 'advanced', sort_order: 4, name: 'Advanced', description: 'Years of training experience' }
+        { id: 'advanced', slug: 'advanced', sort_order: 4, name: 'Advanced', description: 'Years of training experience' },
+        { id: 'very_experienced', slug: 'very_experienced', sort_order: 5, name: 'Very Experienced', description: 'Elite level training and competition experience' }
       ];
     }
   });

@@ -14,9 +14,12 @@ export { default as FitnessProfilePage } from './pages/onboarding/FitnessProfile
 // Components - Only expose what's needed outside the feature
 export { default as DynamicMetricsForm } from './components/DynamicMetricsForm';
 export { default as EffortSelector } from './components/EffortSelector';
+export { ExperienceLevelSelector } from './components/ExperienceLevelSelector';
 
 // Hooks - Public API only
 export * from './hooks/useMetrics.hook';
+export * from './hooks/useExperienceLevels.hook';
+export * from './hooks/useExperienceLevelConfigs.hook';
 export { 
   useExercises, 
   useExercise, 
