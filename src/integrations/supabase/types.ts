@@ -540,6 +540,106 @@ export type Database = {
           },
         ]
       }
+      exercise_grip_effects: {
+        Row: {
+          created_at: string
+          effect_pct: number
+          equipment_id: string | null
+          exercise_id: string
+          grip_id: string
+          id: string
+          is_primary_override: boolean
+          muscle_id: string
+          note: string | null
+        }
+        Insert: {
+          created_at?: string
+          effect_pct: number
+          equipment_id?: string | null
+          exercise_id: string
+          grip_id: string
+          id?: string
+          is_primary_override?: boolean
+          muscle_id: string
+          note?: string | null
+        }
+        Update: {
+          created_at?: string
+          effect_pct?: number
+          equipment_id?: string | null
+          exercise_id?: string
+          grip_id?: string
+          id?: string
+          is_primary_override?: boolean
+          muscle_id?: string
+          note?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_grip_effects_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "muscles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_muscle_id_fkey"
+            columns: ["muscle_id"]
+            isOneToOne: false
+            referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_images: {
         Row: {
           created_at: string
@@ -1048,6 +1148,45 @@ export type Database = {
             columns: ["gym_id"]
             isOneToOne: false
             referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_machine_grip_options: {
+        Row: {
+          created_at: string
+          grip_id: string
+          gym_machine_id: string
+          id: string
+          is_available: boolean
+        }
+        Insert: {
+          created_at?: string
+          grip_id: string
+          gym_machine_id: string
+          id?: string
+          is_available?: boolean
+        }
+        Update: {
+          created_at?: string
+          grip_id?: string
+          gym_machine_id?: string
+          id?: string
+          is_available?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_machine_grip_options_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_machine_grip_options_gym_machine_id_fkey"
+            columns: ["gym_machine_id"]
+            isOneToOne: false
+            referencedRelation: "gym_machines"
             referencedColumns: ["id"]
           },
         ]
@@ -5379,6 +5518,19 @@ export type Database = {
       get_default_gym: {
         Args: { _user_id: string }
         Returns: string
+      }
+      get_effective_muscles: {
+        Args: {
+          _equipment_id?: string
+          _exercise_id: string
+          _grip_ids?: string[]
+        }
+        Returns: {
+          base_role: string
+          effective_score: number
+          muscle_id: string
+          primary_muscle: boolean
+        }[]
       }
       get_life_categories_i18n: {
         Args: { lang_code: string }
