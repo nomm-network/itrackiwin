@@ -69,9 +69,9 @@ export default function EnhancedPrograms() {
           <CardContent>
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">{nextBlock.name}</p>
+                <p className="font-medium">{nextBlock.template_name}</p>
                 <p className="text-sm text-muted-foreground">
-                  Program: {nextBlock.program_name} • Cycle {nextBlock.cycle_number}
+                  Block {nextBlock.order_index + 1} of {nextBlock.total_blocks} • Cycle {nextBlock.cycles_completed + 1}
                 </p>
               </div>
               
@@ -113,9 +113,9 @@ export default function EnhancedPrograms() {
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="text-lg">{program.name}</CardTitle>
-                      {program.notes && (
+                      {program.goal && (
                         <p className="text-sm text-muted-foreground mt-1">
-                          {program.notes}
+                          {program.goal}
                         </p>
                       )}
                     </div>
@@ -125,7 +125,7 @@ export default function EnhancedPrograms() {
                         <Badge variant="default">Active</Badge>
                       )}
                       <Badge variant="outline">
-                        {program.block_count || 0} workouts
+                        Program
                       </Badge>
                     </div>
                   </div>

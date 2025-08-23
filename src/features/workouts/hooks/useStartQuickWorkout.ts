@@ -34,7 +34,7 @@ export const useStartQuickWorkout = () => {
       return {
         workoutId: data,
         templateId,
-        programBlockId: options.useProgram ? nextProgramBlock?.block_id : null
+        programBlockId: options.useProgram ? nextProgramBlock?.next_block_id : null
       };
     },
     onSuccess: (result) => {
