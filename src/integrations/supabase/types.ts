@@ -156,6 +156,13 @@ export type Database = {
             foreignKeyName: "auto_deload_triggers_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "auto_deload_triggers_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -426,16 +433,22 @@ export type Database = {
       equipment: {
         Row: {
           created_at: string
+          default_stack: Json | null
+          equipment_type: string
           id: string
           slug: string | null
         }
         Insert: {
           created_at?: string
+          default_stack?: Json | null
+          equipment_type?: string
           id?: string
           slug?: string | null
         }
         Update: {
           created_at?: string
+          default_stack?: Json | null
+          equipment_type?: string
           id?: string
           slug?: string | null
         }
@@ -514,6 +527,13 @@ export type Database = {
             foreignKeyName: "exercise_default_grips_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_default_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -536,6 +556,74 @@ export type Database = {
             columns: ["grip_id"]
             isOneToOne: false
             referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_equipment_variants: {
+        Row: {
+          equipment_id: string
+          exercise_id: string
+          is_preferred: boolean
+        }
+        Insert: {
+          equipment_id: string
+          exercise_id: string
+          is_preferred?: boolean
+        }
+        Update: {
+          equipment_id?: string
+          exercise_id?: string
+          is_preferred?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_equipment_variants_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
             referencedColumns: ["id"]
           },
         ]
@@ -595,6 +683,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "exercise_grip_effects_exercise_id_fkey"
@@ -727,6 +822,13 @@ export type Database = {
             foreignKeyName: "exercise_metric_defs_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -787,6 +889,13 @@ export type Database = {
             foreignKeyName: "exercise_similars_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -810,6 +919,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
+            columns: ["similar_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "exercise_similars_similar_exercise_id_fkey"
@@ -844,7 +960,7 @@ export type Database = {
           created_at: string
           default_grip_ids: string[] | null
           description: string | null
-          equipment_id: string | null
+          equipment_id: string
           exercise_skill_level:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -872,7 +988,7 @@ export type Database = {
           created_at?: string
           default_grip_ids?: string[] | null
           description?: string | null
-          equipment_id?: string | null
+          equipment_id: string
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -900,7 +1016,7 @@ export type Database = {
           created_at?: string
           default_grip_ids?: string[] | null
           description?: string | null
-          equipment_id?: string | null
+          equipment_id?: string
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -1165,6 +1281,52 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "gym_aliases_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_equipment: {
+        Row: {
+          created_at: string
+          custom_stack: Json | null
+          equipment_id: string
+          gym_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          custom_stack?: Json | null
+          equipment_id: string
+          gym_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          custom_stack?: Json | null
+          equipment_id?: string
+          gym_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
             referencedRelation: "gyms"
@@ -2064,6 +2226,13 @@ export type Database = {
             foreignKeyName: "personal_records_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "personal_records_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -2228,6 +2397,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progressive_overload_plans_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "progressive_overload_plans_exercise_id_fkey"
@@ -2576,6 +2752,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "template_exercises_exercise_id_fkey"
@@ -2955,6 +3138,13 @@ export type Database = {
             foreignKeyName: "user_exercise_estimates_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "user_exercise_estimates_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -3024,6 +3214,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_overrides_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "user_exercise_overrides_exercise_id_fkey"
@@ -3102,6 +3299,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "exercises"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_warmups_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
           },
           {
             foreignKeyName: "user_exercise_warmups_exercise_id_fkey"
@@ -3253,6 +3457,13 @@ export type Database = {
             foreignKeyName: "user_goals_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "user_goals_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -3306,6 +3517,13 @@ export type Database = {
             referencedRelation: "user_gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_gym_bars_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
+          },
         ]
       }
       user_gym_dumbbells: {
@@ -3337,6 +3555,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_dumbbells_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
           },
         ]
       }
@@ -3389,6 +3614,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_machines_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
           },
         ]
       }
@@ -3457,6 +3689,13 @@ export type Database = {
             referencedRelation: "user_gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_gym_miniweights_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
+          },
         ]
       }
       user_gym_plates: {
@@ -3488,6 +3727,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "user_gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_plates_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
           },
         ]
       }
@@ -4146,6 +4392,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -4656,6 +4909,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -4693,6 +4953,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -4718,6 +4985,13 @@ export type Database = {
           gym_id: string | null
           machine_id: string | null
           source: string | null
+          user_id: string | null
+        }
+        Relationships: []
+      }
+      v_available_exercises: {
+        Row: {
+          exercise_id: string | null
           user_id: string | null
         }
         Relationships: []
@@ -4936,6 +5210,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
             isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
             referencedRelation: "v_exercises_for_coach"
             referencedColumns: ["id"]
           },
@@ -5106,6 +5387,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_user_default_gym: {
+        Row: {
+          gym_id: string | null
+          user_gym_id: string | null
+          user_id: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gym_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      v_user_gym_equipment: {
+        Row: {
+          equipment_id: string | null
+          user_gym_id: string | null
+          user_id: string | null
+        }
+        Relationships: []
       }
       v_user_pins_expanded: {
         Row: {
@@ -5468,6 +5773,12 @@ export type Database = {
           contraindication_reasons: string[]
           exercise_id: string
           is_safe: boolean
+        }[]
+      }
+      fn_available_exercises_for_user: {
+        Args: { _user: string }
+        Returns: {
+          exercise_id: string
         }[]
       }
       fn_detect_stagnation: {
