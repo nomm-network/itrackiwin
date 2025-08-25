@@ -257,7 +257,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">
-                  {currentExercise.exercise?.name || currentExercise.name || 'Exercise'}
+                  {currentExercise.exercise?.translations?.en?.name || 
+                   currentExercise.exercise?.name || 
+                   currentExercise.name || 
+                   'Exercise'}
                 </h3>
                 <Badge variant="outline">
                   {currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}/
@@ -271,7 +274,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   <div 
                     key={set.id || index}
                     className={`p-3 rounded border ${
-                      set.is_completed ? 'bg-green-50 border-green-200' : 'bg-gray-50'
+                      set.is_completed 
+                        ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300' 
+                        : 'bg-muted/50 border-border'
                     }`}
                   >
                     <div className="flex justify-between items-center">
@@ -279,7 +284,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       {set.is_completed && <CheckCircle className="h-4 w-4 text-green-600" />}
                     </div>
                     <div className="text-xs text-muted-foreground mt-1">
-                      {set.weight ? `${set.weight}kg × ${set.reps} reps` : 'Not completed'}
+                      {set.weight && set.reps ? `${set.weight}kg × ${set.reps} reps` : 
+                       set.target_weight && set.target_reps ? `Target: ${set.target_weight}kg × ${set.target_reps} reps` :
+                       'Not started'}
                       {set.rpe && ` • RPE ${set.rpe}`}
                     </div>
                   </div>
@@ -347,7 +354,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             {/* Exercise name */}
             <div className="text-center">
               <h3 className="font-medium text-lg">
-                {currentExercise?.exercise?.name || currentExercise?.name || 'Exercise'}
+                {currentExercise?.exercise?.translations?.en?.name || 
+                 currentExercise?.exercise?.name || 
+                 currentExercise?.name || 
+                 'Exercise'}
               </h3>
               <p className="text-sm text-muted-foreground">
                 Set {(currentExercise?.sets?.filter((set: any) => set.is_completed).length || 0) + 1}
