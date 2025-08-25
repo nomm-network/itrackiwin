@@ -85,9 +85,9 @@ export const useSetLog = () => {
       return data;
     },
     onSuccess: (data) => {
-      // Invalidate relevant queries
+      // Invalidate relevant queries with correct query keys
       queryClient.invalidateQueries({ 
-        queryKey: ['workout-open'] 
+        queryKey: ['workout'] // This will invalidate all workout queries
       });
       queryClient.invalidateQueries({ 
         queryKey: ['user-last-set'] 
