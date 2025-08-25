@@ -76,7 +76,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/templates',
-    order: 1
+    order: 2
   },
   {
     id: 'fitness.history',
@@ -85,7 +85,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/history',
-    order: 2
+    order: 3
   },
   {
     id: 'fitness.programs',
@@ -94,7 +94,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/app/programs',
-    order: 3
+    order: 4
   },
   {
     id: 'fitness.configure',
@@ -103,7 +103,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/configure',
-    order: 4
+    order: 5
   }
   // Future quick actions for other categories/subcategories
 ];

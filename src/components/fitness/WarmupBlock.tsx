@@ -25,9 +25,6 @@ export function WarmupBlock({
 }: WarmupProps) {
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
-  const [topWeight, setTopWeight] = useState<number>(suggestedTopWeight);
-  const [topReps, setTopReps] = useState<number>(suggestedTopReps);
-  const [saving, setSaving] = useState(false);
   const [rating, setRating] = useState<'not_enough' | 'excellent' | 'too_much' | null>(null);
 
   // Load from DB on mount
@@ -60,27 +57,6 @@ export function WarmupBlock({
     return rests; // seconds
   }, [plan]);
 
-  const savePlan = async () => {
-    if (!plan) return;
-    setSaving(true);
-    const { error } = await supabase
-      .from('workout_exercises')
-      .update({ warmup_plan: plan, warmup_updated_at: new Date().toISOString() })
-      .eq('id', workoutExerciseId);
-
-    setSaving(false);
-    if (error) {
-      console.error(error);
-      toast.error('Failed to save warmup.');
-    } else {
-      toast.success('Warmup saved.');
-    }
-  };
-
-  const regenerate = async () => {
-    const p = generateWarmupClient(topWeight, topReps, unit);
-    setPlan(p);
-  };
 
   const saveRating = async (value: 'not_enough' | 'excellent' | 'too_much') => {
     setRating(value);
@@ -117,30 +93,6 @@ export function WarmupBlock({
       <Collapsible open={open} onOpenChange={setOpen}>
         <CollapsibleContent>
           <CardContent className="space-y-3">
-            {/* Controls to tweak top set */}
-            <div className="grid grid-cols-2 gap-2">
-              <div>
-                <div className="text-xs mb-1">Top set weight ({unit})</div>
-                <Input
-                  type="number"
-                  value={topWeight}
-                  onChange={(e) => setTopWeight(parseFloat(e.target.value || '0'))}
-                />
-              </div>
-              <div>
-                <div className="text-xs mb-1">Top set reps</div>
-                <Input
-                  type="number"
-                  value={topReps}
-                  onChange={(e) => setTopReps(parseInt(e.target.value || '0', 10))}
-                />
-              </div>
-            </div>
-
-            <div className="flex gap-2">
-              <Button size="sm" variant="secondary" onClick={regenerate}>Regenerate</Button>
-              <Button size="sm" onClick={savePlan} disabled={saving}>{saving ? 'Saving…' : 'Save warm‑up'}</Button>
-            </div>
 
             {/* Plan preview */}
             <div className="rounded-md border p-3">
