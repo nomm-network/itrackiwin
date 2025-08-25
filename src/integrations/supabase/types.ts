@@ -2594,6 +2594,7 @@ export type Database = {
           backoff_percent: number | null
           backoff_sets: number | null
           default_sets: number
+          default_warmup_plan: Json | null
           exercise_id: string
           id: string
           notes: string | null
@@ -2614,6 +2615,7 @@ export type Database = {
           backoff_percent?: number | null
           backoff_sets?: number | null
           default_sets?: number
+          default_warmup_plan?: Json | null
           exercise_id: string
           id?: string
           notes?: string | null
@@ -2634,6 +2636,7 @@ export type Database = {
           backoff_percent?: number | null
           backoff_sets?: number | null
           default_sets?: number
+          default_warmup_plan?: Json | null
           exercise_id?: string
           id?: string
           notes?: string | null
@@ -4252,9 +4255,12 @@ export type Database = {
           is_superset_group: string | null
           notes: string | null
           order_index: number
+          target_sets: number | null
           warmup_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          warmup_plan: Json | null
           warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot: string | null
+          warmup_updated_at: string | null
           workout_id: string
         }
         Insert: {
@@ -4264,11 +4270,14 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index: number
+          target_sets?: number | null
           warmup_feedback?:
             | Database["public"]["Enums"]["warmup_feedback"]
             | null
+          warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
+          warmup_updated_at?: string | null
           workout_id: string
         }
         Update: {
@@ -4278,11 +4287,14 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index?: number
+          target_sets?: number | null
           warmup_feedback?:
             | Database["public"]["Enums"]["warmup_feedback"]
             | null
+          warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
+          warmup_updated_at?: string | null
           workout_id?: string
         }
         Relationships: [
@@ -5646,6 +5658,10 @@ export type Database = {
           p_working_reps?: number
           p_working_weight?: number
         }
+        Returns: Json
+      }
+      generate_warmup_json: {
+        Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
         Returns: Json
       }
       geography: {

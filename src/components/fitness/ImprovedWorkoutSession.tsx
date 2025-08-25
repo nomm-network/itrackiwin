@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronDown, ChevronUp, Plus, Minus, Hand } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SetData {
@@ -46,6 +46,8 @@ export default function ImprovedWorkoutSession({
 }: ImprovedWorkoutSessionProps) {
   const [expandedSet, setExpandedSet] = useState<number | null>(null);
   const [showGripsDialog, setShowGripsDialog] = useState(false);
+  const [showSetsDialog, setShowSetsDialog] = useState(false);
+  const [targetSets, setTargetSets] = useState(exercise.target_sets);
   const [currentSetData, setCurrentSetData] = useState<SetData>({
     weight: 0,
     reps: 0,
@@ -57,7 +59,7 @@ export default function ImprovedWorkoutSession({
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
-  const isLastSet = currentSetNumber > exercise.target_sets;
+  const isLastSet = currentSetNumber > targetSets;
   const lastSet = exercise.completed_sets[exercise.completed_sets.length - 1];
 
   // Auto-fill from previous set
@@ -124,7 +126,7 @@ export default function ImprovedWorkoutSession({
 
   return (
     <div className="space-y-3">
-      {/* Exercise Header with Grips Icon */}
+      {/* Exercise Header with Grips and Sets Icons */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">{exercise.name}</h3>
@@ -136,9 +138,17 @@ export default function ImprovedWorkoutSession({
           >
             <Hand className="h-4 w-4" />
           </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={() => setShowSetsDialog(true)}
+          >
+            <Target className="h-4 w-4" />
+          </Button>
         </div>
         <Badge variant="secondary">
-          {exercise.completed_sets.length}/{exercise.target_sets} sets
+          {exercise.completed_sets.length}/{targetSets} sets
         </Badge>
       </div>
 
@@ -401,6 +411,52 @@ export default function ImprovedWorkoutSession({
             </div>
             <Button onClick={() => setShowGripsDialog(false)} className="w-full">
               Save Grips
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Sets Configuration Dialog */}
+      <Dialog open={showSetsDialog} onOpenChange={setShowSetsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Configure Sets</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <p className="text-sm text-muted-foreground">
+              Adjust the target number of sets for this exercise:
+            </p>
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium">Target sets:</label>
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setTargetSets(Math.max(1, targetSets - 1))}
+                  className="w-8 h-8 p-0"
+                >
+                  <Minus className="h-3 w-3" />
+                </Button>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={targetSets}
+                  onChange={(e) => setTargetSets(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="text-center w-16"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setTargetSets(Math.min(10, targetSets + 1))}
+                  className="w-8 h-8 p-0"
+                >
+                  <Plus className="h-3 w-3" />
+                </Button>
+              </div>
+            </div>
+            <Button onClick={() => setShowSetsDialog(false)} className="w-full">
+              Save Configuration
             </Button>
           </div>
         </DialogContent>

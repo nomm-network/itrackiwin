@@ -36,6 +36,7 @@ import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
+import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -240,10 +241,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       toast.success('Workout completed! 🎉');
       
-      // Navigate back to dashboard after a short delay
+      // Force refresh the dashboard state by navigating and reloading
+      navigate('/dashboard');
       setTimeout(() => {
-        navigate('/dashboard');
-      }, 1500);
+        window.location.reload();
+      }, 100);
       
     } catch (error) {
       console.error('Failed to complete workout:', error);
@@ -307,7 +309,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         ) : (
           <>
             {currentExercise && (
-              <ImprovedWorkoutSession
+              <>
+                <WarmupBlock
+                  workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                  unit="kg"
+                  suggestedTopWeight={currentExercise?.target_weight ?? 60}
+                  suggestedTopReps={currentExercise?.target_reps ?? 8}
+                />
+                <ImprovedWorkoutSession
                 exercise={{
                   id: currentExercise.id,
                   workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
@@ -334,8 +343,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     is_completed: false
                   });
                 }}
-                unit="kg"
-              />
+                  unit="kg"
+                />
+              </>
             )}
 
             {/* Exercise Navigation at Bottom */}
