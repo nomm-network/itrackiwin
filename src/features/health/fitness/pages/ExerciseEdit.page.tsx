@@ -15,6 +15,7 @@ import ExerciseImageUploader from "@/components/ExerciseImageUploader";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { getExerciseNameFromTranslations, getExerciseDescriptionFromTranslations } from "@/utils/exerciseTranslations";
 
 // Basic SEO
 const useSEO = (name?: string) => {
@@ -129,15 +130,20 @@ const ExerciseEdit: React.FC = () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('exercises')
-          .select('id,name,description,body_part_id,primary_muscle_id,secondary_muscle_group_ids,equipment_id,source_url,is_public')
+          .from('v_exercises_with_translations')
+          .select('id,translations,body_part_id,primary_muscle_id,secondary_muscle_group_ids,equipment_id,source_url,is_public')
           .eq('id', id)
           .maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('Exercise not found');
-        setExerciseName(data.name);
-        form.setValue('name', data.name || '');
-        form.setValue('description', data.description || '');
+        
+        // Extract name and description from translations
+        const name = getExerciseNameFromTranslations(data.translations, data.id);
+        const description = getExerciseDescriptionFromTranslations(data.translations);
+        
+        setExerciseName(name);
+        form.setValue('name', name);
+        form.setValue('description', description || '');
         form.setValue('body_part_id', data.body_part_id || '');
         // derive group from primary muscle
         if (data.primary_muscle_id) {
@@ -169,9 +175,8 @@ const ExerciseEdit: React.FC = () => {
     setLastError(null);
     try {
       const id = params.id!;
-      const payload: any = {
-        name: values.name.trim(),
-        description: values.description || null,
+      // Update exercise basics
+      const exercisePayload = {
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
         secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
@@ -182,9 +187,22 @@ const ExerciseEdit: React.FC = () => {
 
       const { error } = await supabase
         .from('exercises')
-        .update(payload)
+        .update(exercisePayload)
         .eq('id', id);
       if (error) throw error;
+
+      // Update or create translation
+      const { error: translationError } = await supabase
+        .from('exercises_translations')
+        .upsert({
+          exercise_id: id,
+          language_code: 'en',
+          name: values.name.trim(),
+          description: values.description || null,
+        }, {
+          onConflict: 'exercise_id,language_code'
+        });
+      if (translationError) throw translationError;
 
       // Upload new images if any
       const { data: { user } } = await supabase.auth.getUser();

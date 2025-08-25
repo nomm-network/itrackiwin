@@ -13,6 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2, Plus, Search } from "lucide-react";
+import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 
 interface ExerciseTranslation {
   id: string;
@@ -65,18 +66,31 @@ const AdminExercisesTranslations: React.FC = () => {
     queryKey: ["exercises", searchTerm],
     queryFn: async () => {
       let query = supabase
-        .from("exercises")
-        .select("id, name, slug, body_part, is_public")
-        .eq("is_public", true)
-        .order("name");
+        .from("v_exercises_with_translations")
+        .select("id, slug, body_part, is_public, translations")
+        .eq("is_public", true);
       
+      const { data, error } = await query.limit(100);
+      if (error) throw error;
+      
+      // Convert to Exercise format with extracted names
+      const exercisesWithNames = data?.map(item => ({
+        id: item.id,
+        slug: item.slug,
+        body_part: item.body_part,
+        is_public: item.is_public,
+        name: getExerciseNameFromTranslations(item.translations, item.id)
+      })) || [];
+      
+      // Filter by search term if provided
+      let filteredExercises = exercisesWithNames;
       if (searchTerm) {
-        query = query.ilike("name", `%${searchTerm}%`);
+        filteredExercises = exercisesWithNames.filter(ex => 
+          ex.name.toLowerCase().includes(searchTerm.toLowerCase())
+        );
       }
       
-      const { data, error } = await query.limit(20);
-      if (error) throw error;
-      return data as Exercise[];
+      return filteredExercises.slice(0, 20) as Exercise[];
     },
   });
 
