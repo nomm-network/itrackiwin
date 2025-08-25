@@ -1395,149 +1395,6 @@ export type Database = {
           },
         ]
       }
-      gym_machine_grip_options: {
-        Row: {
-          created_at: string
-          grip_id: string
-          gym_machine_id: string
-          id: string
-          is_available: boolean
-        }
-        Insert: {
-          created_at?: string
-          grip_id: string
-          gym_machine_id: string
-          id?: string
-          is_available?: boolean
-        }
-        Update: {
-          created_at?: string
-          grip_id?: string
-          gym_machine_id?: string
-          id?: string
-          is_available?: boolean
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gym_machine_grip_options_grip_id_fkey"
-            columns: ["grip_id"]
-            isOneToOne: false
-            referencedRelation: "grips"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machine_grip_options_gym_machine_id_fkey"
-            columns: ["gym_machine_id"]
-            isOneToOne: false
-            referencedRelation: "gym_machines"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      gym_machine_usage_stats: {
-        Row: {
-          equipment_id: string
-          gym_id: string
-          id: string
-          last_used_at: string | null
-          usage_count: number
-        }
-        Insert: {
-          equipment_id: string
-          gym_id: string
-          id?: string
-          last_used_at?: string | null
-          usage_count?: number
-        }
-        Update: {
-          equipment_id?: string
-          gym_id?: string
-          id?: string
-          last_used_at?: string | null
-          usage_count?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gym_machine_usage_stats_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machine_usage_stats_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "v_equipment_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machine_usage_stats_gym_id_fkey"
-            columns: ["gym_id"]
-            isOneToOne: false
-            referencedRelation: "gyms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      gym_machines: {
-        Row: {
-          aux_increment: number | null
-          created_at: string
-          equipment_id: string
-          gym_id: string
-          id: string
-          label: string | null
-          quantity: number
-          stack_values: number[] | null
-          updated_at: string
-        }
-        Insert: {
-          aux_increment?: number | null
-          created_at?: string
-          equipment_id: string
-          gym_id: string
-          id?: string
-          label?: string | null
-          quantity?: number
-          stack_values?: number[] | null
-          updated_at?: string
-        }
-        Update: {
-          aux_increment?: number | null
-          created_at?: string
-          equipment_id?: string
-          gym_id?: string
-          id?: string
-          label?: string | null
-          quantity?: number
-          stack_values?: number[] | null
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gym_machines_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machines_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "v_equipment_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machines_gym_id_fkey"
-            columns: ["gym_id"]
-            isOneToOne: false
-            referencedRelation: "gyms"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       gyms: {
         Row: {
           address: string | null
@@ -2631,13 +2488,6 @@ export type Database = {
           user_gym_machine_id?: string
         }
         Relationships: [
-          {
-            foreignKeyName: "template_exercise_machine_pref_gym_machine_id_fkey"
-            columns: ["gym_machine_id"]
-            isOneToOne: false
-            referencedRelation: "gym_machines"
-            referencedColumns: ["id"]
-          },
           {
             foreignKeyName: "template_exercise_machine_pref_template_exercise_id_fkey"
             columns: ["template_exercise_id"]
@@ -4979,16 +4829,6 @@ export type Database = {
           },
         ]
       }
-      v_available_equipment_for_user: {
-        Row: {
-          equipment_id: string | null
-          gym_id: string | null
-          machine_id: string | null
-          source: string | null
-          user_id: string | null
-        }
-        Relationships: []
-      }
       v_available_exercises: {
         Row: {
           exercise_id: string | null
@@ -5139,46 +4979,6 @@ export type Database = {
             columns: ["primary_muscle_id"]
             isOneToOne: false
             referencedRelation: "v_muscles_with_translations"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      v_gym_popular_equipment: {
-        Row: {
-          equipment_id: string | null
-          gym_id: string | null
-          usage_count: number | null
-        }
-        Insert: {
-          equipment_id?: string | null
-          gym_id?: string | null
-          usage_count?: number | null
-        }
-        Update: {
-          equipment_id?: string | null
-          gym_id?: string | null
-          usage_count?: number | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "gym_machine_usage_stats_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "equipment"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machine_usage_stats_equipment_id_fkey"
-            columns: ["equipment_id"]
-            isOneToOne: false
-            referencedRelation: "v_equipment_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "gym_machine_usage_stats_gym_id_fkey"
-            columns: ["gym_id"]
-            isOneToOne: false
-            referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
         ]
@@ -6238,6 +6038,10 @@ export type Database = {
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
         Returns: boolean
+      }
+      migrate_user_gym_to_gym_equipment: {
+        Args: { _gym_id: string; _user_gym_id: string }
+        Returns: undefined
       }
       nearest_gyms: {
         Args: { _lat: number; _lng: number; _radius_m?: number }
