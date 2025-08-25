@@ -93,13 +93,13 @@ export function WarmupBlock({
             <div className="rounded-md border p-3">
               <div className="text-xs font-medium mb-2">Steps</div>
               <ol className="space-y-2">
-                {plan.steps.map((s) => (
+                {plan?.steps?.map((s) => (
                   <li key={s.id} className="flex items-center justify-between text-sm">
                     <span className="font-mono">{s.id.toUpperCase()}</span>
                     <span>{s.weight}{unit} × {s.reps} reps</span>
                     <span className="text-muted-foreground">{s.rest ?? 60}s rest</span>
                   </li>
-                ))}
+                )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
               </ol>
             </div>
 
