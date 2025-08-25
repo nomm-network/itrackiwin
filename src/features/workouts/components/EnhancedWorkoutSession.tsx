@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Play, 
   Pause, 
@@ -34,6 +35,7 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
+import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -271,377 +273,104 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     );
   }
 
+  const allExercisesComplete = completedExercises.size === totalExercises;
+
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6 pb-24">
-      {/* Workout Header */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Zap className="h-5 w-5 text-primary" />
-                {workout.title || 'Active Workout'}
-              </CardTitle>
-              <p className="text-sm text-muted-foreground mt-1">
-                Started at {workoutStartTime.toLocaleTimeString()}
-                {gym && ` • ${gym.name}`}
-              </p>
-            </div>
-            
-            <div className="flex items-center gap-2">
-              <Badge variant="outline">
-                {completedExercises.size}/{totalExercises} exercises
-              </Badge>
-              {workout.program_block_id && (
-                <Badge variant="default" className="bg-green-500">
-                  Program
-                </Badge>
-              )}
-            </div>
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="flex items-center justify-between p-4">
+          <div className="flex items-center gap-3">
+            <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
+              ← Back
+            </Button>
+            <h1 className="text-lg font-semibold">{workout?.name || 'Workout Session'}</h1>
           </div>
-          
-          <Progress value={progressPercentage} className="w-full" />
-        </CardHeader>
-      </Card>
-
-      {/* Exercise Navigation */}
-      <div className="flex items-center gap-4">
-        <Button
-          variant="outline"
-          onClick={handlePreviousExercise}
-          disabled={currentExerciseIndex === 0}
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
-        </Button>
-        
-        <div className="flex-1 text-center">
-          <p className="text-sm text-muted-foreground">
-            Exercise {currentExerciseIndex + 1} of {totalExercises}
-          </p>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary">
+              {currentExerciseIndex + 1}/{workout?.exercises?.length || 0}
+            </Badge>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowWarmupEditor(true)}
+            >
+              Warmup
+            </Button>
+          </div>
         </div>
-        
-        <Button
-          variant="outline"
-          onClick={handleNextExercise}
-          disabled={currentExerciseIndex === totalExercises - 1}
-        >
-          Next
-          <ArrowRight className="h-4 w-4 ml-2" />
-        </Button>
       </div>
 
-      {/* Current Exercise */}
-      {currentExercise && (
-        <div className="space-y-4">
-          {/* Exercise Info Card */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">
-                  {getExerciseName()}
-                </h3>
-                <Badge variant="outline">
-                  {completedSetsCount}/{targetSetsCount} sets
-                </Badge>
-              </div>
-              
-              {/* Grip Selection - Collapsible */}
-              <Collapsible 
-                open={showGripSelector[currentExercise.id]} 
-                onOpenChange={(open) => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: open }))}
-              >
-                <CollapsibleTrigger asChild>
-                  <Button variant="outline" className="w-full mb-4">
-                    <Hand className="h-4 w-4 mr-2" />
-                    Grip Selection
-                    <ChevronDown className="h-4 w-4 ml-auto" />
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-3 mb-4">
-                  <div className="p-4 border rounded-lg bg-muted/50">
-                    <p className="text-sm text-muted-foreground mb-3">
-                      Select grip(s) for this exercise. This will be applied to all sets.
-                    </p>
-                    
-                    {/* Use actual grip data from database */}
-                     <div className="grid grid-cols-2 gap-2">
-                       {grips.length === 0 ? (
-                         <div className="col-span-2 text-center text-sm text-muted-foreground py-4">
-                           Loading grips...
-                           <div className="text-xs mt-1">Database has {grips.length} grips</div>
-                           <div className="text-xs">Try refreshing if this persists</div>
-                        </div>
-                      ) : (
-                        grips.map((grip) => (
-                          <Button
-                            key={grip.id}
-                            variant={selectedGrips[currentExercise.id]?.includes(grip.name) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              setSelectedGrips(prev => {
-                                const current = prev[currentExercise.id] || [];
-                                const updated = current.includes(grip.name)
-                                  ? current.filter(g => g !== grip.name)
-                                  : [...current, grip.name];
-                                return { ...prev, [currentExercise.id]: updated };
-                              });
-                            }}
-                          >
-                            {grip.name}
-                          </Button>
-                        ))
-                      )}
-                    </div>
-                    
-                    {selectedGrips[currentExercise.id]?.length > 0 && (
-                      <div className="mt-3 pt-3 border-t">
-                        <p className="text-xs text-muted-foreground">Selected:</p>
-                        <div className="flex flex-wrap gap-1 mt-1">
-                          {selectedGrips[currentExercise.id].map((grip) => (
-                            <Badge key={grip} variant="secondary" className="text-xs">
-                              {grip}
-                            </Badge>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                </CollapsibleContent>
-              </Collapsible>
+      <div className="p-4 pb-24 max-w-md mx-auto">
+        {!workout?.exercises || workout.exercises.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-muted-foreground">No exercises found in this workout.</p>
+          </div>
+        ) : (
+          <>
+            {/* Exercise Navigation */}
+            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
+              {workout.exercises.map((exercise: any, index: number) => (
+                <Button
+                  key={exercise.id}
+                  variant={index === currentExerciseIndex ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setCurrentExerciseIndex(index)}
+                  className="flex-shrink-0"
+                >
+                  {index + 1}. {getExerciseName()}
+                </Button>
+              ))}
+            </div>
 
-              {/* Default Sets Manager - Bro's Recommendations */}
-              <DefaultSetsManager
-                exerciseId={currentExercise.id}
-                currentSets={targetSetsCount}
-                onSetsChange={(newSets) => {
-                  // This would ideally update the workout template or add/remove sets
-                  console.log('Bro recommends changing sets to:', newSets);
-                  toast.info(`Bro suggests ${newSets} sets for this exercise`);
+            {currentExercise && (
+              <ImprovedWorkoutSession
+                exercise={{
+                  id: currentExercise.id,
+                  workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
+                  name: getExerciseName(),
+                  target_sets: currentExercise.target_sets || 3,
+                  completed_sets: sets.filter((set: any) => set.is_completed)
                 }}
-                onApplyDefaults={(sets, reps) => {
-                  toast.success(`Applied Bro's recommendation: ${sets} sets × ${reps} reps`);
-                  console.log('Applied defaults:', { sets, reps });
+                onSetComplete={(setData) => {
+                  const weId = resolveWorkoutExerciseId(currentExercise);
+                  handleSetComplete(weId, setData);
                 }}
+                onExerciseComplete={() => handleExerciseComplete(currentExercise.id)}
+                unit="kg"
               />
-              
-              {/* Sets Display */}
-              <div className="space-y-3 mb-4">
-                {sets.map((set: any, index: number) => {
-                  const isCompleted = !!set.is_completed;
-                  const isCurrent = index === currentSetIndex && !isCompleted;
-                  const setNumber = index + 1;
-                  
-                  return (
-                    <Card key={set.id || index} className="mb-3">
-                      <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-base">Set {setNumber}</CardTitle>
-                        {isCompleted && (
-                          <Badge variant="secondary" className="shrink-0">
-                            <CheckCircle className="h-3 w-3 mr-1" />
-                            Done
-                          </Badge>
-                        )}
-                      </CardHeader>
+            )}
+          </>
+        )}
+      </div>
 
-                      <CardContent className="space-y-3 pt-2">
-                        {/* Completed set summary */}
-                        {isCompleted && (
-                          <div className="text-sm text-muted-foreground">
-                            {set.weight && set.reps
-                              ? `${set.weight}kg × ${set.reps} reps`
-                              : set.target_weight && set.target_reps
-                              ? `Target: ${set.target_weight}kg × ${set.target_reps} reps`
-                              : 'Completed'}
-                            {set.rpe ? ` • RPE ${set.rpe}` : null}
-                          </div>
-                        )}
-
-                        {/* Not current and not completed → show target/placeholder */}
-                        {!isCompleted && !isCurrent && (
-                          <div className="text-sm text-muted-foreground">
-                            {set.target_weight && set.target_reps
-                              ? `Target: ${set.target_weight}kg × ${set.target_reps} reps`
-                              : 'Not started'}
-                          </div>
-                        )}
-
-                        {/* CURRENT SET → the form lives INSIDE THIS CardContent */}
-                        {isCurrent && (
-                          <>
-                            <div className="text-sm font-medium text-center mb-3">
-                              {getExerciseName()}
-                            </div>
-
-                            {/* Weight input */}
-                            <TouchOptimizedSetInput
-                              label="Weight"
-                              value={currentSetData.weight}
-                              onChange={(value) =>
-                                setCurrentSetData(prev => ({ ...prev, weight: value || 0 }))
-                              }
-                              suffix="kg"
-                              min={0}
-                              max={500}
-                              step={2.5}
-                            />
-
-                            {/* Reps input */}
-                            <TouchOptimizedSetInput
-                              label="Reps"
-                              value={currentSetData.reps}
-                              onChange={(value) =>
-                                setCurrentSetData(prev => ({ ...prev, reps: value || 0 }))
-                              }
-                              min={0}
-                              max={100}
-                              step={1}
-                            />
-
-                            {/* RPE input */}
-                            <TouchOptimizedSetInput
-                              label="RPE"
-                              value={currentSetData.rpe}
-                              onChange={(value) =>
-                                setCurrentSetData(prev => ({ ...prev, rpe: value || 5 }))
-                              }
-                              min={1}
-                              max={10}
-                              step={0.5}
-                            />
-
-                            {/* Feel selector (compact) */}
-                            <div className="space-y-2">
-                              <div className="text-sm">How did that set feel?</div>
-                              <div className="grid grid-cols-5 gap-2">
-                                {['terrible','bad','okay','good','amazing'].map((feel, i) => {
-                                  const emoji = ['😣','😐','😊','😎','🔥'][i];
-                                  const active = currentSetData.feel === feel;
-                                  return (
-                                    <button
-                                      key={feel}
-                                      type="button"
-                                      onClick={() =>
-                                        setCurrentSetData(prev => ({ ...prev, feel }))
-                                      }
-                                      className={`p-3 rounded-md border text-lg ${
-                                        active
-                                          ? 'border-primary bg-primary/10'
-                                          : 'border-border'
-                                      }`}
-                                    >
-                                      {emoji}
-                                    </button>
-                                  );
-                                })}
-                              </div>
-                            </div>
-
-                            {/* Pain toggle */}
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setCurrentSetData(prev => ({ ...prev, pain: !prev.pain }))
-                              }
-                              className={`w-full px-4 py-2 rounded-md border ${
-                                currentSetData.pain
-                                  ? 'border-red-500 text-red-600 bg-red-500/10'
-                                  : 'border-border'
-                              }`}
-                            >
-                              {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
-                            </button>
-
-                            {/* Log Set */}
-                            <div className="pt-1">
-                              <Button
-                                className="w-full"
-                                onClick={handleSaveSet}
-                                disabled={isLoading}
-                              >
-                                <CheckCircle className="h-4 w-4 mr-2" />
-                                {isLoading ? 'Logging…' : `Log Set ${setNumber}`}
-                              </Button>
-                            </div>
-                          </>
-                        )}
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-              
-              {/* Add Extra Set Button - Show only if all target sets completed */}
-              {completedSetsCount >= targetSetsCount && (
-                <div className="space-y-4">
-                  <div className="text-center py-4">
-                    <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
-                    <p className="text-green-600 font-medium">All target sets completed!</p>
-                  </div>
-                  
-                  <Button 
-                    onClick={handleAddExtraSet}
-                    variant="outline" 
-                    className="w-full"
-                  >
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Extra Set
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+      {/* Floating Complete Workout Button */}
+      {allExercisesComplete && (
+        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
+          <Button
+            onClick={handleWorkoutComplete}
+            className="w-full"
+            size="lg"
+          >
+            Complete Workout
+          </Button>
         </div>
       )}
 
-      {/* Workout Actions */}
-      <div className="flex gap-4">
-        <Button
-          variant="outline"
-          onClick={() => setShowWarmupEditor(true)}
-          className="flex-1"
-        >
-          <Settings className="h-4 w-4 mr-2" />
-          Edit Warmup
-        </Button>
-        
-        <Button
-          onClick={handleWorkoutComplete}
-          disabled={false} // Allow completion at any time
-          className="flex-1 bg-green-600 hover:bg-green-700"
-        >
-          <CheckCircle className="h-4 w-4 mr-2" />
-          Complete Workout
-        </Button>
-      </div>
-
-      {/* Warmup Editor */}
-      {showWarmupEditor && currentExercise && (
-        <WarmupEditor
-          exerciseId={currentExercise.exercise_id || currentExercise.id}
-          exerciseName={getExerciseName()}
-          onClose={() => setShowWarmupEditor(false)}
-        />
-      )}
-
-      {/* Recalibration Panel */}
-      {showRecalibration && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Workout Analysis</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <WorkoutRecalibration
-              workoutId={workout.id}
-              exerciseIds={workout.exercises.map((ex: any) => ex.exercise_id)}
-              onApplyPrescriptions={(prescriptions) => {
-                console.log('Prescriptions applied:', prescriptions);
-                handleFinishWorkout();
-              }}
+      {/* Warmup Editor Dialog */}
+      <Dialog open={showWarmupEditor} onOpenChange={setShowWarmupEditor}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Warmup</DialogTitle>
+          </DialogHeader>
+          <div className="p-4">
+            <WarmupEditor 
+              exerciseId={currentExercise?.exercise_id || currentExercise?.id}
+              exerciseName={getExerciseName()}
+              onClose={() => setShowWarmupEditor(false)}
             />
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
