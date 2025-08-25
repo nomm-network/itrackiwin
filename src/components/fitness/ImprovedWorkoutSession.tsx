@@ -10,6 +10,7 @@ import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
 import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SetData {
   weight: number;
@@ -73,6 +74,24 @@ export default function ImprovedWorkoutSession({
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
+
+  // Check warmup feedback from database
+  React.useEffect(() => {
+    const checkWarmupFeedback = async () => {
+      if (exercise.workout_exercise_id && currentSetNumber === 1) {
+        const { data } = await supabase
+          .from('workout_exercises')
+          .select('warmup_feedback')
+          .eq('id', exercise.workout_exercise_id)
+          .maybeSingle();
+        
+        if (data?.warmup_feedback) {
+          setWarmupFeedback(data.warmup_feedback);
+        }
+      }
+    };
+    checkWarmupFeedback();
+  }, [exercise.workout_exercise_id, currentSetNumber]);
   
   // Get target suggestion data for preloading
   const { data: lastSetForTarget } = useLastSet(userId, exerciseId, currentSetNumber);
@@ -299,7 +318,7 @@ export default function ImprovedWorkoutSession({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                 <Input
+                  <Input
                   type="text"
                   value={currentSetData.weight || ''}
                   onChange={(e) => {
@@ -308,7 +327,13 @@ export default function ImprovedWorkoutSession({
                       setCurrentSetData(prev => ({ ...prev, weight: parseFloat(value) || 0 }));
                     }
                   }}
-                  onKeyPress={handleKeyPress}
+                  onKeyPress={(e) => {
+                    if (!/[\d.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Enter') {
+                      e.preventDefault();
+                    } else if (e.key === 'Enter' && currentSetData.weight > 0 && currentSetData.reps > 0) {
+                      handleSetSubmit();
+                    }
+                  }}
                   className="text-center text-lg font-semibold"
                   placeholder="0"
                 />

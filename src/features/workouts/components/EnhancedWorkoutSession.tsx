@@ -348,6 +348,30 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     }
   };
 
+  const handleAbortWorkout = async () => {
+    const confirmed = window.confirm(
+      'Are you sure you want to abort this workout? All progress will be deleted and cannot be recovered.'
+    );
+    
+    if (confirmed) {
+      try {
+        // Delete the workout and all its associated data
+        const { error } = await supabase
+          .from('workouts')
+          .delete()
+          .eq('id', workout.id);
+
+        if (error) throw error;
+
+        toast.success('Workout deleted successfully');
+        navigate('/dashboard');
+      } catch (error) {
+        console.error('Failed to delete workout:', error);
+        toast.error('Failed to delete workout');
+      }
+    }
+  };
+
   // Robust decision logic - no race conditions
   const needsReadiness = shouldShowReadiness === true;
   
@@ -426,7 +450,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              {currentExerciseIndex + 1}/{workout?.exercises?.length || 0}
+              🏋️ {currentExerciseIndex + 1}/{workout?.exercises?.length || 0}
             </Badge>
           </div>
         </div>
@@ -515,7 +539,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               {/* Abort Workout Button */}
               <div className="pt-4 border-t">
                 <Button
-                  onClick={() => navigate('/dashboard')}
+                  onClick={handleAbortWorkout}
                   variant="destructive"
                   className="w-full"
                   size="lg"
