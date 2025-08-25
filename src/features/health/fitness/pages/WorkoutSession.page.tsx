@@ -11,6 +11,7 @@ import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
+import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
 import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
 import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
@@ -67,6 +68,7 @@ const WorkoutSession: React.FC = () => {
   
   // Enhanced workout state
   const [showReadinessCheck, setShowReadinessCheck] = useState(false);
+  const { createCheckin, getLastCheckin } = usePreWorkoutCheckin();
   const [currentSetEffort, setCurrentSetEffort] = useState<EffortRating>();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(180);
@@ -201,11 +203,29 @@ const WorkoutSession: React.FC = () => {
   };
 
   const handleReadinessSubmit = async (readinessData: ReadinessData) => {
-    setShowReadinessCheck(false);
-    toast({
-      title: "Readiness recorded",
-      description: "Your data helps us optimize your workout suggestions.",
-    });
+    try {
+      if (data?.workout?.id) {
+        await createCheckin({
+          workout_id: data.workout.id,
+          is_sick: readinessData.illness,
+          slept_poorly: readinessData.sleep_quality < 5,
+          low_energy: readinessData.energy < 5,
+          notes: readinessData.notes
+        });
+      }
+      setShowReadinessCheck(false);
+      toast({
+        title: "Readiness recorded",
+        description: "Your data helps us optimize your workout suggestions.",
+      });
+    } catch (error) {
+      console.error('Failed to save readiness checkin:', error);
+      setShowReadinessCheck(false);
+      toast({
+        title: "Readiness noted",
+        description: "Continuing with your workout.",
+      });
+    }
   };
 
   const handleSkipReadiness = () => {
@@ -222,12 +242,25 @@ const WorkoutSession: React.FC = () => {
   const completedSets = (data?.exercises || []).reduce((total, ex) => {
     return total + (data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length;
   }, 0);
-  // Only show readiness check for brand new workouts (no exercises added yet)
+  // Only show readiness check for brand new workouts (no exercises, no sets, no existing checkin)
   React.useEffect(() => {
-    if (data?.workout && data.exercises.length === 0 && completedSets === 0) {
-      setShowReadinessCheck(true);
-    }
-  }, [data?.workout, data?.exercises, completedSets]);
+    const checkReadinessRequired = async () => {
+      if (data?.workout && data.exercises.length === 0 && completedSets === 0) {
+        // Check if user already completed readiness check for this workout
+        try {
+          const existingCheckin = await getLastCheckin(data.workout.id);
+          if (!existingCheckin) {
+            setShowReadinessCheck(true);
+          }
+        } catch (error) {
+          // If there's an error fetching checkin, show the readiness check
+          setShowReadinessCheck(true);
+        }
+      }
+    };
+    
+    checkReadinessRequired();
+  }, [data?.workout, data?.exercises, completedSets, getLastCheckin]);
 
   // Show readiness check if workout just started
   if (showReadinessCheck) {

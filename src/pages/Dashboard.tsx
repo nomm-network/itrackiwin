@@ -136,9 +136,11 @@ const Dashboard: React.FC = () => {
               </div>
             )}
 
-            {/* Widgets Grid */}
+            {/* Widgets Grid - separate Quick Start from other widgets */}
             <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
-              {visibleWidgets.map((widget) => (
+              {visibleWidgets
+                .filter(widget => widget.id === 'fitness.quickstart')
+                .map((widget) => (
                 <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
                   <React.Suspense
                     fallback={
@@ -152,7 +154,7 @@ const Dashboard: React.FC = () => {
               ))}
             </div>
 
-            {/* Quick Actions */}
+            {/* Quick Actions - immediately after Quick Start */}
             {actions.length > 0 && (
               <Card>
                 <CardContent className="pt-6">
@@ -173,6 +175,24 @@ const Dashboard: React.FC = () => {
                 </CardContent>
               </Card>
             )}
+
+            {/* Other Widgets - Readiness and stats */}
+            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
+              {visibleWidgets
+                .filter(widget => widget.id !== 'fitness.quickstart')
+                .map((widget) => (
+                <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
+                  <React.Suspense
+                    fallback={
+                      widget.loadingFallback || 
+                      <WidgetSkeleton className="h-full" />
+                    }
+                  >
+                    <widget.Component />
+                  </React.Suspense>
+                </div>
+              ))}
+            </div>
 
             {/* Empty State */}
             {visibleWidgets.length === 0 && (
