@@ -33,6 +33,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
+import { sanitizeUuid, isUuid } from '@/utils/ids';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -105,6 +106,21 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
   }, [workout?.exercises, gym]);
 
+  const resolveWorkoutExerciseId = (ex: any): string => {
+    // prefer the actual WE id provided by your query
+    const candidate =
+      ex?.workout_exercise_id ??
+      ex?.we_id ??                        // if you aliased as we_id
+      ex?.id;                             // fallback (only if `ex.id` really is WE id!)
+
+    const id = sanitizeUuid(candidate);
+    if (!isUuid(id)) {
+      console.error('❌ Invalid workout_exercise_id', { candidate, id, ex });
+      throw new Error('Invalid workout_exercise_id (not a UUID)');
+    }
+    return id;
+  };
+
   const handleSetComplete = (workoutExerciseId: string, setData: any) => {
     console.log('=== SET LOGGING DEBUG ===');
     console.log('Current Exercise Object:', currentExercise);
@@ -167,7 +183,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   const handleSaveSet = () => {
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      handleSetComplete(currentExercise.workout_exercise_id || currentExercise.id, currentSetData);
+      const weId = resolveWorkoutExerciseId(currentExercise);
+      handleSetComplete(weId, currentSetData);
     } else {
       toast.error('Please enter weight or reps');
     }
@@ -176,7 +193,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const handleAddExtraSet = () => {
     // For adding sets beyond the target
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      handleSetComplete(currentExercise.id, currentSetData); // This should be the workout_exercise_id
+      const weId = resolveWorkoutExerciseId(currentExercise);
+      handleSetComplete(weId, currentSetData);
     }
   };
 
@@ -538,7 +556,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                             <div className="pt-1">
                               <Button
                                 className="w-full"
-                                onClick={() => handleSetComplete(currentExercise.id, currentSetData)} // This should be the workout_exercise_id
+                                onClick={handleSaveSet}
                                 disabled={isLoading}
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
