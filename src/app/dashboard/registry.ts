@@ -47,6 +47,13 @@ const DynamicFitnessStartAction = () => {
   const { data: recentWorkouts } = useRecentWorkouts(5);
   const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
   
+  console.log('🔍 DynamicFitnessStartAction DEBUG:', {
+    recentWorkouts,
+    activeWorkout,
+    activeWorkoutId: activeWorkout?.id,
+    targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
+  });
+  
   return {
     id: 'fitness.start',
     label: activeWorkout ? 'Continue Workout' : 'Start Workout',
@@ -129,6 +136,12 @@ export const useDynamicQuickActions = (category: string, subcategory?: string) =
     const baseActions = getQuickActionsByCategory(category, subcategory);
     
     if (category === 'b54c368d-cd4f-4276-aa82-668da614e50d' && subcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247') {
+      console.log('🔍 useDynamicQuickActions FITNESS DEBUG:', {
+        activeWorkout,
+        activeWorkoutId: activeWorkout?.id,
+        targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
+      });
+      
       return baseActions.map(action => {
         if (action.id === 'fitness.start') {
           return {

@@ -21,10 +21,25 @@ const FitnessQuickStart: React.FC = () => {
   // Check if there's an active workout (started but not ended)
   const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
 
+  // Debug logging
+  console.log('🔍 FitnessQuickStart DEBUG:', {
+    recentWorkouts,
+    activeWorkout,
+    activeWorkoutId: activeWorkout?.id,
+    hasActiveWorkout: !!activeWorkout
+  });
+
   const handleStartWorkout = async () => {
     if (!checkAndRedirect('start a workout')) return;
     
+    console.log('🚀 handleStartWorkout called:', {
+      activeWorkout,
+      activeWorkoutId: activeWorkout?.id,
+      targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : 'template dialog'
+    });
+    
     if (activeWorkout) {
+      console.log('🎯 Navigating to existing workout:', `/app/workouts/${activeWorkout.id}`);
       navigate(`/app/workouts/${activeWorkout.id}`);
       return;
     }
