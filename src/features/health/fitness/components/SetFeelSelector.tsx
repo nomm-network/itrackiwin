@@ -2,26 +2,19 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useSaveSetFeel } from "../hooks/useRecalibration.hook";
 import { useState } from "react";
+import { type Feel, FEEL_OPTIONS } from "../lib/feelToRpe";
 
 interface SetFeelSelectorProps {
   setId: string;
-  currentFeel?: string;
-  onFeelChange?: (feel: string) => void;
+  currentFeel?: Feel;
+  onFeelChange?: (feel: Feel) => void;
 }
 
-const FEEL_OPTIONS = [
-  { value: '--', label: 'Very Hard', color: 'bg-red-500 hover:bg-red-600', emoji: '😵' },
-  { value: '-', label: 'Hard', color: 'bg-orange-500 hover:bg-orange-600', emoji: '😤' },
-  { value: '=', label: 'Just Right', color: 'bg-yellow-500 hover:bg-yellow-600', emoji: '😐' },
-  { value: '+', label: 'Easy', color: 'bg-green-500 hover:bg-green-600', emoji: '😊' },
-  { value: '++', label: 'Very Easy', color: 'bg-blue-500 hover:bg-blue-600', emoji: '😄' },
-];
-
 export const SetFeelSelector = ({ setId, currentFeel, onFeelChange }: SetFeelSelectorProps) => {
-  const [selectedFeel, setSelectedFeel] = useState<string | null>(currentFeel || null);
+  const [selectedFeel, setSelectedFeel] = useState<Feel | null>(currentFeel || null);
   const saveSetFeel = useSaveSetFeel();
 
-  const handleFeelSelect = async (feel: string) => {
+  const handleFeelSelect = async (feel: Feel) => {
     setSelectedFeel(feel);
     onFeelChange?.(feel);
     

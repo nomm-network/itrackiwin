@@ -267,7 +267,7 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                       <PopoverContent className="w-80 p-0" side="top">
                         <SetFeelSelector
                           setId={set.id || `${exercise.id}-${setIndex}`}
-                          currentFeel={set.feel}
+                          currentFeel={set.feel as any}
                           onFeelChange={(feel) => {
                             // Update set feel
                           }}

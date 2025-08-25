@@ -6,12 +6,13 @@ import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 
 interface SetData {
   weight: number;
   reps: number;
   rpe?: number;
-  feel?: string;
+  feel?: Feel;
   pain?: boolean;
   notes?: string;
   is_completed: boolean;
@@ -52,7 +53,7 @@ export default function ImprovedWorkoutSession({
     weight: 0,
     reps: 0,
     rpe: undefined,
-    feel: '',
+    feel: '=' as Feel,
     pain: false,
     notes: '',
     is_completed: false
@@ -92,7 +93,14 @@ export default function ImprovedWorkoutSession({
   // Auto-advance to next set when current set is completed
   const handleSetSubmit = useCallback(() => {
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
-      const completedSet = { ...currentSetData, is_completed: true };
+      // Calculate RPE from Feel automatically
+      const rpe = currentSetData.feel ? FEEL_TO_RPE[currentSetData.feel] : 8;
+      
+      const completedSet = { 
+        ...currentSetData, 
+        rpe, // Auto-calculated from feel
+        is_completed: true 
+      };
       onSetComplete(completedSet);
       
       // Reset form for next set but keep feel/pain cleared
@@ -100,7 +108,7 @@ export default function ImprovedWorkoutSession({
         weight: 0,
         reps: 0,
         rpe: undefined,
-        feel: '',
+        feel: '=' as Feel,
         pain: false,
         notes: '',
         is_completed: false
@@ -267,40 +275,23 @@ export default function ImprovedWorkoutSession({
               </div>
             </div>
 
-            {/* RPE Input (Optional) */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">RPE (Optional)</label>
-              <Input
-                type="number"
-                min="1"
-                max="10"
-                value={currentSetData.rpe || ''}
-                onChange={(e) => setCurrentSetData(prev => ({ ...prev, rpe: e.target.value ? Number(e.target.value) : undefined }))}
-                onKeyPress={handleKeyPress}
-                className="text-center"
-                placeholder="1-10"
-              />
-            </div>
-
             {/* Feel Selector */}
             <div className="space-y-2">
               <label className="text-sm font-medium">How did that feel?</label>
               <div className="grid grid-cols-5 gap-2">
-                {[
-                  { feel: 'terrible', emoji: '😣' },
-                  { feel: 'bad', emoji: '😐' },
-                  { feel: 'okay', emoji: '😊' },
-                  { feel: 'good', emoji: '😎' },
-                  { feel: 'amazing', emoji: '🔥' }
-                ].map(({ feel, emoji }) => (
+                {FEEL_OPTIONS.map((option) => (
                   <Button
-                    key={feel}
-                    variant={currentSetData.feel === feel ? "default" : "outline"}
+                    key={option.value}
+                    variant={currentSetData.feel === option.value ? "default" : "outline"}
                     size="sm"
-                    onClick={() => setCurrentSetData(prev => ({ ...prev, feel }))}
-                    className="aspect-square text-lg"
+                    onClick={() => setCurrentSetData(prev => ({ ...prev, feel: option.value }))}
+                    className={`
+                      flex flex-col items-center p-2 h-auto aspect-square
+                      ${currentSetData.feel === option.value ? option.color + ' text-white' : ''}
+                    `}
                   >
-                    {emoji}
+                    <span className="text-lg">{option.emoji}</span>
+                    <span className="text-xs mt-1">{option.value}</span>
                   </Button>
                 ))}
               </div>

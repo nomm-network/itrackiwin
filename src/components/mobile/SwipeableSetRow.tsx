@@ -109,7 +109,7 @@ export const SwipeableSetRow: React.FC<SwipeableSetRowProps> = ({
       <PopoverContent className="w-80 p-0" side="top" align="center">
         <SetFeelSelector
           setId={set.id || ''}
-          currentFeel={set.feel}
+          currentFeel={set.feel as any}
           onFeelChange={handleFeelSelect}
         />
       </PopoverContent>
