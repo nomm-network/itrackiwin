@@ -1019,7 +1019,6 @@ export type Database = {
       }
       exercises: {
         Row: {
-          body_part: string | null
           body_part_id: string | null
           capability_schema: Json | null
           complexity_score: number | null
@@ -1044,7 +1043,6 @@ export type Database = {
           thumbnail_url: string | null
         }
         Insert: {
-          body_part?: string | null
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
@@ -1069,7 +1067,6 @@ export type Database = {
           thumbnail_url?: string | null
         }
         Update: {
-          body_part?: string | null
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
@@ -4977,7 +4974,6 @@ export type Database = {
       }
       v_exercises_with_translations: {
         Row: {
-          body_part: string | null
           body_part_id: string | null
           capability_schema: Json | null
           complexity_score: number | null
@@ -4998,64 +4994,9 @@ export type Database = {
           popularity_rank: number | null
           primary_muscle_id: string | null
           secondary_muscle_group_ids: string[] | null
-          slug: string | null
           source_url: string | null
           thumbnail_url: string | null
           translations: Json | null
-        }
-        Insert: {
-          body_part?: string | null
-          body_part_id?: string | null
-          capability_schema?: Json | null
-          complexity_score?: number | null
-          contraindications?: Json | null
-          created_at?: string | null
-          default_grip_ids?: string[] | null
-          equipment_id?: string | null
-          exercise_skill_level?:
-            | Database["public"]["Enums"]["exercise_skill_level"]
-            | null
-          id?: string | null
-          image_url?: string | null
-          is_public?: boolean | null
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
-          owner_user_id?: string | null
-          popularity_rank?: number | null
-          primary_muscle_id?: string | null
-          secondary_muscle_group_ids?: string[] | null
-          slug?: never
-          source_url?: string | null
-          thumbnail_url?: string | null
-          translations?: never
-        }
-        Update: {
-          body_part?: string | null
-          body_part_id?: string | null
-          capability_schema?: Json | null
-          complexity_score?: number | null
-          contraindications?: Json | null
-          created_at?: string | null
-          default_grip_ids?: string[] | null
-          equipment_id?: string | null
-          exercise_skill_level?:
-            | Database["public"]["Enums"]["exercise_skill_level"]
-            | null
-          id?: string | null
-          image_url?: string | null
-          is_public?: boolean | null
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
-          owner_user_id?: string | null
-          popularity_rank?: number | null
-          primary_muscle_id?: string | null
-          secondary_muscle_group_ids?: string[] | null
-          slug?: never
-          source_url?: string | null
-          thumbnail_url?: string | null
-          translations?: never
         }
         Relationships: [
           {
