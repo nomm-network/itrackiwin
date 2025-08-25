@@ -3,6 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { 
   Play, 
   Pause, 
@@ -13,7 +14,9 @@ import {
   ArrowLeft,
   ArrowRight,
   Zap,
-  Plus
+  Plus,
+  ChevronDown,
+  Hand
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './ExerciseCard';
@@ -28,6 +31,7 @@ import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
+import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -35,7 +39,7 @@ interface WorkoutSessionProps {
 
 export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
   const navigate = useNavigate();
-  const { mutate: logSet } = useLogSet();
+  const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
   
@@ -44,6 +48,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
   const [workoutStartTime] = useState(new Date());
+  
+  // Grip selection state - per exercise
+  const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
+  const [showGripSelector, setShowGripSelector] = useState<Record<string, boolean>>({});
   
   // Set input state - always show for current set
   const [currentSetData, setCurrentSetData] = useState({
@@ -87,34 +95,36 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
   }, [workout?.exercises, gym]);
 
-  const handleSetComplete = (exerciseId: string, setData: any) => {
+  const handleSetComplete = async (exerciseId: string, setData: any) => {
     console.log('Logging set:', { exerciseId, setData });
     
-    logSet({
-      workout_exercise_id: exerciseId,
-      weight: setData.weight,
-      reps: setData.reps,
-      rpe: setData.rpe,
-      notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
-      is_completed: true
-    }, {
-      onSuccess: () => {
-        console.log('Set logged successfully, advancing to next set');
-        // Force re-render to show next set
-        setCurrentSetData({
-          weight: setData.weight, // Keep weight for next set
-          reps: setData.reps,     // Keep reps for next set
-          rpe: 5,
-          feel: '',
-          notes: ''
-        });
-        toast.success('Set logged successfully!');
-      },
-      onError: (error) => {
-        console.error('Failed to log set:', error);
-        toast.error('Failed to log set');
-      }
-    });
+    try {
+      const exerciseGrips = selectedGrips[exerciseId] || [];
+      
+      await saveSetWithGrips({
+        workout_exercise_id: exerciseId,
+        weight: setData.weight,
+        reps: setData.reps,
+        rpe: setData.rpe,
+        notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
+        is_completed: true
+      }, exerciseGrips);
+      
+      console.log('Set logged successfully, advancing to next set');
+      // Force re-render to show next set
+      setCurrentSetData({
+        weight: setData.weight, // Keep weight for next set
+        reps: setData.reps,     // Keep reps for next set
+        rpe: 5,
+        feel: '',
+        notes: ''
+      });
+      toast.success('Set logged successfully!');
+      
+    } catch (error) {
+      console.error('Failed to log set:', error);
+      toast.error('Failed to log set');
+    }
   };
 
   const handleSaveSet = () => {
@@ -280,6 +290,62 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 </Badge>
               </div>
               
+              {/* Grip Selection - Collapsible */}
+              <Collapsible 
+                open={showGripSelector[currentExercise.id]} 
+                onOpenChange={(open) => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: open }))}
+              >
+                <CollapsibleTrigger asChild>
+                  <Button variant="outline" className="w-full mb-4">
+                    <Hand className="h-4 w-4 mr-2" />
+                    Grip Selection
+                    <ChevronDown className="h-4 w-4 ml-auto" />
+                  </Button>
+                </CollapsibleTrigger>
+                <CollapsibleContent className="space-y-3 mb-4">
+                  <div className="p-4 border rounded-lg bg-muted/50">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      Select grip(s) for this exercise. This will be applied to all sets.
+                    </p>
+                    
+                    {/* Mock grip options - replace with actual grip data */}
+                    <div className="grid grid-cols-2 gap-2">
+                      {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close', 'Mixed'].map((grip) => (
+                        <Button
+                          key={grip}
+                          variant={selectedGrips[currentExercise.id]?.includes(grip) ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => {
+                            setSelectedGrips(prev => {
+                              const current = prev[currentExercise.id] || [];
+                              const updated = current.includes(grip)
+                                ? current.filter(g => g !== grip)
+                                : [...current, grip];
+                              return { ...prev, [currentExercise.id]: updated };
+                            });
+                          }}
+                        >
+                          {grip}
+                        </Button>
+                      ))}
+                    </div>
+                    
+                    {selectedGrips[currentExercise.id]?.length > 0 && (
+                      <div className="mt-3 pt-3 border-t">
+                        <p className="text-xs text-muted-foreground">Selected:</p>
+                        <div className="flex flex-wrap gap-1 mt-1">
+                          {selectedGrips[currentExercise.id].map((grip) => (
+                            <Badge key={grip} variant="secondary" className="text-xs">
+                              {grip}
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+              
               {/* Sets Display */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                 {(currentExercise.sets || []).map((set: any, index: number) => (
@@ -370,9 +436,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       </div>
 
                       {/* Log Set Button */}
-                      <Button onClick={handleSaveSet} className="w-full" size="lg">
+                      <Button 
+                        onClick={handleSaveSet} 
+                        className="w-full" 
+                        size="lg"
+                        disabled={isLoading}
+                      >
                         <CheckCircle className="h-4 w-4 mr-2" />
-                        Log Set {currentSetNumber}
+                        {isLoading ? 'Logging...' : `Log Set ${currentSetNumber}`}
                       </Button>
                     </div>
                   </CardContent>
