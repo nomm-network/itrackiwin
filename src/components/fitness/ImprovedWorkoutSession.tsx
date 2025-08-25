@@ -412,7 +412,7 @@ export default function ImprovedWorkoutSession({
               className={cn(
                 "w-full",
                 currentSetData.pain 
-                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                  ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
                   : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
               )}
               size="sm"

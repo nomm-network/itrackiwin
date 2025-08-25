@@ -446,7 +446,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               ← Back
             </Button>
             <h1 className="text-lg font-semibold">
-              Workout <em>{workout?.template_name || 'Session'}</em>
+              Workout <em>{workout?.template_name || workout?.name || 'Session'}</em>
             </h1>
           </div>
           <div className="flex items-center gap-2">
