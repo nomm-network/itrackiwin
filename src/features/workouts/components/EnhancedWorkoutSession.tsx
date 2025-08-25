@@ -323,12 +323,29 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     return Math.max(0, Math.min(10, score));
   };
 
-  const handleSkipReadiness = () => {
-    // Create a special "skipped" checkin to prevent showing again
-    createCheckin.mutate({ 
-      answers: { skipped: true } as any, 
-      readiness_score: 5 // neutral score for skipped
-    });
+  const handleSkipReadiness = async () => {
+    try {
+      // Create a special "skipped" checkin to prevent showing again
+      await createCheckin.mutateAsync({ 
+        answers: { skipped: true } as any, 
+        readiness_score: 5 // neutral score for skipped
+      });
+      
+      toastUtils({
+        title: "Check-in skipped",
+        description: "Proceeding to workout."
+      });
+      
+      // Invalidate the shouldShowReadiness query to hide the popup
+      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', workout?.id, user?.id] });
+    } catch (error) {
+      console.error('Error skipping readiness check:', error);
+      toastUtils({
+        title: "Error",
+        description: "Failed to skip readiness check.",
+        variant: "destructive"
+      });
+    }
   };
 
   // Robust decision logic - no race conditions
@@ -368,6 +385,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <ReadinessCheckIn
             onSubmit={handleReadinessSubmit}
             onSkip={handleSkipReadiness}
+            isLoading={createCheckin.isPending}
           />
         </main>
       </>
