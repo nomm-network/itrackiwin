@@ -136,6 +136,22 @@ const Dashboard: React.FC = () => {
               </div>
             )}
 
+            {/* Widgets Grid */}
+            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
+              {visibleWidgets.map((widget) => (
+                <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
+                  <React.Suspense
+                    fallback={
+                      widget.loadingFallback || 
+                      <WidgetSkeleton className="h-full" />
+                    }
+                  >
+                    <widget.Component />
+                  </React.Suspense>
+                </div>
+              ))}
+            </div>
+
             {/* Quick Actions */}
             {actions.length > 0 && (
               <Card>
@@ -157,22 +173,6 @@ const Dashboard: React.FC = () => {
                 </CardContent>
               </Card>
             )}
-
-            {/* Widgets Grid */}
-            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
-              {visibleWidgets.map((widget) => (
-                <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
-                  <React.Suspense
-                    fallback={
-                      widget.loadingFallback || 
-                      <WidgetSkeleton className="h-full" />
-                    }
-                  >
-                    <widget.Component />
-                  </React.Suspense>
-                </div>
-              ))}
-            </div>
 
             {/* Empty State */}
             {visibleWidgets.length === 0 && (
