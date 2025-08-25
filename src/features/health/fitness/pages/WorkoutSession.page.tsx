@@ -245,22 +245,40 @@ const WorkoutSession: React.FC = () => {
   // Only show readiness check for brand new workouts (no exercises, no sets, no existing checkin)
   React.useEffect(() => {
     const checkReadinessRequired = async () => {
+      console.log('🔍 Checking readiness requirements:', {
+        hasWorkout: !!data?.workout,
+        workoutId: data?.workout?.id,
+        exercisesLength: data?.exercises?.length,
+        completedSets,
+        showReadinessCheck
+      });
+      
       if (data?.workout && data.exercises.length === 0 && completedSets === 0) {
+        console.log('✅ Conditions met for readiness check, checking for existing checkin...');
         // Check if user already completed readiness check for this workout
         try {
           const existingCheckin = await getLastCheckin(data.workout.id);
+          console.log('📋 Existing checkin result:', existingCheckin);
           if (!existingCheckin) {
+            console.log('🎯 No existing checkin found, showing readiness check');
             setShowReadinessCheck(true);
+          } else {
+            console.log('⏭️ Existing checkin found, skipping readiness check');
           }
         } catch (error) {
+          console.log('❌ Error fetching checkin, showing readiness check anyway:', error);
           // If there's an error fetching checkin, show the readiness check
           setShowReadinessCheck(true);
         }
+      } else {
+        console.log('❌ Conditions not met for readiness check');
       }
     };
     
-    checkReadinessRequired();
-  }, [data?.workout, data?.exercises, completedSets, getLastCheckin]);
+    if (data?.workout) {
+      checkReadinessRequired();
+    }
+  }, [data?.workout?.id, data?.exercises?.length, completedSets]);
 
   // Show readiness check if workout just started
   if (showReadinessCheck) {
