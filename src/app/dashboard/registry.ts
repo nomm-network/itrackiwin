@@ -19,21 +19,21 @@ export const widgets: DashboardWidget[] = [
     order: 1
   },
   {
-    id: 'fitness.stats',
-    title: 'Fitness Overview',
-    size: 'lg',
-    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
-    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
-    Component: FitnessStats,
-    order: 2
-  },
-  {
     id: 'fitness.readiness',
     title: 'Readiness',
     size: 'sm',
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     Component: FitnessReadiness,
+    order: 2
+  },
+  {
+    id: 'fitness.stats',
+    title: 'Fitness Overview',
+    size: 'lg',
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
+    Component: FitnessStats,
     order: 3
   }
   // Future widgets will be added here as features are developed

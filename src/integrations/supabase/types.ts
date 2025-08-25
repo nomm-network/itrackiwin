@@ -381,6 +381,30 @@ export type Database = {
         }
         Relationships: []
       }
+      cycle_events: {
+        Row: {
+          created_at: string
+          event_date: string
+          id: string
+          kind: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          event_date: string
+          id?: string
+          kind: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          event_date?: string
+          id?: string
+          kind?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       data_quality_reports: {
         Row: {
           created_at: string
@@ -2168,11 +2192,60 @@ export type Database = {
           },
         ]
       }
+      preworkout_checkins: {
+        Row: {
+          created_at: string
+          id: string
+          is_sick: boolean
+          low_energy: boolean
+          notes: string | null
+          slept_poorly: boolean
+          user_id: string
+          workout_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_sick?: boolean
+          low_energy?: boolean
+          notes?: string | null
+          slept_poorly?: boolean
+          user_id: string
+          workout_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_sick?: boolean
+          low_energy?: boolean
+          notes?: string | null
+          slept_poorly?: boolean
+          user_id?: string
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_preworkout_checkins_workout_id"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "fk_preworkout_checkins_workout_id"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          cycle_tracking_enabled: boolean
           display_name: string | null
           height_cm: number | null
           id: string
@@ -2187,6 +2260,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          cycle_tracking_enabled?: boolean
           display_name?: string | null
           height_cm?: number | null
           id?: string
@@ -2201,6 +2275,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          cycle_tracking_enabled?: boolean
           display_name?: string | null
           height_cm?: number | null
           id?: string
@@ -2593,6 +2668,8 @@ export type Database = {
           rep_range_max: number | null
           rep_range_min: number | null
           set_scheme: string | null
+          target_rep_max: number | null
+          target_rep_min: number | null
           target_reps: number | null
           target_settings: Json | null
           target_weight: number | null
@@ -2614,6 +2691,8 @@ export type Database = {
           rep_range_max?: number | null
           rep_range_min?: number | null
           set_scheme?: string | null
+          target_rep_max?: number | null
+          target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
           target_weight?: number | null
@@ -2635,6 +2714,8 @@ export type Database = {
           rep_range_max?: number | null
           rep_range_min?: number | null
           set_scheme?: string | null
+          target_rep_max?: number | null
+          target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
           target_weight?: number | null
