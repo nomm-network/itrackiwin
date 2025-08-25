@@ -162,16 +162,23 @@ const TemplateEditor: React.FC = () => {
         .select('id, translations, primary_muscle_id, body_part_id')
         .eq('is_public', true)
         .order('popularity_rank', { ascending: false, nullsFirst: false })
-        .limit(20);
+        .limit(50); // Increased limit to ensure we find matches
 
+      // Use a simpler search approach - fetch all and filter client-side for search
       if (searchQuery.length >= 2) {
-        query = query.or(`translations->>en->>name.ilike.%${searchQuery}%,translations->>ro->>name.ilike.%${searchQuery}%`);
-      }
-
-      if (selectedMuscle && selectedMuscle !== "all") {
-        query = query.eq('primary_muscle_id', selectedMuscle);
-      } else if (selectedBodyPart && selectedBodyPart !== "all") {
-        query = query.eq('body_part_id', selectedBodyPart);
+        // Just filter by exercise fields first
+        if (selectedMuscle && selectedMuscle !== "all") {
+          query = query.eq('primary_muscle_id', selectedMuscle);
+        } else if (selectedBodyPart && selectedBodyPart !== "all") {
+          query = query.eq('body_part_id', selectedBodyPart);
+        }
+      } else {
+        // No search query, just filter by muscle/body part
+        if (selectedMuscle && selectedMuscle !== "all") {
+          query = query.eq('primary_muscle_id', selectedMuscle);
+        } else if (selectedBodyPart && selectedBodyPart !== "all") {
+          query = query.eq('body_part_id', selectedBodyPart);
+        }
       }
 
       const { data, error } = await query;
@@ -179,7 +186,19 @@ const TemplateEditor: React.FC = () => {
         console.error('Error fetching exercises:', error);
         throw error;
       }
-      return data || [];
+      
+      let results = data || [];
+      
+      // Client-side filtering for search if we have a search query
+      if (searchQuery.length >= 2) {
+        const searchLower = searchQuery.toLowerCase();
+        results = results.filter(exercise => {
+          const name = getTranslatedNameFromData(exercise.translations);
+          return name && name.toLowerCase().includes(searchLower);
+        });
+      }
+      
+      return results;
     },
     enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
   });
@@ -493,7 +512,7 @@ const TemplateEditor: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Body Part" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
                   <SelectItem value="all">All Body Parts</SelectItem>
                   {bodyParts.map((bodyPart) => (
                     <SelectItem key={bodyPart.id} value={bodyPart.id}>
@@ -506,7 +525,7 @@ const TemplateEditor: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Muscle Group" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
                   <SelectItem value="all">All Muscle Groups</SelectItem>
                   {muscleGroups.map((muscleGroup) => (
                     <SelectItem key={muscleGroup.id} value={muscleGroup.id}>
@@ -519,7 +538,7 @@ const TemplateEditor: React.FC = () => {
                 <SelectTrigger>
                   <SelectValue placeholder="Muscle" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
                   <SelectItem value="all">All Muscles</SelectItem>
                   {muscles.map((muscle) => (
                     <SelectItem key={muscle.id} value={muscle.id}>
