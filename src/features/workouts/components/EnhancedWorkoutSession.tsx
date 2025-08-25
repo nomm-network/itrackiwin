@@ -446,7 +446,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               ← Back
             </Button>
             <h1 className="text-lg font-semibold">
-              Workout <em>{workout?.template_name || workout?.name || 'Session'}</em>
+              Workout <em>{workout?.title || workout?.name || 'Session'}</em>
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -527,11 +527,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 {workout.exercises.map((exercise: any, index: number) => {
                   // Use same logic as getExerciseName() for consistency
                   const exerciseName = (() => {
+                    if (exercise?.exercises?.translations?.en?.name) return exercise.exercises.translations.en.name;
+                    if (exercise?.exercises?.name) return exercise.exercises.name;
                     if (exercise?.exercise?.translations?.en?.name) return exercise.exercise.translations.en.name;
-                    if (exercise?.translations?.en?.name) return exercise.translations.en.name;
                     if (exercise?.exercise?.name) return exercise.exercise.name;
+                    if (exercise?.translations?.en?.name) return exercise.translations.en.name;
                     if (exercise?.name) return exercise.name;
-                    return 'Exercise';
+                    return `Exercise ${index + 1}`;
                   })();
                   
                   return (
