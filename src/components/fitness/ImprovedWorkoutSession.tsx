@@ -3,6 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ChevronDown, ChevronUp, Plus, Minus, Hand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -28,6 +29,7 @@ interface ImprovedWorkoutSessionProps {
   exercise: ExerciseData;
   onSetComplete: (setData: SetData) => void;
   onExerciseComplete: () => void;
+  onAddExtraSet?: () => void;
   unit: 'kg' | 'lb';
 }
 
@@ -35,9 +37,11 @@ export default function ImprovedWorkoutSession({
   exercise,
   onSetComplete,
   onExerciseComplete,
+  onAddExtraSet,
   unit = 'kg'
 }: ImprovedWorkoutSessionProps) {
   const [expandedSet, setExpandedSet] = useState<number | null>(null);
+  const [showGripsDialog, setShowGripsDialog] = useState(false);
   const [currentSetData, setCurrentSetData] = useState<SetData>({
     weight: 0,
     reps: 0,
@@ -120,7 +124,12 @@ export default function ImprovedWorkoutSession({
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">{exercise.name}</h3>
-          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={() => setShowGripsDialog(true)}
+          >
             <Hand className="h-4 w-4" />
           </Button>
         </div>
@@ -316,12 +325,50 @@ export default function ImprovedWorkoutSession({
             <div className="text-sm text-green-600">
               {exercise.completed_sets.length} sets completed
             </div>
-            <Button onClick={onExerciseComplete} className="w-full" size="lg">
-              Next Exercise
-            </Button>
+            <div className="space-y-2">
+              <Button onClick={onExerciseComplete} className="w-full" size="lg">
+                Next Exercise
+              </Button>
+              {onAddExtraSet && (
+                <Button 
+                  onClick={onAddExtraSet} 
+                  variant="outline" 
+                  className="w-full" 
+                  size="lg"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Extra Set
+                </Button>
+              )}
+            </div>
           </div>
         </Card>
       )}
+
+      {/* Grips Selection Dialog */}
+      <Dialog open={showGripsDialog} onOpenChange={setShowGripsDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Grips</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <p className="text-sm text-muted-foreground">
+              Choose the grips you want to use for this exercise:
+            </p>
+            <div className="grid grid-cols-2 gap-2">
+              {/* Sample grips - you can make this dynamic */}
+              {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close', 'Mixed'].map((grip) => (
+                <Button key={grip} variant="outline" size="sm">
+                  {grip}
+                </Button>
+              ))}
+            </div>
+            <Button onClick={() => setShowGripsDialog(false)} className="w-full">
+              Save Grips
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

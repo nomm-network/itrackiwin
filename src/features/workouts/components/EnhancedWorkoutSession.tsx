@@ -321,6 +321,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   handleSetComplete(weId, setData);
                 }}
                 onExerciseComplete={() => handleExerciseComplete(currentExercise.id)}
+                onAddExtraSet={() => {
+                  const weId = resolveWorkoutExerciseId(currentExercise);
+                  handleSetComplete(weId, {
+                    weight: 0,
+                    reps: 0,
+                    rpe: 5,
+                    feel: '',
+                    pain: false,
+                    notes: '',
+                    is_completed: false
+                  });
+                }}
                 unit="kg"
               />
             )}
