@@ -18,7 +18,10 @@ export function useLastSet(userId?: string, exerciseId?: string, setIndex?: numb
     queryKey: ["lastSet", userId, exerciseId, setIndex],
     enabled: Boolean(userId && exerciseId && Number.isFinite(setIndex)),
     queryFn: async (): Promise<LastSetData | null> => {
+      console.log('useLastSet called with:', { userId, exerciseId, setIndex });
+      
       if (!userId || !exerciseId || !Number.isFinite(setIndex)) {
+        console.log('useLastSet: Missing required params');
         return null;
       }
 
@@ -48,11 +51,21 @@ export function useLastSet(userId?: string, exerciseId?: string, setIndex?: numb
         .order("completed_at", { ascending: false })
         .limit(1);
 
-      if (error) throw error;
+      console.log('useLastSet query result:', { data, error });
       
-      if (!data || data.length === 0) return null;
+      if (error) {
+        console.error('useLastSet error:', error);
+        throw error;
+      }
+      
+      if (!data || data.length === 0) {
+        console.log('useLastSet: No data found');
+        return null;
+      }
       
       const set = data[0];
+      console.log('useLastSet: Found set:', set);
+      
       return {
         user_id: userId,
         exercise_id: exerciseId,

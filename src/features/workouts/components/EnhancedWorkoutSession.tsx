@@ -321,13 +321,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Hide warmup after feel is selected */}
+                {/* Hide warmup after feedback is given */}
                 {!warmupCompleted && (
                   <WarmupBlock
                     workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                     unit="kg"
                     suggestedTopWeight={currentExercise?.target_weight ?? 60}
                     suggestedTopReps={currentExercise?.target_reps ?? 8}
+                    onFeedbackGiven={() => setWarmupCompleted(true)}
                   />
                 )}
                 <ImprovedWorkoutSession

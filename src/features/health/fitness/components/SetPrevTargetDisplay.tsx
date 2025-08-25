@@ -101,6 +101,20 @@ export function SetPrevTargetDisplay({
           {Number(target.weight ?? 0)}kg × {Number(target.reps ?? 0)}
         </span>
         <span className="text-xs opacity-70">(auto)</span>
+        {target.weight > 0 && target.reps > 0 && onUsePrevious && (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="text-xs h-auto p-1 ml-auto"
+            onClick={() => onUsePrevious(
+              Number(target.weight),
+              Number(target.reps)
+            )}
+          >
+            Use target
+          </Button>
+        )}
       </div>
     </div>
   );

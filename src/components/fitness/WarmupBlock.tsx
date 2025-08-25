@@ -13,6 +13,7 @@ type WarmupProps = {
   unit?: 'kg' | 'lb';
   suggestedTopWeight?: number;
   suggestedTopReps?: number;
+  onFeedbackGiven?: () => void;
 };
 
 export function WarmupBlock({
@@ -20,6 +21,7 @@ export function WarmupBlock({
   unit = 'kg',
   suggestedTopWeight = 60,
   suggestedTopReps = 8,
+  onFeedbackGiven,
 }: WarmupProps) {
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
@@ -88,6 +90,9 @@ export function WarmupBlock({
       .eq('id', workoutExerciseId);
     if (error) {
       toast.error('Failed to save feedback');
+    } else {
+      // Hide warmup when feedback is given
+      onFeedbackGiven?.();
     }
   };
 
