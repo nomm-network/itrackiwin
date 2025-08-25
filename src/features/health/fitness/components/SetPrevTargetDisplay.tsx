@@ -34,7 +34,10 @@ export function SetPrevTargetDisplay({
   templateTargetWeight,
   onUsePrevious
 }: SetPrevTargetDisplayProps) {
-  const { data: lastSet, isLoading } = useLastSet(userId, exerciseId, setIndex);
+  const { data: lastSet, isLoading, error } = useLastSet(userId, exerciseId, setIndex);
+  
+  // Debug log
+  console.log('SetPrevTargetDisplay:', { userId, exerciseId, setIndex, lastSet, isLoading, error });
 
   if (isLoading) {
     return (

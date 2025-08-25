@@ -8,6 +8,8 @@ import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target } from 'lucide-react'
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
+import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
+import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 
 interface SetData {
   weight: number;
@@ -31,6 +33,8 @@ interface ImprovedWorkoutSessionProps {
   exercise: ExerciseData;
   userId?: string | null;
   exerciseId?: string;
+  templateTargetReps?: number;
+  templateTargetWeight?: number;
   onSetComplete: (setData: SetData) => void;
   onExerciseComplete: () => void;
   onAddExtraSet?: () => void;
@@ -43,6 +47,8 @@ export default function ImprovedWorkoutSession({
   exercise,
   userId,
   exerciseId,
+  templateTargetReps,
+  templateTargetWeight,
   onSetComplete,
   onExerciseComplete,
   onAddExtraSet,
@@ -65,6 +71,30 @@ export default function ImprovedWorkoutSession({
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
+  
+  // Get target suggestion data for preloading
+  const { data: lastSetForTarget } = useLastSet(userId, exerciseId, currentSetNumber);
+  
+  // Auto-preload target values when lastSet data is available
+  React.useEffect(() => {
+    if (lastSetForTarget && currentSetData.weight === 0 && currentSetData.reps === 0) {
+      const lastFeel = parseFeelFromNotes(lastSetForTarget.notes) || parseFeelFromRPE(lastSetForTarget.rpe);
+      const target = suggestTarget({
+        lastWeight: lastSetForTarget.weight,
+        lastReps: lastSetForTarget.reps,
+        feel: lastFeel,
+        templateTargetReps,
+        templateTargetWeight,
+        stepKg: 2.5
+      });
+      
+      setCurrentSetData(prev => ({
+        ...prev,
+        weight: target.weight,
+        reps: target.reps
+      }));
+    }
+  }, [lastSetForTarget, currentSetData.weight, currentSetData.reps]);
   const isLastSet = currentSetNumber > targetSets;
   const lastSet = exercise.completed_sets[exercise.completed_sets.length - 1];
 
@@ -191,7 +221,13 @@ export default function ImprovedWorkoutSession({
           {expandedSet === index && (
             <div className="mt-3 pt-3 border-t space-y-2 text-sm text-muted-foreground">
               {set.rpe && <div>RPE: {set.rpe}</div>}
+              {set.feel && <div>Feel: {set.feel}</div>}
               {set.notes && <div>Notes: {set.notes}</div>}
+              {set.notes?.includes('warmup feedback:') && (
+                <div className="text-green-600">
+                  Warmup feedback: excellent
+                </div>
+              )}
             </div>
           )}
         </Card>
@@ -213,6 +249,8 @@ export default function ImprovedWorkoutSession({
               userId={userId}
               exerciseId={exerciseId}
               setIndex={currentSetNumber}
+              templateTargetReps={templateTargetReps}
+              templateTargetWeight={templateTargetWeight}
               onUsePrevious={(weight, reps) => {
                 setCurrentSetData(prev => ({ ...prev, weight, reps }));
               }}

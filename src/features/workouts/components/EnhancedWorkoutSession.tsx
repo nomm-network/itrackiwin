@@ -340,6 +340,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 }}
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id || currentExercise?.id}
+                templateTargetReps={currentExercise?.target_reps}
+                templateTargetWeight={currentExercise?.target_weight}
                 isLastExercise={currentExerciseIndex === totalExercises - 1}
                 onSetComplete={(setData) => {
                   // Hide warmup when first set is completed
