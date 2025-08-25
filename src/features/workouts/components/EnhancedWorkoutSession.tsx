@@ -31,7 +31,6 @@ import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
-import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -39,7 +38,7 @@ interface WorkoutSessionProps {
 
 export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
   const navigate = useNavigate();
-  const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
+  const { mutate: logSet, isPending: isLoading } = useLogSet();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
   
@@ -95,36 +94,37 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
   }, [workout?.exercises, gym]);
 
-  const handleSetComplete = async (exerciseId: string, setData: any) => {
+  const handleSetComplete = (exerciseId: string, setData: any) => {
     console.log('Logging set:', { exerciseId, setData });
     
-    try {
-      const exerciseGrips = selectedGrips[exerciseId] || [];
-      
-      await saveSetWithGrips({
-        workout_exercise_id: exerciseId,
-        weight: setData.weight,
-        reps: setData.reps,
-        rpe: setData.rpe,
-        notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
-        is_completed: true
-      }, exerciseGrips);
-      
-      console.log('Set logged successfully, advancing to next set');
-      // Force re-render to show next set
-      setCurrentSetData({
-        weight: setData.weight, // Keep weight for next set
-        reps: setData.reps,     // Keep reps for next set
-        rpe: 5,
-        feel: '',
-        notes: ''
-      });
-      toast.success('Set logged successfully!');
-      
-    } catch (error) {
-      console.error('Failed to log set:', error);
-      toast.error('Failed to log set');
-    }
+    const exerciseGrips = selectedGrips[exerciseId] || [];
+    
+    logSet({
+      workout_exercise_id: exerciseId,
+      weight: setData.weight,
+      reps: setData.reps,
+      rpe: setData.rpe,
+      notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
+      is_completed: true,
+      grip_ids: exerciseGrips
+    }, {
+      onSuccess: () => {
+        console.log('Set logged successfully, advancing to next set');
+        // Force re-render to show next set
+        setCurrentSetData({
+          weight: setData.weight, // Keep weight for next set
+          reps: setData.reps,     // Keep reps for next set
+          rpe: 5,
+          feel: '',
+          notes: ''
+        });
+        toast.success('Set logged successfully!');
+      },
+      onError: (error) => {
+        console.error('Failed to log set:', error);
+        toast.error('Failed to log set');
+      }
+    });
   };
 
   const handleSaveSet = () => {
