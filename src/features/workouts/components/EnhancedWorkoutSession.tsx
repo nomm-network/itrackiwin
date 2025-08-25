@@ -105,10 +105,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
   }, [workout?.exercises, gym]);
 
-  const handleSetComplete = (exerciseId: string, setData: any) => {
-    console.log('Logging set:', { exerciseId, setData });
+  const handleSetComplete = (workoutExerciseId: string, setData: any) => {
+    console.log('Logging set:', { workoutExerciseId, setData });
     
-    const exerciseGrips = selectedGrips[exerciseId] || [];
+    const exerciseGrips = selectedGrips[workoutExerciseId] || [];
     
     // Convert grip names to UUIDs
     const gripIds = exerciseGrips
@@ -125,7 +125,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     }
     
     logSet({
-      workout_exercise_id: exerciseId,
+      workout_exercise_id: workoutExerciseId,
       weight: setData.weight || 0,
       reps: setData.reps || 0,
       rpe: setData.rpe || 5,
@@ -158,7 +158,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   const handleSaveSet = () => {
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      handleSetComplete(currentExercise.id, currentSetData);
+      handleSetComplete(currentExercise.id, currentSetData); // This should be the workout_exercise_id
     } else {
       toast.error('Please enter weight or reps');
     }
@@ -167,7 +167,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const handleAddExtraSet = () => {
     // For adding sets beyond the target
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      handleSetComplete(currentExercise.id, currentSetData);
+      handleSetComplete(currentExercise.id, currentSetData); // This should be the workout_exercise_id
     }
   };
 
@@ -529,7 +529,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                             <div className="pt-1">
                               <Button
                                 className="w-full"
-                                onClick={() => handleSetComplete(currentExercise.id, currentSetData)}
+                                onClick={() => handleSetComplete(currentExercise.id, currentSetData)} // This should be the workout_exercise_id
                                 disabled={isLoading}
                               >
                                 <CheckCircle className="h-4 w-4 mr-2" />
