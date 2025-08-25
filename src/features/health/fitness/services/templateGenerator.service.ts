@@ -94,9 +94,9 @@ export async function selectExercisesForMuscleGroup(
   excludedExercises: string[] = []
 ): Promise<any[]> {
   const { data: exercises } = await supabase
-    .from('exercises')
+    .from('v_exercises_with_translations')
     .select(`
-      id, name, slug, equipment_id,
+      id, slug, translations, equipment_id,
       primary_muscle_id,
       secondary_muscle_group_ids,
       capability_schema,
@@ -330,7 +330,7 @@ function calculateEstimatedDuration(allocation: VolumeAllocation[], maxDuration:
 
 function determineExerciseType(exercise: any): 'compound' | 'isolation' | 'accessory' {
   const compoundPatterns = ['squat', 'deadlift', 'bench', 'press', 'row', 'pull-up', 'chin-up'];
-  const exerciseName = exercise.name?.toLowerCase() || exercise.slug?.toLowerCase() || '';
+  const exerciseName = exercise.translations?.en?.name?.toLowerCase() || exercise.translations?.ro?.name?.toLowerCase() || exercise.slug?.toLowerCase() || '';
   
   if (compoundPatterns.some(pattern => exerciseName.includes(pattern))) {
     return 'compound';

@@ -160,8 +160,8 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
       for (const exercise of mainExercises) {
         try {
           const { data: exerciseData } = await supabase
-            .from('exercises')
-            .select('id, name')
+            .from('v_exercises_with_translations')
+            .select('id, translations')
             .eq('slug', exercise)
             .single();
 
@@ -174,10 +174,11 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
 
             const stagnationResult = stagnationData as any;
             if (stagnationResult?.stagnation_detected) {
+              const exerciseName = exerciseData.translations?.en?.name || exerciseData.translations?.ro?.name || exercise;
               insights.push({
                 type: "stagnation",
                 severity: "medium",
-                title: `${exerciseData.name} Progress Plateau`,
+                title: `${exerciseName} Progress Plateau`,
                 description: `No progress detected in last ${stagnationResult.sessions_analyzed} sessions`,
                 recommendation: stagnationResult.recommendations?.[0] || "Consider changing your approach",
                 exerciseId: exerciseData.id

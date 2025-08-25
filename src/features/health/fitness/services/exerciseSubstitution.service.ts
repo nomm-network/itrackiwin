@@ -85,9 +85,9 @@ export async function findAlternatives(
   try {
     // Get the original exercise details
     const { data: originalExercise } = await supabase
-      .from('exercises')
+      .from('v_exercises_with_translations')
       .select(`
-        id, name, slug, 
+        id, slug, translations,
         primary_muscle_id,
         secondary_muscle_group_ids,
         equipment_id,
@@ -111,8 +111,8 @@ export async function findAlternatives(
         similar_exercise_id,
         reason,
         similarity_score,
-        similar_exercise:exercises!similar_exercise_id(
-          id, name, slug,
+        similar_exercise:v_exercises_with_translations!similar_exercise_id(
+          id, slug, translations,
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
@@ -135,9 +135,11 @@ export async function findAlternatives(
         // Apply constraints
         if (!meetsConstraints(exercise, constraints)) continue;
 
+        const name = exercise.translations?.en?.name || exercise.translations?.ro?.name || `Exercise ${exercise.id.slice(0, 8)}`;
+        
         scoredAlternatives.push({
           exerciseId: exercise.id,
-          name: exercise.name,
+          name,
           slug: exercise.slug,
           matchScore: Math.round((similar.similarity_score || 0.9) * 100),
           matchReasons: similar.reason ? [similar.reason] : ['Curated match'],
@@ -153,9 +155,9 @@ export async function findAlternatives(
     // If we need more alternatives, find computed ones
     if (scoredAlternatives.length < 8) {
       let query = supabase
-        .from('exercises')
+        .from('v_exercises_with_translations')
         .select(`
-          id, name, slug,
+          id, slug, translations,
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
@@ -198,9 +200,11 @@ export async function findAlternatives(
           // Apply constraints
           if (!meetsConstraints(alternative, constraints)) continue;
 
+          const name = alternative.translations?.en?.name || alternative.translations?.ro?.name || `Exercise ${alternative.id.slice(0, 8)}`;
+          
           scoredAlternatives.push({
             exerciseId: alternative.id,
-            name: alternative.name,
+            name,
             slug: alternative.slug,
             matchScore: score.total,
             matchReasons: score.reasons,

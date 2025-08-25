@@ -410,18 +410,18 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
   const muscleGroups = new Set();
   const bodyParts = new Set();
   
-  exercises.forEach(ex => {
-    if (ex.exercises?.muscles?.muscle_groups) {
-      muscleGroups.add(ex.exercises.muscles.muscle_groups.slug);
-      bodyParts.add(ex.exercises.muscles.muscle_groups.body_parts?.slug);
-    }
-    // Add secondary muscle groups
-    if (ex.exercises?.secondary_muscle_group_ids) {
-      ex.exercises.secondary_muscle_group_ids.forEach((id: string) => {
-        muscleGroups.add(id);
-      });
-    }
-  });
+          exercises.forEach(ex => {
+            if (ex.exercises?.muscles?.muscle_groups) {
+              muscleGroups.add(ex.exercises.muscles.muscle_groups.slug);
+              bodyParts.add(ex.exercises.muscles.muscle_groups.body_parts?.slug);
+            }
+            // Add secondary muscle groups
+            if (ex.exercises?.secondary_muscle_group_ids) {
+              ex.exercises.secondary_muscle_group_ids.forEach((id: string) => {
+                muscleGroups.add(id);
+              });
+            }
+          });
 
   // Calculate warmup needs based on muscle activation
   const warmupSets = [];
@@ -435,7 +435,7 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
   const warmupIntensity = energyLevel >= 4 && soreness <= 2 ? 'moderate' : 'extended';
   
   exercises.forEach((ex, index) => {
-    const exerciseName = ex.exercises?.name || 'Unknown Exercise';
+    const exerciseName = ex.exercises?.translations?.en?.name || ex.exercises?.translations?.ro?.name || 'Unknown Exercise';
     
     if (warmupIntensity === 'extended') {
       // More warmup sets for lower energy/higher soreness

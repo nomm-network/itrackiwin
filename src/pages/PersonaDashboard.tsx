@@ -127,7 +127,7 @@ const PersonaDashboard: React.FC = () => {
       }, 0) / totalWorkouts || 0;
 
       const strongestLift = personalRecords?.[0] ? {
-        exercise: personalRecords[0].exercises?.name || 'Unknown',
+        exercise: personalRecords[0].exercises?.translations?.en?.name || personalRecords[0].exercises?.translations?.ro?.name || 'Unknown',
         weight: personalRecords[0].value
       } : { exercise: 'No records yet', weight: 0 };
 
