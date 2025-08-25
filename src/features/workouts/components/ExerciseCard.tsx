@@ -6,11 +6,11 @@ import { useEffectiveMuscles } from "@/hooks/useEffectiveMuscles";
 import { SetFeelSelector } from "@/features/health/fitness/components/SetFeelSelector";
 import GripChips from "@/features/exercises/components/GripChips";
 import { Plus, ArrowRight, Settings } from "lucide-react";
+import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 
 interface ExerciseCardProps {
   exercise: {
     id: string;
-    name: string;
     primary_muscle?: string;
     equipment?: string;
     default_grip_ids?: string[];
@@ -38,6 +38,7 @@ export default function ExerciseCard({
   onNextExercise,
   onGripChange
 }: ExerciseCardProps) {
+  const { data: translation } = useExerciseTranslation(exercise.id);
   const { data: effectiveMuscles } = useEffectiveMuscles(
     exercise.id, 
     selectedGripIds.length > 0 ? selectedGripIds : undefined,
@@ -56,7 +57,7 @@ export default function ExerciseCard({
     >
       <CardHeader>
         <div className="flex items-start justify-between">
-          <CardTitle className="text-base flex-1">{exercise.name}</CardTitle>
+          <CardTitle className="text-base flex-1">{translation?.name || `Exercise ${exercise.id}`}</CardTitle>
           <div className="text-sm text-muted-foreground">
             {completedSets}/{targetSets} sets
           </div>
