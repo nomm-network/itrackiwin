@@ -39,10 +39,12 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
   workoutId
 }) => {
   const { checkForPRs } = usePRDetection();
-  const [weight, setWeight] = useState<string>('');
-  const [reps, setReps] = useState<string>('');
-  const [rpe, setRpe] = useState<string>('');
-  const [notes, setNotes] = useState<string>('');
+  
+  // Initialize with target values if available, otherwise empty
+  const [weight, setWeight] = useState<string>(targetSet?.weight?.toString() || '');
+  const [reps, setReps] = useState<string>(targetSet?.reps?.toString() || '');
+  const [rpe, setRpe] = useState<string>(targetSet?.rpe?.toString() || '');
+  const [notes, setNotes] = useState<string>(targetSet?.notes || '');
 
   const handleQuickAction = (action: 'same' | 'weight_plus_2_5' | 'reps_plus_1' | 'target') => {
     const baseData = action === 'target' ? targetSet : lastSet;
