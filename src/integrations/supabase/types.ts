@@ -4990,12 +4990,10 @@ export type Database = {
           body_part: string | null
           body_part_id: string | null
           created_at: string | null
-          description: string | null
           equipment_id: string | null
           id: string | null
           image_url: string | null
           is_public: boolean | null
-          name: string | null
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
@@ -5195,34 +5193,6 @@ export type Database = {
             | null
           name: string | null
           slug: string | null
-        }
-        Insert: {
-          complexity_score?: number | null
-          contraindications?: Json | null
-          exercise_skill_level?:
-            | Database["public"]["Enums"]["exercise_skill_level"]
-            | null
-          id?: string | null
-          is_safe_for_user?: never
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
-          name?: string | null
-          slug?: string | null
-        }
-        Update: {
-          complexity_score?: number | null
-          contraindications?: Json | null
-          exercise_skill_level?:
-            | Database["public"]["Enums"]["exercise_skill_level"]
-            | null
-          id?: string | null
-          is_safe_for_user?: never
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
-          name?: string | null
-          slug?: string | null
         }
         Relationships: []
       }
