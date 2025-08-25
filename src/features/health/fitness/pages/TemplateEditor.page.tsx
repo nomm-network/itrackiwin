@@ -211,10 +211,20 @@ const TemplateEditor: React.FC = () => {
           primary_muscle_id,
           body_part_id,
           popularity_rank,
-          exercises_translations!inner(name, description)
+          exercises_translations!inner(name, description),
+          muscles!inner(
+            id,
+            muscles_translations!inner(name),
+            muscle_groups!inner(
+              id,
+              muscle_groups_translations!inner(name)
+            )
+          )
         `)
         .eq('is_public', true)
         .eq('exercises_translations.language_code', 'en')
+        .eq('muscles.muscles_translations.language_code', 'en')
+        .eq('muscles.muscle_groups.muscle_groups_translations.language_code', 'en')
         .limit(50);
 
       // Apply filters
@@ -240,15 +250,22 @@ const TemplateEditor: React.FC = () => {
             name: (item.exercises_translations as any)[0]?.name || '',
             description: (item.exercises_translations as any)[0]?.description || ''
           }
-        }
+        },
+        muscle_name: (item.muscles as any)?.muscles_translations?.[0]?.name || '',
+        muscle_group_name: (item.muscles as any)?.muscle_groups?.muscle_groups_translations?.[0]?.name || ''
       }));
       
       // Client-side filtering for search if we have a search query
       if (searchQuery.length >= 2) {
         const searchLower = searchQuery.toLowerCase();
         results = results.filter(exercise => {
-          const name = getTranslatedNameFromData(exercise.translations);
-          return name && name.toLowerCase().includes(searchLower);
+          const exerciseName = getTranslatedNameFromData(exercise.translations);
+          const muscleName = exercise.muscle_name;
+          const muscleGroupName = exercise.muscle_group_name;
+          
+          return (exerciseName && exerciseName.toLowerCase().includes(searchLower)) ||
+                 (muscleName && muscleName.toLowerCase().includes(searchLower)) ||
+                 (muscleGroupName && muscleGroupName.toLowerCase().includes(searchLower));
         });
       }
       
