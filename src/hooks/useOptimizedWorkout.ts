@@ -41,8 +41,14 @@ export const useWorkoutOpen = (workoutId?: string) => {
         throw new Error('Workout not found');
       }
       
-      console.log('✅ [useWorkoutOpen] Workout loaded successfully');
-      return data;
+      // Transform the data to match expected structure
+      const transformedData = {
+        ...data,
+        exercises: data.workout_exercises || []
+      };
+      
+      console.log('✅ [useWorkoutOpen] Workout loaded successfully', transformedData);
+      return transformedData;
     },
     staleTime: 60_000,
   });
