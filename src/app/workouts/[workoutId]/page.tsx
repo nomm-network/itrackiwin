@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { useGetWorkout } from '@/features/workouts';
-import EnhancedWorkoutSession from '@/features/workouts/components/EnhancedWorkoutSession';
+import { useGetWorkout } from '@/features/workouts/hooks';
+import { EnhancedWorkoutSession } from '@/features/workouts/components';
 
 export default function WorkoutPage() {
   const { workoutId } = useParams<{ workoutId: string }>();
