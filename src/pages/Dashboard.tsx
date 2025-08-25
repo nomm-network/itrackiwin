@@ -74,20 +74,20 @@ const Dashboard: React.FC = () => {
   return (
     <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="flex items-center justify-between gap-3">
-        <div>
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <p className="text-sm sm:text-base text-muted-foreground">
-            Track your progress across all areas of life.
-          </p>
+          <Button 
+            variant="outline" 
+            onClick={() => navigate('/explore')}
+            className="text-sm"
+          >
+            Explore by Planets
+          </Button>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => navigate('/explore')}
-          className="text-sm"
-        >
-          Explore by Planets
-        </Button>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Track your progress across all areas of life.
+        </p>
       </div>
 
       {/* Category Navigation */}
