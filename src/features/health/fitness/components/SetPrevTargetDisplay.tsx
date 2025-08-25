@@ -1,7 +1,7 @@
+import React from 'react';
 import { Feel, FEEL_OPTIONS } from '../lib/feelToRpe';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { useLastSet } from '../hooks/useLastSet';
-import { Button } from '@/components/ui/button';
 
 interface SetPrevTargetDisplayProps {
   userId?: string;
@@ -36,26 +36,37 @@ export function SetPrevTargetDisplay({
 }: SetPrevTargetDisplayProps) {
   const { data: last, isLoading } = useLastSet(userId, exerciseId, setIndex);
 
-  // Decide the 🎯 target (simple example; plug your smarter logic here)
-  const target = (() => {
+  // Calculate intelligent target using the progressive system
+  const target = React.useMemo(() => {
     if (!last) {
       return {
         weight: templateTargetWeight ?? 0,
         reps: templateTargetReps ?? 10,
-        source: 'auto',
       };
     }
-    // naive example: if last reps >= template reps, add a small bump
-    const shouldBump = (last.reps ?? 0) >= (templateTargetReps ?? 10);
-    return {
-      weight: (last.weight ?? 0) + (shouldBump ? 2.5 : 0),
-      reps: templateTargetReps ?? (last.reps ?? 10),
-      source: 'bro',
-    };
-  })();
+    
+    // Parse feel from previous set
+    const lastFeel = parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe);
+    
+    // Use the progressive target suggestion system
+    const suggestion = suggestTarget({
+      lastWeight: last.weight,
+      lastReps: last.reps,
+      feel: lastFeel,
+      templateTargetReps,
+      templateTargetWeight,
+      stepKg: 2.5
+    });
+    
+    return suggestion;
+  }, [last, templateTargetReps, templateTargetWeight]);
 
-  // Optionally push to inputs once (the parent can call setCurrentSetData)
-  // useEffect(() => onApplyTarget?.(target.weight, target.reps), [target.weight, target.reps]);
+  // Auto-apply target values when they change
+  React.useEffect(() => {
+    if (onApplyTarget && target.weight > 0) {
+      onApplyTarget(target.weight, target.reps);
+    }
+  }, [target.weight, target.reps, onApplyTarget]);
 
   return (
     <div className="mb-3 rounded-lg border p-3 bg-muted/30">
@@ -63,17 +74,22 @@ export function SetPrevTargetDisplay({
         <div>Loading…</div>
       ) : (
         <>
-          <div className="flex items-center gap-2 text-sm">
-            <span>📜</span>
-            {!last ? (
-              <span>No previous data</span>
-            ) : (
-              <span>
-                Prev&nbsp;
-                <strong>
-                  {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}
-                </strong>
-                &nbsp;on&nbsp;
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <span>📜</span>
+              {!last ? (
+                <span>No previous data</span>
+              ) : (
+                <span>
+                  Prev&nbsp;
+                  <strong>
+                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}
+                  </strong>
+                </span>
+              )}
+            </div>
+            {last && (
+              <span className="text-muted-foreground text-xs">
                 {new Date(last.completed_at).toLocaleDateString()}
               </span>
             )}
@@ -85,20 +101,7 @@ export function SetPrevTargetDisplay({
               <strong>
                 {target.weight.toFixed(0)}kg × {target.reps}
               </strong>
-              &nbsp;<span className="text-muted-foreground">({target.source})</span>
             </span>
-            {onApplyTarget && (
-              <Button
-                variant="ghost"
-                size="sm"
-                className="ml-auto text-xs h-auto py-1 px-2"
-                onClick={() => {
-                  if (last) onApplyTarget(last.weight ?? 0, last.reps ?? 0);
-                }}
-              >
-                Use Previous ({(last?.weight ?? 0).toFixed(0)}kg × {last?.reps ?? 0})
-              </Button>
-            )}
           </div>
         </>
       )}
