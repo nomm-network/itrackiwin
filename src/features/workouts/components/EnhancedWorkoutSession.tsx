@@ -25,6 +25,7 @@ import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSel
 import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor';
 import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
 import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
+import { DefaultSetsManager } from './DefaultSetsManager';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
 import { useLogSet } from '../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
@@ -337,25 +338,33 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     </p>
                     
                     {/* Use actual grip data from database */}
-                    <div className="grid grid-cols-2 gap-2">
-                      {grips.map((grip) => (
-                        <Button
-                          key={grip.id}
-                          variant={selectedGrips[currentExercise.id]?.includes(grip.name) ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => {
-                            setSelectedGrips(prev => {
-                              const current = prev[currentExercise.id] || [];
-                              const updated = current.includes(grip.name)
-                                ? current.filter(g => g !== grip.name)
-                                : [...current, grip.name];
-                              return { ...prev, [currentExercise.id]: updated };
-                            });
-                          }}
-                        >
-                          {grip.name}
-                        </Button>
-                      ))}
+                     <div className="grid grid-cols-2 gap-2">
+                       {grips.length === 0 ? (
+                         <div className="col-span-2 text-center text-sm text-muted-foreground py-4">
+                           Loading grips...
+                           <div className="text-xs mt-1">Database has {grips.length} grips</div>
+                           <div className="text-xs">Try refreshing if this persists</div>
+                        </div>
+                      ) : (
+                        grips.map((grip) => (
+                          <Button
+                            key={grip.id}
+                            variant={selectedGrips[currentExercise.id]?.includes(grip.name) ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              setSelectedGrips(prev => {
+                                const current = prev[currentExercise.id] || [];
+                                const updated = current.includes(grip.name)
+                                  ? current.filter(g => g !== grip.name)
+                                  : [...current, grip.name];
+                                return { ...prev, [currentExercise.id]: updated };
+                              });
+                            }}
+                          >
+                            {grip.name}
+                          </Button>
+                        ))
+                      )}
                     </div>
                     
                     {selectedGrips[currentExercise.id]?.length > 0 && (
@@ -373,6 +382,21 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   </div>
                 </CollapsibleContent>
               </Collapsible>
+
+              {/* Default Sets Manager - Bro's Recommendations */}
+              <DefaultSetsManager
+                exerciseId={currentExercise.id}
+                currentSets={targetSetsCount}
+                onSetsChange={(newSets) => {
+                  // This would ideally update the workout template or add/remove sets
+                  console.log('Bro recommends changing sets to:', newSets);
+                  toast.info(`Bro suggests ${newSets} sets for this exercise`);
+                }}
+                onApplyDefaults={(sets, reps) => {
+                  toast.success(`Applied Bro's recommendation: ${sets} sets × ${reps} reps`);
+                  console.log('Applied defaults:', { sets, reps });
+                }}
+              />
               
               {/* Sets Display */}
               <div className="space-y-3 mb-4">
