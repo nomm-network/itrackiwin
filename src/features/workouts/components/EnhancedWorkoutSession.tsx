@@ -106,7 +106,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   }, [workout?.exercises, gym]);
 
   const handleSetComplete = (workoutExerciseId: string, setData: any) => {
-    console.log('Logging set:', { workoutExerciseId, setData });
+    console.log('=== SET LOGGING DEBUG ===');
+    console.log('Current Exercise Object:', currentExercise);
+    console.log('Workout Exercise ID being passed:', workoutExerciseId);
+    console.log('Set Data:', setData);
+    console.log('Type of workoutExerciseId:', typeof workoutExerciseId);
     
     const exerciseGrips = selectedGrips[workoutExerciseId] || [];
     
@@ -124,7 +128,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes = notes ? `${notes}. Pain reported` : 'Pain reported';
     }
     
-    logSet({
+    const payload = {
       workout_exercise_id: workoutExerciseId,
       weight: setData.weight || 0,
       reps: setData.reps || 0,
@@ -132,7 +136,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes: notes,
       is_completed: true,
       grip_ids: gripIds
-    }, {
+    };
+    
+    console.log('Payload being sent to set_log:', payload);
+    console.log('Payload JSON:', JSON.stringify(payload));
+    
+    logSet(payload, {
       onSuccess: (data) => {
         console.log('Set logged successfully:', data);
         // Reset form for next set
@@ -158,7 +167,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   const handleSaveSet = () => {
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      handleSetComplete(currentExercise.id, currentSetData); // This should be the workout_exercise_id
+      handleSetComplete(currentExercise.workout_exercise_id || currentExercise.id, currentSetData);
     } else {
       toast.error('Please enter weight or reps');
     }
