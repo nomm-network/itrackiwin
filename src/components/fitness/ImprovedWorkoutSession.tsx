@@ -60,6 +60,8 @@ export default function ImprovedWorkoutSession({
   const [showGripsDialog, setShowGripsDialog] = useState(false);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
+  const [showWarmupDialog, setShowWarmupDialog] = useState(false);
+  const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
   const [currentSetData, setCurrentSetData] = useState<SetData>({
     weight: 0,
     reps: 0,
@@ -142,6 +144,12 @@ export default function ImprovedWorkoutSession({
 
   // Auto-advance to next set when current set is completed
   const handleSetSubmit = useCallback(() => {
+    // Check if warmup feedback is required (for first set)
+    if (currentSetNumber === 1 && !warmupFeedback) {
+      alert('Please pick a warmup feedback choice before logging your first set.');
+      return;
+    }
+    
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
       // Calculate RPE from Feel automatically
       const rpe = currentSetData.feel ? FEEL_TO_RPE[currentSetData.feel] : 8;
@@ -202,7 +210,15 @@ export default function ImprovedWorkoutSession({
             className="h-8 w-8 p-0"
             onClick={() => setShowSetsDialog(true)}
           >
-            <Target className="h-4 w-4" />
+            🔢
+          </Button>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            className="h-8 w-8 p-0"
+            onClick={() => setShowWarmupDialog(true)}
+          >
+            🤸
           </Button>
         </div>
         <Badge variant="secondary">
@@ -222,7 +238,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                {set.weight}{unit} × {set.reps} reps
+                📜 {set.weight}{unit} × {set.reps} reps{set.feel ? ` ${set.feel}` : ''}
               </span>
               {set.rpe && (
                 <Badge variant="secondary" className="text-xs">
@@ -285,8 +301,12 @@ export default function ImprovedWorkoutSession({
                 </Button>
                 <Input
                   type="number"
+                  step="0.01"
                   value={currentSetData.weight || ''}
-                  onChange={(e) => setCurrentSetData(prev => ({ ...prev, weight: Number(e.target.value) }))}
+                  onChange={(e) => {
+                    const value = Math.round(Number(e.target.value) * 100) / 100; // 2 decimals max
+                    setCurrentSetData(prev => ({ ...prev, weight: value }));
+                  }}
                   onKeyPress={handleKeyPress}
                   className="text-center text-lg font-semibold"
                   placeholder="0"
@@ -316,8 +336,12 @@ export default function ImprovedWorkoutSession({
                 </Button>
                 <Input
                   type="number"
+                  step="1"
                   value={currentSetData.reps || ''}
-                  onChange={(e) => setCurrentSetData(prev => ({ ...prev, reps: Number(e.target.value) }))}
+                  onChange={(e) => {
+                    const value = Math.round(Number(e.target.value)); // No decimals
+                    setCurrentSetData(prev => ({ ...prev, reps: value }));
+                  }}
                   onKeyPress={handleKeyPress}
                   className="text-center text-lg font-semibold"
                   placeholder="0"
@@ -336,7 +360,7 @@ export default function ImprovedWorkoutSession({
             {/* Feel Selector */}
             <div className="space-y-2">
               <label className="text-sm font-medium">How did that feel?</label>
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1">
                 {FEEL_OPTIONS.map((option) => (
                   <Button
                     key={option.value}
@@ -344,12 +368,12 @@ export default function ImprovedWorkoutSession({
                     size="sm"
                     onClick={() => setCurrentSetData(prev => ({ ...prev, feel: option.value }))}
                     className={`
-                      flex flex-col items-center p-2 h-auto aspect-square
+                      flex flex-col items-center p-1 h-auto aspect-square
                       ${currentSetData.feel === option.value ? option.color + ' text-white' : ''}
                     `}
                   >
-                    <span className="text-lg">{option.emoji}</span>
-                    <span className="text-xs mt-1">{option.value}</span>
+                    <span className="text-sm">{option.emoji}</span>
+                    <span className="text-xs">{option.value}</span>
                   </Button>
                 ))}
               </div>
@@ -507,6 +531,52 @@ export default function ImprovedWorkoutSession({
             <Button onClick={() => setShowSetsDialog(false)} className="w-full">
               Save Configuration
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Warmup Feedback Dialog */}
+      <Dialog open={showWarmupDialog} onOpenChange={setShowWarmupDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Warmup Feedback</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 p-4">
+            <p className="text-sm text-muted-foreground">
+              How was the warm-up for this exercise?
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                variant={warmupFeedback === 'not_enough' ? 'default' : 'outline'}
+                onClick={() => {
+                  setWarmupFeedback('not_enough');
+                  setShowWarmupDialog(false);
+                }}
+              >
+                🥶 Not enough
+              </Button>
+              <Button
+                size="sm"
+                variant={warmupFeedback === 'excellent' ? 'default' : 'outline'}
+                onClick={() => {
+                  setWarmupFeedback('excellent');
+                  setShowWarmupDialog(false);
+                }}
+              >
+                🔥 Excellent
+              </Button>
+              <Button
+                size="sm"
+                variant={warmupFeedback === 'too_much' ? 'default' : 'outline'}
+                onClick={() => {
+                  setWarmupFeedback('too_much');
+                  setShowWarmupDialog(false);
+                }}
+              >
+                🥵 Too much
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>

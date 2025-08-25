@@ -79,19 +79,13 @@ export function WarmupBlock({
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
           <CardTitle className="text-sm">Warm‑up</CardTitle>
-          <Collapsible open={open} onOpenChange={setOpen}>
-            <CollapsibleTrigger asChild>
-              <Button variant="ghost" size="sm">{open ? 'Hide' : 'Show'}</Button>
-            </CollapsibleTrigger>
-          </Collapsible>
         </div>
         <div className="text-xs text-muted-foreground">
           Strategy: {plan.strategy} • est. {Math.round(totalWarmupTime/60)} min
         </div>
       </CardHeader>
 
-      <Collapsible open={open} onOpenChange={setOpen}>
-        <CollapsibleContent>
+      <div>
           <CardContent className="space-y-3">
 
             {/* Plan preview */}
@@ -130,8 +124,7 @@ export function WarmupBlock({
               </div>
             </div>
           </CardContent>
-        </CollapsibleContent>
-      </Collapsible>
+      </div>
     </Card>
   );
 }

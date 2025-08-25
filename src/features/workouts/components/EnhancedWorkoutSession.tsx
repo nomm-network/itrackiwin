@@ -428,13 +428,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             <Badge variant="secondary">
               {currentExerciseIndex + 1}/{workout?.exercises?.length || 0}
             </Badge>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowWarmupEditor(true)}
-            >
-              Warmup
-            </Button>
           </div>
         </div>
       </div>
@@ -524,8 +517,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       </div>
 
       {/* Floating Complete Workout Button */}
-      {allExercisesComplete && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
+      {/* Fixed buttons at bottom */}
+      <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto space-y-2">
+        {allExercisesComplete && (
           <Button
             onClick={handleWorkoutComplete}
             className="w-full"
@@ -533,8 +527,16 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           >
             Complete Workout
           </Button>
-        </div>
-      )}
+        )}
+        <Button
+          onClick={() => navigate('/dashboard')}
+          variant="destructive"
+          className="w-full"
+          size="lg"
+        >
+          Abort Workout
+        </Button>
+      </div>
 
       {/* Warmup Editor Dialog */}
       <Dialog open={showWarmupEditor} onOpenChange={setShowWarmupEditor}>
