@@ -2,19 +2,32 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
 // Hook for opening workout with all data in one call
-export const useWorkoutOpen = (workoutId: string) => {
+export const useWorkoutOpen = (workoutId?: string) => {
   return useQuery({
-    queryKey: ['workout-open', workoutId],
+    queryKey: ['workout', workoutId],
+    enabled: Boolean(workoutId),               // don't fire until we have the id
     queryFn: async () => {
-      const { data, error } = await supabase.rpc('workout_open', {
-        p_workout_id: workoutId
-      });
-      
+      const { data, error } = await supabase
+        .from('workouts')
+        .select(`
+          id, user_id, started_at, ended_at, title, notes,
+          workout_exercises:workout_exercises (
+            id, workout_id, exercise_id, order_index, notes,
+            exercises (
+              id, owner_user_id, image_url, equipment_id,
+              primary_muscle_id, movement_pattern, loading_hint
+            ),
+            sets:workout_sets (*)
+          )
+        `)
+        .eq('id', workoutId)
+        .maybeSingle();                        // <- important
+
       if (error) throw error;
+      if (!data) throw new Error('NOT_FOUND'); // surface a clear state
       return data;
     },
-    enabled: !!workoutId,
-    staleTime: 30000, // 30 seconds
+    staleTime: 60000, // 60 seconds
   });
 };
 

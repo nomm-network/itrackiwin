@@ -6,6 +6,7 @@ import { Play, Clock, Target, Zap } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
 import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
+import { useActiveWorkout } from '@/features/workouts/hooks';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
 import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
@@ -18,28 +19,20 @@ const FitnessQuickStart: React.FC = () => {
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
   const startQuickWorkout = useStartQuickWorkout();
   
-  // Check if there's an active workout (started but not ended)
-  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
-
+  // Use direct active workout query instead of relying on recentWorkouts list
+  const { data: activeWorkout } = useActiveWorkout();
+  
   // Debug logging
-  console.log('🔍 FitnessQuickStart DEBUG:', {
-    recentWorkouts,
-    activeWorkout,
-    activeWorkoutId: activeWorkout?.id,
-    hasActiveWorkout: !!activeWorkout
-  });
+  console.log('[FitnessQuickStart] activeWorkout:', activeWorkout);
+  console.log('[FitnessQuickStart] recentWorkouts:', recentWorkouts);
 
   const handleStartWorkout = async () => {
     if (!checkAndRedirect('start a workout')) return;
     
-    console.log('🚀 handleStartWorkout called:', {
-      activeWorkout,
-      activeWorkoutId: activeWorkout?.id,
-      targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : 'template dialog'
-    });
+    console.log('[FitnessQuickStart] handleStartWorkout called with activeWorkout:', activeWorkout);
     
     if (activeWorkout) {
-      console.log('🎯 Navigating to existing workout:', `/app/workouts/${activeWorkout.id}`);
+      console.log('[FitnessQuickStart] Navigating to existing workout:', `/app/workouts/${activeWorkout.id}`);
       navigate(`/app/workouts/${activeWorkout.id}`);
       return;
     }

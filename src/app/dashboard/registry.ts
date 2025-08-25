@@ -1,7 +1,7 @@
 import React from 'react';
 import type { DashboardWidget, QuickAction } from './types';
 import { Play, Target, Calendar, Settings, Repeat } from 'lucide-react';
-import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
+import { useActiveWorkout } from '@/features/workouts/hooks';
 
 // Fitness widgets - lazy loaded for performance
 const FitnessQuickStart = React.lazy(() => import('@/features/health/fitness/ui/widgets/FitnessQuickStart'));
@@ -44,23 +44,17 @@ export const widgets: DashboardWidget[] = [
 
 // Dynamic quick actions that depend on data
 const DynamicFitnessStartAction = () => {
-  const { data: recentWorkouts } = useRecentWorkouts(5);
-  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
+  const { data: activeWorkout } = useActiveWorkout();
   
-  console.log('🔍 DynamicFitnessStartAction DEBUG:', {
-    recentWorkouts,
-    activeWorkout,
-    activeWorkoutId: activeWorkout?.id,
-    targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
-  });
+  console.log('[DynamicFitnessStartAction] activeWorkout:', activeWorkout);
   
   return {
     id: 'fitness.start',
     label: activeWorkout ? 'Continue Workout' : 'Start Workout',
     icon: React.createElement(Play, { className: 'h-4 w-4' }),
-    category: 'health',
-    subcategory: 'fitness',
-    onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined,
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // fitness
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness
+    onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : '/app/workouts/start-quick',
     order: 1
   };
 };
@@ -128,34 +122,24 @@ export const getQuickActionsByCategory = (category: string, subcategory?: string
     .sort((a, b) => (a.order || 0) - (b.order || 0));
 };
 
-export const useDynamicQuickActions = (category: string, subcategory?: string) => {
-  const { data: recentWorkouts } = useRecentWorkouts(5);
-  const activeWorkout = recentWorkouts?.find(workout => workout.started_at && !workout.ended_at);
+export const useDynamicQuickActions = (category: string, subcategory?: string): QuickAction[] => {
+  const dynamicAction = DynamicFitnessStartAction();
   
-  const dynamicActions = React.useMemo(() => {
-    const baseActions = getQuickActionsByCategory(category, subcategory);
-    
-    if (category === 'b54c368d-cd4f-4276-aa82-668da614e50d' && subcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247') {
-      console.log('🔍 useDynamicQuickActions FITNESS DEBUG:', {
-        activeWorkout,
-        activeWorkoutId: activeWorkout?.id,
-        targetPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
-      });
-      
-      return baseActions.map(action => {
-        if (action.id === 'fitness.start') {
-          return {
-            ...action,
-            label: activeWorkout ? 'Continue Workout' : 'Start Workout',
-            onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
-          };
-        }
-        return action;
-      });
-    }
-    
-    return baseActions;
-  }, [category, subcategory, activeWorkout]);
+  const baseActions = getQuickActionsByCategory(category, subcategory);
   
-  return dynamicActions;
+  if (category === 'b54c368d-cd4f-4276-aa82-668da614e50d' && subcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247') {
+    console.log('[useDynamicQuickActions] dynamicAction:', dynamicAction);
+    
+    return baseActions.map(action => {
+      if (action.id === 'fitness.start') {
+        return {
+          ...action,
+          ...dynamicAction,
+        };
+      }
+      return action;
+    });
+  }
+  
+  return baseActions;
 };

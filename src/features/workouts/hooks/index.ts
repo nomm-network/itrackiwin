@@ -7,3 +7,6 @@ export { useUserPR } from '../../../hooks/useOptimizedWorkout';
 
 // Export the main start workout hook from standalone file
 export { useStartQuickWorkout } from './useStartQuickWorkout';
+
+// Export active workout hook
+export { useActiveWorkout } from './useActiveWorkout';
