@@ -652,10 +652,11 @@ const AdminExercisesManagement: React.FC = () => {
               </div>
               
               <Select value={selectedBodyPart} onValueChange={setSelectedBodyPart}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border z-50">
                   <SelectValue placeholder="Body Part" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="">All Body Parts</SelectItem>
                   {bodyParts.map((bp) => (
                     <SelectItem key={bp.id} value={bp.id}>
                       {bp.name}
@@ -665,10 +666,11 @@ const AdminExercisesManagement: React.FC = () => {
               </Select>
 
               <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border z-50">
                   <SelectValue placeholder="Muscle Group" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="">All Muscle Groups</SelectItem>
                   {filteredMuscleGroups.map((mg) => (
                     <SelectItem key={mg.id} value={mg.id}>
                       {mg.name}
@@ -678,10 +680,11 @@ const AdminExercisesManagement: React.FC = () => {
               </Select>
 
               <Select value={selectedMuscle} onValueChange={setSelectedMuscle}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border z-50">
                   <SelectValue placeholder="Muscle" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="">All Muscles</SelectItem>
                   {filteredMuscles.map((muscle) => (
                     <SelectItem key={muscle.id} value={muscle.id}>
                       {muscle.name}
@@ -691,10 +694,11 @@ const AdminExercisesManagement: React.FC = () => {
               </Select>
 
               <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
-                <SelectTrigger>
+                <SelectTrigger className="bg-background border z-50">
                   <SelectValue placeholder="Equipment" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="">All Equipment</SelectItem>
                   {equipment.map((eq) => (
                     <SelectItem key={eq.id} value={eq.id}>
                       {getTranslatedName(eq)}
@@ -705,10 +709,11 @@ const AdminExercisesManagement: React.FC = () => {
 
               <div className="flex gap-2">
                 <Select value={isPublic} onValueChange={setIsPublic}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background border z-50">
                     <SelectValue placeholder="Visibility" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border z-50">
+                    <SelectItem value="">All</SelectItem>
                     <SelectItem value="true">Public</SelectItem>
                     <SelectItem value="false">Private</SelectItem>
                   </SelectContent>
