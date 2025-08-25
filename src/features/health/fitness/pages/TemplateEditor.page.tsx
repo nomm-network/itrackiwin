@@ -204,42 +204,125 @@ const TemplateEditor: React.FC = () => {
         return [];
       }
 
-      // Use the existing view that has translations
-      let query = supabase
-        .from('v_exercises_with_translations')
-        .select('*')
+      // Simple query that gets exercises with basic info
+      const { data: exerciseData, error: exerciseError } = await supabase
+        .from('exercises')
+        .select('id, primary_muscle_id, body_part_id, popularity_rank, is_public')
         .eq('is_public', true)
-        .limit(50);
+        .limit(100);
 
-      // Apply filters
+      if (exerciseError) {
+        console.error('Error fetching exercises:', exerciseError);
+        throw exerciseError;
+      }
+
+      // Get translations separately
+      const exerciseIds = exerciseData?.map(e => e.id) || [];
+      if (exerciseIds.length === 0) return [];
+
+      const { data: translationData, error: translationError } = await supabase
+        .from('exercises_translations')
+        .select('exercise_id, name, description, language_code')
+        .in('exercise_id', exerciseIds)
+        .eq('language_code', 'en');
+
+      if (translationError) {
+        console.error('Error fetching translations:', translationError);
+        // Continue without translations rather than failing
+      }
+
+      // Get muscle data for enhanced search
+      const { data: muscleData } = await supabase
+        .from('muscles')
+        .select(`
+          id,
+          muscles_translations!inner(name, language_code)
+        `)
+        .eq('muscles_translations.language_code', 'en');
+
+      const { data: muscleGroupData } = await supabase
+        .from('muscle_groups')
+        .select(`
+          id,
+          muscle_groups_translations!inner(name, language_code)
+        `)
+        .eq('muscle_groups_translations.language_code', 'en');
+
+      // Create lookup maps
+      const translationMap = new Map();
+      translationData?.forEach(t => {
+        translationMap.set(t.exercise_id, { name: t.name, description: t.description });
+      });
+
+      const muscleMap = new Map();
+      muscleData?.forEach(m => {
+        const translation = (m.muscles_translations as any[])?.[0];
+        if (translation) {
+          muscleMap.set(m.id, translation.name);
+        }
+      });
+
+      const muscleGroupMap = new Map();
+      muscleGroupData?.forEach(mg => {
+        const translation = (mg.muscle_groups_translations as any[])?.[0];
+        if (translation) {
+          muscleGroupMap.set(mg.id, translation.name);
+        }
+      });
+
+      // Get muscle group IDs for muscles
+      const { data: muscleRelations } = await supabase
+        .from('muscles')
+        .select('id, muscle_group_id');
+
+      const muscleToGroupMap = new Map();
+      muscleRelations?.forEach(m => {
+        muscleToGroupMap.set(m.id, m.muscle_group_id);
+      });
+
+      let results = (exerciseData || []).map(item => {
+        const translation = translationMap.get(item.id) || { name: '', description: '' };
+        const muscleName = muscleMap.get(item.primary_muscle_id) || '';
+        const muscleGroupId = muscleToGroupMap.get(item.primary_muscle_id);
+        const muscleGroupName = muscleGroupId ? muscleGroupMap.get(muscleGroupId) || '' : '';
+
+        return {
+          id: item.id,
+          primary_muscle_id: item.primary_muscle_id,
+          body_part_id: item.body_part_id,
+          popularity_rank: item.popularity_rank,
+          translations: {
+            en: {
+              name: translation.name,
+              description: translation.description
+            }
+          },
+          muscle_name: muscleName,
+          muscle_group_name: muscleGroupName
+        };
+      });
+
+      // Apply dropdown filters first
       if (selectedMuscle && selectedMuscle !== "all") {
-        query = query.eq('primary_muscle_id', selectedMuscle);
+        results = results.filter(exercise => exercise.primary_muscle_id === selectedMuscle);
       } else if (selectedBodyPart && selectedBodyPart !== "all") {
-        query = query.eq('body_part_id', selectedBodyPart);
+        results = results.filter(exercise => exercise.body_part_id === selectedBodyPart);
       }
-
-      const { data, error } = await query;
-      if (error) {
-        console.error('Error fetching exercises:', error);
-        throw error;
-      }
-      
-      let results = (data || []).map(item => ({
-        id: item.id,
-        primary_muscle_id: item.primary_muscle_id,
-        body_part_id: item.body_part_id,
-        popularity_rank: item.popularity_rank,
-        translations: item.translations || {}
-      }));
       
       // Client-side filtering for search if we have a search query
       if (searchQuery.length >= 2) {
         const searchLower = searchQuery.toLowerCase();
         results = results.filter(exercise => {
-          const exerciseName = getTranslatedNameFromData(exercise.translations);
+          const exerciseName = exercise.translations.en.name;
           
-          // For now, just search by exercise name until we get muscle data properly
-          return exerciseName && exerciseName.toLowerCase().includes(searchLower);
+          // Search in exercise name, muscle name, and muscle group name
+          const searchableText = [
+            exerciseName,
+            exercise.muscle_name,
+            exercise.muscle_group_name
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return searchableText.includes(searchLower);
         });
       }
       
