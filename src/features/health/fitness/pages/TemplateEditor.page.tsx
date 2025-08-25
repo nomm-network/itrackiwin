@@ -36,6 +36,9 @@ interface Exercise {
   translations: any;
   primary_muscle_id?: string;
   body_part_id?: string;
+  muscle_name?: string;
+  muscle_group_name?: string;
+  popularity_rank?: number;
 }
 
 interface ExerciseGripEditor {
@@ -711,12 +714,18 @@ const TemplateEditor: React.FC = () => {
                 <h4 className="font-medium">Available Exercises</h4>
                 <div className="grid gap-2 max-h-96 overflow-y-auto">
                   {exercises.map((exercise) => (
-                    <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h5 className="font-medium">
-                          {getTranslatedNameFromData(exercise.translations) || getExerciseNameFromTranslations(exercise.translations) || 'Unknown Exercise'}
-                        </h5>
-                      </div>
+                     <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
+                       <div>
+                         <h5 className="font-medium">
+                           {getTranslatedNameFromData(exercise.translations) || getExerciseNameFromTranslations(exercise.translations) || 'Unknown Exercise'}
+                         </h5>
+                         <p className="text-xs text-muted-foreground">
+                           {exercise.muscle_group_name && exercise.muscle_name 
+                             ? `${exercise.muscle_group_name} > ${exercise.muscle_name}`
+                             : exercise.muscle_group_name || exercise.muscle_name || 'Unknown muscle'
+                           }
+                         </p>
+                       </div>
                       <Button
                         variant="outline"
                         size="sm"
