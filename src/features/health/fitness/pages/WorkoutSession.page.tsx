@@ -294,6 +294,17 @@ const WorkoutSession: React.FC = () => {
   const isNewWorkout = (loggedCount ?? 0) === 0;
   const needsReadiness = !checkin && isNewWorkout;
   
+  // DEBUG: Log the readiness check logic
+  console.log('🔍 READINESS DEBUG:', {
+    workoutId: id,
+    checkin,
+    loggedCount,
+    isNewWorkout,
+    needsReadiness,
+    isChecking,
+    isCheckingSets
+  });
+  
   // Gate UI until we know both pieces of info
   const stillLoading = isChecking || isCheckingSets;
 
@@ -308,7 +319,9 @@ const WorkoutSession: React.FC = () => {
   }
 
   // Show readiness check if needed
+  console.log('🚨 READINESS CHECK DECISION:', needsReadiness);
   if (needsReadiness) {
+    console.log('🎯 RENDERING READINESS CHECK');
     return (
       <>
         <PageNav current="Pre-Workout Check" />
@@ -321,7 +334,9 @@ const WorkoutSession: React.FC = () => {
       </>
     );
   }
-  
+
+  // DEBUG: Log when we reach main workout view
+  console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
   return (
     <>
@@ -582,13 +597,13 @@ const WorkoutSession: React.FC = () => {
             <AlertDialog open={showAbortDialog} onOpenChange={setShowAbortDialog}>
               <AlertDialogTrigger asChild>
                 <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="w-full opacity-60 hover:opacity-100 text-destructive border-destructive/30 hover:border-destructive hover:bg-destructive/10"
+                  variant="destructive" 
+                  size="lg" 
+                  className="w-full h-12 opacity-70 hover:opacity-100 border border-destructive/50"
                   disabled={isDeletingWorkout}
                 >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Abort Workout
+                  <Trash2 className="h-5 w-5 mr-2" />
+                  {isDeletingWorkout ? "Deleting..." : "Abort Workout"}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
