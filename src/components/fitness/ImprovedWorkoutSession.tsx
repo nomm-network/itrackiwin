@@ -94,7 +94,7 @@ export default function ImprovedWorkoutSession({
         reps: target.reps
       }));
     }
-  }, [lastSetForTarget, currentSetData.weight, currentSetData.reps]);
+  }, [lastSetForTarget, currentSetData.weight, currentSetData.reps, templateTargetReps, templateTargetWeight]);
 
   // Debug logging
   React.useEffect(() => {
@@ -103,7 +103,11 @@ export default function ImprovedWorkoutSession({
       exerciseId,
       setIndex: currentSetNumber,
       templateTargetReps,
-      templateTargetWeight
+      templateTargetWeight,
+      userIdType: typeof userId,
+      exerciseIdType: typeof exerciseId,
+      hasUserId: !!userId,
+      hasExerciseId: !!exerciseId
     });
   }, [userId, exerciseId, currentSetNumber, templateTargetReps, templateTargetWeight]);
   const isLastSet = currentSetNumber > targetSets;
@@ -262,7 +266,7 @@ export default function ImprovedWorkoutSession({
               setIndex={currentSetNumber}
               templateTargetReps={templateTargetReps}
               templateTargetWeight={templateTargetWeight}
-              onUsePrevious={(weight, reps) => {
+              onApplyTarget={(weight, reps) => {
                 setCurrentSetData(prev => ({ ...prev, weight, reps }));
               }}
             />

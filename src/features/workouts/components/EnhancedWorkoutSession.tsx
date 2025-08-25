@@ -340,7 +340,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   completed_sets: sets.filter((set: any) => set.is_completed)
                 }}
                 userId={userId}
-                exerciseId={currentExercise?.exercise_id || currentExercise?.id}
+                exerciseId={currentExercise?.exercise_id}
                 templateTargetReps={currentExercise?.target_reps}
                 templateTargetWeight={currentExercise?.target_weight}
                 isLastExercise={currentExerciseIndex === totalExercises - 1}

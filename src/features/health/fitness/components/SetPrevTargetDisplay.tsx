@@ -6,10 +6,10 @@ import { Button } from '@/components/ui/button';
 interface SetPrevTargetDisplayProps {
   userId?: string;
   exerciseId?: string;
-  setIndex: number;
+  setIndex?: number;
   templateTargetReps?: number;
   templateTargetWeight?: number;
-  onUsePrevious?: (weight: number, reps: number) => void;
+  onApplyTarget?: (w: number, r: number) => void;
 }
 
 function FeelBadge({ feel }: { feel?: Feel }) {
@@ -32,102 +32,76 @@ export function SetPrevTargetDisplay({
   setIndex,
   templateTargetReps,
   templateTargetWeight,
-  onUsePrevious
+  onApplyTarget,
 }: SetPrevTargetDisplayProps) {
-  const { data: lastSet, isLoading, error } = useLastSet(userId, exerciseId, setIndex);
-  
-  // Debug log with more detail
-  console.log('🎯 SetPrevTargetDisplay DEBUG:', { 
-    userId, 
-    exerciseId, 
-    setIndex, 
-    lastSet, 
-    isLoading, 
-    error,
-    templateTargetReps,
-    templateTargetWeight,
-    userIdValid: !!userId,
-    exerciseIdValid: !!exerciseId,
-    setIndexValid: Number.isFinite(setIndex)
-  });
+  const { data: last, isLoading } = useLastSet(userId, exerciseId, setIndex);
 
-  if (isLoading) {
-    return (
-      <div className="mb-3 rounded-md border bg-card/50 px-3 py-2 text-sm animate-pulse">
-        <div className="h-4 bg-muted rounded w-1/2 mb-2"></div>
-        <div className="h-4 bg-muted rounded w-1/3"></div>
-      </div>
-    );
-  }
+  // Decide the 🎯 target (simple example; plug your smarter logic here)
+  const target = (() => {
+    if (!last) {
+      return {
+        weight: templateTargetWeight ?? 0,
+        reps: templateTargetReps ?? 10,
+        source: 'auto',
+      };
+    }
+    // naive example: if last reps >= template reps, add a small bump
+    const shouldBump = (last.reps ?? 0) >= (templateTargetReps ?? 10);
+    return {
+      weight: (last.weight ?? 0) + (shouldBump ? 2.5 : 0),
+      reps: templateTargetReps ?? (last.reps ?? 10),
+      source: 'bro',
+    };
+  })();
 
-  // Parse feel from last set
-  const lastFeel = lastSet ? 
-    parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe) : 
-    undefined;
-
-  // Calculate target suggestion
-  const target = suggestTarget({
-    lastWeight: lastSet?.weight,
-    lastReps: lastSet?.reps,
-    feel: lastFeel,
-    templateTargetReps,
-    templateTargetWeight,
-    stepKg: 2.5 // TODO: Get from gym equipment config
-  });
+  // Optionally push to inputs once (the parent can call setCurrentSetData)
+  // useEffect(() => onApplyTarget?.(target.weight, target.reps), [target.weight, target.reps]);
 
   return (
-    <div className="mb-3 rounded-md border bg-card/50 px-3 py-2 text-sm">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <span className="opacity-70">📜 Prev</span>
-          {lastSet ? (
-            <>
-              <span className="tabular-nums font-medium">
-                {Number(lastSet.weight ?? 0)}kg × {lastSet.reps}
+    <div className="mb-3 rounded-lg border p-3 bg-muted/30">
+      {isLoading ? (
+        <div>Loading…</div>
+      ) : (
+        <>
+          <div className="flex items-center gap-2 text-sm">
+            <span>📜</span>
+            {!last ? (
+              <span>No previous data</span>
+            ) : (
+              <span>
+                Prev&nbsp;
+                <strong>
+                  {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}
+                </strong>
+                &nbsp;on&nbsp;
+                {new Date(last.completed_at).toLocaleDateString()}
               </span>
-              <FeelBadge feel={lastFeel} />
-            </>
-          ) : (
-            <span className="opacity-70">No previous data</span>
-          )}
-        </div>
-        {lastSet && onUsePrevious && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs h-auto p-1"
-            onClick={() => onUsePrevious(
-              Number(lastSet.weight ?? 0),
-              Number(lastSet.reps ?? 0)
             )}
-          >
-            Use previous
-          </Button>
-        )}
-      </div>
-
-      <div className="mt-1 flex items-center gap-2">
-        <span className="opacity-70">🎯 Target</span>
-        <span className="tabular-nums font-medium">
-          {Number(target.weight ?? 0)}kg × {Number(target.reps ?? 0)}
-        </span>
-        <span className="text-xs opacity-70">(auto)</span>
-        {target.weight > 0 && target.reps > 0 && onUsePrevious && (
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            className="text-xs h-auto p-1 ml-auto"
-            onClick={() => onUsePrevious(
-              Number(target.weight),
-              Number(target.reps)
+          </div>
+          <div className="mt-1 flex items-center gap-2 text-sm">
+            <span>🎯</span>
+            <span>
+              Target&nbsp;
+              <strong>
+                {target.weight.toFixed(0)}kg × {target.reps}
+              </strong>
+              &nbsp;<span className="text-muted-foreground">({target.source})</span>
+            </span>
+            {onApplyTarget && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="ml-auto text-xs h-auto py-1 px-2"
+                onClick={() => {
+                  if (last) onApplyTarget(last.weight ?? 0, last.reps ?? 0);
+                }}
+              >
+                Use Previous ({(last?.weight ?? 0).toFixed(0)}kg × {last?.reps ?? 0})
+              </Button>
             )}
-          >
-            Use target
-          </Button>
-        )}
-      </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
