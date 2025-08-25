@@ -28,7 +28,7 @@ const useSEO = () => {
 
 interface ExerciseRow {
   id: string;
-  name: string;
+  translations: any;
   owner_user_id: string | null;
   primary_muscle_id: string | null;
   secondary_muscle_group_ids: string[] | null;
@@ -66,9 +66,9 @@ const Exercises: React.FC = () => {
         setError(null);
         const [{ data, error }, u, bp, mg, m] = await Promise.all([
           supabase
-            .from('exercises')
-            .select('id,name,owner_user_id,primary_muscle_id,secondary_muscle_group_ids')
-            .order('name', { ascending: true })
+            .from('v_exercises_with_translations')
+            .select('id,translations,owner_user_id,primary_muscle_id,secondary_muscle_group_ids')
+            .order('popularity_rank', { ascending: false, nullsFirst: false })
             .limit(100),
           supabase.auth.getUser(),
           supabase.from('v_body_parts_with_translations').select('id, slug, translations'),
@@ -129,11 +129,17 @@ const Exercises: React.FC = () => {
     return map;
   }, [muscleGroups]);
 
+  const getExerciseName = (translations: any) => {
+    if (!translations) return 'Unknown Exercise';
+    return translations?.en?.name || translations?.ro?.name || 'Unknown Exercise';
+  };
+
   const matchesFilters = React.useCallback((r: ExerciseRow) => {
     // search
     if (query.trim()) {
       const q = query.trim().toLowerCase();
-      if (!r.name.toLowerCase().includes(q)) return false;
+      const exerciseName = getExerciseName(r.translations).toLowerCase();
+      if (!exerciseName.includes(q)) return false;
     }
     // ownership
     if (ownership === 'public' && r.owner_user_id !== null) return false;
@@ -298,7 +304,7 @@ const Exercises: React.FC = () => {
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium">{r.name}</span>
+                        <span className="font-medium">{getExerciseName(r.translations)}</span>
                         {r.owner_user_id ? (
                           <span className="text-xs text-muted-foreground bg-accent px-2 py-1 rounded">yours</span>
                         ) : (

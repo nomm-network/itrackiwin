@@ -10,17 +10,12 @@ export const exercisesApi = {
     const language = filters?.language || 'en';
     
     let query = supabase
-      .from('exercises')
-      .select(`
-        *,
-        primary_muscle:muscles(name),
-        equipment(name),
-        exercises_translations!inner(name, description)
-      `)
-      .eq('exercises_translations.language_code', language);
+      .from('v_exercises_with_translations')
+      .select('*');
 
     if (filters?.search) {
-      query = query.ilike('exercises_translations.name', `%${filters.search}%`);
+      // Search in translations data
+      query = query.or(`translations->>en->>name.ilike.%${filters.search}%,translations->>ro->>name.ilike.%${filters.search}%`);
     }
     if (filters?.muscleId) {
       query = query.eq('primary_muscle_id', filters.muscleId);
@@ -29,25 +24,16 @@ export const exercisesApi = {
       query = query.eq('equipment_id', filters.equipmentId);
     }
 
-    const { data, error } = await query.order('exercises_translations.name');
+    const { data, error } = await query.order('popularity_rank', { ascending: false, nullsFirst: false });
     if (error) throw error;
     return data;
   },
 
   async getExercise(exerciseId: string, language: string = 'en') {
     const { data, error } = await supabase
-      .from('exercises')
-      .select(`
-        *,
-        primary_muscle:muscles(name),
-        equipment(name),
-        exercises_translations!inner(name, description),
-        exercise_default_grips(
-          grip:grips(*)
-        )
-      `)
+      .from('v_exercises_with_translations')
+      .select('*')
       .eq('id', exerciseId)
-      .eq('exercises_translations.language_code', language)
       .single();
 
     if (error) throw error;

@@ -32,8 +32,7 @@ interface Muscle {
 
 interface Exercise {
   id: string;
-  name: string;
-  translations?: any;
+  translations: any;
   primary_muscle_id?: string;
   body_part_id?: string;
 }
@@ -63,7 +62,7 @@ const TemplateEditor: React.FC = () => {
       const exerciseIds = templateExercises.map(te => te.exercise_id);
       const { data, error } = await supabase
         .from('v_exercises_with_translations')
-        .select('id, name, translations')
+        .select('id, translations')
         .in('id', exerciseIds);
       
       if (error) {
@@ -159,13 +158,13 @@ const TemplateEditor: React.FC = () => {
 
       let query = supabase
         .from('v_exercises_with_translations')
-        .select('id, name, translations, primary_muscle_id, body_part_id')
+        .select('id, translations, primary_muscle_id, body_part_id')
         .eq('is_public', true)
         .order('popularity_rank', { ascending: false, nullsFirst: false })
         .limit(20);
 
       if (searchQuery.length >= 2) {
-        query = query.ilike('name', `%${searchQuery}%`);
+        query = query.or(`translations->>en->>name.ilike.%${searchQuery}%,translations->>ro->>name.ilike.%${searchQuery}%`);
       }
 
       if (selectedMuscle && selectedMuscle !== "all") {
@@ -203,9 +202,9 @@ const TemplateEditor: React.FC = () => {
     const exercise = templateExerciseDetails.find(e => e.id === exerciseId);
     if (!exercise) return `Exercise ${exerciseId}`;
     
-    // Try translations first, then fallback to name
+    // Get translated name from translations
     const translatedName = getTranslatedNameFromData(exercise.translations);
-    return translatedName || exercise.name || `Exercise ${exerciseId}`;
+    return translatedName || `Exercise ${exerciseId}`;
   };
 
   // Helper functions
