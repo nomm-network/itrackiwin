@@ -336,7 +336,6 @@ const WorkoutSession: React.FC = () => {
         <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
           <ReadinessCheckIn
             onSubmit={handleReadinessSubmit}
-            onSkip={handleSkipReadiness}
           />
         </main>
       </>

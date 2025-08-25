@@ -22,11 +22,10 @@ export interface ReadinessData {
 
 interface ReadinessCheckInProps {
   onSubmit: (data: ReadinessData) => void;
-  onSkip: () => void;
   isLoading?: boolean;
 }
 
-const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, onSkip, isLoading = false }) => {
+const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading = false }) => {
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ReadinessData>({
     defaultValues: {
       energy: 7,
@@ -173,17 +172,8 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, onSkip, i
 
           <div className="flex gap-3 pt-4">
             <Button
-              type="button"
-              variant="outline"
-              onClick={onSkip}
-              className="flex-1"
-              disabled={isLoading}
-            >
-              Skip Check-in
-            </Button>
-            <Button
               type="submit"
-              className="flex-1"
+              className="w-full"
               disabled={isLoading}
             >
               {isLoading ? "Starting..." : "Start Workout"}

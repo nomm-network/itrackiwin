@@ -67,6 +67,7 @@ export function WarmupBlock({
     if (error) {
       toast.error('Failed to save feedback');
     } else {
+      toast.success('Warmup feedback saved');
       // Hide warmup when feedback is given
       onFeedbackGiven?.();
     }
@@ -111,7 +112,7 @@ export function WarmupBlock({
                   variant={rating === 'not_enough' ? 'default' : 'outline'}
                   onClick={() => saveRating('not_enough')}
                 >
-                  😴 Not enough
+                  🥶 Not enough
                 </Button>
                 <Button
                   size="sm"

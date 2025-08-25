@@ -22,7 +22,7 @@ const warmupOptions: Array<{
   {
     value: 'not_enough',
     label: 'Not enough',
-    emoji: '😴',
+    emoji: '🥶',
     description: 'Needed more warm-up'
   },
   {

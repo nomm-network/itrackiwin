@@ -85,7 +85,7 @@ export function SetPrevTargetDisplay({
                 <span>
                   Prev&nbsp;
                   <strong>
-                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}
+                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}{parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe) || ''}
                   </strong>
                 </span>
               )}

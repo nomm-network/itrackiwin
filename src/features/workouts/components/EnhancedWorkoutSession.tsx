@@ -408,7 +408,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
           <ReadinessCheckIn
             onSubmit={handleReadinessSubmit}
-            onSkip={handleSkipReadiness}
             isLoading={createCheckin.isPending}
           />
         </main>
@@ -446,7 +445,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             <Button variant="ghost" size="sm" onClick={() => navigate('/dashboard')}>
               ← Back
             </Button>
-            <h1 className="text-lg font-semibold">{workout?.name || 'Workout Session'}</h1>
+            <h1 className="text-lg font-semibold">
+              Workout <span className="italic">{workout?.template_name || workout?.name || 'Session'}</span>
+            </h1>
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
