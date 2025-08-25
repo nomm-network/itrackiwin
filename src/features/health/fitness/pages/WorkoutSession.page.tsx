@@ -26,6 +26,8 @@ import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessC
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
 import { useShouldShowReadiness } from "@/features/health/fitness/hooks/useShouldShowReadiness";
 import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
+import { useAuth } from "@/hooks/useAuth";
+import { useQueryClient } from "@tanstack/react-query";
 import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
 import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
@@ -69,18 +71,14 @@ const WorkoutSession: React.FC = () => {
   const { toast } = useToast();
   const { data } = useWorkoutDetail(id);
   const { gym: selectedGym } = useMyGym();
+  const queryClient = useQueryClient();
   useSEO(data?.workout?.title || 'Session');
 
-  // Get current user
-  const [currentUser, setCurrentUser] = React.useState<{ id: string } | null>(null);
-  React.useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
-      setCurrentUser(user ? { id: user.id } : null);
-    });
-  }, []);
+  // Use proper auth hook - no race conditions
+  const { user, loading: authLoading } = useAuth();
 
-  // Robust readiness check - no race conditions
-  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, currentUser?.id);
+  // Robust readiness check using the auth hook
+  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(id);
 
   const endMut = useEndWorkout();
@@ -243,7 +241,7 @@ const WorkoutSession: React.FC = () => {
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
-      // This will automatically refresh the state
+      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', id, user?.id] });
     } catch (error) {
       console.error('Error saving readiness check:', error);
       toast({
@@ -308,14 +306,15 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log the readiness check logic
   console.log('🔍 READINESS DEBUG (FIXED):', {
     workoutId: id,
-    userId: currentUser?.id,
+    userId: user?.id,
     shouldShowReadiness,
     isCheckingReadiness,
-    needsReadiness
+    needsReadiness,
+    authLoading
   });
   
   // Gate UI until we know the readiness status
-  const stillLoading = isCheckingReadiness || !currentUser;
+  const stillLoading = isCheckingReadiness || authLoading || !user;
 
   // Show loading until we have all the data
   if (stillLoading) {

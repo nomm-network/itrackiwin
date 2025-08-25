@@ -6,26 +6,26 @@ export function useShouldShowReadiness(workoutId?: string, userId?: string) {
     queryKey: ['shouldShowReadiness', workoutId, userId],
     enabled: Boolean(workoutId && userId),
     queryFn: async () => {
-      // 1) Confirm workout is active
-      const { data: w, error: wErr } = await supabase
-        .from('workouts')
-        .select('id, ended_at, user_id')
-        .eq('id', workoutId!)
-        .maybeSingle();
-      if (wErr) throw wErr;
-      if (!w || w.ended_at) return false;
-
-      // 2) Check existence in the canonical table
-      const { data: c, error: cErr } = await supabase
-        .from('pre_workout_checkins')
-        .select('id')
+      console.log('🔍 useShouldShowReadiness: checking', { workoutId, userId });
+      
+      // Use the pre-built view for efficiency and consistency
+      const { data, error } = await supabase
+        .from('v_pre_checkin_exists')
+        .select('*')
         .eq('workout_id', workoutId!)
         .eq('user_id', userId!)
-        .limit(1);
-      if (cErr) throw cErr;
-
-      return (c?.length ?? 0) === 0;
+        .maybeSingle();
+        
+      if (error) {
+        console.error('❌ useShouldShowReadiness error:', error);
+        throw error;
+      }
+      
+      const shouldShow = !data; // No record = should show readiness
+      console.log('🎯 useShouldShowReadiness result:', { shouldShow, data });
+      
+      return shouldShow;
     },
-    staleTime: 60_000,
+    staleTime: 30_000, // Shorter cache time for more responsive updates
   });
 }
