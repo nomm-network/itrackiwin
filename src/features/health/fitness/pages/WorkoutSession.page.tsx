@@ -2,13 +2,25 @@ import React, { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
+import { 
+  AlertDialog, 
+  AlertDialogAction, 
+  AlertDialogCancel, 
+  AlertDialogContent, 
+  AlertDialogDescription, 
+  AlertDialogFooter, 
+  AlertDialogHeader, 
+  AlertDialogTitle, 
+  AlertDialogTrigger 
+} from "@/components/ui/alert-dialog";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
+
 import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useDeleteWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
 import { supabase } from "@/integrations/supabase/client";
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
@@ -63,7 +75,8 @@ const WorkoutSession: React.FC = () => {
   const { data: loggedCount, isLoading: isCheckingSets } = useWorkoutHasLoggedSets(id);
 
   const endMut = useEndWorkout();
-  const deleteMut = useDeleteWorkout();
+  const { mutate: deleteWorkoutMutation, isPending: isDeletingWorkout } = useDeleteWorkout();
+  const [showAbortDialog, setShowAbortDialog] = useState(false);
   const addExMut = useAddExerciseToWorkout();
   const addSetMut = useAddSet();
 
@@ -98,7 +111,7 @@ const WorkoutSession: React.FC = () => {
   const deleteWorkout = async () => {
     if (!id) return;
     try {
-      await deleteMut.mutateAsync(id);
+      await deleteWorkoutMutation(id);
       toast({ title: "Workout deleted", description: "Workout has been permanently removed." });
       navigate('/dashboard');
     } catch (error) {
@@ -236,6 +249,27 @@ const WorkoutSession: React.FC = () => {
     if (readinessData.sleep_quality < 5) score -= 2;
     if (readinessData.energy < 5) score -= 2;
     return Math.max(0, Math.min(10, score));
+  };
+
+  const handleAbortWorkout = () => {
+    if (!data?.workout?.id) return;
+    
+    deleteWorkoutMutation(data.workout.id, {
+      onSuccess: () => {
+        toast({
+          title: "Workout deleted",
+          description: "Your workout has been completely removed.",
+        });
+        navigate('/fitness');
+      },
+      onError: (error) => {
+        toast({
+          title: "Error",
+          description: "Failed to delete workout. Please try again.",
+          variant: "destructive",
+        });
+      }
+    });
   };
 
   const handleSkipReadiness = () => {
@@ -535,6 +569,44 @@ const WorkoutSession: React.FC = () => {
                 </div>
               </CardContent>
             </Card>
+          </div>
+        </section>
+        
+        {/* Abort Workout Button */}
+        <section className="mt-8 pb-8">
+          <div className="container mx-auto max-w-3xl px-4">
+            <AlertDialog open={showAbortDialog} onOpenChange={setShowAbortDialog}>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="w-full opacity-60 hover:opacity-100 text-destructive hover:text-destructive"
+                  disabled={isDeletingWorkout}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Abort Workout
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>Abort Workout?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This action cannot be undone. This will permanently delete your current workout data and all logged sets. 
+                    All your progress from this session will be lost.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleAbortWorkout}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                    disabled={isDeletingWorkout}
+                  >
+                    {isDeletingWorkout ? "Deleting..." : "Delete Workout"}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </section>
       </main>
