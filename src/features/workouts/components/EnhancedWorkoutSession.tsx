@@ -37,7 +37,6 @@ import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
-import { saveWarmupFeedback } from '../api/warmup';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 
 // Add readiness check imports
@@ -69,7 +68,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(workout?.id);
   
-  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(workout?.exercises?.[0]?.id ?? null);
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
@@ -100,9 +99,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     getUser();
   }, []);
 
-  const currentExercise = workout?.exercises?.[currentExerciseIndex];
+  const currentExercise = useMemo(
+    () => workout?.exercises?.find((x: any) => x.id === currentExerciseId) ?? workout?.exercises?.[0],
+    [workout?.exercises, currentExerciseId]
+  );
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
+  
+  // Add runtime check for debugging
+  if (!currentExercise?.id) {
+    console.warn('No workout_exercises.id on currentExercise', currentExercise);
+  }
   
   // Get exercise translation
   const { data: exerciseTranslation } = useExerciseTranslation(
@@ -235,20 +242,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     setCompletedExercises(prev => new Set([...prev, exerciseId]));
     
     // Auto-advance to next exercise
-    if (currentExerciseIndex < totalExercises - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
-    }
-  };
-
-  const handlePreviousExercise = () => {
-    if (currentExerciseIndex > 0) {
-      setCurrentExerciseIndex(currentExerciseIndex - 1);
-    }
-  };
-
-  const handleNextExercise = () => {
-    if (currentExerciseIndex < totalExercises - 1) {
-      setCurrentExerciseIndex(currentExerciseIndex + 1);
+    const currentIndex = workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? -1;
+    if (currentIndex < totalExercises - 1) {
+      const nextExercise = workout?.exercises?.[currentIndex + 1];
+      if (nextExercise?.id) {
+        setCurrentExerciseId(nextExercise.id);
+      }
     }
   };
 
@@ -453,7 +452,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
           <div className="flex items-center gap-2">
             <Badge variant="secondary">
-              🏋️ {currentExerciseIndex + 1}/{workout?.exercises?.length || 0}
+              🏋️ {(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) + 1}/{workout?.exercises?.length || 0}
             </Badge>
           </div>
         </div>
@@ -490,7 +489,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 exerciseId={currentExercise?.exercise_id}
                 templateTargetReps={currentExercise?.target_reps}
                 templateTargetWeight={currentExercise?.target_weight}
-                isLastExercise={currentExerciseIndex === totalExercises - 1}
+                isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
                 onSetComplete={(setData) => {
                   // Hide warmup when first set is completed
                   setWarmupCompleted(true);
@@ -526,18 +525,19 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 Exercise Navigation
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {workout.exercises.map((exercise: any, index: number) => {
-                  const exerciseName = getExerciseDisplayName(exercise, 'en');
+                {workout.exercises.map((ex: any, idx: number) => {
+                  const label = `${idx + 1}. ${getExerciseDisplayName(ex)}`;
+                  const isActive = ex.id === currentExercise?.id;
                   
                   return (
                     <Button
-                      key={exercise.id}
-                      variant={index === currentExerciseIndex ? "default" : "outline"}
+                      key={ex.id}
+                      variant={isActive ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setCurrentExerciseIndex(index)}
+                      onClick={() => setCurrentExerciseId(ex.id)}
                       className="flex-shrink-0"
                     >
-                      {index + 1}. {exerciseName}
+                      {label}
                     </Button>
                   );
                 })}

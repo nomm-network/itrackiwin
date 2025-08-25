@@ -1,7 +1,10 @@
-export function getExerciseDisplayName(wex: any, locale = 'en') {
+export function getExerciseDisplayName(ex: any): string {
+  // Prefer translations > exercise name > fallback
   return (
-    wex?.exercise?.translations?.[locale]?.name ||
-    wex?.exercise?.name ||
-    `Exercise ${wex?.order_index ?? ''}`.trim()
+    ex?.exercise?.translations?.en?.name ??
+    ex?.translations?.en?.name ??
+    ex?.exercise?.name ??
+    ex?.name ??
+    'Exercise'
   );
 }

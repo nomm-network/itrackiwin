@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import type { WarmupPlan } from '@/features/health/fitness/utils/warmup';
 import { generateWarmupClient } from '@/features/health/fitness/utils/warmup';
+import { updateWarmupFeedback, type WarmupFeedback } from '@/features/workouts/api/warmup';
 
 type WarmupProps = {
   workoutExerciseId: string;
@@ -25,7 +26,7 @@ export function WarmupBlock({
 }: WarmupProps) {
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
-  const [rating, setRating] = useState<'not_enough' | 'excellent' | 'too_much' | null>(null);
+  const [localFeedback, setLocalFeedback] = useState<WarmupFeedback | null>(null);
 
   // Load from DB on mount
   useEffect(() => {
@@ -42,7 +43,8 @@ export function WarmupBlock({
       }
       if (data?.warmup_plan) {
         setPlan(data.warmup_plan as WarmupPlan);
-        setRating((data.warmup_feedback as any) ?? null);
+        const planObj = data.warmup_plan as any;
+        setLocalFeedback(planObj?.feedback ?? null);
       } else {
         // generate default client-side if nothing saved
         const p = generateWarmupClient(suggestedTopWeight, suggestedTopReps, unit);
@@ -58,18 +60,16 @@ export function WarmupBlock({
   }, [plan]);
 
 
-  const saveRating = async (value: 'not_enough' | 'excellent' | 'too_much') => {
-    setRating(value);
-    const { error } = await supabase
-      .from('workout_exercises')
-      .update({ warmup_feedback: value, warmup_updated_at: new Date().toISOString() })
-      .eq('id', workoutExerciseId);
-    if (error) {
-      toast.error('Failed to save feedback');
-    } else {
-      toast.success('Warmup feedback saved');
-      // Hide warmup when feedback is given
+  const save = async (value: WarmupFeedback) => {
+    try {
+      await updateWarmupFeedback(workoutExerciseId, value);
+      // Optimistic UI: toast + mark selected
+      toast.success('Warm-up feedback saved');
+      setLocalFeedback(value);
       onFeedbackGiven?.();
+    } catch (e: any) {
+      console.error('warmup feedback save failed', e);
+      toast.error(`Could not save warm-up feedback: ${e.message}`);
     }
   };
 
@@ -106,25 +106,25 @@ export function WarmupBlock({
             {/* One-tap feedback after finishing all warmups for the exercise */}
             <div>
               <div className="text-xs mb-2">How was the warm‑up? Pick 👇🏻</div>
-              <div className="flex gap-2">
+               <div className="flex gap-2">
                 <Button
                   size="sm"
-                  variant={rating === 'not_enough' ? 'default' : 'outline'}
-                  onClick={() => saveRating('not_enough')}
+                  variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
+                  onClick={() => save('not_enough')}
                 >
                   🥶 Not enough
                 </Button>
                 <Button
                   size="sm"
-                  variant={rating === 'excellent' ? 'default' : 'outline'}
-                  onClick={() => saveRating('excellent')}
+                  variant={localFeedback === 'excellent' ? 'default' : 'outline'}
+                  onClick={() => save('excellent')}
                 >
                   🔥 Excellent
                 </Button>
                 <Button
                   size="sm"
-                  variant={rating === 'too_much' ? 'default' : 'outline'}
-                  onClick={() => saveRating('too_much')}
+                  variant={localFeedback === 'too_much' ? 'default' : 'outline'}
+                  onClick={() => save('too_much')}
                 >
                   🥵 Too much
                 </Button>
