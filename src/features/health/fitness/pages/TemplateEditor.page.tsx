@@ -204,27 +204,11 @@ const TemplateEditor: React.FC = () => {
         return [];
       }
 
+      // Use the existing view that has translations
       let query = supabase
-        .from('exercises')
-        .select(`
-          id,
-          primary_muscle_id,
-          body_part_id,
-          popularity_rank,
-          exercises_translations!inner(name, description),
-          muscles!inner(
-            id,
-            muscles_translations!inner(name),
-            muscle_groups!inner(
-              id,
-              muscle_groups_translations!inner(name)
-            )
-          )
-        `)
+        .from('v_exercises_with_translations')
+        .select('*')
         .eq('is_public', true)
-        .eq('exercises_translations.language_code', 'en')
-        .eq('muscles.muscles_translations.language_code', 'en')
-        .eq('muscles.muscle_groups.muscle_groups_translations.language_code', 'en')
         .limit(50);
 
       // Apply filters
@@ -245,14 +229,7 @@ const TemplateEditor: React.FC = () => {
         primary_muscle_id: item.primary_muscle_id,
         body_part_id: item.body_part_id,
         popularity_rank: item.popularity_rank,
-        translations: {
-          en: {
-            name: (item.exercises_translations as any)[0]?.name || '',
-            description: (item.exercises_translations as any)[0]?.description || ''
-          }
-        },
-        muscle_name: (item.muscles as any)?.muscles_translations?.[0]?.name || '',
-        muscle_group_name: (item.muscles as any)?.muscle_groups?.muscle_groups_translations?.[0]?.name || ''
+        translations: item.translations || {}
       }));
       
       // Client-side filtering for search if we have a search query
@@ -260,12 +237,9 @@ const TemplateEditor: React.FC = () => {
         const searchLower = searchQuery.toLowerCase();
         results = results.filter(exercise => {
           const exerciseName = getTranslatedNameFromData(exercise.translations);
-          const muscleName = exercise.muscle_name;
-          const muscleGroupName = exercise.muscle_group_name;
           
-          return (exerciseName && exerciseName.toLowerCase().includes(searchLower)) ||
-                 (muscleName && muscleName.toLowerCase().includes(searchLower)) ||
-                 (muscleGroupName && muscleGroupName.toLowerCase().includes(searchLower));
+          // For now, just search by exercise name until we get muscle data properly
+          return exerciseName && exerciseName.toLowerCase().includes(searchLower);
         });
       }
       

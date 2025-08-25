@@ -247,7 +247,21 @@ const AdminExercisesManagement: React.FC = () => {
         const searchLower = searchTerm.toLowerCase();
         results = results.filter(exercise => {
           const name = getExerciseNameFromTranslations(exercise.translations, exercise.id);
-          return name.toLowerCase().includes(searchLower);
+          
+          // Get muscle and muscle group names for this exercise
+          const muscle = muscles.find(m => m.id === exercise.primary_muscle_id);
+          const muscleGroup = muscle ? muscleGroups.find(mg => mg.id === muscle.muscle_group_id) : null;
+          const bodyPart = bodyParts.find(bp => bp.id === exercise.body_part_id);
+          
+          // Create searchable text that includes exercise name, muscle, muscle group, and body part
+          const searchableText = [
+            name,
+            muscle?.name,
+            muscleGroup?.name,
+            bodyPart?.name
+          ].filter(Boolean).join(' ').toLowerCase();
+          
+          return searchableText.includes(searchLower);
         });
       }
       
