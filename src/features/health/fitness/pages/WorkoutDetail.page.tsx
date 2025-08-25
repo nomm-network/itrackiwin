@@ -9,6 +9,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
+import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
+import type { WarmupPlan } from "@/features/health/fitness/utils/warmup";
 
 const WorkoutDetail: React.FC = () => {
   const { id } = useParams();
@@ -78,26 +80,62 @@ const WorkoutDetail: React.FC = () => {
             </Button>
           </div>
         </div>
-        {(data?.exercises || []).map(ex => (
-          <Card key={ex.id}>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-base">Exercise: {ex.exercise_id}</CardTitle>
-              <CardDescription>Order {ex.order_index}</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-1 text-sm">
-                {(data?.setsByWe[ex.id] || []).map(s => (
-                  <div key={s.id} className="flex gap-4">
-                    <span>Set {s.set_index}</span>
-                    <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
-                    <span>x {s.reps ?? '-'}</span>
-                    <span>RPE {s.rpe ?? '-'}</span>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+        {(data?.exercises || []).map(ex => {
+          const exerciseName = getExerciseNameFromTranslations(ex.exercises?.translations);
+          const workoutSets = data?.setsByWe[ex.id] || [];
+          
+          // Check if we have warmup plan data and show warmup sets
+          const warmupPlan = ex.warmup_plan as WarmupPlan | null;
+          const warmupSets = warmupPlan?.steps || [];
+          
+          return (
+            <Card key={ex.id}>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-base">{exerciseName}</CardTitle>
+                <CardDescription>Order {ex.order_index}</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-1 text-sm">
+                  {/* Show warmup sets first if they exist */}
+                  {warmupSets.length > 0 && (
+                    <>
+                      <div className="text-xs font-medium text-muted-foreground mb-2">Warmup Sets</div>
+                      {warmupSets.map((warmupSet, index) => (
+                        <div key={`warmup-${index}`} className="flex gap-4 text-muted-foreground">
+                          <span>Set {index + 1}</span>
+                          <span>{warmupSet.weight ?? '-'} {warmupPlan?.unit || 'kg'}</span>
+                          <span>x {warmupSet.reps ?? '-'}</span>
+                          <span>RPE warmup</span>
+                        </div>
+                      ))}
+                      <div className="h-2"></div>
+                      <div className="text-xs font-medium text-muted-foreground mb-2">Working Sets</div>
+                    </>
+                  )}
+                  
+                  {/* Show actual logged sets */}
+                  {workoutSets.map(s => (
+                    <div key={s.id} className="flex gap-4">
+                      <span>Set {s.set_index}</span>
+                      <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
+                      <span>x {s.reps ?? '-'}</span>
+                      <span>RPE {s.rpe ?? '-'}</span>
+                    </div>
+                  ))}
+                  
+                  {/* Show warmup feedback if available */}
+                  {ex.warmup_feedback && (
+                    <div className="mt-2 pt-2 border-t">
+                      <div className="text-xs text-muted-foreground">
+                        Warmup feedback: <span className="font-medium">{ex.warmup_feedback.replace('_', ' ')}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
 
         <Dialog open={!!editingWorkout} onOpenChange={(open) => !open && setEditingWorkout(null)}>
           <DialogContent>
