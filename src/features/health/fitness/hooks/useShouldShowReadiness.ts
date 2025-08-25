@@ -6,23 +6,44 @@ export function useShouldShowReadiness(workoutId?: string, userId?: string) {
     queryKey: ['shouldShowReadiness', workoutId, userId],
     enabled: Boolean(workoutId && userId),
     queryFn: async () => {
-      console.log('🔍 useShouldShowReadiness: checking', { workoutId, userId });
+      console.log('🔍 useShouldShowReadiness: STARTING QUERY', { workoutId, userId });
       
-      // Use the pre-built view for efficiency and consistency
-      const { data, error } = await supabase
+      // First check if view exists by querying it directly
+      const { data: viewData, error: viewError } = await supabase
         .from('v_pre_checkin_exists')
         .select('*')
         .eq('workout_id', workoutId!)
         .eq('user_id', userId!)
         .maybeSingle();
         
-      if (error) {
-        console.error('❌ useShouldShowReadiness error:', error);
-        throw error;
+      console.log('🔍 View query result:', { viewData, viewError });
+      
+      if (viewError) {
+        console.warn('⚠️ View query failed, falling back to direct table query:', viewError);
+        
+        // Fallback to direct table query
+        const { data: directData, error: directError } = await supabase
+          .from('pre_workout_checkins')
+          .select('*')
+          .eq('workout_id', workoutId!)
+          .eq('user_id', userId!)
+          .maybeSingle();
+          
+        console.log('🔍 Direct table query result:', { directData, directError });
+        
+        if (directError) {
+          console.error('❌ useShouldShowReadiness error:', directError);
+          throw directError;
+        }
+        
+        const shouldShow = !directData; // No record = should show readiness
+        console.log('🎯 useShouldShowReadiness result (direct):', { shouldShow, data: directData });
+        
+        return shouldShow;
       }
       
-      const shouldShow = !data; // No record = should show readiness
-      console.log('🎯 useShouldShowReadiness result:', { shouldShow, data });
+      const shouldShow = !viewData; // No record = should show readiness
+      console.log('🎯 useShouldShowReadiness result (view):', { shouldShow, data: viewData });
       
       return shouldShow;
     },
