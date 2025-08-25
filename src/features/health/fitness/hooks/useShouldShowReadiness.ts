@@ -42,8 +42,10 @@ export function useShouldShowReadiness(workoutId?: string, userId?: string) {
         return shouldShow;
       }
       
-      const shouldShow = !viewData; // No record = should show readiness
-      console.log('🎯 useShouldShowReadiness result (view):', { shouldShow, data: viewData });
+      // If we have view data, check the has_checkin field
+      // If has_checkin is false, we should show readiness
+      const shouldShow = viewData ? !viewData.has_checkin : true;
+      console.log('🎯 useShouldShowReadiness result (view):', { shouldShow, data: viewData, hasCheckin: viewData?.has_checkin });
       
       return shouldShow;
     },
