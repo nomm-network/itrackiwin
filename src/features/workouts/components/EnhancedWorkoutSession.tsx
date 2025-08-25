@@ -3,7 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Play, 
   Pause, 
@@ -28,6 +27,7 @@ import { useLogSet } from '../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -45,8 +45,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [showRecalibration, setShowRecalibration] = useState(false);
   const [workoutStartTime] = useState(new Date());
   
-  // Set input state
-  const [showSetInput, setShowSetInput] = useState(false);
+  // Set input state - always show for current set
   const [currentSetData, setCurrentSetData] = useState({
     weight: 0,
     reps: 0,
@@ -58,6 +57,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const currentExercise = workout?.exercises?.[currentExerciseIndex];
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
+  
+  // Get exercise translation
+  const { data: exerciseTranslation } = useExerciseTranslation(
+    currentExercise?.exercise_id || currentExercise?.id || ''
+  );
+  
+  const getExerciseName = () => {
+    if (exerciseTranslation?.name) return exerciseTranslation.name;
+    if (currentExercise?.exercise?.translations?.en?.name) return currentExercise.exercise.translations.en.name;
+    if (currentExercise?.translations?.en?.name) return currentExercise.translations.en.name;
+    if (currentExercise?.exercise?.name) return currentExercise.exercise.name;
+    if (currentExercise?.name) return currentExercise.name;
+    return 'Exercise';
+  };
+  
+  const completedSetsCount = currentExercise?.sets?.filter((set: any) => set.is_completed).length || 0;
+  const targetSetsCount = currentExercise?.sets?.length || 3;
+  const currentSetNumber = completedSetsCount + 1;
 
   // Filter exercises based on gym constraints
   const filteredExercises = useMemo(() => {
@@ -79,40 +96,31 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
       is_completed: true
     });
-  };
-
-  const handleOpenSetInput = () => {
-    // Pre-fill with last set data if available
-    const lastSet = currentExercise?.sets?.find((set: any) => set.weight > 0);
-    if (lastSet) {
-      setCurrentSetData({
-        weight: lastSet.weight || 0,
-        reps: lastSet.reps || 0,
-        rpe: lastSet.rpe || 5,
-        feel: '',
-        notes: ''
-      });
-    }
-    setShowSetInput(true);
+    
+    // Reset for next set with carried over values
+    setCurrentSetData({
+      weight: setData.weight, // Keep weight for next set
+      reps: setData.reps,     // Keep reps for next set
+      rpe: 5,
+      feel: '',
+      notes: ''
+    });
+    
+    toast.success('Set logged successfully!');
   };
 
   const handleSaveSet = () => {
     if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
       handleSetComplete(currentExercise.id, currentSetData);
-      setShowSetInput(false);
-      
-      // Reset for next set
-      setCurrentSetData({
-        weight: currentSetData.weight, // Keep weight for next set
-        reps: currentSetData.reps,     // Keep reps for next set
-        rpe: 5,
-        feel: '',
-        notes: ''
-      });
-      
-      toast.success('Set logged successfully!');
     } else {
       toast.error('Please enter weight or reps');
+    }
+  };
+  
+  const handleAddExtraSet = () => {
+    // For adding sets beyond the target
+    if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
+      handleSetComplete(currentExercise.id, currentSetData);
     }
   };
 
@@ -257,27 +265,22 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             <CardContent className="pt-6">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">
-                  {currentExercise.exercise?.translations?.en?.name || 
-                   currentExercise.translations?.en?.name ||
-                   currentExercise.exercise?.name || 
-                   currentExercise.name || 
-                   'Exercise'}
+                  {getExerciseName()}
                 </h3>
                 <Badge variant="outline">
-                  {currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}/
-                  {currentExercise.sets?.length || 3} sets
+                  {completedSetsCount}/{targetSetsCount} sets
                 </Badge>
               </div>
               
               {/* Sets Display */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
                 {(currentExercise.sets || []).map((set: any, index: number) => (
                   <div 
                     key={set.id || index}
                     className={`p-3 rounded border ${
                       set.is_completed 
                         ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300' 
-                        : 'bg-muted/50 border-border'
+                        : 'border-border'
                     }`}
                   >
                     <div className="flex justify-between items-center">
@@ -294,34 +297,100 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 ))}
               </div>
               
-              {/* Add Set Button */}
-              <div className="mt-4">
-                <Button 
-                  onClick={handleOpenSetInput}
-                  className="w-full bg-primary hover:bg-primary/90"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Set
-                </Button>
-              </div>
+              {/* Current Set Input - Show if not all sets completed */}
+              {completedSetsCount < targetSetsCount && (
+                <Card className="bg-primary/5 border-primary/20">
+                  <CardContent className="pt-6">
+                    <div className="text-center mb-4">
+                      <h4 className="font-medium text-lg">Set {currentSetNumber}</h4>
+                      <p className="text-sm text-muted-foreground">{getExerciseName()}</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      {/* Weight input */}
+                      <TouchOptimizedSetInput
+                        label="Weight"
+                        value={currentSetData.weight}
+                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, weight: value || 0 }))}
+                        suffix="kg"
+                        min={0}
+                        max={500}
+                        step={2.5}
+                      />
+
+                      {/* Reps input */}
+                      <TouchOptimizedSetInput
+                        label="Reps"
+                        value={currentSetData.reps}
+                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, reps: value || 0 }))}
+                        min={0}
+                        max={100}
+                        step={1}
+                      />
+
+                      {/* RPE input */}
+                      <TouchOptimizedSetInput
+                        label="RPE"
+                        value={currentSetData.rpe}
+                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, rpe: value || 5 }))}
+                        min={1}
+                        max={10}
+                        step={0.5}
+                      />
+
+                      {/* Feel selector */}
+                      <div>
+                        <label className="text-sm font-medium mb-3 block">How did that set feel?</label>
+                        <div className="flex justify-center gap-2">
+                          {['😣', '😐', '😊', '😎', '🔥'].map((emoji, index) => (
+                            <button
+                              key={index}
+                              onClick={() => setCurrentSetData(prev => ({ 
+                                ...prev, 
+                                feel: ['terrible', 'bad', 'okay', 'good', 'amazing'][index] 
+                              }))}
+                              className={`p-3 rounded-lg border-2 transition-colors ${
+                                currentSetData.feel === ['terrible', 'bad', 'okay', 'good', 'amazing'][index]
+                                  ? 'border-primary bg-primary/10'
+                                  : 'border-border hover:border-primary/50'
+                              }`}
+                            >
+                              <span className="text-2xl">{emoji}</span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* Log Set Button */}
+                      <Button onClick={handleSaveSet} className="w-full" size="lg">
+                        <CheckCircle className="h-4 w-4 mr-2" />
+                        Log Set {currentSetNumber}
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+              
+              {/* Add Extra Set Button - Show only if all target sets completed */}
+              {completedSetsCount >= targetSetsCount && (
+                <div className="space-y-4">
+                  <div className="text-center py-4">
+                    <CheckCircle className="h-8 w-8 text-green-600 mx-auto mb-2" />
+                    <p className="text-green-600 font-medium">All target sets completed!</p>
+                  </div>
+                  
+                  <Button 
+                    onClick={handleAddExtraSet}
+                    variant="outline" 
+                    className="w-full"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Extra Set
+                  </Button>
+                </div>
+              )}
             </CardContent>
           </Card>
-
-          <ExerciseCard
-            exercise={currentExercise}
-            completedSets={currentExercise.sets?.filter((set: any) => set.is_completed).length || 0}
-            targetSets={currentExercise.sets?.length || 3}
-            isActive={true}
-            currentSetId={currentExercise.id}
-            selectedGripIds={currentExercise.default_grip_ids || []}
-            onSelect={() => {}}
-            onAddSet={handleOpenSetInput}
-            onNextExercise={() => handleExerciseComplete(currentExercise.id)}
-            onGripChange={(gripIds) => {
-              // Handle grip change
-              console.log('Grip changed:', gripIds);
-            }}
-          />
         </div>
       )}
 
@@ -350,103 +419,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       {showWarmupEditor && currentExercise && (
         <WarmupEditor
           exerciseId={currentExercise.exercise_id || currentExercise.id}
-          exerciseName={currentExercise.exercise?.name || currentExercise.name || 'Exercise'}
+          exerciseName={getExerciseName()}
           onClose={() => setShowWarmupEditor(false)}
         />
       )}
-
-      {/* Set Input Dialog */}
-      <Dialog open={showSetInput} onOpenChange={setShowSetInput}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Log Set</DialogTitle>
-          </DialogHeader>
-          
-          <div className="space-y-6 py-4">
-            {/* Exercise name */}
-            <div className="text-center">
-              <h3 className="font-medium text-lg">
-                {currentExercise?.exercise?.translations?.en?.name || 
-                 currentExercise?.translations?.en?.name ||
-                 currentExercise?.exercise?.name || 
-                 currentExercise?.name || 
-                 'Exercise'}
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Set {(currentExercise?.sets?.filter((set: any) => set.is_completed).length || 0) + 1}
-              </p>
-            </div>
-
-            {/* Weight input */}
-            <TouchOptimizedSetInput
-              label="Weight"
-              value={currentSetData.weight}
-              onChange={(value) => setCurrentSetData(prev => ({ ...prev, weight: value || 0 }))}
-              suffix="kg"
-              min={0}
-              max={500}
-              step={2.5}
-            />
-
-            {/* Reps input */}
-            <TouchOptimizedSetInput
-              label="Reps"
-              value={currentSetData.reps}
-              onChange={(value) => setCurrentSetData(prev => ({ ...prev, reps: value || 0 }))}
-              min={0}
-              max={100}
-              step={1}
-            />
-
-            {/* RPE input */}
-            <TouchOptimizedSetInput
-              label="RPE"
-              value={currentSetData.rpe}
-              onChange={(value) => setCurrentSetData(prev => ({ ...prev, rpe: value || 5 }))}
-              min={1}
-              max={10}
-              step={0.5}
-            />
-
-            {/* Feel selector */}
-            <div>
-              <label className="text-sm font-medium mb-3 block">How did that set feel?</label>
-              <div className="flex justify-center gap-2">
-                {['😣', '😐', '😊', '😎', '🔥'].map((emoji, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSetData(prev => ({ 
-                      ...prev, 
-                      feel: ['terrible', 'bad', 'okay', 'good', 'amazing'][index] 
-                    }))}
-                    className={`p-3 rounded-lg border-2 transition-colors ${
-                      currentSetData.feel === ['terrible', 'bad', 'okay', 'good', 'amazing'][index]
-                        ? 'border-primary bg-primary/10'
-                        : 'border-border hover:border-primary/50'
-                    }`}
-                  >
-                    <span className="text-2xl">{emoji}</span>
-                  </button>
-                ))}
-              </div>
-              <p className="text-center text-xs text-muted-foreground mt-2">
-                Select how the set felt
-              </p>
-            </div>
-
-            {/* Action buttons */}
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setShowSetInput(false)} className="flex-1">
-                Cancel
-              </Button>
-              <Button onClick={handleSaveSet} className="flex-1">
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Log Set
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
 
       {/* Recalibration Panel */}
       {showRecalibration && (
