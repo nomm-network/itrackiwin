@@ -177,7 +177,7 @@ export default function ImprovedWorkoutSession({
       setExpandedSet(setIndex);
       setTimeout(() => setExpandedSet(null), 2000);
     }
-  }, [currentSetData, onSetComplete, exercise.completed_sets.length]);
+  }, [currentSetData, onSetComplete, exercise.completed_sets.length, currentSetNumber, warmupFeedback]);
 
   // Handle Enter key for quick submission
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -299,13 +299,14 @@ export default function ImprovedWorkoutSession({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <Input
-                  type="number"
-                  step="0.01"
+                 <Input
+                  type="text"
                   value={currentSetData.weight || ''}
                   onChange={(e) => {
-                    const value = Math.round(Number(e.target.value) * 100) / 100; // 2 decimals max
-                    setCurrentSetData(prev => ({ ...prev, weight: value }));
+                    const value = e.target.value;
+                    if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
+                      setCurrentSetData(prev => ({ ...prev, weight: parseFloat(value) || 0 }));
+                    }
                   }}
                   onKeyPress={handleKeyPress}
                   className="text-center text-lg font-semibold"
@@ -334,15 +335,18 @@ export default function ImprovedWorkoutSession({
                 >
                   <Minus className="h-3 w-3" />
                 </Button>
-                <Input
-                  type="number"
-                  step="1"
+                 <Input
+                  type="text"
                   value={currentSetData.reps || ''}
                   onChange={(e) => {
-                    const value = Math.round(Number(e.target.value)); // No decimals
-                    setCurrentSetData(prev => ({ ...prev, reps: value }));
+                    const value = e.target.value.replace(/[^\d]/g, '');
+                    setCurrentSetData(prev => ({ ...prev, reps: parseInt(value) || 0 }));
                   }}
-                  onKeyPress={handleKeyPress}
+                  onKeyPress={(e) => {
+                    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
+                      e.preventDefault();
+                    }
+                  }}
                   className="text-center text-lg font-semibold"
                   placeholder="0"
                 />
@@ -367,13 +371,10 @@ export default function ImprovedWorkoutSession({
                     variant={currentSetData.feel === option.value ? "default" : "outline"}
                     size="sm"
                     onClick={() => setCurrentSetData(prev => ({ ...prev, feel: option.value }))}
-                    className={`
-                      flex flex-col items-center p-1 h-auto aspect-square
-                      ${currentSetData.feel === option.value ? option.color + ' text-white' : ''}
-                    `}
+                     className="flex flex-col items-center p-1 min-w-[60px] h-14"
                   >
-                    <span className="text-sm">{option.emoji}</span>
-                    <span className="text-xs">{option.value}</span>
+                     <span className="text-lg">{option.emoji}</span>
+                     <span className="text-xs font-medium">{option.value}</span>
                   </Button>
                 ))}
               </div>
@@ -554,7 +555,7 @@ export default function ImprovedWorkoutSession({
                   setShowWarmupDialog(false);
                 }}
               >
-                🥶 Not enough
+                😴 Not enough
               </Button>
               <Button
                 size="sm"

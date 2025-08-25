@@ -11,11 +11,11 @@ export const FEEL_TO_RPE: Record<Feel, number> = {
 };
 
 export const FEEL_OPTIONS = [
-  { value: '--' as Feel, label: 'Very Hard', color: 'bg-red-500 hover:bg-red-600', emoji: '🪦🔋' },
-  { value: '-' as Feel, label: 'Hard', color: 'bg-orange-500 hover:bg-orange-600', emoji: '🔋' },
-  { value: '=' as Feel, label: 'Just Right', color: 'bg-yellow-500 hover:bg-yellow-600', emoji: '💪' },
-  { value: '+' as Feel, label: 'Easy', color: 'bg-green-500 hover:bg-green-600', emoji: '🔋' },
-  { value: '++' as Feel, label: 'Very Easy', color: 'bg-blue-500 hover:bg-blue-600', emoji: '🔋⚡' },
+  { value: '--' as Feel, label: 'Very Hard', color: 'bg-red-500 hover:bg-red-600', emoji: '😵' },
+  { value: '-' as Feel, label: 'Hard', color: 'bg-orange-500 hover:bg-orange-600', emoji: '😣' },
+  { value: '=' as Feel, label: 'Just Right', color: 'bg-yellow-500 hover:bg-yellow-600', emoji: '🙂' },
+  { value: '+' as Feel, label: 'Easy', color: 'bg-green-500 hover:bg-green-600', emoji: '😄' },
+  { value: '++' as Feel, label: 'Very Easy', color: 'bg-blue-500 hover:bg-blue-600', emoji: '😎' },
 ];
 
 // Helper to convert RPE back to Feel (for display purposes)

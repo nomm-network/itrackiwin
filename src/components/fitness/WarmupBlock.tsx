@@ -104,23 +104,29 @@ export function WarmupBlock({
 
             {/* One-tap feedback after finishing all warmups for the exercise */}
             <div>
-              <div className="text-xs mb-2">How was the warm‑up?</div>
+              <div className="text-xs mb-2">How was the warm‑up? 👇🏻</div>
               <div className="flex gap-2">
                 <Button
                   size="sm"
                   variant={rating === 'not_enough' ? 'default' : 'outline'}
                   onClick={() => saveRating('not_enough')}
-                >Not enough</Button>
+                >
+                  😴 Not enough
+                </Button>
                 <Button
                   size="sm"
                   variant={rating === 'excellent' ? 'default' : 'outline'}
                   onClick={() => saveRating('excellent')}
-                >Excellent</Button>
+                >
+                  🔥 Excellent
+                </Button>
                 <Button
                   size="sm"
                   variant={rating === 'too_much' ? 'default' : 'outline'}
                   onClick={() => saveRating('too_much')}
-                >Too much</Button>
+                >
+                  🥵 Too much
+                </Button>
               </div>
             </div>
           </CardContent>

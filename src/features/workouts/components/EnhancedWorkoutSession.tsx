@@ -494,7 +494,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             )}
 
             {/* Exercise Navigation at Bottom */}
-            <div className="mt-8 space-y-3">
+            <div className="mt-8 space-y-3 pb-20">
               <div className="text-center text-sm text-muted-foreground mb-3">
                 Exercise Navigation
               </div>
@@ -511,15 +511,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   </Button>
                 ))}
               </div>
+              
+              {/* Abort Workout Button */}
+              <div className="pt-4 border-t">
+                <Button
+                  onClick={() => navigate('/dashboard')}
+                  variant="destructive"
+                  className="w-full"
+                  size="lg"
+                >
+                  Abort Workout
+                </Button>
+              </div>
             </div>
           </>
         )}
       </div>
 
       {/* Floating Complete Workout Button */}
-      {/* Fixed buttons at bottom */}
-      <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto space-y-2">
-        {allExercisesComplete && (
+      {allExercisesComplete && (
+        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
           <Button
             onClick={handleWorkoutComplete}
             className="w-full"
@@ -527,16 +538,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           >
             Complete Workout
           </Button>
-        )}
-        <Button
-          onClick={() => navigate('/dashboard')}
-          variant="destructive"
-          className="w-full"
-          size="lg"
-        >
-          Abort Workout
-        </Button>
-      </div>
+        </div>
+      )}
 
       {/* Warmup Editor Dialog */}
       <Dialog open={showWarmupEditor} onOpenChange={setShowWarmupEditor}>

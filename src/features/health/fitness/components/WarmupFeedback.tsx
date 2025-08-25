@@ -22,7 +22,7 @@ const warmupOptions: Array<{
   {
     value: 'not_enough',
     label: 'Not enough',
-    emoji: '🥶',
+    emoji: '😴',
     description: 'Needed more warm-up'
   },
   {
@@ -74,7 +74,7 @@ const WarmupFeedback: React.FC<WarmupFeedbackProps> = ({
   return (
     <Card className={cn("p-3", className)}>
       <div className="space-y-2">
-        <h4 className="text-sm font-medium text-center">How was the warm-up?</h4>
+        <h4 className="text-sm font-medium text-center">How was the warm-up? 👇🏻</h4>
         
         <div className="flex justify-center gap-2">
           {warmupOptions.map((option) => (
