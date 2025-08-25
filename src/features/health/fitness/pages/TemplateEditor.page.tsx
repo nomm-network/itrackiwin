@@ -205,27 +205,23 @@ const TemplateEditor: React.FC = () => {
       }
 
       let query = supabase
-        .from('v_exercises_with_translations')
-        .select('id, translations, primary_muscle_id, body_part_id')
+        .from('exercises')
+        .select(`
+          id,
+          primary_muscle_id,
+          body_part_id,
+          popularity_rank,
+          exercises_translations!inner(name, description)
+        `)
         .eq('is_public', true)
-        .order('popularity_rank', { ascending: false, nullsFirst: false })
-        .limit(50); // Increased limit to ensure we find matches
+        .eq('exercises_translations.language_code', 'en')
+        .limit(50);
 
-      // Use a simpler search approach - fetch all and filter client-side for search
-      if (searchQuery.length >= 2) {
-        // Just filter by exercise fields first
-        if (selectedMuscle && selectedMuscle !== "all") {
-          query = query.eq('primary_muscle_id', selectedMuscle);
-        } else if (selectedBodyPart && selectedBodyPart !== "all") {
-          query = query.eq('body_part_id', selectedBodyPart);
-        }
-      } else {
-        // No search query, just filter by muscle/body part
-        if (selectedMuscle && selectedMuscle !== "all") {
-          query = query.eq('primary_muscle_id', selectedMuscle);
-        } else if (selectedBodyPart && selectedBodyPart !== "all") {
-          query = query.eq('body_part_id', selectedBodyPart);
-        }
+      // Apply filters
+      if (selectedMuscle && selectedMuscle !== "all") {
+        query = query.eq('primary_muscle_id', selectedMuscle);
+      } else if (selectedBodyPart && selectedBodyPart !== "all") {
+        query = query.eq('body_part_id', selectedBodyPart);
       }
 
       const { data, error } = await query;
@@ -234,7 +230,18 @@ const TemplateEditor: React.FC = () => {
         throw error;
       }
       
-      let results = data || [];
+      let results = (data || []).map(item => ({
+        id: item.id,
+        primary_muscle_id: item.primary_muscle_id,
+        body_part_id: item.body_part_id,
+        popularity_rank: item.popularity_rank,
+        translations: {
+          en: {
+            name: (item.exercises_translations as any)[0]?.name || '',
+            description: (item.exercises_translations as any)[0]?.description || ''
+          }
+        }
+      }));
       
       // Client-side filtering for search if we have a search query
       if (searchQuery.length >= 2) {
@@ -244,6 +251,13 @@ const TemplateEditor: React.FC = () => {
           return name && name.toLowerCase().includes(searchLower);
         });
       }
+      
+      // Sort by popularity rank
+      results.sort((a, b) => {
+        const aRank = a.popularity_rank || 999999;
+        const bRank = b.popularity_rank || 999999;
+        return aRank - bRank;
+      });
       
       return results;
     },
