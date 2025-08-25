@@ -54,6 +54,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
   const [workoutStartTime] = useState(new Date());
+  const [warmupCompleted, setWarmupCompleted] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
   
   // Grip selection state - per exercise
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
@@ -68,6 +70,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     notes: '',
     pain: false
   });
+
+  // Get user ID on mount
+  React.useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUserId(user?.id || null);
+    };
+    getUser();
+  }, []);
 
   const currentExercise = workout?.exercises?.[currentExerciseIndex];
   const totalExercises = workout?.exercises?.length || 0;
@@ -310,12 +321,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                <WarmupBlock
-                  workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                  unit="kg"
-                  suggestedTopWeight={currentExercise?.target_weight ?? 60}
-                  suggestedTopReps={currentExercise?.target_reps ?? 8}
-                />
+                {/* Hide warmup after feel is selected */}
+                {!warmupCompleted && (
+                  <WarmupBlock
+                    workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                    unit="kg"
+                    suggestedTopWeight={currentExercise?.target_weight ?? 60}
+                    suggestedTopReps={currentExercise?.target_reps ?? 8}
+                  />
+                )}
                 <ImprovedWorkoutSession
                 exercise={{
                   id: currentExercise.id,
@@ -324,12 +338,20 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   target_sets: currentExercise.target_sets || 3,
                   completed_sets: sets.filter((set: any) => set.is_completed)
                 }}
+                userId={userId}
+                exerciseId={currentExercise?.exercise_id || currentExercise?.id}
                 isLastExercise={currentExerciseIndex === totalExercises - 1}
                 onSetComplete={(setData) => {
+                  // Hide warmup when first set is completed
+                  setWarmupCompleted(true);
                   const weId = resolveWorkoutExerciseId(currentExercise);
                   handleSetComplete(weId, setData);
                 }}
-                onExerciseComplete={() => handleExerciseComplete(currentExercise.id)}
+                onExerciseComplete={() => {
+                  // Reset warmup for next exercise
+                  setWarmupCompleted(false);
+                  handleExerciseComplete(currentExercise.id);
+                }}
                 onFinishWorkout={handleWorkoutComplete}
                 onAddExtraSet={() => {
                   const weId = resolveWorkoutExerciseId(currentExercise);

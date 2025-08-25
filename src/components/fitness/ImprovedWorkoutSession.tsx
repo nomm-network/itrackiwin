@@ -7,6 +7,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
+import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
 
 interface SetData {
   weight: number;
@@ -28,6 +29,8 @@ interface ExerciseData {
 
 interface ImprovedWorkoutSessionProps {
   exercise: ExerciseData;
+  userId?: string | null;
+  exerciseId?: string;
   onSetComplete: (setData: SetData) => void;
   onExerciseComplete: () => void;
   onAddExtraSet?: () => void;
@@ -38,6 +41,8 @@ interface ImprovedWorkoutSessionProps {
 
 export default function ImprovedWorkoutSession({
   exercise,
+  userId,
+  exerciseId,
   onSetComplete,
   onExerciseComplete,
   onAddExtraSet,
@@ -201,17 +206,17 @@ export default function ImprovedWorkoutSession({
                 {currentSetNumber}
               </Badge>
               <span className="font-medium">Current Set</span>
-              {lastSet && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  onClick={handleUsePrevious}
-                  className="text-xs"
-                >
-                  Use Previous ({lastSet.weight}{unit} × {lastSet.reps})
-                </Button>
-              )}
             </div>
+
+            {/* Previous Set and Target Display */}
+            <SetPrevTargetDisplay
+              userId={userId}
+              exerciseId={exerciseId}
+              setIndex={currentSetNumber}
+              onUsePrevious={(weight, reps) => {
+                setCurrentSetData(prev => ({ ...prev, weight, reps }));
+              }}
+            />
 
             {/* Weight Input */}
             <div className="space-y-2">
