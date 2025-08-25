@@ -361,126 +361,133 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               </Collapsible>
               
               {/* Sets Display */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-4">
-                {(currentExercise.sets || []).map((set: any, index: number) => (
-                  <div 
-                    key={set.id || index}
-                    className={`p-3 rounded border ${
-                      set.is_completed 
-                        ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300' 
-                        : 'border-border'
-                    }`}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium">Set {set.set_index || index + 1}</span>
-                      {set.is_completed && <CheckCircle className="h-4 w-4 text-green-600" />}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {set.weight && set.reps ? `${set.weight}kg × ${set.reps} reps` : 
-                       set.target_weight && set.target_reps ? `Target: ${set.target_weight}kg × ${set.target_reps} reps` :
-                       'Not started'}
-                      {set.rpe && ` • RPE ${set.rpe}`}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Current Set Input - Show if not all sets completed */}
-              {completedSetsCount < targetSetsCount && (
-                <Card className="bg-primary/5 border-primary/20">
-                  <CardContent className="pt-6">
-                    <div className="text-center mb-4">
-                      <h4 className="font-medium text-lg">Set {currentSetNumber}</h4>
-                      <p className="text-sm text-muted-foreground">{getExerciseName()}</p>
-                    </div>
+              <div className="space-y-3 mb-4">
+                {(currentExercise.sets || []).map((set: any, index: number) => {
+                  const isCurrentSet = !set.is_completed && completedSetsCount === index;
+                  const setNumber = index + 1;
+                  
+                  return (
+                    <div 
+                      key={set.id || index}
+                      className={`p-4 rounded-lg border ${
+                        set.is_completed 
+                          ? 'bg-green-500/10 border-green-500/20 text-green-700 dark:text-green-300' 
+                          : isCurrentSet 
+                            ? 'bg-primary/5 border-primary/20'
+                            : 'border-border'
+                      }`}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span className="text-sm font-medium">Set {setNumber}</span>
+                        {set.is_completed && <CheckCircle className="h-4 w-4 text-green-600" />}
+                      </div>
+                      
+                      {set.is_completed ? (
+                        <div className="text-xs text-muted-foreground">
+                          {set.weight && set.reps ? `${set.weight}kg × ${set.reps} reps` : 
+                           set.target_weight && set.target_reps ? `Target: ${set.target_weight}kg × ${set.target_reps} reps` :
+                           'Completed'}
+                          {set.rpe && ` • RPE ${set.rpe}`}
+                        </div>
+                      ) : isCurrentSet ? (
+                        // Current set input form
+                        <div className="space-y-4 mt-4">
+                          <div className="text-center mb-3">
+                            <p className="text-sm text-muted-foreground">{getExerciseName()}</p>
+                          </div>
 
-                    <div className="space-y-4">
-                      {/* Weight input */}
-                      <TouchOptimizedSetInput
-                        label="Weight"
-                        value={currentSetData.weight}
-                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, weight: value || 0 }))}
-                        suffix="kg"
-                        min={0}
-                        max={500}
-                        step={2.5}
-                      />
+                          {/* Weight input */}
+                          <TouchOptimizedSetInput
+                            label="Weight"
+                            value={currentSetData.weight}
+                            onChange={(value) => setCurrentSetData(prev => ({ ...prev, weight: value || 0 }))}
+                            suffix="kg"
+                            min={0}
+                            max={500}
+                            step={2.5}
+                          />
 
-                      {/* Reps input */}
-                      <TouchOptimizedSetInput
-                        label="Reps"
-                        value={currentSetData.reps}
-                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, reps: value || 0 }))}
-                        min={0}
-                        max={100}
-                        step={1}
-                      />
+                          {/* Reps input */}
+                          <TouchOptimizedSetInput
+                            label="Reps"
+                            value={currentSetData.reps}
+                            onChange={(value) => setCurrentSetData(prev => ({ ...prev, reps: value || 0 }))}
+                            min={0}
+                            max={100}
+                            step={1}
+                          />
 
-                      {/* RPE input */}
-                      <TouchOptimizedSetInput
-                        label="RPE"
-                        value={currentSetData.rpe}
-                        onChange={(value) => setCurrentSetData(prev => ({ ...prev, rpe: value || 5 }))}
-                        min={1}
-                        max={10}
-                        step={0.5}
-                      />
+                          {/* RPE input */}
+                          <TouchOptimizedSetInput
+                            label="RPE"
+                            value={currentSetData.rpe}
+                            onChange={(value) => setCurrentSetData(prev => ({ ...prev, rpe: value || 5 }))}
+                            min={1}
+                            max={10}
+                            step={0.5}
+                          />
 
-                      {/* Feel selector */}
-                      <div>
-                        <label className="text-sm font-medium mb-3 block">How did that set feel?</label>
-                        <div className="flex justify-center gap-2">
-                          {['😣', '😐', '😊', '😎', '🔥'].map((emoji, index) => (
+                          {/* Feel selector */}
+                          <div>
+                            <label className="text-sm font-medium mb-3 block">How did that set feel?</label>
+                            <div className="flex justify-center gap-2">
+                              {['😣', '😐', '😊', '😎', '🔥'].map((emoji, index) => (
+                                <button
+                                  key={index}
+                                  onClick={() => setCurrentSetData(prev => ({ 
+                                    ...prev, 
+                                    feel: ['terrible', 'bad', 'okay', 'good', 'amazing'][index] 
+                                  }))}
+                                  className={`p-3 rounded-lg border-2 transition-colors ${
+                                    currentSetData.feel === ['terrible', 'bad', 'okay', 'good', 'amazing'][index]
+                                      ? 'border-primary bg-primary/10'
+                                      : 'border-border hover:border-primary/50'
+                                  }`}
+                                >
+                                  <span className="text-2xl">{emoji}</span>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Pain flag */}
+                          <div className="flex items-center justify-center gap-3 p-3 border rounded-lg">
+                            <label className="text-sm font-medium">Any pain during this set?</label>
                             <button
-                              key={index}
                               onClick={() => setCurrentSetData(prev => ({ 
                                 ...prev, 
-                                feel: ['terrible', 'bad', 'okay', 'good', 'amazing'][index] 
+                                pain: !prev.pain 
                               }))}
-                              className={`p-3 rounded-lg border-2 transition-colors ${
-                                currentSetData.feel === ['terrible', 'bad', 'okay', 'good', 'amazing'][index]
-                                  ? 'border-primary bg-primary/10'
-                                  : 'border-border hover:border-primary/50'
+                              className={`px-4 py-2 rounded-md border-2 transition-colors ${
+                                currentSetData.pain
+                                  ? 'border-red-500 bg-red-500/10 text-red-600'
+                                  : 'border-border hover:border-red-300'
                               }`}
                             >
-                              <span className="text-2xl">{emoji}</span>
+                              {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
                             </button>
-                          ))}
+                          </div>
+
+                          {/* Log Set Button */}
+                          <Button 
+                            onClick={handleSaveSet} 
+                            className="w-full" 
+                            size="lg"
+                            disabled={isLoading}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            {isLoading ? 'Logging...' : `Log Set ${setNumber}`}
+                          </Button>
                         </div>
-                      </div>
-
-                      {/* Pain flag */}
-                      <div className="flex items-center justify-center gap-3 p-3 border rounded-lg">
-                        <label className="text-sm font-medium">Any pain during this set?</label>
-                        <button
-                          onClick={() => setCurrentSetData(prev => ({ 
-                            ...prev, 
-                            pain: !prev.pain 
-                          }))}
-                          className={`px-4 py-2 rounded-md border-2 transition-colors ${
-                            currentSetData.pain
-                              ? 'border-red-500 bg-red-500/10 text-red-600'
-                              : 'border-border hover:border-red-300'
-                          }`}
-                        >
-                          {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
-                        </button>
-                      </div>
-
-                      {/* Log Set Button */}
-                      <Button 
-                        onClick={handleSaveSet} 
-                        className="w-full" 
-                        size="lg"
-                        disabled={isLoading}
-                      >
-                        <CheckCircle className="h-4 w-4 mr-2" />
-                        {isLoading ? 'Logging...' : `Log Set ${currentSetNumber}`}
-                      </Button>
+                      ) : (
+                        <div className="text-xs text-muted-foreground">
+                          {set.target_weight && set.target_reps ? `Target: ${set.target_weight}kg × ${set.target_reps} reps` : 'Not started'}
+                        </div>
+                      )}
                     </div>
-                  </CardContent>
-                </Card>
-              )}
+                  );
+                })}
+              </div>
               
               {/* Add Extra Set Button - Show only if all target sets completed */}
               {completedSetsCount >= targetSetsCount && (
