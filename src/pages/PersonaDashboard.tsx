@@ -104,7 +104,7 @@ const PersonaDashboard: React.FC = () => {
         .from('personal_records')
         .select(`
           value, kind, unit,
-          exercises(name)
+          exercises!inner(id)
         `)
         .eq('user_id', user.id)
         .eq('kind', 'heaviest')
@@ -127,7 +127,7 @@ const PersonaDashboard: React.FC = () => {
       }, 0) / totalWorkouts || 0;
 
       const strongestLift = personalRecords?.[0] ? {
-        exercise: personalRecords[0].exercises?.translations?.en?.name || personalRecords[0].exercises?.translations?.ro?.name || 'Unknown',
+        exercise: 'Exercise Record',
         weight: personalRecords[0].value
       } : { exercise: 'No records yet', weight: 0 };
 

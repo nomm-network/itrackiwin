@@ -12,6 +12,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import PageNav from "@/components/PageNav";
+import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 
 interface BodyPart {
   id: string;
@@ -538,7 +539,7 @@ const TemplateEditor: React.FC = () => {
                     <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
                       <div>
                         <h5 className="font-medium">
-                          {getTranslatedNameFromData(exercise.translations) || exercise.name}
+                          {getTranslatedNameFromData(exercise.translations) || getExerciseNameFromTranslations(exercise.translations) || 'Unknown Exercise'}
                         </h5>
                       </div>
                       <Button

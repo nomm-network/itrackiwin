@@ -1,5 +1,6 @@
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 
 export type UUID = string;
 
@@ -495,15 +496,15 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
       
       console.log("Workout fetched:", workout);
 
-      // Fetch workout exercises - SIMPLE QUERY
+      // Fetch workout exercises - Use translation view
       const { data: exercises, error: exercisesError } = await supabase
         .from("workout_exercises")
         .select(`
           *,
-          exercises (
+          exercises:v_exercises_with_translations (
             id,
-            name,
-            slug
+            slug,
+            translations
           )
         `)
         .eq("workout_id", workoutId)
@@ -558,7 +559,7 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
                 p_working_reps: 8
               });
               
-              console.log(`🔥 Warmup RPC call for ${workoutExercise.exercises?.name}:`, {
+              console.log(`🔥 Warmup RPC call for ${getExerciseNameFromTranslations(workoutExercise.exercises?.translations)}:`, {
                 exercise_id: workoutExercise.exercise_id,
                 working_weight: workingWeight,
                 result: warmupData,
@@ -820,9 +821,9 @@ export const useSearchExercises = (query?: string) => {
     enabled: !!query && query.length > 2,
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("exercises")
+        .from("v_exercises_with_translations")
         .select("*")
-        .textSearch("translations", query)
+        .or(`translations->>en->>name.ilike.%${query}%,translations->>ro->>name.ilike.%${query}%`)
         .limit(20);
       if (error) throw error;
       // Add compatibility wrapper for existing page expectations

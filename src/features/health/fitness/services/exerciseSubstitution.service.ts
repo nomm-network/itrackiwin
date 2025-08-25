@@ -135,7 +135,7 @@ export async function findAlternatives(
         // Apply constraints
         if (!meetsConstraints(exercise, constraints)) continue;
 
-        const name = exercise.translations?.en?.name || exercise.translations?.ro?.name || `Exercise ${exercise.id.slice(0, 8)}`;
+        const name = (exercise.translations as any)?.en?.name || (exercise.translations as any)?.ro?.name || `Exercise ${exercise.id.slice(0, 8)}`;
         
         scoredAlternatives.push({
           exerciseId: exercise.id,
@@ -200,7 +200,7 @@ export async function findAlternatives(
           // Apply constraints
           if (!meetsConstraints(alternative, constraints)) continue;
 
-          const name = alternative.translations?.en?.name || alternative.translations?.ro?.name || `Exercise ${alternative.id.slice(0, 8)}`;
+          const name = (alternative.translations as any)?.en?.name || (alternative.translations as any)?.ro?.name || `Exercise ${alternative.id.slice(0, 8)}`;
           
           scoredAlternatives.push({
             exerciseId: alternative.id,

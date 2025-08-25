@@ -174,7 +174,7 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
 
             const stagnationResult = stagnationData as any;
             if (stagnationResult?.stagnation_detected) {
-              const exerciseName = exerciseData.translations?.en?.name || exerciseData.translations?.ro?.name || exercise;
+              const exerciseName = (exerciseData.translations as any)?.en?.name || (exerciseData.translations as any)?.ro?.name || exercise;
               insights.push({
                 type: "stagnation",
                 severity: "medium",

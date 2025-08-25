@@ -13,6 +13,7 @@ import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
 import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
+import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import WarmupFeedback from "@/features/health/fitness/components/WarmupFeedback";
 import { generateQuickWarmup } from "@/features/health/fitness/utils/warmupGenerator";
 import RestTimer from "@/components/fitness/RestTimer";
@@ -314,7 +315,7 @@ const WorkoutSession: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-medium">{ex.exercises?.name || 'Unknown Exercise'}</h3>
+                          <h3 className="font-medium">{getExerciseNameFromTranslations(ex.exercises?.translations, ex.exercises?.id) || 'Unknown Exercise'}</h3>
                           {isCompleted && (
                             <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded">
                               {completedSets.length} sets
