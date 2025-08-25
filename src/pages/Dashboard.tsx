@@ -72,9 +72,9 @@ const Dashboard: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-3 sm:p-6 space-y-4 sm:space-y-6 pb-20 md:pb-6">
+    <div className="container mx-auto p-2 sm:p-6 space-y-2 sm:space-y-6 pb-20 md:pb-6">
       {/* Header */}
-      <div className="space-y-2">
+      <div className="space-y-1 sm:space-y-2">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
           <Button 
@@ -97,7 +97,7 @@ const Dashboard: React.FC = () => {
             <TabsTrigger
               key={cat.id}
               value={cat.id}
-              className="flex flex-col items-center gap-1 text-xs p-2 h-auto min-h-[60px]"
+              className="flex flex-col items-center gap-0.5 text-xs p-1.5 h-auto min-h-[50px]"
             >
               <span className="text-lg">{cat.icon}</span>
               <span className="text-xs leading-tight text-center">
@@ -108,11 +108,11 @@ const Dashboard: React.FC = () => {
         </TabsList>
 
         {categories.map((cat) => (
-          <TabsContent key={cat.id} value={cat.id} className="space-y-4 sm:space-y-6">
+          <TabsContent key={cat.id} value={cat.id} className="space-y-2 sm:space-y-4">
             {/* Subcategory Navigation */}
             {cat.subcategories && cat.subcategories.length > 0 && (
-              <div className="overflow-x-auto pb-2">
-                <div className="flex gap-2 min-w-max px-1">
+              <div className="overflow-x-auto pb-1">
+                <div className="flex gap-1.5 min-w-max px-1">
                   {cat.subcategories.map((sub) => (
                     <Badge
                       key={sub.id}
@@ -137,7 +137,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Widgets Grid - separate Quick Start from other widgets */}
-            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
               {visibleWidgets
                 .filter(widget => widget.id === 'fitness.quickstart')
                 .map((widget) => (
@@ -157,9 +157,9 @@ const Dashboard: React.FC = () => {
             {/* Quick Actions - immediately after Quick Start */}
             {actions.length > 0 && (
               <Card>
-                <CardContent className="pt-6">
-                  <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                <CardContent className="pt-3 sm:pt-6">
+                  <h3 className="text-lg font-semibold mb-2 sm:mb-4">Quick Actions</h3>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
                     {actions.map((action) => (
                       <Button
                         key={action.id}
@@ -177,7 +177,7 @@ const Dashboard: React.FC = () => {
             )}
 
             {/* Other Widgets - Readiness and stats */}
-            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-4">
+            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
               {visibleWidgets
                 .filter(widget => widget.id !== 'fitness.quickstart')
                 .map((widget) => (
