@@ -53,7 +53,7 @@ const DynamicFitnessStartAction = () => {
     icon: React.createElement(Play, { className: 'h-4 w-4' }),
     category: 'health',
     subcategory: 'fitness',
-    onClickPath: activeWorkout ? `/fitness/session/${activeWorkout.id}` : undefined,
+    onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined,
     order: 1
   };
 };
@@ -134,7 +134,7 @@ export const useDynamicQuickActions = (category: string, subcategory?: string) =
           return {
             ...action,
             label: activeWorkout ? 'Continue Workout' : 'Start Workout',
-            onClickPath: activeWorkout ? `/fitness/session/${activeWorkout.id}` : undefined
+            onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : undefined
           };
         }
         return action;
