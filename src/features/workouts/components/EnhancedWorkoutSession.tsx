@@ -31,6 +31,7 @@ import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
+import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -41,6 +42,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { mutate: logSet, isPending: isLoading } = useLogSet();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
+  const { data: grips = [] } = useGrips();
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
@@ -107,6 +109,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     
     const exerciseGrips = selectedGrips[exerciseId] || [];
     
+    // Convert grip names to UUIDs
+    const gripIds = exerciseGrips
+      .map(gripName => getGripIdByName(grips, gripName))
+      .filter(id => id !== null) as string[];
+    
     // Build notes with feel and pain info
     let notes = setData.notes || '';
     if (setData.feel) {
@@ -123,7 +130,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       rpe: setData.rpe || 5,
       notes: notes,
       is_completed: true,
-      grip_ids: exerciseGrips
+      grip_ids: gripIds
     }, {
       onSuccess: (data) => {
         console.log('Set logged successfully:', data);
@@ -329,24 +336,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       Select grip(s) for this exercise. This will be applied to all sets.
                     </p>
                     
-                    {/* Mock grip options - replace with actual grip data */}
+                    {/* Use actual grip data from database */}
                     <div className="grid grid-cols-2 gap-2">
-                      {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close', 'Mixed'].map((grip) => (
+                      {grips.map((grip) => (
                         <Button
-                          key={grip}
-                          variant={selectedGrips[currentExercise.id]?.includes(grip) ? "default" : "outline"}
+                          key={grip.id}
+                          variant={selectedGrips[currentExercise.id]?.includes(grip.name) ? "default" : "outline"}
                           size="sm"
                           onClick={() => {
                             setSelectedGrips(prev => {
                               const current = prev[currentExercise.id] || [];
-                              const updated = current.includes(grip)
-                                ? current.filter(g => g !== grip)
-                                : [...current, grip];
+                              const updated = current.includes(grip.name)
+                                ? current.filter(g => g !== grip.name)
+                                : [...current, grip.name];
                               return { ...prev, [currentExercise.id]: updated };
                             });
                           }}
                         >
-                          {grip}
+                          {grip.name}
                         </Button>
                       ))}
                     </div>
