@@ -38,16 +38,34 @@ import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 
+// Add readiness check imports
+import ReadinessCheckIn, { ReadinessData } from '@/components/fitness/ReadinessCheckIn';
+import { useShouldShowReadiness } from '@/features/health/fitness/hooks/useShouldShowReadiness';
+import { usePreWorkoutCheckin } from '@/features/health/fitness/hooks/usePreWorkoutCheckin';
+import { useAuth } from '@/hooks/useAuth';
+import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import PageNav from "@/components/PageNav";
+
 interface WorkoutSessionProps {
   workout: any;
 }
 
 export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
   const navigate = useNavigate();
-  const { mutate: logSet, isPending: isLoading } = useLogSet();
+  const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
   const { data: grips = [] } = useGrips();
+  const queryClient = useQueryClient();
+  const { toast: toastUtils } = useToast();
+  
+  // Use proper auth hook - no race conditions
+  const { user, loading: authLoading } = useAuth();
+
+  // Robust readiness check using the auth hook
+  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
+  const { createCheckin } = usePreWorkoutCheckin(workout?.id);
   
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
@@ -71,7 +89,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     pain: false
   });
 
-  // Get user ID on mount
+  // Get user ID on mount (backup to auth hook)
   React.useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
@@ -267,6 +285,97 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const handleFinishWorkout = () => {
     navigate('/dashboard');
   };
+
+  // Readiness check handlers
+  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
+    try {
+      // Calculate a simple readiness score (0-10 based on answers)
+      const score = calculateReadinessScore(readinessData);
+      
+      await createCheckin.mutateAsync({
+        answers: readinessData,
+        readiness_score: score
+      });
+      
+      toastUtils({
+        title: "Readiness recorded",
+        description: "Your pre-workout check-in has been saved."
+      });
+      
+      // Invalidate the shouldShowReadiness query to hide the popup
+      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', workout?.id, user?.id] });
+    } catch (error) {
+      console.error('Error saving readiness check:', error);
+      toastUtils({
+        title: "Error",
+        description: "Failed to save readiness check.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Simple readiness score calculation
+  const calculateReadinessScore = (readinessData: ReadinessData): number => {
+    let score = 10;
+    if (readinessData.illness) score -= 3;
+    if (readinessData.sleep_quality < 5) score -= 2;
+    if (readinessData.energy < 5) score -= 2;
+    return Math.max(0, Math.min(10, score));
+  };
+
+  const handleSkipReadiness = () => {
+    // Create a special "skipped" checkin to prevent showing again
+    createCheckin.mutate({ 
+      answers: { skipped: true } as any, 
+      readiness_score: 5 // neutral score for skipped
+    });
+  };
+
+  // Robust decision logic - no race conditions
+  const needsReadiness = shouldShowReadiness === true;
+  
+  // DEBUG: Log the readiness check logic
+  console.log('🔍 ENHANCED READINESS DEBUG:', {
+    workoutId: workout?.id,
+    userId: user?.id,
+    shouldShowReadiness,
+    isCheckingReadiness,
+    needsReadiness,
+    authLoading
+  });
+  
+  // Gate UI until we know the readiness status
+  const stillLoading = isCheckingReadiness || authLoading || !user;
+
+  // Show loading until we have all the data
+  if (stillLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2">Loading workout...</span>
+      </div>
+    );
+  }
+
+  // Show readiness check if needed
+  console.log('🚨 ENHANCED READINESS CHECK DECISION:', needsReadiness);
+  if (needsReadiness) {
+    console.log('🎯 RENDERING ENHANCED READINESS CHECK');
+    return (
+      <>
+        <PageNav current="Pre-Workout Check" />
+        <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
+          <ReadinessCheckIn
+            onSubmit={handleReadinessSubmit}
+            onSkip={handleSkipReadiness}
+          />
+        </main>
+      </>
+    );
+  }
+
+  // DEBUG: Log when we reach main workout view
+  console.log('🎯 SHOWING ENHANCED MAIN WORKOUT VIEW');
 
   if (!workout?.exercises?.length) {
     return (
