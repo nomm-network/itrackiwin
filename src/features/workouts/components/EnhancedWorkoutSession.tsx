@@ -258,6 +258,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">
                   {currentExercise.exercise?.translations?.en?.name || 
+                   currentExercise.translations?.en?.name ||
                    currentExercise.exercise?.name || 
                    currentExercise.name || 
                    'Exercise'}
@@ -291,6 +292,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     </div>
                   </div>
                 ))}
+              </div>
+              
+              {/* Add Set Button */}
+              <div className="mt-4">
+                <Button 
+                  onClick={handleOpenSetInput}
+                  className="w-full bg-primary hover:bg-primary/90"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Set
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -355,6 +367,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             <div className="text-center">
               <h3 className="font-medium text-lg">
                 {currentExercise?.exercise?.translations?.en?.name || 
+                 currentExercise?.translations?.en?.name ||
                  currentExercise?.exercise?.name || 
                  currentExercise?.name || 
                  'Exercise'}
