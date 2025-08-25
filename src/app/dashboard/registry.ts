@@ -70,23 +70,13 @@ const DynamicFitnessStartAction = () => {
 
 export const quickActions: QuickAction[] = [
   {
-    id: 'fitness.start',
-    label: 'Start Workout',
-    icon: React.createElement(Play, { className: 'h-4 w-4' }),
-    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
-    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
-    // Custom onClick will be handled in the dashboard component that renders this
-    onClickPath: undefined,
-    order: 1
-  },
-  {
     id: 'fitness.templates',
     label: 'Templates',
     icon: React.createElement(Target, { className: 'h-4 w-4' }),
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/templates',
-    order: 2
+    order: 1
   },
   {
     id: 'fitness.history',
@@ -95,7 +85,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/history',
-    order: 3
+    order: 2
   },
   {
     id: 'fitness.programs',
@@ -104,7 +94,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/app/programs',
-    order: 4
+    order: 3
   },
   {
     id: 'fitness.configure',
@@ -113,7 +103,7 @@ export const quickActions: QuickAction[] = [
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/fitness/configure',
-    order: 5
+    order: 4
   }
   // Future quick actions for other categories/subcategories
 ];
@@ -132,23 +122,5 @@ export const getQuickActionsByCategory = (category: string, subcategory?: string
 };
 
 export const useDynamicQuickActions = (category: string, subcategory?: string): QuickAction[] => {
-  const dynamicAction = DynamicFitnessStartAction();
-  
-  const baseActions = getQuickActionsByCategory(category, subcategory);
-  
-  if (category === 'b54c368d-cd4f-4276-aa82-668da614e50d' && subcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247') {
-    console.log('[useDynamicQuickActions] dynamicAction:', dynamicAction);
-    
-    return baseActions.map(action => {
-      if (action.id === 'fitness.start') {
-        return {
-          ...action,
-          ...dynamicAction,
-        };
-      }
-      return action;
-    });
-  }
-  
-  return baseActions;
+  return getQuickActionsByCategory(category, subcategory);
 };

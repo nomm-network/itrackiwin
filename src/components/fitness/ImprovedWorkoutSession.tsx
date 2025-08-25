@@ -153,10 +153,10 @@ export default function ImprovedWorkoutSession({
       };
       onSetComplete(completedSet);
       
-      // Reset form for next set but keep feel/pain cleared
+      // Keep weight and reps for next set progression, reset everything else
       setCurrentSetData({
-        weight: 0,
-        reps: 0,
+        weight: currentSetData.weight, // Keep for progression
+        reps: currentSetData.reps,     // Keep for progression
         rpe: undefined,
         feel: '=' as Feel,
         pain: false,
