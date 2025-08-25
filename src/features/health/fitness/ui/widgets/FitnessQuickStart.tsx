@@ -38,14 +38,16 @@ const FitnessQuickStart: React.FC = () => {
       loadingActiveWorkout 
     });
     
-    if (!checkAndRedirect('start a workout')) return;
-    
+    // If there's an active workout, continue it WITHOUT profile check
     if (activeWorkout?.id) {
       const targetPath = `/app/workouts/${activeWorkout.id}`;
       console.log('🎯 [FitnessQuickStart] Navigating to existing workout:', targetPath);
       navigate(targetPath);
       return;
     }
+    
+    // Only check profile for NEW workouts
+    if (!checkAndRedirect('start a workout')) return;
 
     if (nextBlock) {
       // Start from program
