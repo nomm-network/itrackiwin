@@ -446,7 +446,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               ← Back
             </Button>
             <h1 className="text-lg font-semibold">
-              Workout <span className="italic">{workout?.template_name || workout?.name || 'Session'}</span>
+              Workout <em>{workout?.template_name || workout?.name || 'Session'}</em>
             </h1>
           </div>
           <div className="flex items-center gap-2">
@@ -524,17 +524,25 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 Exercise Navigation
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {workout.exercises.map((exercise: any, index: number) => (
-                  <Button
-                    key={exercise.id}
-                    variant={index === currentExerciseIndex ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setCurrentExerciseIndex(index)}
-                    className="flex-shrink-0"
-                  >
-                    {index + 1}. {getExerciseName()}
-                  </Button>
-                ))}
+                {workout.exercises.map((exercise: any, index: number) => {
+                  // Get exercise name for each specific exercise
+                  const exerciseName = exercise?.exercise?.translations?.en?.name || 
+                                     exercise?.translations?.en?.name || 
+                                     exercise?.exercise?.name || 
+                                     exercise?.name || 
+                                     'Exercise';
+                  return (
+                    <Button
+                      key={exercise.id}
+                      variant={index === currentExerciseIndex ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setCurrentExerciseIndex(index)}
+                      className="flex-shrink-0"
+                    >
+                      {index + 1}. {exerciseName}
+                    </Button>
+                  );
+                })}
               </div>
               
               {/* Abort Workout Button */}

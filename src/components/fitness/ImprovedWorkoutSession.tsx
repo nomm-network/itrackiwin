@@ -409,10 +409,15 @@ export default function ImprovedWorkoutSession({
             <Button
               variant={currentSetData.pain ? "destructive" : "outline"}
               onClick={() => setCurrentSetData(prev => ({ ...prev, pain: !prev.pain }))}
-              className="w-full"
+              className={cn(
+                "w-full",
+                currentSetData.pain 
+                  ? "bg-destructive text-destructive-foreground hover:bg-destructive/90" 
+                  : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
+              )}
               size="sm"
             >
-              {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
+              {currentSetData.pain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
             </Button>
 
             {/* Submit Button */}
@@ -430,7 +435,7 @@ export default function ImprovedWorkoutSession({
 
       {/* Exercise Complete Message */}
       {isLastSet && (
-        <Card className="border-green-200 bg-green-50">
+        <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20">
           <CardContent className="pt-6 text-center space-y-4">
             <div className="text-2xl">🎉</div>
             {isLastExercise ? (
