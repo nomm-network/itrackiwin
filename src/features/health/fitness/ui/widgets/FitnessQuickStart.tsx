@@ -20,20 +20,30 @@ const FitnessQuickStart: React.FC = () => {
   const startQuickWorkout = useStartQuickWorkout();
   
   // Use direct active workout query instead of relying on recentWorkouts list
-  const { data: activeWorkout } = useActiveWorkout();
+  const { data: activeWorkout, isLoading: loadingActiveWorkout, error: activeWorkoutError } = useActiveWorkout();
   
   // Debug logging
-  console.log('[FitnessQuickStart] activeWorkout:', activeWorkout);
-  console.log('[FitnessQuickStart] recentWorkouts:', recentWorkouts);
+  console.log('🔍 [FitnessQuickStart] Hook states:', {
+    activeWorkout,
+    loadingActiveWorkout,
+    activeWorkoutError,
+    recentWorkoutsLength: recentWorkouts?.length
+  });
 
   const handleStartWorkout = async () => {
+    console.log('🚀 [FitnessQuickStart] handleStartWorkout called');
+    console.log('🔍 [FitnessQuickStart] Current state:', { 
+      activeWorkout, 
+      activeWorkoutId: activeWorkout?.id,
+      loadingActiveWorkout 
+    });
+    
     if (!checkAndRedirect('start a workout')) return;
     
-    console.log('[FitnessQuickStart] handleStartWorkout called with activeWorkout:', activeWorkout);
-    
-    if (activeWorkout) {
-      console.log('[FitnessQuickStart] Navigating to existing workout:', `/app/workouts/${activeWorkout.id}`);
-      navigate(`/app/workouts/${activeWorkout.id}`);
+    if (activeWorkout?.id) {
+      const targetPath = `/app/workouts/${activeWorkout.id}`;
+      console.log('🎯 [FitnessQuickStart] Navigating to existing workout:', targetPath);
+      navigate(targetPath);
       return;
     }
 

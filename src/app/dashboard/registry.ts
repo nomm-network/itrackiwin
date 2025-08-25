@@ -44,9 +44,18 @@ export const widgets: DashboardWidget[] = [
 
 // Dynamic quick actions that depend on data
 const DynamicFitnessStartAction = () => {
-  const { data: activeWorkout } = useActiveWorkout();
+  const { data: activeWorkout, isLoading, error } = useActiveWorkout();
   
-  console.log('[DynamicFitnessStartAction] activeWorkout:', activeWorkout);
+  console.log('🔍 [DynamicFitnessStartAction] State:', { 
+    activeWorkout, 
+    activeWorkoutId: activeWorkout?.id,
+    isLoading, 
+    error 
+  });
+  
+  const targetPath = activeWorkout?.id ? `/app/workouts/${activeWorkout.id}` : '/app/workouts/start-quick';
+  
+  console.log('🎯 [DynamicFitnessStartAction] Target path:', targetPath);
   
   return {
     id: 'fitness.start',
@@ -54,7 +63,7 @@ const DynamicFitnessStartAction = () => {
     icon: React.createElement(Play, { className: 'h-4 w-4' }),
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // fitness
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness
-    onClickPath: activeWorkout ? `/app/workouts/${activeWorkout.id}` : '/app/workouts/start-quick',
+    onClickPath: targetPath,
     order: 1
   };
 };
