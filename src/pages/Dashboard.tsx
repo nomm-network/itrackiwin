@@ -92,15 +92,17 @@ const Dashboard: React.FC = () => {
 
       {/* Category Navigation */}
       <Tabs value={currentCategory} onValueChange={handleCategoryChange}>
-        <TabsList className="grid w-full grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 h-auto p-1">
-          {categories.map((cat) => (
+        <TabsList className="grid w-full grid-cols-3 h-auto p-1 gap-1">
+          {categories.slice(0, 6).map((cat) => (
             <TabsTrigger
               key={cat.id}
               value={cat.id}
-              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 text-xs p-2 sm:p-3 h-auto"
+              className="flex flex-col items-center gap-1 text-xs p-2 h-auto min-h-[60px]"
             >
-              <span className="text-base">{cat.icon}</span>
-              <span className="text-xs sm:text-sm leading-tight">{cat.name}</span>
+              <span className="text-lg">{cat.icon}</span>
+              <span className="text-xs leading-tight text-center">
+                {cat.name.split(' ')[0]}
+              </span>
             </TabsTrigger>
           ))}
         </TabsList>
