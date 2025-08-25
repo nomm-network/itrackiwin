@@ -23,7 +23,7 @@ import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 interface Exercise {
   id: string;
   translations: any;
-  body_part: string | null;
+  body_part_slug: string | null;
   body_part_id: string | null;
   primary_muscle_id: string | null;
   secondary_muscle_group_ids: string[] | null;
@@ -221,7 +221,7 @@ const AdminExercisesManagement: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from("v_exercises_with_translations")
-        .select('id, translations, body_part, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, default_grip_ids, created_at')
+        .select('id, translations, body_part_slug, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, default_grip_ids, created_at')
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart) {

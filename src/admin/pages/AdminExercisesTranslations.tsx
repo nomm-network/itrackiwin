@@ -34,7 +34,7 @@ interface Exercise {
   id: string;
   name: string;
   slug: string;
-  body_part: string;
+  body_part_slug: string;
   is_public: boolean;
 }
 
@@ -67,7 +67,7 @@ const AdminExercisesTranslations: React.FC = () => {
     queryFn: async () => {
       let query = supabase
         .from("v_exercises_with_translations")
-        .select("id, slug, body_part, is_public, translations")
+        .select("id, slug, body_part_slug, is_public, translations")
         .eq("is_public", true);
       
       const { data, error } = await query.limit(100);
@@ -77,7 +77,7 @@ const AdminExercisesTranslations: React.FC = () => {
       const exercisesWithNames = data?.map(item => ({
         id: item.id,
         slug: item.slug,
-        body_part: item.body_part,
+        body_part_slug: item.body_part_slug,
         is_public: item.is_public,
         name: getExerciseNameFromTranslations(item.translations, item.id)
       })) || [];
@@ -234,7 +234,7 @@ const AdminExercisesTranslations: React.FC = () => {
                     <SelectContent>
                       {exercises.map((exercise) => (
                         <SelectItem key={exercise.id} value={exercise.id}>
-                          {exercise.name} ({exercise.body_part})
+                          {exercise.name} ({exercise.body_part_slug || 'Unknown'})
                         </SelectItem>
                       ))}</SelectContent>
                   </Select>

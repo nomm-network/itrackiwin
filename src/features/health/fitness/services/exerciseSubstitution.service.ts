@@ -91,9 +91,9 @@ export async function findAlternatives(
         primary_muscle_id,
         secondary_muscle_group_ids,
         equipment_id,
-        equipment(slug),
+        equipment_slug,
         body_part_id,
-        primary_muscle:muscles(slug, name)
+        muscle_name
       `)
       .eq('id', exerciseId)
       .single();
@@ -116,9 +116,9 @@ export async function findAlternatives(
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
-          equipment(slug),
+          equipment_slug,
           body_part_id,
-          primary_muscle:muscles(slug, name)
+          muscle_name
         )
       `)
       .eq('exercise_id', exerciseId);
@@ -130,7 +130,7 @@ export async function findAlternatives(
         if (!exercise) continue;
 
         // Check equipment availability
-        if (!isEquipmentAvailable(exercise.equipment?.slug, equipmentCaps)) continue;
+        if (!isEquipmentAvailable(exercise.equipment_slug, equipmentCaps)) continue;
 
         // Apply constraints
         if (!meetsConstraints(exercise, constraints)) continue;
@@ -143,9 +143,9 @@ export async function findAlternatives(
           slug: exercise.slug,
           matchScore: Math.round((similar.similarity_score || 0.9) * 100),
           matchReasons: similar.reason ? [similar.reason] : ['Curated match'],
-          equipment: exercise.equipment ? {
+          equipment: exercise.equipment_slug ? {
             id: exercise.equipment_id || 'unknown',
-            slug: exercise.equipment.slug
+            slug: exercise.equipment_slug
           } : undefined,
           movementPattern: inferMovementPattern(exercise.slug)?.primary
         });
@@ -161,10 +161,10 @@ export async function findAlternatives(
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
-          equipment(slug),
+          equipment_slug,
           body_part_id,
           popularity_rank,
-          primary_muscle:muscles(slug, name)
+          muscle_name
         `)
         .eq('is_public', true)
         .neq('id', exerciseId)
@@ -195,7 +195,7 @@ export async function findAlternatives(
           if (score.total < 50) continue;
 
           // Check equipment availability
-          if (!isEquipmentAvailable(alternative.equipment?.slug, equipmentCaps)) continue;
+          if (!isEquipmentAvailable(alternative.equipment_slug, equipmentCaps)) continue;
 
           // Apply constraints
           if (!meetsConstraints(alternative, constraints)) continue;
@@ -208,9 +208,9 @@ export async function findAlternatives(
             slug: alternative.slug,
             matchScore: score.total,
             matchReasons: score.reasons,
-            equipment: alternative.equipment ? {
+            equipment: alternative.equipment_slug ? {
               id: alternative.equipment_id || 'unknown',
-              slug: alternative.equipment.slug
+              slug: alternative.equipment_slug
             } : undefined,
             movementPattern: inferMovementPattern(alternative.slug)?.primary
           });

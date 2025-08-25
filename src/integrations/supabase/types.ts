@@ -4975,12 +4975,15 @@ export type Database = {
       v_exercises_with_translations: {
         Row: {
           body_part_id: string | null
+          body_part_slug: string | null
           capability_schema: Json | null
           complexity_score: number | null
           contraindications: Json | null
           created_at: string | null
           default_grip_ids: string[] | null
           equipment_id: string | null
+          equipment_slug: string | null
+          equipment_type: string | null
           exercise_skill_level:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -4990,10 +4993,15 @@ export type Database = {
           movement_pattern:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
+          muscle_group_name: string | null
+          muscle_group_slug: string | null
+          muscle_name: string | null
+          muscle_slug: string | null
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
           secondary_muscle_group_ids: string[] | null
+          slug: string | null
           source_url: string | null
           thumbnail_url: string | null
           translations: Json | null
