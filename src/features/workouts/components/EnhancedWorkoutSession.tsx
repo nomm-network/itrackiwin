@@ -58,7 +58,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     reps: 0,
     rpe: 5,
     feel: '',
-    notes: ''
+    notes: '',
+    pain: false
   });
 
   const currentExercise = workout?.exercises?.[currentExerciseIndex];
@@ -99,30 +100,43 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     
     const exerciseGrips = selectedGrips[exerciseId] || [];
     
+    // Build notes with feel and pain info
+    let notes = setData.notes || '';
+    if (setData.feel) {
+      notes = notes ? `Feel: ${setData.feel}. ${notes}` : `Feel: ${setData.feel}`;
+    }
+    if (setData.pain) {
+      notes = notes ? `${notes}. Pain reported` : 'Pain reported';
+    }
+    
     logSet({
       workout_exercise_id: exerciseId,
-      weight: setData.weight,
-      reps: setData.reps,
-      rpe: setData.rpe,
-      notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
+      weight: setData.weight || 0,
+      reps: setData.reps || 0,
+      rpe: setData.rpe || 5,
+      notes: notes,
       is_completed: true,
       grip_ids: exerciseGrips
     }, {
-      onSuccess: () => {
-        console.log('Set logged successfully, advancing to next set');
-        // Force re-render to show next set
+      onSuccess: (data) => {
+        console.log('Set logged successfully:', data);
+        // Reset form for next set
         setCurrentSetData({
-          weight: setData.weight, // Keep weight for next set
-          reps: setData.reps,     // Keep reps for next set
+          weight: setData.weight || 0, // Keep weight for next set
+          reps: setData.reps || 0,     // Keep reps for next set
           rpe: 5,
           feel: '',
-          notes: ''
+          notes: '',
+          pain: false
         });
         toast.success('Set logged successfully!');
+        
+        // Force refresh the workout data to show updated sets
+        window.location.reload();
       },
       onError: (error) => {
         console.error('Failed to log set:', error);
-        toast.error('Failed to log set');
+        toast.error(`Failed to log set: ${error.message}`);
       }
     });
   };
@@ -433,6 +447,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                             </button>
                           ))}
                         </div>
+                      </div>
+
+                      {/* Pain flag */}
+                      <div className="flex items-center justify-center gap-3 p-3 border rounded-lg">
+                        <label className="text-sm font-medium">Any pain during this set?</label>
+                        <button
+                          onClick={() => setCurrentSetData(prev => ({ 
+                            ...prev, 
+                            pain: !prev.pain 
+                          }))}
+                          className={`px-4 py-2 rounded-md border-2 transition-colors ${
+                            currentSetData.pain
+                              ? 'border-red-500 bg-red-500/10 text-red-600'
+                              : 'border-border hover:border-red-300'
+                          }`}
+                        >
+                          {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
+                        </button>
                       </div>
 
                       {/* Log Set Button */}
