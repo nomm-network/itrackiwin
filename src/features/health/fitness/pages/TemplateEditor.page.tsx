@@ -95,14 +95,30 @@ const TemplateEditor: React.FC = () => {
     queryKey: ["body_parts"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('v_body_parts_with_translations')
-        .select('id, translations')
-        .order('id');
+        .from('body_parts')
+        .select(`
+          id, 
+          slug,
+          body_parts_translations!inner(name, description)
+        `)
+        .eq('body_parts_translations.language_code', 'en')
+        .order('body_parts_translations.name');
+      
       if (error) {
         console.error('Error fetching body parts:', error);
         throw error;
       }
-      return data || [];
+      
+      // Transform data to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        translations: {
+          en: {
+            name: (item.body_parts_translations as any)[0]?.name || item.slug,
+            description: (item.body_parts_translations as any)[0]?.description
+          }
+        }
+      }));
     }
   });
 
@@ -110,9 +126,15 @@ const TemplateEditor: React.FC = () => {
     queryKey: ["muscle_groups", selectedBodyPart],
     queryFn: async () => {
       let query = supabase
-        .from('v_muscle_groups_with_translations')
-        .select('id, body_part_id, translations')
-        .order('id');
+        .from('muscle_groups')
+        .select(`
+          id, 
+          body_part_id, 
+          slug,
+          muscle_groups_translations!inner(name, description)
+        `)
+        .eq('muscle_groups_translations.language_code', 'en')
+        .order('muscle_groups_translations.name');
       
       if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq('body_part_id', selectedBodyPart);
@@ -123,7 +145,18 @@ const TemplateEditor: React.FC = () => {
         console.error('Error fetching muscle groups:', error);
         throw error;
       }
-      return data || [];
+      
+      // Transform data to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        body_part_id: item.body_part_id,
+        translations: {
+          en: {
+            name: (item.muscle_groups_translations as any)[0]?.name || item.slug,
+            description: (item.muscle_groups_translations as any)[0]?.description
+          }
+        }
+      }));
     },
     enabled: true // Always fetch muscle groups
   });
@@ -132,9 +165,15 @@ const TemplateEditor: React.FC = () => {
     queryKey: ["muscles", selectedMuscleGroup],
     queryFn: async () => {
       let query = supabase
-        .from('v_muscles_with_translations')
-        .select('id, muscle_group_id, translations')
-        .order('id');
+        .from('muscles')
+        .select(`
+          id, 
+          muscle_group_id, 
+          slug,
+          muscles_translations!inner(name, description)
+        `)
+        .eq('muscles_translations.language_code', 'en')
+        .order('muscles_translations.name');
       
       if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
         query = query.eq('muscle_group_id', selectedMuscleGroup);
@@ -145,7 +184,18 @@ const TemplateEditor: React.FC = () => {
         console.error('Error fetching muscles:', error);
         throw error;
       }
-      return data || [];
+      
+      // Transform data to match our interface
+      return (data || []).map(item => ({
+        id: item.id,
+        muscle_group_id: item.muscle_group_id,
+        translations: {
+          en: {
+            name: (item.muscles_translations as any)[0]?.name || item.slug,
+            description: (item.muscles_translations as any)[0]?.description
+          }
+        }
+      }));
     },
     enabled: true // Always fetch muscles
   });

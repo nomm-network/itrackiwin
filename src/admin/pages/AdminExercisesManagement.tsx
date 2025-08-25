@@ -220,14 +220,10 @@ const AdminExercisesManagement: React.FC = () => {
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
     queryFn: async () => {
       let query = supabase
-        .from("exercises")
-        .select('id, translations:exercises_translations(language_code, name, description), body_part, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, default_grip_ids, created_at')
+        .from("v_exercises_with_translations")
+        .select('id, translations, body_part, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, default_grip_ids, created_at')
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
-      if (searchTerm) {
-        // For now, disable search by translations in admin - needs proper implementation
-        // query = query.or(`translations->>en->>name.ilike.%${searchTerm}%,translations->>ro->>name.ilike.%${searchTerm}%`);
-      }
       if (selectedBodyPart) {
         query = query.eq("body_part_id", selectedBodyPart);
       }
@@ -244,14 +240,19 @@ const AdminExercisesManagement: React.FC = () => {
       const { data, error } = await query;
       if (error) throw error;
       
-      // Transform the data to match our Exercise interface
-      return (data || []).map((exercise: any) => ({
+      let results = data || [];
+      
+      // Client-side filtering for search
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        results = results.filter(exercise => {
+          const name = getExerciseNameFromTranslations(exercise.translations, exercise.id);
+          return name.toLowerCase().includes(searchLower);
+        });
+      }
+      
+      return results.map((exercise: any) => ({
         ...exercise,
-        // Convert translations array to object for easier access
-        translations: Array.isArray(exercise.translations) ? exercise.translations.reduce((acc: any, t: any) => {
-          acc[t.language_code] = { name: t.name, description: t.description };
-          return acc;
-        }, {}) : {},
         default_grip_ids: exercise.default_grip_ids || []
       }));
     },
