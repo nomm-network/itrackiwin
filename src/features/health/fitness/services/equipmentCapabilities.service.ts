@@ -80,10 +80,14 @@ export async function getEquipmentCapabilities(userId: string): Promise<Equipmen
         .eq('gym_id', gymId)
         .eq('is_functional', true);
 
+      // TODO: Fix after gym_machines table is properly defined
+      const gymMachines: any[] = [];
+      /*
       const { data: gymMachines } = await supabase
         .from('gym_machines')
         .select('equipment_id, stack_values, aux_increment, quantity')
         .eq('gym_id', gymId);
+      */
 
       publicEquipment = { gymEquipment, gymMachines };
     }

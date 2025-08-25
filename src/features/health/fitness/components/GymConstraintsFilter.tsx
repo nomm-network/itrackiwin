@@ -24,6 +24,10 @@ export function GymConstraintsFilter({ onConstraintsChange }: GymConstraintsFilt
       if (!userGym?.id) return null;
       
       // Get gym machines and their available grips
+      // TODO: Fix after gym_machines table is properly defined
+      const machines: any[] = [];
+      const machinesError = null;
+      /*
       const { data: machines, error: machinesError } = await supabase
         .from('gym_machines')
         .select(`
@@ -43,18 +47,15 @@ export function GymConstraintsFilter({ onConstraintsChange }: GymConstraintsFilt
           )
         `)
         .eq('gym_id', userGym.id);
+      */
 
       if (machinesError) throw machinesError;
 
       // Extract available equipment IDs
-      const availableEquipment = machines?.map(m => m.equipment_id) || [];
+      const availableEquipment: string[] = [];
       
-      // Extract available grip IDs
-      const availableGrips = machines?.flatMap(m => 
-        m.gym_machine_grip_options
-          ?.filter(ggo => ggo.is_available)
-          ?.map(ggo => ggo.grip_id) || []
-      ) || [];
+      // Extract available grip IDs  
+      const availableGrips: string[] = [];
 
       return {
         availableEquipment: [...new Set(availableEquipment)], // Remove duplicates

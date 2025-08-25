@@ -4,12 +4,11 @@ import { GripSelector } from "./GripSelector";
 import { EffectiveMuscles } from "./EffectiveMuscles";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 
 interface Exercise {
   id: string;
-  name: string;
   equipment_id?: string;
-  description?: string;
 }
 
 interface ExerciseCardWithGripsProps {
@@ -24,6 +23,7 @@ export const ExerciseCardWithGrips = ({
   className 
 }: ExerciseCardWithGripsProps) => {
   const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
+  const { data: translation } = useExerciseTranslation(exercise.id);
 
   const handleGripChange = (gripIds: string[]) => {
     setSelectedGripIds(gripIds);
@@ -33,9 +33,9 @@ export const ExerciseCardWithGrips = ({
   return (
     <Card className={cn("w-full", className)}>
       <CardHeader className="pb-3">
-        <CardTitle className="text-lg">{exercise.name}</CardTitle>
-        {exercise.description && (
-          <p className="text-sm text-muted-foreground">{exercise.description}</p>
+        <CardTitle className="text-lg">{translation?.name || `Exercise ${exercise.id}`}</CardTitle>
+        {translation?.description && (
+          <p className="text-sm text-muted-foreground">{translation.description}</p>
         )}
       </CardHeader>
       

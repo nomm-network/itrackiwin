@@ -19,14 +19,23 @@ export const fitnessKeys = {
 };
 
 // Exercises API
-export async function fetchExercises(params: { search?: string; muscleId?: string; equipmentId?: string } = {}) {
+export async function fetchExercises(params: { search?: string; muscleId?: string; equipmentId?: string; language?: string } = {}) {
+  const language = params.language || 'en';
+  
   let query = supabase
     .from("exercises")
-    .select("id, name, primary_muscle_id, equipment_id, image_url, instructions, secondary_muscles")
+    .select(`
+      id, 
+      primary_muscle_id, 
+      equipment_id, 
+      image_url, 
+      exercises_translations!inner(name, description)
+    `)
+    .eq('exercises_translations.language_code', language)
     .limit(50);
 
   if (params.search) {
-    query = query.ilike("name", `%${params.search}%`);
+    query = query.ilike("exercises_translations.name", `%${params.search}%`);
   }
   
   if (params.muscleId) {
@@ -37,16 +46,20 @@ export async function fetchExercises(params: { search?: string; muscleId?: strin
     query = query.eq("equipment_id", params.equipmentId);
   }
 
-  const { data, error } = await query;
+  const { data, error } = await query.order('exercises_translations.name');
   if (error) throw error;
   return data;
 }
 
-export async function fetchExercise(id: string) {
+export async function fetchExercise(id: string, language: string = 'en') {
   const { data, error } = await supabase
     .from("exercises")
-    .select("*")
+    .select(`
+      *,
+      exercises_translations!inner(name, description)
+    `)
     .eq("id", id)
+    .eq('exercises_translations.language_code', language)
     .single();
     
   if (error) throw error;
