@@ -307,21 +307,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
         ) : (
           <>
-            {/* Exercise Navigation */}
-            <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-              {workout.exercises.map((exercise: any, index: number) => (
-                <Button
-                  key={exercise.id}
-                  variant={index === currentExerciseIndex ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setCurrentExerciseIndex(index)}
-                  className="flex-shrink-0"
-                >
-                  {index + 1}. {getExerciseName()}
-                </Button>
-              ))}
-            </div>
-
             {currentExercise && (
               <ImprovedWorkoutSession
                 exercise={{
@@ -339,6 +324,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 unit="kg"
               />
             )}
+
+            {/* Exercise Navigation at Bottom */}
+            <div className="mt-8 space-y-3">
+              <div className="text-center text-sm text-muted-foreground mb-3">
+                Exercise Navigation
+              </div>
+              <div className="flex gap-2 overflow-x-auto pb-2">
+                {workout.exercises.map((exercise: any, index: number) => (
+                  <Button
+                    key={exercise.id}
+                    variant={index === currentExerciseIndex ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentExerciseIndex(index)}
+                    className="flex-shrink-0"
+                  >
+                    {index + 1}. {getExerciseName()}
+                  </Button>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </div>

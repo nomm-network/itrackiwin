@@ -3,13 +3,15 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { ChevronDown, ChevronUp, Plus, Minus } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, Hand } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface SetData {
   weight: number;
   reps: number;
   rpe?: number;
+  feel?: string;
+  pain?: boolean;
   notes?: string;
   is_completed: boolean;
 }
@@ -40,6 +42,8 @@ export default function ImprovedWorkoutSession({
     weight: 0,
     reps: 0,
     rpe: undefined,
+    feel: '',
+    pain: false,
     notes: '',
     is_completed: false
   });
@@ -81,11 +85,13 @@ export default function ImprovedWorkoutSession({
       const completedSet = { ...currentSetData, is_completed: true };
       onSetComplete(completedSet);
       
-      // Reset form for next set
+      // Reset form for next set but keep feel/pain cleared
       setCurrentSetData({
         weight: 0,
         reps: 0,
         rpe: undefined,
+        feel: '',
+        pain: false,
         notes: '',
         is_completed: false
       });
@@ -110,9 +116,14 @@ export default function ImprovedWorkoutSession({
 
   return (
     <div className="space-y-3">
-      {/* Exercise Header */}
+      {/* Exercise Header with Grips Icon */}
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">{exercise.name}</h3>
+        <div className="flex items-center gap-2">
+          <h3 className="text-lg font-semibold text-foreground">{exercise.name}</h3>
+          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+            <Hand className="h-4 w-4" />
+          </Button>
+        </div>
         <Badge variant="secondary">
           {exercise.completed_sets.length}/{exercise.target_sets} sets
         </Badge>
@@ -247,6 +258,40 @@ export default function ImprovedWorkoutSession({
                 placeholder="1-10"
               />
             </div>
+
+            {/* Feel Selector */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">How did that feel?</label>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { feel: 'terrible', emoji: '😣' },
+                  { feel: 'bad', emoji: '😐' },
+                  { feel: 'okay', emoji: '😊' },
+                  { feel: 'good', emoji: '😎' },
+                  { feel: 'amazing', emoji: '🔥' }
+                ].map(({ feel, emoji }) => (
+                  <Button
+                    key={feel}
+                    variant={currentSetData.feel === feel ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setCurrentSetData(prev => ({ ...prev, feel }))}
+                    className="aspect-square text-lg"
+                  >
+                    {emoji}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Pain Toggle */}
+            <Button
+              variant={currentSetData.pain ? "destructive" : "outline"}
+              onClick={() => setCurrentSetData(prev => ({ ...prev, pain: !prev.pain }))}
+              className="w-full"
+              size="sm"
+            >
+              {currentSetData.pain ? '⚠️ Pain reported' : 'No pain'}
+            </Button>
 
             {/* Submit Button */}
             <Button 
