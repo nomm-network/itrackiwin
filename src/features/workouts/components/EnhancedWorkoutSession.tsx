@@ -37,6 +37,8 @@ import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
+import { saveWarmupFeedback } from '../api/warmup';
+import { getExerciseDisplayName } from '../utils/exerciseName';
 
 // Add readiness check imports
 import ReadinessCheckIn, { ReadinessData } from '@/components/fitness/ReadinessCheckIn';
@@ -468,13 +470,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               <>
                 {/* Hide warmup after feedback is given */}
                 {!warmupCompleted && (
-                  <WarmupBlock
-                    workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                    unit="kg"
-                    suggestedTopWeight={currentExercise?.target_weight ?? 60}
-                    suggestedTopReps={currentExercise?.target_reps ?? 8}
-                    onFeedbackGiven={() => setWarmupCompleted(true)}
-                  />
+                    <WarmupBlock
+                     workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                     unit="kg"
+                     suggestedTopWeight={currentExercise?.target_weight ?? 60}
+                     suggestedTopReps={currentExercise?.target_reps ?? 8}
+                     onFeedbackGiven={() => setWarmupCompleted(true)}
+                   />
                 )}
                 <ImprovedWorkoutSession
                 exercise={{
@@ -525,16 +527,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
                 {workout.exercises.map((exercise: any, index: number) => {
-                  // Use same logic as getExerciseName() for consistency
-                  const exerciseName = (() => {
-                    if (exercise?.exercises?.translations?.en?.name) return exercise.exercises.translations.en.name;
-                    if (exercise?.exercises?.name) return exercise.exercises.name;
-                    if (exercise?.exercise?.translations?.en?.name) return exercise.exercise.translations.en.name;
-                    if (exercise?.exercise?.name) return exercise.exercise.name;
-                    if (exercise?.translations?.en?.name) return exercise.translations.en.name;
-                    if (exercise?.name) return exercise.name;
-                    return `Exercise ${index + 1}`;
-                  })();
+                  const exerciseName = getExerciseDisplayName(exercise, 'en');
                   
                   return (
                     <Button
