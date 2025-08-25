@@ -20,7 +20,7 @@ import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useDeleteWorkout, us
 import { supabase } from "@/integrations/supabase/client";
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
+
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
@@ -36,7 +36,7 @@ import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestio
 import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
-import { Settings, Timer } from "lucide-react";
+import { Settings, Timer, Trash2 } from "lucide-react";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -572,15 +572,19 @@ const WorkoutSession: React.FC = () => {
           </div>
         </section>
         
-        {/* Abort Workout Button */}
-        <section className="mt-8 pb-8">
-          <div className="container mx-auto max-w-3xl px-4">
+        {/* Abort Workout Button - with extra padding for bottom nav */}
+        <section className="mt-8 pb-24">
+          <div className="container mx-auto max-w-3xl px-4"
+            style={{
+              paddingBottom: 'env(safe-area-inset-bottom, 80px)'
+            }}
+          >
             <AlertDialog open={showAbortDialog} onOpenChange={setShowAbortDialog}>
               <AlertDialogTrigger asChild>
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm" 
-                  className="w-full opacity-60 hover:opacity-100 text-destructive hover:text-destructive"
+                  className="w-full opacity-60 hover:opacity-100 text-destructive border-destructive/30 hover:border-destructive hover:bg-destructive/10"
                   disabled={isDeletingWorkout}
                 >
                   <Trash2 className="h-4 w-4 mr-2" />
