@@ -88,6 +88,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   }, [workout?.exercises, gym]);
 
   const handleSetComplete = (exerciseId: string, setData: any) => {
+    console.log('Logging set:', { exerciseId, setData });
+    
     logSet({
       workout_exercise_id: exerciseId,
       weight: setData.weight,
@@ -95,18 +97,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       rpe: setData.rpe,
       notes: setData.feel ? `Feel: ${setData.feel}` : setData.notes,
       is_completed: true
+    }, {
+      onSuccess: () => {
+        console.log('Set logged successfully, advancing to next set');
+        // Force re-render to show next set
+        setCurrentSetData({
+          weight: setData.weight, // Keep weight for next set
+          reps: setData.reps,     // Keep reps for next set
+          rpe: 5,
+          feel: '',
+          notes: ''
+        });
+        toast.success('Set logged successfully!');
+      },
+      onError: (error) => {
+        console.error('Failed to log set:', error);
+        toast.error('Failed to log set');
+      }
     });
-    
-    // Reset for next set with carried over values
-    setCurrentSetData({
-      weight: setData.weight, // Keep weight for next set
-      reps: setData.reps,     // Keep reps for next set
-      rpe: 5,
-      feel: '',
-      notes: ''
-    });
-    
-    toast.success('Set logged successfully!');
   };
 
   const handleSaveSet = () => {
@@ -198,7 +206,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   }
 
   return (
-    <div className="max-w-4xl mx-auto p-6 space-y-6">
+    <div className="max-w-4xl mx-auto p-6 space-y-6 pb-24">
       {/* Workout Header */}
       <Card>
         <CardHeader>
