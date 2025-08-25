@@ -95,6 +95,17 @@ export default function ImprovedWorkoutSession({
       }));
     }
   }, [lastSetForTarget, currentSetData.weight, currentSetData.reps]);
+
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🚀 ImprovedWorkoutSession DEBUG:', {
+      userId,
+      exerciseId,
+      setIndex: currentSetNumber,
+      templateTargetReps,
+      templateTargetWeight
+    });
+  }, [userId, exerciseId, currentSetNumber, templateTargetReps, templateTargetWeight]);
   const isLastSet = currentSetNumber > targetSets;
   const lastSet = exercise.completed_sets[exercise.completed_sets.length - 1];
 
