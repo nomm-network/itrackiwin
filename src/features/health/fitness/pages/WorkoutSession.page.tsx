@@ -24,6 +24,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
+import { useShouldShowReadiness } from "@/features/health/fitness/hooks/useShouldShowReadiness";
 import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
 import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
 import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
@@ -70,9 +71,17 @@ const WorkoutSession: React.FC = () => {
   const { gym: selectedGym } = useMyGym();
   useSEO(data?.workout?.title || 'Session');
 
-  // New reliable readiness hooks
-  const { checkin, isChecking, createCheckin } = usePreWorkoutCheckin(id);
-  const { data: loggedCount, isLoading: isCheckingSets } = useWorkoutHasLoggedSets(id);
+  // Get current user
+  const [currentUser, setCurrentUser] = React.useState<{ id: string } | null>(null);
+  React.useEffect(() => {
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      setCurrentUser(user ? { id: user.id } : null);
+    });
+  }, []);
+
+  // Robust readiness check - no race conditions
+  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, currentUser?.id);
+  const { createCheckin } = usePreWorkoutCheckin(id);
 
   const endMut = useEndWorkout();
   const { mutate: deleteWorkoutMutation, isPending: isDeletingWorkout } = useDeleteWorkout();
@@ -232,6 +241,9 @@ const WorkoutSession: React.FC = () => {
         title: "Readiness recorded",
         description: "Your pre-workout check-in has been saved."
       });
+      
+      // Invalidate the shouldShowReadiness query to hide the popup
+      // This will automatically refresh the state
     } catch (error) {
       console.error('Error saving readiness check:', error);
       toast({
@@ -290,23 +302,20 @@ const WorkoutSession: React.FC = () => {
   const completedSets = (data?.exercises || []).reduce((total, ex) => {
     return total + (data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length;
   }, 0);
-  // Decision booleans - reliable and race-condition free
-  const isNewWorkout = (loggedCount ?? 0) === 0;
-  const needsReadiness = !checkin && isNewWorkout;
+  // Robust decision logic - no race conditions
+  const needsReadiness = shouldShowReadiness === true;
   
   // DEBUG: Log the readiness check logic
-  console.log('🔍 READINESS DEBUG:', {
+  console.log('🔍 READINESS DEBUG (FIXED):', {
     workoutId: id,
-    checkin,
-    loggedCount,
-    isNewWorkout,
-    needsReadiness,
-    isChecking,
-    isCheckingSets
+    userId: currentUser?.id,
+    shouldShowReadiness,
+    isCheckingReadiness,
+    needsReadiness
   });
   
-  // Gate UI until we know both pieces of info
-  const stillLoading = isChecking || isCheckingSets;
+  // Gate UI until we know the readiness status
+  const stillLoading = isCheckingReadiness || !currentUser;
 
   // Show loading until we have all the data
   if (stillLoading) {
