@@ -2229,6 +2229,13 @@ export type Database = {
             foreignKeyName: "pre_workout_checkins_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: true
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
             referencedRelation: "v_workout_has_checkin"
             referencedColumns: ["workout_id"]
           },
@@ -2278,6 +2285,13 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "fk_preworkout_checkins_workout_id"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
             referencedColumns: ["workout_id"]
           },
           {
@@ -2515,6 +2529,13 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "readiness_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
             referencedColumns: ["workout_id"]
           },
           {
@@ -4344,6 +4365,13 @@ export type Database = {
             foreignKeyName: "workout_exercise_groups_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_groups_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "v_workout_has_checkin"
             referencedColumns: ["workout_id"]
           },
@@ -4453,6 +4481,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "v_workout_has_checkin"
             referencedColumns: ["workout_id"]
           },
@@ -4546,6 +4581,13 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_session_feedback_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
             referencedColumns: ["workout_id"]
           },
           {
@@ -4793,6 +4835,13 @@ export type Database = {
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_shares_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
             referencedColumns: ["workout_id"]
           },
           {
@@ -5308,6 +5357,24 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_pre_checkin_exists: {
+        Row: {
+          has_checkin: boolean | null
+          user_id: string | null
+          workout_id: string | null
+        }
+        Insert: {
+          has_checkin?: never
+          user_id?: string | null
+          workout_id?: string | null
+        }
+        Update: {
+          has_checkin?: never
+          user_id?: string | null
+          workout_id?: string | null
+        }
+        Relationships: []
       }
       v_safe_exercises_for_user: {
         Row: {
