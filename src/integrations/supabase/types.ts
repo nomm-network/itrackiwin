@@ -735,6 +735,73 @@ export type Database = {
           },
         ]
       }
+      exercise_grips: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          grip_id: string
+          is_default: boolean
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          grip_id: string
+          is_default?: boolean
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          grip_id?: string
+          is_default?: boolean
+          order_index?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_available_exercises"
+            referencedColumns: ["exercise_id"]
+          },
+          {
+            foreignKeyName: "exercise_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_images: {
         Row: {
           created_at: string
