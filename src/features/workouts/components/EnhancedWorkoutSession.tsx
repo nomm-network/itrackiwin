@@ -159,7 +159,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     console.log('Payload being sent to set_log:', payload);
     console.log('Payload JSON:', JSON.stringify(payload));
     
-    logSet(payload, {
+        logSet(payload, {
       onSuccess: (data) => {
         console.log('Set logged successfully:', data);
         // Reset form for next set
@@ -173,8 +173,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         });
         toast.success('Set logged successfully!');
         
-        // Force refresh the workout data to show updated sets
-        window.location.reload();
+        // Note: Removed window.location.reload() to maintain exercise navigation state
       },
       onError: (error) => {
         console.error('Failed to log set:', error);
@@ -316,11 +315,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   target_sets: currentExercise.target_sets || 3,
                   completed_sets: sets.filter((set: any) => set.is_completed)
                 }}
+                isLastExercise={currentExerciseIndex === totalExercises - 1}
                 onSetComplete={(setData) => {
                   const weId = resolveWorkoutExerciseId(currentExercise);
                   handleSetComplete(weId, setData);
                 }}
                 onExerciseComplete={() => handleExerciseComplete(currentExercise.id)}
+                onFinishWorkout={handleWorkoutComplete}
                 onAddExtraSet={() => {
                   const weId = resolveWorkoutExerciseId(currentExercise);
                   handleSetComplete(weId, {

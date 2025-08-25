@@ -1,5 +1,5 @@
 import React, { useState, useCallback } from 'react';
-import { Card } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +30,8 @@ interface ImprovedWorkoutSessionProps {
   onSetComplete: (setData: SetData) => void;
   onExerciseComplete: () => void;
   onAddExtraSet?: () => void;
+  onFinishWorkout?: () => void;
+  isLastExercise?: boolean;
   unit: 'kg' | 'lb';
 }
 
@@ -38,6 +40,8 @@ export default function ImprovedWorkoutSession({
   onSetComplete,
   onExerciseComplete,
   onAddExtraSet,
+  onFinishWorkout,
+  isLastExercise = false,
   unit = 'kg'
 }: ImprovedWorkoutSessionProps) {
   const [expandedSet, setExpandedSet] = useState<number | null>(null);
@@ -315,33 +319,65 @@ export default function ImprovedWorkoutSession({
         </Card>
       )}
 
-      {/* Exercise Complete */}
+      {/* Exercise Complete Message */}
       {isLastSet && (
-        <Card className="p-4 bg-green-50 border-green-200">
-          <div className="text-center space-y-3">
-            <div className="text-lg font-semibold text-green-800">
-              Exercise Complete! 🎉
-            </div>
-            <div className="text-sm text-green-600">
-              {exercise.completed_sets.length} sets completed
-            </div>
-            <div className="space-y-2">
-              <Button onClick={onExerciseComplete} className="w-full" size="lg">
-                Next Exercise
-              </Button>
-              {onAddExtraSet && (
-                <Button 
-                  onClick={onAddExtraSet} 
-                  variant="outline" 
-                  className="w-full" 
-                  size="lg"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Extra Set
-                </Button>
-              )}
-            </div>
-          </div>
+        <Card className="border-green-200 bg-green-50">
+          <CardContent className="pt-6 text-center space-y-4">
+            <div className="text-2xl">🎉</div>
+            {isLastExercise ? (
+              <>
+                <div className="text-lg font-semibold text-green-700">
+                  Congrats. You finished last exercise!
+                </div>
+                <div className="text-sm text-green-600">
+                  {exercise.completed_sets.length} sets completed
+                </div>
+                <div className="space-y-2">
+                  {onFinishWorkout && (
+                    <Button onClick={onFinishWorkout} className="w-full" size="lg">
+                      Finish Workout
+                    </Button>
+                  )}
+                  {onAddExtraSet && (
+                    <Button 
+                      onClick={onAddExtraSet} 
+                      variant="outline" 
+                      className="w-full" 
+                      size="lg"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Extra Set
+                    </Button>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="text-lg font-semibold text-green-700">
+                  Exercise Complete!
+                </div>
+                <div className="text-sm text-green-600">
+                  {exercise.completed_sets.length} sets completed
+                </div>
+                <div className="space-y-2">
+                  <Button onClick={onExerciseComplete} className="w-full" size="lg">
+                    Next Exercise
+                  </Button>
+                  {onAddExtraSet && (
+                    <Button 
+                      onClick={onAddExtraSet} 
+                      variant="outline" 
+                      className="w-full" 
+                      size="lg"
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Extra Set
+                    </Button>
+                  )}
+                </div>
+              </>
+            )}
+          </CardContent>
         </Card>
       )}
 
