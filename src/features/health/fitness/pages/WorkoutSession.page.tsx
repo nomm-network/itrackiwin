@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTranslations } from "@/hooks/useTranslations";
 import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
+import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
 import EffortChips, { EffortRating } from "@/features/health/fitness/components/EffortChips";
 import TenRMEstimateModal from "@/features/health/fitness/components/TenRMEstimateModal";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
@@ -57,6 +58,10 @@ const WorkoutSession: React.FC = () => {
   const { gym: selectedGym } = useMyGym();
   useSEO(data?.workout?.title || 'Session');
 
+  // New reliable readiness hooks
+  const { checkin, isChecking, createCheckin } = usePreWorkoutCheckin(id);
+  const { data: loggedCount, isLoading: isCheckingSets } = useWorkoutHasLoggedSets(id);
+
   const endMut = useEndWorkout();
   const deleteMut = useDeleteWorkout();
   const addExMut = useAddExerciseToWorkout();
@@ -67,8 +72,6 @@ const WorkoutSession: React.FC = () => {
   const [metricValues, setMetricValues] = React.useState<Record<string, Record<string, any>>>({});
   
   // Enhanced workout state
-  const [showReadinessCheck, setShowReadinessCheck] = useState(false);
-  const { createCheckin, getLastCheckin } = usePreWorkoutCheckin();
   const [currentSetEffort, setCurrentSetEffort] = useState<EffortRating>();
   const [showRestTimer, setShowRestTimer] = useState(false);
   const [restDuration, setRestDuration] = useState(180);
@@ -204,32 +207,43 @@ const WorkoutSession: React.FC = () => {
 
   const handleReadinessSubmit = async (readinessData: ReadinessData) => {
     try {
-      if (data?.workout?.id) {
-        await createCheckin({
-          workout_id: data.workout.id,
-          is_sick: readinessData.illness,
-          slept_poorly: readinessData.sleep_quality < 5,
-          low_energy: readinessData.energy < 5,
-          notes: readinessData.notes
-        });
-      }
-      setShowReadinessCheck(false);
+      // Calculate a simple readiness score (0-10 based on answers)
+      const score = calculateReadinessScore(readinessData);
+      
+      await createCheckin.mutateAsync({
+        answers: readinessData,
+        readiness_score: score
+      });
+      
       toast({
         title: "Readiness recorded",
-        description: "Your data helps us optimize your workout suggestions.",
+        description: "Your pre-workout check-in has been saved."
       });
     } catch (error) {
-      console.error('Failed to save readiness checkin:', error);
-      setShowReadinessCheck(false);
+      console.error('Error saving readiness check:', error);
       toast({
-        title: "Readiness noted",
-        description: "Continuing with your workout.",
+        title: "Error",
+        description: "Failed to save readiness check.",
+        variant: "destructive"
       });
     }
   };
 
+  // Simple readiness score calculation
+  const calculateReadinessScore = (readinessData: ReadinessData): number => {
+    let score = 10;
+    if (readinessData.illness) score -= 3;
+    if (readinessData.sleep_quality < 5) score -= 2;
+    if (readinessData.energy < 5) score -= 2;
+    return Math.max(0, Math.min(10, score));
+  };
+
   const handleSkipReadiness = () => {
-    setShowReadinessCheck(false);
+    // Create a special "skipped" checkin to prevent showing again
+    createCheckin.mutate({ 
+      answers: { skipped: true }, 
+      readiness_score: 5 // neutral score for skipped
+    });
   };
 
   const unit = (useUserSettings().data?.unit_weight ?? 'kg');
@@ -242,46 +256,25 @@ const WorkoutSession: React.FC = () => {
   const completedSets = (data?.exercises || []).reduce((total, ex) => {
     return total + (data?.setsByWe[ex.id] || []).filter(set => set.is_completed).length;
   }, 0);
-  // Only show readiness check for brand new workouts (no exercises, no sets, no existing checkin)
-  React.useEffect(() => {
-    const checkReadinessRequired = async () => {
-      console.log('🔍 Checking readiness requirements:', {
-        hasWorkout: !!data?.workout,
-        workoutId: data?.workout?.id,
-        exercisesLength: data?.exercises?.length,
-        completedSets,
-        showReadinessCheck
-      });
-      
-      if (data?.workout && data.exercises.length === 0 && completedSets === 0) {
-        console.log('✅ Conditions met for readiness check, checking for existing checkin...');
-        // Check if user already completed readiness check for this workout
-        try {
-          const existingCheckin = await getLastCheckin(data.workout.id);
-          console.log('📋 Existing checkin result:', existingCheckin);
-          if (!existingCheckin) {
-            console.log('🎯 No existing checkin found, showing readiness check');
-            setShowReadinessCheck(true);
-          } else {
-            console.log('⏭️ Existing checkin found, skipping readiness check');
-          }
-        } catch (error) {
-          console.log('❌ Error fetching checkin, showing readiness check anyway:', error);
-          // If there's an error fetching checkin, show the readiness check
-          setShowReadinessCheck(true);
-        }
-      } else {
-        console.log('❌ Conditions not met for readiness check');
-      }
-    };
-    
-    if (data?.workout) {
-      checkReadinessRequired();
-    }
-  }, [data?.workout?.id, data?.exercises?.length, completedSets]);
+  // Decision booleans - reliable and race-condition free
+  const isNewWorkout = (loggedCount ?? 0) === 0;
+  const needsReadiness = !checkin && isNewWorkout;
+  
+  // Gate UI until we know both pieces of info
+  const stillLoading = isChecking || isCheckingSets;
 
-  // Show readiness check if workout just started
-  if (showReadinessCheck) {
+  // Show loading until we have all the data
+  if (stillLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2">Loading workout...</span>
+      </div>
+    );
+  }
+
+  // Show readiness check if needed
+  if (needsReadiness) {
     return (
       <>
         <PageNav current="Pre-Workout Check" />
