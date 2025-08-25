@@ -6,7 +6,7 @@ export default function WorkoutPage() {
   const { workoutId } = useParams<{ workoutId: string }>();
   const { data: workout, isLoading, isError, error } = useGetWorkout(workoutId);
 
-  console.log('[WorkoutPage] route id:', workoutId);
+  console.log('[WorkoutPage] id param:', workoutId);
   console.log('[WorkoutPage] query state:', { isLoading, isError, hasData: !!workout });
 
   if (isLoading) {
@@ -22,8 +22,8 @@ export default function WorkoutPage() {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <h2 className="text-xl font-semibold mb-2">Error loading workout</h2>
-          <p className="text-muted-foreground">{(error as Error)?.message}</p>
+          <h2 className="text-xl font-semibold mb-2">Failed to load workout</h2>
+          <p className="text-muted-foreground">{(error as any)?.message}</p>
         </div>
       </div>
     );
@@ -34,7 +34,7 @@ export default function WorkoutPage() {
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold mb-2">Workout not found</h2>
-          <p className="text-muted-foreground">The workout you're looking for doesn't exist.</p>
+          <p className="text-muted-foreground">This workout doesn't exist or you don't have access to it.</p>
         </div>
       </div>
     );

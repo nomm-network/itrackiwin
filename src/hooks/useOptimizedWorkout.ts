@@ -1,12 +1,17 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 // Hook for opening workout with all data in one call
 export const useWorkoutOpen = (workoutId?: string) => {
+  const { user } = useAuth();
+  
   return useQuery({
-    queryKey: ['workout', workoutId],
-    enabled: Boolean(workoutId),               // don't fire until we have the id
+    queryKey: ['workout', workoutId, user?.id],
+    enabled: !!workoutId && !!user?.id,
     queryFn: async () => {
+      console.log('🔍 [useWorkoutOpen] Fetching workout with id:', workoutId, 'for user:', user?.id);
+      
       const { data, error } = await supabase
         .from('workouts')
         .select(`
@@ -20,14 +25,26 @@ export const useWorkoutOpen = (workoutId?: string) => {
             sets:workout_sets (*)
           )
         `)
-        .eq('id', workoutId)
-        .maybeSingle();                        // <- important
+        .eq('id', workoutId!)
+        .eq('user_id', user!.id)
+        .maybeSingle();
 
-      if (error) throw error;
-      if (!data) throw new Error('NOT_FOUND'); // surface a clear state
+      console.log('🔍 [useWorkoutOpen] Query result:', { data, error });
+
+      if (error) {
+        console.error('❌ [useWorkoutOpen] Error:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.warn('⚠️ [useWorkoutOpen] Workout not found');
+        throw new Error('Workout not found');
+      }
+      
+      console.log('✅ [useWorkoutOpen] Workout loaded successfully');
       return data;
     },
-    staleTime: 60000, // 60 seconds
+    staleTime: 60_000,
   });
 };
 

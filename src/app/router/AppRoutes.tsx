@@ -5,6 +5,8 @@ import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
+import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
+import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -151,17 +153,15 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Workout Sessions */}
-          <Route path="/app/workouts/start-quick" element={
+          {/* Workout Routes with Layout */}
+          <Route path="/app/workouts" element={
             <ProtectedMobileLayout>
-              <LazyStartQuickWorkout />
+              <WorkoutsLayout />
             </ProtectedMobileLayout>
-          } />
-          <Route path="/app/workouts/:workoutId" element={
-            <ProtectedMobileLayout>
-              <LazyWorkoutPage />
-            </ProtectedMobileLayout>
-          } />
+          }>
+            <Route index element={<StartOrContinue />} />
+            <Route path=":workoutId" element={<LazyWorkoutPage />} />
+          </Route>
 
           {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
