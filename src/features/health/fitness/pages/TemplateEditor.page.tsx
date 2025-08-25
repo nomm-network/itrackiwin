@@ -101,8 +101,7 @@ const TemplateEditor: React.FC = () => {
           slug,
           body_parts_translations!inner(name, description)
         `)
-        .eq('body_parts_translations.language_code', 'en')
-        .order('body_parts_translations.name');
+        .eq('body_parts_translations.language_code', 'en');
       
       if (error) {
         console.error('Error fetching body parts:', error);
@@ -118,7 +117,7 @@ const TemplateEditor: React.FC = () => {
             description: (item.body_parts_translations as any)[0]?.description
           }
         }
-      }));
+      })).sort((a, b) => a.translations.en.name.localeCompare(b.translations.en.name));
     }
   });
 
@@ -133,8 +132,7 @@ const TemplateEditor: React.FC = () => {
           slug,
           muscle_groups_translations!inner(name, description)
         `)
-        .eq('muscle_groups_translations.language_code', 'en')
-        .order('muscle_groups_translations.name');
+        .eq('muscle_groups_translations.language_code', 'en');
       
       if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq('body_part_id', selectedBodyPart);
@@ -156,7 +154,7 @@ const TemplateEditor: React.FC = () => {
             description: (item.muscle_groups_translations as any)[0]?.description
           }
         }
-      }));
+      })).sort((a, b) => a.translations.en.name.localeCompare(b.translations.en.name));
     },
     enabled: true // Always fetch muscle groups
   });
@@ -172,8 +170,7 @@ const TemplateEditor: React.FC = () => {
           slug,
           muscles_translations!inner(name, description)
         `)
-        .eq('muscles_translations.language_code', 'en')
-        .order('muscles_translations.name');
+        .eq('muscles_translations.language_code', 'en');
       
       if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
         query = query.eq('muscle_group_id', selectedMuscleGroup);
@@ -195,7 +192,7 @@ const TemplateEditor: React.FC = () => {
             description: (item.muscles_translations as any)[0]?.description
           }
         }
-      }));
+      })).sort((a, b) => a.translations.en.name.localeCompare(b.translations.en.name));
     },
     enabled: true // Always fetch muscles
   });
