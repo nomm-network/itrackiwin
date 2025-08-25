@@ -198,9 +198,9 @@ const TemplateEditor: React.FC = () => {
   });
 
   const { data: exercises = [] } = useQuery<Exercise[]>({
-    queryKey: ["exercises_for_template", searchQuery, selectedMuscle, selectedBodyPart],
+    queryKey: ["exercises_for_template", searchQuery, selectedMuscle, selectedMuscleGroup, selectedBodyPart],
     queryFn: async () => {
-      if (searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedBodyPart || selectedBodyPart === "all")) {
+      if (searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedMuscleGroup || selectedMuscleGroup === "all") && (!selectedBodyPart || selectedBodyPart === "all")) {
         return [];
       }
 
@@ -305,8 +305,29 @@ const TemplateEditor: React.FC = () => {
       // Apply dropdown filters first
       if (selectedMuscle && selectedMuscle !== "all") {
         results = results.filter(exercise => exercise.primary_muscle_id === selectedMuscle);
-      } else if (selectedBodyPart && selectedBodyPart !== "all") {
-        results = results.filter(exercise => exercise.body_part_id === selectedBodyPart);
+      }
+      
+      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
+        results = results.filter(exercise => {
+          const muscleGroupId = muscleToGroupMap.get(exercise.primary_muscle_id);
+          return muscleGroupId === selectedMuscleGroup;
+        });
+      }
+      
+      if (selectedBodyPart && selectedBodyPart !== "all") {
+        results = results.filter(exercise => {
+          // If exercise has no body_part_id, check if it's muscle group matches the body part
+          if (!exercise.body_part_id) {
+            // For exercises without body parts, check if their muscle group belongs to the selected body part
+            const muscleGroupId = muscleToGroupMap.get(exercise.primary_muscle_id);
+            if (muscleGroupId) {
+              const muscleGroup = muscleGroups.find(mg => mg.id === muscleGroupId);
+              return muscleGroup?.body_part_id === selectedBodyPart;
+            }
+            return false;
+          }
+          return exercise.body_part_id === selectedBodyPart;
+        });
       }
       
       // Client-side filtering for search if we have a search query
@@ -335,7 +356,7 @@ const TemplateEditor: React.FC = () => {
       
       return results;
     },
-    enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
+    enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedMuscleGroup && selectedMuscleGroup !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
   });
 
   // Helper to get translated name from the nested translations object
@@ -716,7 +737,7 @@ const TemplateEditor: React.FC = () => {
               </p>
             )}
 
-            {searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedBodyPart || selectedBodyPart === "all") && (
+            {searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedMuscleGroup || selectedMuscleGroup === "all") && (!selectedBodyPart || selectedBodyPart === "all") && (
               <p className="text-center text-muted-foreground py-4">
                 Search for exercises or select filters to see available exercises.
               </p>
