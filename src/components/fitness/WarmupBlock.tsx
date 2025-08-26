@@ -174,69 +174,50 @@ export function WarmupBlock({
         </div>
       </CardHeader>
 
-      <div>
-          <CardContent className="space-y-3">
+      <CardContent className="space-y-3">
 
-            {/* Plan preview */}
-            <div className="rounded-md border p-3">
-              <div className="text-xs font-medium mb-2">Steps</div>
-              <ol className="space-y-2">
-                {plan?.steps?.map((s) => (
-                  <li key={s.id} className="flex items-center justify-between text-sm">
-                    <span className="font-mono">{s.id.toUpperCase()}</span>
-                    <span>{getStepWeight(s, actualTopWeight, 2.5)}{unit} × {s.reps} reps</span>
-                    <span className="text-muted-foreground">{s.restSec ?? 60}s rest</span>
-                  </li>
-                )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
-              </ol>
-              
-              {/* DEBUG INFO */}
-              <div className="mt-3 p-2 bg-red-900/20 rounded text-xs space-y-1">
-                <div><strong>🔍 WARMUP DEBUG DATA:</strong></div>
-                <div>workoutExerciseId: {workoutExerciseId || 'NULL'}</div>
-                <div>suggestedTopWeight: {suggestedTopWeight}kg</div>
-                <div>actualTopWeight: {actualTopWeight}kg</div>
-                <div>suggestedTopReps: {suggestedTopReps}</div>
-                <div>plan.topWeightKg: {actualTopWeight}kg (using actualTopWeight)</div>
-                <div>plan.strategy: {plan.strategy}</div>
-                <div>plan.feedback: {localFeedback || 'NULL'} (using localFeedback)</div>
-                <div>plan.steps: {plan.steps?.length || 0} steps</div>
-                <div>localFeedback: {localFeedback || 'NULL'}</div>
-                <div>Step calculations: {plan?.steps?.map((step, i) => 
-                  `${step.id}: ${getStepWeight(step, actualTopWeight, 2.5)}kg (${(step.percent * 100).toFixed(0)}% of ${actualTopWeight}kg)`
-                ).join(', ') || 'No steps'}</div>
-              </div>
-            </div>
+        {/* Plan preview */}
+        <div className="rounded-md border p-3">
+          <div className="text-xs font-medium mb-2">Steps</div>
+          <ol className="space-y-2">
+            {plan?.steps?.map((s) => (
+              <li key={s.id} className="flex items-center justify-between text-sm">
+                <span className="font-mono">{s.id.toUpperCase()}</span>
+                <span>{getStepWeight(s, actualTopWeight, 2.5)}{unit} × {s.reps} reps</span>
+                <span className="text-muted-foreground">{s.restSec ?? 60}s rest</span>
+              </li>
+            )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
+          </ol>
+        </div>
 
-            {/* One-tap feedback after finishing all warmups for the exercise */}
-            <div>
-              <div className="text-sm mb-2">How was the warm‑up? Pick 👇🏻</div>
-               <div className="flex gap-2">
-                <Button
-                  size="sm"
-                  variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
-                  onClick={() => save('not_enough')}
-                >
-                  🥶 Not enough
-                </Button>
-                <Button
-                  size="sm"
-                  variant={localFeedback === 'excellent' ? 'default' : 'outline'}
-                  onClick={() => save('excellent')}
-                >
-                  🔥 Excellent
-                </Button>
-                <Button
-                  size="sm"
-                  variant={localFeedback === 'too_much' ? 'default' : 'outline'}
-                  onClick={() => save('too_much')}
-                >
-                  🥵 Too much
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-      </div>
+        {/* One-tap feedback after finishing all warmups for the exercise */}
+        <div>
+          <div className="text-sm mb-2">How was the warm‑up? Pick 👇🏻</div>
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
+              onClick={() => save('not_enough')}
+            >
+              🥶 Not enough
+            </Button>
+            <Button
+              size="sm"
+              variant={localFeedback === 'excellent' ? 'default' : 'outline'}
+              onClick={() => save('excellent')}
+            >
+              🔥 Excellent
+            </Button>
+            <Button
+              size="sm"
+              variant={localFeedback === 'too_much' ? 'default' : 'outline'}
+              onClick={() => save('too_much')}
+            >
+              🥵 Too much
+            </Button>
+          </div>
+        </div>
+      </CardContent>
     </Card>
   );
 }
