@@ -34,7 +34,9 @@ export function useLastSet(
         queryFilters: {
           'workout_exercises.workouts.user_id': userId,
           'workout_exercises.exercise_id': exerciseId,
-          'is_completed': true
+          'is_completed': true,
+          'weight_not_null': true,
+          'reps_not_null': true
         }
       });
 
@@ -51,6 +53,8 @@ export function useLastSet(
         .eq('workout_exercises.exercise_id', exerciseId!)
         .eq('is_completed', true)
         .not('completed_at', 'is', null)
+        .not('weight', 'is', null)
+        .not('reps', 'is', null)
         .order('completed_at', { ascending: false })
         .limit(1);
 
