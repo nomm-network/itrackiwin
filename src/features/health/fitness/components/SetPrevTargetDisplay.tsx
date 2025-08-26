@@ -93,15 +93,23 @@ export function SetPrevTargetDisplay({
     return suggestion;
   }, [last, templateTargetReps, templateTargetWeight, estimate?.estimated_weight]);
 
-  // Auto-apply target values when they change - but only once on mount
+  // Auto-apply target values when they change - reset when setIndex changes
   const hasAppliedRef = React.useRef(false);
+  const lastSetIndexRef = React.useRef(setIndex);
+  
+  // Reset hasApplied when setIndex changes (moving to next set)
+  if (lastSetIndexRef.current !== setIndex) {
+    hasAppliedRef.current = false;
+    lastSetIndexRef.current = setIndex;
+  }
+  
   React.useEffect(() => {
     if (onApplyTarget && target.weight > 0 && !hasAppliedRef.current) {
-      console.log('🎯 Applying target values to form (one time):', { weight: target.weight, reps: target.reps });
+      console.log('🎯 Applying target values to form:', { weight: target.weight, reps: target.reps, setIndex });
       onApplyTarget(target.weight, target.reps);
       hasAppliedRef.current = true;
     }
-  }, [target.weight, target.reps, onApplyTarget]);
+  }, [target.weight, target.reps, onApplyTarget, setIndex]);
 
   return (
     <div className="mb-3 rounded-lg border p-3 bg-muted/30">
