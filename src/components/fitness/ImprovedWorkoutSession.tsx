@@ -21,6 +21,7 @@ interface SetData {
   pain?: boolean;
   notes?: string;
   is_completed: boolean;
+  set_index?: number;
 }
 
 interface ExerciseData {
@@ -258,7 +259,7 @@ export default function ImprovedWorkoutSession({
         </Badge>
       </div>
 
-      {/* Completed Sets - Collapsed by default */}
+      {/* Completed Sets - Ordered with Set labels */}
       {exercise.completed_sets.map((set, index) => (
         <Card key={index} className="p-3">
           <div 
@@ -270,7 +271,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps} reps{set.feel ? ` ${set.feel}` : ''}
+                📜 Set {set.set_index || index + 1}: {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || ''} reps
               </span>
               {set.rpe && (
                 <Badge variant="secondary" className="text-xs">
@@ -304,7 +305,7 @@ export default function ImprovedWorkoutSession({
               <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
                 {currentSetNumber}
               </Badge>
-              <span className="font-medium">Current Set</span>
+              <span className="font-medium">Set {currentSetNumber}: Current Set</span>
             </div>
 
             {/* Previous Set and Target Display */}

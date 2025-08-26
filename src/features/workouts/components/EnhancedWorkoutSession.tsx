@@ -586,7 +586,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
                   name: getExerciseName(),
                   target_sets: currentExercise.target_sets || 3,
-                  completed_sets: sets.filter((set: any) => set.is_completed)
+                 completed_sets: sets
+                   .filter((set: any) => set.is_completed)
+                   .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0))
                 }}
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
