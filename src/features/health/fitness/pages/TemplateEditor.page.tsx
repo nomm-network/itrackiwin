@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { ArrowLeft, Trash2, Edit2, Settings } from "lucide-react";
+import { ArrowLeft, Trash2, Edit2, Settings, Plus } from "lucide-react";
 import { useTemplateExercises, useAddExerciseToTemplate, useDeleteTemplateExercise, useTemplateDetail, useUpdateTemplate, useTemplateExercisePreferences, useUpsertTemplateExercisePreferences } from "@/features/health/fitness/services/fitness.api";
 import GripSelector from "@/components/GripSelector";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import PageNav from "@/components/PageNav";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
+import ExerciseGripDialog from "@/components/exercise/ExerciseGripDialog";
 
 interface BodyPart {
   id: string;
@@ -83,6 +84,8 @@ const TemplateEditor: React.FC = () => {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [gripEditors, setGripEditors] = useState<Record<string, ExerciseGripEditor>>({});
+  const [isGripDialogOpen, setIsGripDialogOpen] = useState(false);
+  const [pendingExercise, setPendingExercise] = useState<{ id: string; name: string } | null>(null);
   
   // Grips mutation
   const upsertPreferences = useUpsertTemplateExercisePreferences();
@@ -407,8 +410,8 @@ const TemplateEditor: React.FC = () => {
     }
   };
 
-  const handleAddExercise = (exerciseId: string) => {
-    console.log('Adding exercise:', exerciseId, 'to template:', templateId);
+  const handleAddExercise = (exerciseId: string, gripIds?: string[], displayName?: string) => {
+    console.log('Adding exercise:', exerciseId, 'to template:', templateId, 'with grips:', gripIds, 'display name:', displayName);
     if (templateId) {
       const nextOrderIndex = Math.max(...templateExercises.map(te => te.order_index), -1) + 1;
       console.log('Next order index:', nextOrderIndex);
@@ -417,7 +420,9 @@ const TemplateEditor: React.FC = () => {
         exercise_id: exerciseId,
         order_index: nextOrderIndex,
         default_sets: 3,
-        weight_unit: 'kg'
+        weight_unit: 'kg',
+        grip_ids: gripIds,
+        display_name: displayName
       }, {
         onSuccess: (data) => {
           console.log('Successfully added exercise:', data);
@@ -428,6 +433,19 @@ const TemplateEditor: React.FC = () => {
       });
     } else {
       console.error('No templateId available');
+    }
+  };
+
+  const handleAddExerciseClick = (exerciseId: string, exerciseName: string) => {
+    // Check if exercise already exists (allow duplicates)
+    setPendingExercise({ id: exerciseId, name: exerciseName });
+    setIsGripDialogOpen(true);
+  };
+
+  const handleConfirmAddExercise = (gripIds: string[], displayName: string) => {
+    if (pendingExercise) {
+      handleAddExercise(pendingExercise.id, gripIds.length > 0 ? gripIds : undefined, displayName !== pendingExercise.name ? displayName : undefined);
+      setPendingExercise(null);
     }
   };
 
@@ -556,17 +574,24 @@ const TemplateEditor: React.FC = () => {
                  {templateExercises.sort((a, b) => a.order_index - b.order_index).map((templateExercise) => (
                    <div key={templateExercise.id} className="border rounded-lg">
                      <div className="flex items-center justify-between p-4">
-                       <div className="flex-1">
-                         <h4 className="font-medium">{getExerciseName(templateExercise.exercise_id)}</h4>
-                         <p className="text-sm text-muted-foreground">
-                           {templateExercise.default_sets} sets
-                           {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
-                           {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
-                         </p>
-                         {templateExercise.notes && (
-                           <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
-                         )}
-                       </div>
+                        <div className="flex-1">
+                          <h4 className="font-medium">
+                            {templateExercise.display_name || getExerciseName(templateExercise.exercise_id)}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {templateExercise.default_sets} sets
+                            {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
+                            {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
+                          </p>
+                          {templateExercise.grip_ids && templateExercise.grip_ids.length > 0 && (
+                            <p className="text-xs text-blue-600 mt-1">
+                              Grip variation ({templateExercise.grip_ids.length} grips)
+                            </p>
+                          )}
+                          {templateExercise.notes && (
+                            <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
+                          )}
+                        </div>
                        <div className="flex items-center gap-2">
                          <Button
                            variant="outline"
@@ -740,14 +765,16 @@ const TemplateEditor: React.FC = () => {
                            }
                          </p>
                        </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleAddExercise(exercise.id)}
-                        disabled={templateExercises.some(te => te.exercise_id === exercise.id)}
-                      >
-                        {templateExercises.some(te => te.exercise_id === exercise.id) ? 'Added' : 'Add'}
-                      </Button>
+                       <div className="flex gap-2">
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => handleAddExerciseClick(exercise.id, getTranslatedNameFromData(exercise.translations) || 'Unknown Exercise')}
+                         >
+                           <Plus className="h-4 w-4 mr-1" />
+                           Add
+                         </Button>
+                       </div>
                     </div>
                   ))}
                 </div>
@@ -768,6 +795,14 @@ const TemplateEditor: React.FC = () => {
           </CardContent>
         </Card>
       </main>
+
+      {/* Exercise Grip Dialog */}
+      <ExerciseGripDialog
+        isOpen={isGripDialogOpen}
+        onClose={() => setIsGripDialogOpen(false)}
+        onConfirm={handleConfirmAddExercise}
+        exerciseName={pendingExercise?.name || ''}
+      />
     </>
   );
 };

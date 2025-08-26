@@ -2107,6 +2107,7 @@ export type Database = {
           exercise_id: string
           grip_combination: Json | null
           grip_ids: string[] | null
+          grip_key: string | null
           id: string
           kind: string
           unit: string | null
@@ -2120,6 +2121,7 @@ export type Database = {
           exercise_id: string
           grip_combination?: Json | null
           grip_ids?: string[] | null
+          grip_key?: string | null
           id?: string
           kind: string
           unit?: string | null
@@ -2133,6 +2135,7 @@ export type Database = {
           exercise_id?: string
           grip_combination?: Json | null
           grip_ids?: string[] | null
+          grip_key?: string | null
           id?: string
           kind?: string
           unit?: string | null
@@ -2765,7 +2768,9 @@ export type Database = {
           backoff_sets: number | null
           default_sets: number
           default_warmup_plan: Json | null
+          display_name: string | null
           exercise_id: string
+          grip_ids: string[] | null
           id: string
           notes: string | null
           order_index: number
@@ -2788,7 +2793,9 @@ export type Database = {
           backoff_sets?: number | null
           default_sets?: number
           default_warmup_plan?: Json | null
+          display_name?: string | null
           exercise_id: string
+          grip_ids?: string[] | null
           id?: string
           notes?: string | null
           order_index: number
@@ -2811,7 +2818,9 @@ export type Database = {
           backoff_sets?: number | null
           default_sets?: number
           default_warmup_plan?: Json | null
+          display_name?: string | null
           exercise_id?: string
+          grip_ids?: string[] | null
           id?: string
           notes?: string | null
           order_index?: number
@@ -3177,6 +3186,7 @@ export type Database = {
           created_at: string | null
           estimated_weight: number
           exercise_id: string
+          grip_key: string | null
           id: string
           source: string | null
           type: string
@@ -3188,6 +3198,7 @@ export type Database = {
           created_at?: string | null
           estimated_weight: number
           exercise_id: string
+          grip_key?: string | null
           id?: string
           source?: string | null
           type?: string
@@ -3199,6 +3210,7 @@ export type Database = {
           created_at?: string | null
           estimated_weight?: number
           exercise_id?: string
+          grip_key?: string | null
           id?: string
           source?: string | null
           type?: string
@@ -4467,7 +4479,10 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          display_name: string | null
           exercise_id: string
+          grip_ids: string[] | null
+          grip_key: string | null
           group_id: string | null
           id: string
           is_superset_group: string | null
@@ -4484,7 +4499,10 @@ export type Database = {
           workout_id: string
         }
         Insert: {
+          display_name?: string | null
           exercise_id: string
+          grip_ids?: string[] | null
+          grip_key?: string | null
           group_id?: string | null
           id?: string
           is_superset_group?: string | null
@@ -4501,7 +4519,10 @@ export type Database = {
           workout_id: string
         }
         Update: {
+          display_name?: string | null
           exercise_id?: string
+          grip_ids?: string[] | null
+          grip_key?: string | null
           group_id?: string | null
           id?: string
           is_superset_group?: string | null

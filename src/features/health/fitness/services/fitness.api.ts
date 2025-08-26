@@ -92,6 +92,8 @@ export interface TemplateExercise {
   target_weight?: number | null;
   weight_unit: string;
   notes?: string | null;
+  grip_ids?: string[] | null;
+  display_name?: string | null;
 }
 
 export interface PersonalRecord {

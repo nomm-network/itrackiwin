@@ -14,10 +14,11 @@ type LastSet = {
 export function useLastSet(
   userId?: string,
   exerciseId?: string,
-  setIndex?: number
+  setIndex?: number,
+  gripKey?: string | null
 ) {
   return useQuery({
-    queryKey: ['lastSet', userId, exerciseId, setIndex], // Include setIndex back in cache key
+    queryKey: ['lastSet', userId, exerciseId, setIndex, gripKey], // Include gripKey in cache key
     enabled: Boolean(userId && exerciseId && Number.isFinite(setIndex)),
     queryFn: async (): Promise<LastSet | null> => {
       console.log('🔍 useLastSet called with params', { userId, exerciseId, setIndex });
@@ -46,12 +47,12 @@ export function useLastSet(
         }
       });
 
-      const lastSet = await supabase
+      let query = supabase
         .from('workout_sets')
         .select(`
           weight, reps, set_index, completed_at, notes, rpe,
           workout_exercises!inner(
-            exercise_id,
+            exercise_id, grip_key,
             workouts!inner(user_id)
           )
         `)
@@ -61,7 +62,18 @@ export function useLastSet(
         .eq('is_completed', true)
         .not('completed_at', 'is', null)
         .not('weight', 'is', null)
-        .not('reps', 'is', null)
+        .not('reps', 'is', null);
+
+      // Filter by grip_key if provided (grip-specific history)
+      if (gripKey !== undefined) {
+        if (gripKey === null) {
+          query = query.is('workout_exercises.grip_key', null);
+        } else {
+          query = query.eq('workout_exercises.grip_key', gripKey);
+        }
+      }
+
+      const lastSet = await query
         .order('completed_at', { ascending: false })
         .limit(1);
 
