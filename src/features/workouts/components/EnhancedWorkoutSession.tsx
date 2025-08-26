@@ -646,7 +646,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 }}
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
-                templateTargetReps={currentExercise?.target_reps}
+                templateTargetReps={currentExercise?.target_reps ?? 10}
                 templateTargetWeight={currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight}
                 isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
                 onSetComplete={(setData) => {
