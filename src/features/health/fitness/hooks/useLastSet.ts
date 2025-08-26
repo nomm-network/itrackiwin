@@ -57,42 +57,7 @@ export function useLastSet(
         };
       }
 
-      // 2) fallback: any most recent completed set for that exercise
-      const anySet = await supabase
-        .from('workout_sets')
-        .select(`
-          weight, reps, set_index, completed_at, notes, rpe,
-          workout_exercises!inner(
-            exercise_id,
-            workouts!inner(user_id)
-          )
-        `)
-        .eq('workout_exercises.workouts.user_id', userId!)
-        .eq('workout_exercises.exercise_id', exerciseId!)
-        .eq('is_completed', true)
-        .not('completed_at', 'is', null)
-        .order('completed_at', { ascending: false })
-        .limit(1);
-
-      if (anySet.error) {
-        console.error('❌ anySet query error', anySet.error);
-        throw anySet.error;
-      }
-
-      if (anySet.data && anySet.data.length > 0) {
-        const row = anySet.data[0];
-        console.log('✅ useLastSet: fallback last set match', row);
-        return {
-          weight: row.weight,
-          reps: row.reps,
-          set_index: row.set_index,
-          completed_at: row.completed_at,
-          notes: row.notes,
-          rpe: row.rpe,
-        };
-      }
-
-      console.log('📭 useLastSet: no history for this exercise');
+      console.log('📭 useLastSet: no exact set match found, not using fallback for set-specific targeting');
       return null;
     },
     staleTime: 5 * 60 * 1000,
