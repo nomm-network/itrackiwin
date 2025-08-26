@@ -172,11 +172,27 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   );
   
   const getExerciseName = () => {
+    // First try the dedicated exercise translation hook
     if (exerciseTranslation?.name) return exerciseTranslation.name;
+    
+    // Then try the translations from the workout query
+    const translations = currentExercise?.exercise?.translations;
+    if (translations && Array.isArray(translations)) {
+      // Try current locale first (you might want to get this from context)
+      const enTranslation = translations.find(t => t.language_code === 'en');
+      if (enTranslation?.name) return enTranslation.name;
+      
+      // Fallback to any available translation
+      const anyTranslation = translations.find(t => t.name);
+      if (anyTranslation?.name) return anyTranslation.name;
+    }
+    
+    // Legacy fallbacks
     if (currentExercise?.exercise?.translations?.en?.name) return currentExercise.exercise.translations.en.name;
     if (currentExercise?.translations?.en?.name) return currentExercise.translations.en.name;
     if (currentExercise?.exercise?.name) return currentExercise.exercise.name;
     if (currentExercise?.name) return currentExercise.name;
+    
     return 'Exercise';
   };
   
