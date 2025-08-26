@@ -237,8 +237,7 @@ export const useUpdateSet = () => {
         .update({
           weight: updateData.weight,
           reps: updateData.reps,
-          notes: updateData.notes,
-          updated_at: new Date().toISOString()
+          notes: updateData.notes
         })
         .eq('id', updateData.setId)
         .select()
