@@ -604,9 +604,9 @@ const WorkoutSession: React.FC = () => {
             <AlertDialog open={showAbortDialog} onOpenChange={setShowAbortDialog}>
               <AlertDialogTrigger asChild>
                 <Button 
-                  variant="destructive" 
+                  variant="secondary" 
                   size="lg" 
-                  className="w-full h-12 opacity-70 hover:opacity-100 border border-destructive/50"
+                  className="w-full h-12 bg-muted text-muted-foreground hover:bg-muted/80 border border-muted"
                   disabled={isDeletingWorkout}
                 >
                   <Trash2 className="h-5 w-5 mr-2" />

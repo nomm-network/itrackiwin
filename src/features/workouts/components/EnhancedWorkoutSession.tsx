@@ -651,8 +651,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               <div className="pt-4 border-t">
                 <Button
                   onClick={handleAbortWorkout}
-                  variant="destructive"
-                  className="w-full"
+                  variant="secondary"
+                  className="w-full bg-muted text-muted-foreground hover:bg-muted/80"
                   size="lg"
                 >
                   Abort Workout

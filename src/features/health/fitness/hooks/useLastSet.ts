@@ -26,20 +26,19 @@ export function useLastSet(
         return null;
       }
 
-      // 1) exact same set number
-      console.log('🔍 useLastSet: Querying for exact set match with:', {
+      // Get the most recent completed set for this exercise, regardless of set_index
+      console.log('🔍 useLastSet: Querying for most recent set for exercise:', {
         userId,
         exerciseId,
         setIndex,
         queryFilters: {
           'workout_exercises.workouts.user_id': userId,
           'workout_exercises.exercise_id': exerciseId,
-          'set_index': setIndex,
           'is_completed': true
         }
       });
 
-      const sameSet = await supabase
+      const lastSet = await supabase
         .from('workout_sets')
         .select(`
           weight, reps, set_index, completed_at, notes, rpe,
@@ -50,22 +49,21 @@ export function useLastSet(
         `)
         .eq('workout_exercises.workouts.user_id', userId!)
         .eq('workout_exercises.exercise_id', exerciseId!)
-        .eq('set_index', setIndex!)
         .eq('is_completed', true)
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false })
         .limit(1);
 
-      console.log('🔍 useLastSet: Query result:', { data: sameSet.data, error: sameSet.error });
+      console.log('🔍 useLastSet: Query result:', { data: lastSet.data, error: lastSet.error });
 
-      if (sameSet.error) {
-        console.error('❌ sameSet query error', sameSet.error);
-        throw sameSet.error;
+      if (lastSet.error) {
+        console.error('❌ lastSet query error', lastSet.error);
+        throw lastSet.error;
       }
 
-      if (sameSet.data && sameSet.data.length > 0) {
-        const row = sameSet.data[0];
-        console.log('✅ useLastSet: same set match', row);
+      if (lastSet.data && lastSet.data.length > 0) {
+        const row = lastSet.data[0];
+        console.log('✅ useLastSet: found most recent set', row);
         return {
           weight: row.weight,
           reps: row.reps,
@@ -76,7 +74,7 @@ export function useLastSet(
         };
       }
 
-      console.log('📭 useLastSet: no exact set match found, not using fallback for set-specific targeting');
+      console.log('📭 useLastSet: no previous sets found for this exercise');
       return null;
     },
     staleTime: 5 * 60 * 1000,
