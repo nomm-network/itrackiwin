@@ -7,3 +7,4 @@ export { default as SetRow } from './SetRow';
 export { default as ExerciseCard } from './ExerciseCard';
 export { default as StartOrContinue } from './StartOrContinue';
 export { default as WorkoutSession } from './WorkoutSession';
+export { FirstTimeEstimateModal } from './FirstTimeEstimateModal';

@@ -47,6 +47,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
+import { FirstTimeEstimateModal } from './FirstTimeEstimateModal';
+import { useNeedsEstimate } from '../hooks/useFirstTimeEstimate';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -136,6 +138,33 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   if (!currentExercise?.id) {
     console.warn('No workout_exercises.id on currentExercise', currentExercise);
   }
+
+  const resolveWorkoutExerciseId = (ex: any): string => {
+    // prefer the actual WE id provided by your query
+    const candidate =
+      ex?.workout_exercise_id ??
+      ex?.we_id ??                        // if you aliased as we_id
+      ex?.id;                             // fallback (only if `ex.id` really is WE id!)
+
+    const id = sanitizeUuid(candidate);
+    if (!isUuid(id)) {
+      console.error('❌ Invalid workout_exercise_id', { candidate, id, ex });
+      throw new Error('Invalid workout_exercise_id (not a UUID)');
+    }
+    return id;
+  };
+
+  // Check if first-time estimate is needed
+  const exerciseId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
+  const { data: needsEstimate } = useNeedsEstimate(user?.id, exerciseId, 10);
+  const [showEstimateModal, setShowEstimateModal] = useState(false);
+
+  // Show estimate modal when needed
+  useEffect(() => {
+    if (needsEstimate?.needs && !showEstimateModal) {
+      setShowEstimateModal(true);
+    }
+  }, [needsEstimate?.needs, showEstimateModal]);
   
   // Get exercise translation
   const { data: exerciseTranslation } = useExerciseTranslation(
@@ -173,20 +202,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
   }, [workout?.exercises, gym]);
 
-  const resolveWorkoutExerciseId = (ex: any): string => {
-    // prefer the actual WE id provided by your query
-    const candidate =
-      ex?.workout_exercise_id ??
-      ex?.we_id ??                        // if you aliased as we_id
-      ex?.id;                             // fallback (only if `ex.id` really is WE id!)
-
-    const id = sanitizeUuid(candidate);
-    if (!isUuid(id)) {
-      console.error('❌ Invalid workout_exercise_id', { candidate, id, ex });
-      throw new Error('Invalid workout_exercise_id (not a UUID)');
-    }
-    return id;
-  };
+  // Function moved above to avoid hoisting issues
 
   const handleSetComplete = (workoutExerciseId: string, setData: any) => {
     console.log('=== SET LOGGING DEBUG ===');
@@ -597,6 +613,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             Complete Workout
           </Button>
         </div>
+      )}
+
+      {/* First Time Estimate Modal */}
+      {user?.id && exerciseId && (
+        <FirstTimeEstimateModal
+          open={showEstimateModal}
+          onClose={() => setShowEstimateModal(false)}
+          userId={user.id}
+          exerciseId={exerciseId}
+          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+          exerciseName={getExerciseName()}
+        />
       )}
 
       {/* Warmup Editor Dialog */}
