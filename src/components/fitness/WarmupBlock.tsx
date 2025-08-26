@@ -28,15 +28,17 @@ export function WarmupBlock({
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
   const [localFeedback, setLocalFeedback] = useState<string | null>(null);
+  const [actualTopWeight, setActualTopWeight] = useState<number>(suggestedTopWeight);
   
   const warmupFeedbackMutation = useWarmupFeedback();
 
-  // Load from DB on mount
+  // Load from DB on mount and get actual heaviest set weight
   useEffect(() => {
     (async () => {
+      // Get warmup plan
       const { data, error } = await supabase
         .from('workout_exercises')
-        .select('warmup_plan')
+        .select('warmup_plan, warmup_feedback')
         .eq('id', workoutExerciseId)
         .maybeSingle();
 
@@ -44,16 +46,30 @@ export function WarmupBlock({
         console.error(error);
         return;
       }
+
+      // Get heaviest completed set weight for display
+      const { data: heaviestSet } = await supabase
+        .from('workout_sets')
+        .select('weight')
+        .eq('workout_exercise_id', workoutExerciseId)
+        .eq('is_completed', true)
+        .order('weight', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const topWeight = heaviestSet?.weight || suggestedTopWeight;
+      setActualTopWeight(topWeight);
+
       if (data?.warmup_plan) {
         setPlan(data.warmup_plan as WarmupPlan);
-        const planObj = data.warmup_plan as any;
-        setLocalFeedback(planObj?.feedback ?? null);
+        setLocalFeedback(data.warmup_feedback || null);
       } else {
         // generate default client-side if nothing saved
         const p = buildWarmupPlan({
-          workingWeightKg: suggestedTopWeight,
-          workingReps: suggestedTopReps,
-          minIncrement: 2.5,
+          topWeightKg: topWeight,
+          repsGoal: suggestedTopReps,
+          roundingKg: 2.5,
+          minWeightKg: 0,
         });
         setPlan(p);
       }
@@ -97,7 +113,7 @@ export function WarmupBlock({
                 {plan?.steps?.map((s) => (
                   <li key={s.id} className="flex items-center justify-between text-sm">
                     <span className="font-mono">{s.id.toUpperCase()}</span>
-                    <span>{getStepWeight(s, suggestedTopWeight, 2.5)}{unit} × {s.reps} reps</span>
+                    <span>{getStepWeight(s, actualTopWeight, 2.5)}{unit} × {s.reps} reps</span>
                     <span className="text-muted-foreground">{s.restSec ?? 60}s rest</span>
                   </li>
                 )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}

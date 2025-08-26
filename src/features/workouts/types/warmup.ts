@@ -7,7 +7,7 @@ export type WarmupStep = {
 };
 
 export type WarmupPlan = {
-  strategy: 'ramped' | 'pyramid' | 'none';
+  strategy: 'ramped' | 'quick' | 'power';
   steps: WarmupStep[];
   source: 'estimate' | 'last_set' | 'user_override' | 'auto';
   updatedAt: string;       // ISO

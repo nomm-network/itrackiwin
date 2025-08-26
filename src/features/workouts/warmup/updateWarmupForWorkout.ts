@@ -21,57 +21,58 @@ async function getGymMinIncrement(gymId?: string | null): Promise<number> {
   return 2.5;
 }
 
+// Helper to get heaviest completed set for this workout exercise
+async function getHeaviestSetWeight(workoutExerciseId: string): Promise<number> {
+  const { data } = await supabase
+    .from('workout_sets')
+    .select('weight')
+    .eq('workout_exercise_id', workoutExerciseId)
+    .eq('is_completed', true)
+    .order('weight', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  return data?.weight ?? 0;
+}
+
 export async function updateWarmupForWorkout(p: UpdateParams) {
   try {
-    // 1) Pull current context we need (exercise_id, gym, recent set, feedback, template target)
+    // 1) Get heaviest completed set weight for this exercise
+    const heaviestWeight = await getHeaviestSetWeight(p.workoutExerciseId);
+    
+    // 2) Get workout exercise data for feedback and context
     const { data: we, error: weErr } = await supabase
       .from('workout_exercises')
       .select(`
-        id, exercise_id, workout_id, warmup_feedback
+        id, exercise_id, workout_id, warmup_feedback, target_sets
       `)
       .eq('id', p.workoutExerciseId)
       .single();
     if (weErr || !we) throw weErr ?? new Error('WE not found');
 
-    const { data: w, error: wErr } = await supabase
-      .from('workouts')
-      .select(`id, user_id`)
-      .eq('id', we.workout_id)
-      .single();
-    if (wErr || !w) throw wErr;
+    // 3) Determine the top weight to use for warmup calculation
+    // Prefer heaviest logged set, fallback to estimate
+    let topWeight = heaviestWeight;
+    if (topWeight === 0) {
+      // If no sets logged yet, use a reasonable default or try to get estimate
+      topWeight = 60; // 60kg default - could enhance to fetch from estimates
+    }
 
-    // last completed set for this WE
-    const { data: lastSet } = await supabase
-      .from('workout_sets')
-      .select(`weight, reps, notes, is_completed`)
-      .eq('workout_exercise_id', p.workoutExerciseId)
-      .eq('is_completed', true)
-      .order('completed_at', { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    // 2) Decide working target with progressive logic
-    const feel = p.lastFeel ?? null;
-    const working = suggestTarget({
-      lastWeight: lastSet?.weight ?? null,
-      lastReps: lastSet?.reps ?? null,
-      feel: feel as Feel,
-      templateTargetReps: 10, // default target reps
-      templateTargetWeight: 0, // will use last weight or default
-    });
-
-    // 3) Build warm-up based on current target + feedback + gym increments
+    // 4) Get gym constraints
     const minInc = await getGymMinIncrement(null); // use default for now
     const fb = p.feedback ?? we.warmup_feedback ?? null;
 
+    // 5) Build warm-up based on actual top weight + feedback + gym increments
     const plan = buildWarmupPlan({
-      workingWeightKg: working.weight,
-      workingReps: working.reps,
-      minIncrement: minInc,
+      topWeightKg: topWeight,
+      repsGoal: 8, // default target reps
+      roundingKg: minInc,
+      minWeightKg: 0,
+      strategy: 'ramped',
       feedback: fb as Feedback,
     });
 
-    // 4) Persist plan snapshot used by UI
+    // 6) Persist plan snapshot used by UI
     await supabase.from('workout_exercises')
       .update({
         warmup_plan: plan,
@@ -79,7 +80,7 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
       })
       .eq('id', p.workoutExerciseId);
 
-    console.log('Updated warmup plan:', plan);
+    console.log('Updated warmup plan for', topWeight, 'kg:', plan);
   } catch (error) {
     console.error('Error updating warmup for workout:', error);
     throw error;

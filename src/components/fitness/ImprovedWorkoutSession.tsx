@@ -182,8 +182,9 @@ export default function ImprovedWorkoutSession({
       };
       onSetComplete(setData);
       
-      // Update warmup plan based on current workout data after first set
-      if (currentSetNumber === 1 && exercise.workout_exercise_id && userId) {
+      // Update warmup plan based on current workout data after each set
+      // (in case this set is heavier than previous ones)
+      if (exercise.workout_exercise_id && userId) {
         updateWarmupAfterSetMutation.mutate({
           workoutExerciseId: exercise.workout_exercise_id,
           userId: userId,
