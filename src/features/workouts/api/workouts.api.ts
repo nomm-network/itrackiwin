@@ -73,12 +73,7 @@ export const useGetWorkout = (workoutId?: string) => {
               default_grip_ids,
               equipment_id,
               primary_muscle_id,
-              body_part_id,
-              exercises_translations(
-                language_code,
-                name,
-                description
-              )
+              body_part_id
             ),
             sets:workout_sets(
               id,
