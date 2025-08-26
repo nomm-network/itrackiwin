@@ -8,7 +8,6 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
-import { feelEmoji } from '@/features/workouts/utils/feel';
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
 import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
@@ -213,10 +212,12 @@ export default function ImprovedWorkoutSession({
     setExpandedSet(expandedSet === setIndex ? null : setIndex);
   };
 
-  // Helper function to get feel emoji
+  // Helper function to get feel emoji using consistent FEEL_OPTIONS
   const getFeelEmoji = (feel?: Feel, notes?: string) => {
     const actualFeel = feel || parseFeelFromNotes(notes);
-    return feelEmoji(actualFeel);
+    if (!actualFeel) return '';
+    const feelOption = FEEL_OPTIONS.find(opt => opt.value === actualFeel);
+    return feelOption?.emoji || '';
   };
 
   return (
@@ -268,7 +269,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps} reps {feelEmoji(set.feel || parseFeelFromNotes(set.notes))}
+                📜 {set.weight}{unit} × {set.reps} reps {getFeelEmoji(set.feel, set.notes)}
               </span>
             </div>
             <div className="flex items-center gap-2">
