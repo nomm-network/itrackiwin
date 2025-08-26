@@ -84,6 +84,8 @@ const TemplateEditor: React.FC = () => {
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [editingExerciseId, setEditingExerciseId] = useState<string | null>(null);
   const [gripEditors, setGripEditors] = useState<Record<string, ExerciseGripEditor>>({});
+  
+  // Grip dialog states
   const [isGripDialogOpen, setIsGripDialogOpen] = useState(false);
   const [pendingExercise, setPendingExercise] = useState<{ id: string; name: string } | null>(null);
   
