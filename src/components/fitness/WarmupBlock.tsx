@@ -118,6 +118,23 @@ export function WarmupBlock({
                   </li>
                 )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
               </ol>
+              
+              {/* DEBUG INFO */}
+              <div className="mt-3 p-2 bg-red-900/20 rounded text-xs space-y-1">
+                <div><strong>🔍 WARMUP DEBUG DATA:</strong></div>
+                <div>workoutExerciseId: {workoutExerciseId || 'NULL'}</div>
+                <div>suggestedTopWeight: {suggestedTopWeight}kg</div>
+                <div>actualTopWeight: {actualTopWeight}kg</div>
+                <div>suggestedTopReps: {suggestedTopReps}</div>
+                <div>plan.topWeightKg: {actualTopWeight}kg (using actualTopWeight)</div>
+                <div>plan.strategy: {plan.strategy}</div>
+                <div>plan.feedback: {localFeedback || 'NULL'} (using localFeedback)</div>
+                <div>plan.steps: {plan.steps?.length || 0} steps</div>
+                <div>localFeedback: {localFeedback || 'NULL'}</div>
+                <div>Step calculations: {plan?.steps?.map((step, i) => 
+                  `${step.id}: ${getStepWeight(step, actualTopWeight, 2.5)}kg (${(step.percent * 100).toFixed(0)}% of ${actualTopWeight}kg)`
+                ).join(', ') || 'No steps'}</div>
+              </div>
             </div>
 
             {/* One-tap feedback after finishing all warmups for the exercise */}
