@@ -21,18 +21,6 @@ const WorkoutDetail: React.FC = () => {
   const updateMut = useUpdateWorkout();
   const deleteMut = useDeleteWorkout();
 
-  // Debug data structure
-  React.useEffect(() => {
-    console.log("🔍 [WorkoutDetail] Data:", data);
-    console.log("🔍 [WorkoutDetail] Loading:", isLoading);
-    console.log("🔍 [WorkoutDetail] Error:", error);
-    if (data?.exercises) {
-      data.exercises.forEach((ex, i) => {
-        console.log(`Exercise ${i}:`, ex);
-        console.log(`Sets for exercise ${ex.id}:`, data.setsByWe[ex.id]);
-      });
-    }
-  }, [data, isLoading, error]);
 
   const [editingWorkout, setEditingWorkout] = React.useState<any>(null);
   const [title, setTitle] = React.useState("");
@@ -128,20 +116,6 @@ const WorkoutDetail: React.FC = () => {
             </Button>
           </div>
         </div>
-        
-        {/* DEBUG INFO - REMOVE WHEN DONE */}
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardHeader>
-            <CardTitle className="text-sm text-yellow-800">🐛 DEBUG INFO</CardTitle>
-          </CardHeader>
-          <CardContent className="text-xs text-yellow-700">
-            <div><strong>Total exercises:</strong> {data?.exercises?.length || 0}</div>
-            <div><strong>Sets count:</strong> {Object.keys(data?.setsByWe || {}).length}</div>
-            <div><strong>setsByWe:</strong> {JSON.stringify(data?.setsByWe, null, 2)}</div>
-            <div><strong>Raw exercises data:</strong></div>
-            <pre className="mt-2 overflow-auto max-h-40">{JSON.stringify(data?.exercises, null, 2)}</pre>
-          </CardContent>
-        </Card>
 
         {(data?.exercises || []).map(ex => {
           const exerciseName = getExerciseNameFromTranslations(ex.exercises?.translations);
@@ -155,7 +129,6 @@ const WorkoutDetail: React.FC = () => {
             <Card key={ex.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">{ex.order_index + 1}: {exerciseName}</CardTitle>
-                <CardDescription>Exercise ID: {ex.id}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
@@ -187,15 +160,8 @@ const WorkoutDetail: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="text-muted-foreground text-sm">❌ No sets logged yet - sets array is empty!</div>
+                    <div className="text-muted-foreground text-sm">No sets logged yet</div>
                   )}
-                  
-                  {/* DEBUG: Show sets for this exercise */}
-                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
-                    <div><strong>🔍 Sets for this exercise:</strong></div>
-                    <div>Exercise workout_exercise ID: {ex.id}</div>
-                    <div>Sets found: {JSON.stringify(workoutSets)}</div>
-                  </div>
                 </div>
               </CardContent>
             </Card>
