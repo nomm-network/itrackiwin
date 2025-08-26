@@ -98,29 +98,7 @@ export default function ImprovedWorkoutSession({
     checkWarmupFeedback();
   }, [exercise.workout_exercise_id, currentSetNumber]);
   
-  // Get target suggestion data for preloading - FIXED: Use correct set index (0-based for DB)
-  const { data: lastSetForTarget } = useLastSet(userId, exerciseId, currentSetNumber - 1);
-  
-  // Auto-preload target values when lastSet data is available
-  React.useEffect(() => {
-    if (lastSetForTarget && currentSetData.weight === 0 && currentSetData.reps === 0) {
-      const lastFeel = parseFeelFromNotes(lastSetForTarget.notes) || parseFeelFromRPE(lastSetForTarget.rpe);
-      const target = suggestTarget({
-        lastWeight: lastSetForTarget.weight,
-        lastReps: lastSetForTarget.reps,
-        feel: lastFeel,
-        templateTargetReps,
-        templateTargetWeight,
-        stepKg: 2.5
-      });
-      
-      setCurrentSetData(prev => ({
-        ...prev,
-        weight: target.weight,
-        reps: target.reps
-      }));
-    }
-  }, [lastSetForTarget, currentSetData.weight, currentSetData.reps, templateTargetReps, templateTargetWeight]);
+  // Target values are now handled by SetPrevTargetDisplay component via onApplyTarget callback
 
   // Debug logging
   React.useEffect(() => {
