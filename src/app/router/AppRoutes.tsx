@@ -74,7 +74,7 @@ export function AppRoutes() {
           {/* Main Dashboard - New unified dashboard */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <UserDashboard />
             </ProtectedMobileLayout>
           } />
 
