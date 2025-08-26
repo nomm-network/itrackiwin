@@ -9,6 +9,8 @@ import type { WarmupPlan } from '@/features/workouts/types/warmup';
 import { getStepWeight } from '@/features/workouts/warmup/calcWarmup';
 import { buildWarmupPlan } from '@/features/workouts/warmup/calcWarmup';
 import { useWarmupFeedback } from '@/features/workouts/warmup/useWarmupActions';
+import { suggestTarget, parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
+import { useAuth } from '@/hooks/useAuth';
 
 type WarmupProps = {
   workoutExerciseId: string;
@@ -30,11 +32,73 @@ export function WarmupBlock({
   const [localFeedback, setLocalFeedback] = useState<string | null>(null);
   const [actualTopWeight, setActualTopWeight] = useState<number>(suggestedTopWeight);
   
+  const { user } = useAuth();
   const warmupFeedbackMutation = useWarmupFeedback();
 
-  // Load from DB on mount and get actual heaviest set weight
+  // Helper to get intelligent target weight using progressive overload system
+  const getIntelligentTargetWeight = async (workoutExerciseId: string, userId: string): Promise<number> => {
+    console.log('🔍 WarmupBlock: Getting intelligent target weight for:', workoutExerciseId);
+    
+    // Get exercise ID first
+    const { data: we } = await supabase
+      .from('workout_exercises')
+      .select('exercise_id')
+      .eq('id', workoutExerciseId)
+      .single();
+      
+    if (!we?.exercise_id) {
+      console.log('⚠️ WarmupBlock: No exercise found, using suggested weight:', suggestedTopWeight);
+      return suggestedTopWeight;
+    }
+
+    // Get the most recent completed set for this exercise (from any previous workout)
+    const { data: lastSet } = await supabase
+      .from('workout_sets')
+      .select(`
+        weight, reps, set_index, completed_at, notes, rpe,
+        workout_exercises!inner(
+          exercise_id,
+          workouts!inner(user_id)
+        )
+      `)
+      .eq('workout_exercises.workouts.user_id', userId)
+      .eq('workout_exercises.exercise_id', we.exercise_id)
+      .eq('is_completed', true)
+      .not('completed_at', 'is', null)
+      .not('weight', 'is', null)
+      .not('reps', 'is', null)
+      .order('completed_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    console.log('🏋️ WarmupBlock: Last set data:', lastSet);
+
+    if (!lastSet) {
+      console.log('⚠️ WarmupBlock: No previous sets found, using suggested weight:', suggestedTopWeight);
+      return suggestedTopWeight;
+    }
+
+    // Use progressive overload system to calculate target
+    const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
+    
+    const target = suggestTarget({
+      lastWeight: lastSet.weight,
+      lastReps: lastSet.reps,
+      feel: lastFeel,
+      templateTargetReps: undefined,
+      templateTargetWeight: undefined,
+      stepKg: 2.5
+    });
+    
+    console.log('🎯 WarmupBlock: Calculated target weight:', target.weight, 'kg (from', lastSet.weight, 'kg)');
+    return target.weight;
+  };
+
+  // Load from DB on mount and get intelligent target weight
   useEffect(() => {
     (async () => {
+      if (!user?.id) return;
+
       // Get warmup plan
       const { data, error } = await supabase
         .from('workout_exercises')
@@ -47,18 +111,9 @@ export function WarmupBlock({
         return;
       }
 
-      // Get heaviest completed set weight for display
-      const { data: heaviestSet } = await supabase
-        .from('workout_sets')
-        .select('weight')
-        .eq('workout_exercise_id', workoutExerciseId)
-        .eq('is_completed', true)
-        .order('weight', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-
-      const topWeight = heaviestSet?.weight || suggestedTopWeight;
-      setActualTopWeight(topWeight);
+      // Get intelligent target weight using progressive overload system
+      const targetWeight = await getIntelligentTargetWeight(workoutExerciseId, user.id);
+      setActualTopWeight(targetWeight);
 
       if (data?.warmup_plan) {
         setPlan(data.warmup_plan as WarmupPlan);
@@ -66,7 +121,7 @@ export function WarmupBlock({
       } else {
         // generate default client-side if nothing saved
         const p = buildWarmupPlan({
-          topWeightKg: topWeight,
+          topWeightKg: targetWeight,
           repsGoal: suggestedTopReps,
           roundingKg: 2.5,
           minWeightKg: 0,
@@ -74,7 +129,7 @@ export function WarmupBlock({
         setPlan(p);
       }
     })();
-  }, [workoutExerciseId, unit, suggestedTopWeight, suggestedTopReps]);
+  }, [workoutExerciseId, unit, suggestedTopWeight, suggestedTopReps, user?.id]);
 
   const totalWarmupTime = useMemo(() => {
     if (!plan?.steps?.length) return 0;
