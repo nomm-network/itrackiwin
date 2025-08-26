@@ -47,8 +47,6 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
-import { FirstTimeEstimateModal } from './FirstTimeEstimateModal';
-import { useNeedsEstimate } from '../hooks/useFirstTimeEstimate';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -154,17 +152,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     return id;
   };
 
-  // Check if first-time estimate is needed
-  const exerciseId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
-  const { data: needsEstimate } = useNeedsEstimate(user?.id, exerciseId, 10);
-  const [showEstimateModal, setShowEstimateModal] = useState(false);
-
-  // Show estimate modal when needed
-  useEffect(() => {
-    if (needsEstimate?.needs && !showEstimateModal) {
-      setShowEstimateModal(true);
-    }
-  }, [needsEstimate?.needs, showEstimateModal]);
   
   // Get exercise translation
   const { data: exerciseTranslation } = useExerciseTranslation(
@@ -673,17 +660,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         </div>
       )}
 
-      {/* First Time Estimate Modal */}
-      {user?.id && exerciseId && (
-        <FirstTimeEstimateModal
-          open={showEstimateModal}
-          onClose={() => setShowEstimateModal(false)}
-          userId={user.id}
-          exerciseId={exerciseId}
-          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-          exerciseName={getExerciseName()}
-        />
-      )}
 
       {/* Warmup Editor Dialog */}
       <Dialog open={showWarmupEditor} onOpenChange={setShowWarmupEditor}>

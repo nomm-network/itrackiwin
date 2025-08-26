@@ -7,8 +7,6 @@ export { useActiveWorkout, useGetWorkout, useStartQuickWorkout, useEndWorkout, u
 // Performance queries - optimized for mobile
 export { useLastSetForExercise, usePersonalRecord } from '../api/workouts.api';
 
-// First-time estimate hooks
-export { useNeedsEstimate } from './useFirstTimeEstimate';
 
 // Legacy hooks (maintained for backward compatibility)
 export { useWorkoutOpen } from '../../../hooks/useOptimizedWorkout';
