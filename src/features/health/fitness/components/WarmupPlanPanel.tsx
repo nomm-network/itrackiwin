@@ -45,15 +45,10 @@ const WarmupPlanPanel: React.FC<WarmupPlanPanelProps> = ({
 
   const handleSave = () => {
     if (editText.trim()) {
-      createWarmupMutation.mutate({
-        exerciseId,
-        planText: editText,
-        source: 'manual'
-      }, {
-        onSuccess: () => {
-          setIsEditing(false);
-        }
-      });
+      // For now, just update local state since the new warmup system
+      // handles this automatically through the workout exercises
+      setWarmupPlan({ plan_text: editText });
+      setIsEditing(false);
     }
   };
 
@@ -111,7 +106,6 @@ const WarmupPlanPanel: React.FC<WarmupPlanPanelProps> = ({
                 <Button 
                   size="sm" 
                   onClick={handleSave}
-                  disabled={createWarmupMutation.isPending}
                 >
                   <Check className="h-3 w-3 mr-1" />
                   Save
