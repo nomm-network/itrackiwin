@@ -47,7 +47,7 @@ const WorkoutDetail: React.FC = () => {
       setEditingWorkout(null);
       toast({ title: "Workout updated successfully" });
     } catch (error: any) {
-      toast({ title: "Failed to update workout", description: error.message });
+      toast({ title: "Failed to update workout", description: error.message, variant: "destructive" });
     }
   };
 
