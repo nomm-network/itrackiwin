@@ -63,23 +63,22 @@ export function useTargetCalculation({
     return suggestion;
   }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex]);
 
-  // Apply target to form - SINGLE call only when target changes
-  const hasAppliedRef = React.useRef(false);
-  const lastSetIndexRef = React.useRef(setIndex);
-  
-  // Reset when moving to next set
-  if (lastSetIndexRef.current !== setIndex) {
-    hasAppliedRef.current = false;
-    lastSetIndexRef.current = setIndex;
-  }
+  // Apply target to form - track by unique key to ensure reliability
+  const hasAppliedRef = React.useRef<string>('');
+  const currentKey = `${userId}-${exerciseId}-${setIndex}-${target.weight}-${target.reps}`;
   
   React.useEffect(() => {
-    if (onApplyTarget && !hasAppliedRef.current && !isLoadingLastSet && !isLoadingEstimate) {
-      console.log('🎯 useTargetCalculation: SINGLE onApplyTarget call:', target);
+    // Always apply if we haven't applied this exact target combination
+    if (onApplyTarget && hasAppliedRef.current !== currentKey && !isLoadingLastSet && !isLoadingEstimate) {
+      console.log('🎯 useTargetCalculation: Applying target (key changed):', { 
+        target, 
+        oldKey: hasAppliedRef.current, 
+        newKey: currentKey 
+      });
       onApplyTarget(target.weight, target.reps);
-      hasAppliedRef.current = true;
+      hasAppliedRef.current = currentKey;
     }
-  }, [target.weight, target.reps, onApplyTarget, setIndex, isLoadingLastSet, isLoadingEstimate]);
+  }, [currentKey, onApplyTarget, isLoadingLastSet, isLoadingEstimate, target.weight, target.reps]);
 
   return {
     target,
