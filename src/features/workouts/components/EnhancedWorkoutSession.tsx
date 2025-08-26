@@ -331,6 +331,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         pain: false
       });
       
+      // Invalidate workout queries to refresh the UI and show the logged set
+      await queryClient.invalidateQueries({ queryKey: ['workouts'] });
+      await queryClient.invalidateQueries({ queryKey: ['workout', workout?.id] });
+      await queryClient.invalidateQueries({ queryKey: ['active-workout'] });
+      
       toast.success(`Set ${result.action} successfully!`);
       
       // Note: Removed window.location.reload() to maintain exercise navigation state
