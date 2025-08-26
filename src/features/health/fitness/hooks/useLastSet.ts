@@ -17,7 +17,7 @@ export function useLastSet(
   setIndex?: number
 ) {
   return useQuery({
-    queryKey: ['lastSet', userId, exerciseId, setIndex],
+    queryKey: ['lastSet', userId, exerciseId], // Remove setIndex from cache key!
     enabled: Boolean(userId && exerciseId && Number.isFinite(setIndex)),
     queryFn: async (): Promise<LastSet | null> => {
       console.log('🔍 useLastSet called with params', { userId, exerciseId, setIndex });
