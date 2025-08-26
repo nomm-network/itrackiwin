@@ -408,15 +408,26 @@ const TemplateEditor: React.FC = () => {
   };
 
   const handleAddExercise = (exerciseId: string) => {
+    console.log('Adding exercise:', exerciseId, 'to template:', templateId);
     if (templateId) {
       const nextOrderIndex = Math.max(...templateExercises.map(te => te.order_index), -1) + 1;
+      console.log('Next order index:', nextOrderIndex);
       addToTemplate.mutate({
         template_id: templateId,
         exercise_id: exerciseId,
         order_index: nextOrderIndex,
         default_sets: 3,
         weight_unit: 'kg'
+      }, {
+        onSuccess: (data) => {
+          console.log('Successfully added exercise:', data);
+        },
+        onError: (error) => {
+          console.error('Failed to add exercise:', error);
+        }
       });
+    } else {
+      console.error('No templateId available');
     }
   };
 
@@ -434,6 +445,9 @@ const TemplateEditor: React.FC = () => {
   if (!templateId) {
     return <div>Template not found</div>;
   }
+
+  console.log('Template ID from URL:', templateId);
+  console.log('Template data:', template);
 
   return (
     <>

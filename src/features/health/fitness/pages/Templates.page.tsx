@@ -32,8 +32,9 @@ const Templates: React.FC = () => {
   };
 
   const handleCloneTemplate = async (templateId: string) => {
-    const newId = await cloneTemplate.mutateAsync(templateId);
-    navigate(`/fitness/templates/${newId}/edit`);
+    const newTemplateId = await cloneTemplate.mutateAsync(templateId);
+    console.log('Cloned template ID:', newTemplateId);
+    navigate(`/fitness/templates/${newTemplateId}/edit`);
   };
 
   return (
@@ -72,8 +73,9 @@ const Templates: React.FC = () => {
             if (!checkAndRedirect('create templates')) return;
             
             const name = prompt('Template name', 'Push Day') || 'New Template'; 
-            const id = await create.mutateAsync(name); 
-            navigate(`/fitness/templates/${id}/edit`);
+            const template = await create.mutateAsync(name); 
+            console.log('Created template:', template);
+            navigate(`/fitness/templates/${template.id}/edit`);
           }}>New Template</Button>
         </div>
 
@@ -127,8 +129,9 @@ const Templates: React.FC = () => {
                   if (!checkAndRedirect('create templates')) return;
                   
                   const name = prompt('Template name', 'Push Day') || 'New Template'; 
-                  const id = await create.mutateAsync(name); 
-                  navigate(`/fitness/templates/${id}/edit`);
+                  const template = await create.mutateAsync(name); 
+                  console.log('Created first template:', template);
+                  navigate(`/fitness/templates/${template.id}/edit`);
                 }}>
                   Create Your First Template
                 </Button>
