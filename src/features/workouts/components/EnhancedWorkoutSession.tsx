@@ -117,16 +117,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
   const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
   
-  // Debug log the estimate usage
-  console.log('🔍 EnhancedWorkoutSession: Exercise estimate data:', {
-    exerciseId: currentExerciseEstimateId,
-    estimate: currentExerciseEstimate,
-    templateTargetWeight: currentExercise?.target_weight,
-    estimateWeight: currentExerciseEstimate?.estimated_weight,
-    finalTemplateWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight,
-    effectiveWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60,
-    currentExerciseKeys: currentExercise ? Object.keys(currentExercise) : 'no currentExercise'
-  });
 
   // Check for existing warmup data when exercise changes
   useEffect(() => {
@@ -182,59 +172,42 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   );
   
   const getExerciseName = () => {
-    console.log('🚨 DEBUG getExerciseName - Current Exercise:', {
-      currentExercise,
-      exerciseTranslation,
-      hasTranslationName: !!exerciseTranslation?.name,
-      exerciseStructure: currentExercise?.exercise,
-      exerciseTranslations: currentExercise?.exercise?.exercises_translations
-    });
-
     // First try the dedicated exercise translation hook
     if (exerciseTranslation?.name) {
-      console.log('✅ Using exerciseTranslation.name:', exerciseTranslation.name);
       return exerciseTranslation.name;
     }
     
     // Then try the translations from the workout query
     const translations = currentExercise?.exercise?.exercises_translations;
-    console.log('🔍 Checking workout query translations:', { translations, type: typeof translations, isArray: Array.isArray(translations) });
     
     if (translations && Array.isArray(translations)) {
       // Try English first
       const enTranslation = translations.find(t => t.language_code === 'en');
       if (enTranslation?.name) {
-        console.log('✅ Using English translation from workout query:', enTranslation.name);
         return enTranslation.name;
       }
       
       // Fallback to any available translation
       const anyTranslation = translations.find(t => t.name);
       if (anyTranslation?.name) {
-        console.log('✅ Using any translation from workout query:', anyTranslation.name);
         return anyTranslation.name;
       }
     }
     
     // Legacy fallbacks
     if (currentExercise?.exercise?.translations?.en?.name) {
-      console.log('✅ Using legacy exercise.translations.en.name:', currentExercise.exercise.translations.en.name);
       return currentExercise.exercise.translations.en.name;
     }
     if (currentExercise?.translations?.en?.name) {
-      console.log('✅ Using legacy translations.en.name:', currentExercise.translations.en.name);
       return currentExercise.translations.en.name;
     }
     if (currentExercise?.exercise?.name) {
-      console.log('✅ Using exercise.name:', currentExercise.exercise.name);
       return currentExercise.exercise.name;
     }
     if (currentExercise?.name) {
-      console.log('✅ Using name:', currentExercise.name);
       return currentExercise.name;
     }
     
-    console.log('❌ Falling back to "Exercise"');
     return 'Exercise';
   };
   
@@ -263,12 +236,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Function moved above to avoid hoisting issues
 
   const handleSetComplete = async (workoutExerciseId: string, setData: any) => {
-    console.log('=== SET LOGGING DEBUG ===');
-    console.log('Current Exercise Object:', currentExercise);
-    console.log('Workout Exercise ID being passed:', workoutExerciseId);
-    console.log('Set Data:', setData);
-    console.log('Type of workoutExerciseId:', typeof workoutExerciseId);
-    
     const exerciseGrips = selectedGrips[workoutExerciseId] || [];
     
     // Convert grip names to UUIDs
@@ -299,12 +266,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       grip_ids: gripIds
     };
     
-    console.log('Planned set index:', plannedSetIndex);
-    console.log('Payload being sent:', payload);
-    
     try {
       const result = await newLogSet(payload, plannedSetIndex);
-      console.log('Set logged successfully:', result);
       
       // Recompute warmup plan after logging working set
       if (user?.id && currentExercise?.exercise_id) {
@@ -314,7 +277,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             exerciseId: currentExercise.exercise_id,
             userId: user.id,
           });
-          console.log('Warmup plan recalculated successfully');
         } catch (warmupError) {
           console.error('Failed to recalculate warmup:', warmupError);
           // Don't block the set logging for warmup issues
@@ -532,15 +494,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Robust decision logic - no race conditions
   const needsReadiness = shouldShowReadiness === true;
   
-  // DEBUG: Log the readiness check logic
-  console.log('🔍 ENHANCED READINESS DEBUG:', {
-    workoutId: workout?.id,
-    userId: user?.id,
-    shouldShowReadiness,
-    isCheckingReadiness,
-    needsReadiness,
-    authLoading
-  });
   
   // Gate UI until we know the readiness status
   const stillLoading = isCheckingReadiness || authLoading || !user;

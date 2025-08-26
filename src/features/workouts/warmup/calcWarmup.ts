@@ -49,11 +49,14 @@ export function buildWarmupPlan(input: CalcWarmupInput): WarmupPlan {
     const targetWeight = clamp(topWeightKg * pAdj, minWeightKg, topWeightKg * 0.95);
     const roundedWeight = Math.max(minWeightKg, roundTo(targetWeight, roundingKg));
 
+    // Progressive rest times: 60s, 90s, 120s
+    const restTimes = [60, 90, 120];
+
     return {
       id: (['w1', 'w2', 'w3', 'w4'][i] as WarmupStep['id']),
       percent: roundedWeight / topWeightKg, // Store the actual percentage used
       reps: s.r,
-      restSec: 60,
+      restSec: restTimes[i] || 60,
     };
   });
 

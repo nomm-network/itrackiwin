@@ -51,7 +51,7 @@ export async function recomputeWarmupPlan(opts: {
   // 3) Calculate step schema with bias adjustment
   const basePerc = [0.40, 0.60, 0.80];
   const reps = [10, 8, 5];
-  const restSec = 60;
+  const restTimes = [60, 90, 120]; // Progressive rest times
 
   // Apply bias: ±5% per step, bounded
   const percents = basePerc.map(p => Math.min(0.9, Math.max(0.2, p + bias * 0.05)));
@@ -62,7 +62,7 @@ export async function recomputeWarmupPlan(opts: {
     id: (['W1', 'W2', 'W3'] as const)[i],
     pct,
     reps: reps[i],
-    restSec,
+    restSec: restTimes[i],
     targetWeight: roundToStep(base * pct, stepKg),
   }));
 

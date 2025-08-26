@@ -77,14 +77,11 @@ async function getTargetWeight(workoutExerciseId: string, userId: string): Promi
     stepKg: 2.5
   });
   
-  console.log('🎯 Calculated target weight:', target.weight, 'kg (from', lastSet.weight, 'kg)');
   return target.weight;
 }
 
 export async function updateWarmupForWorkout(p: UpdateParams) {
   try {
-    console.log('🚀 Starting warmup update for:', p.workoutExerciseId);
-    
     // 1) Get intelligent target weight using progressive overload system
     const targetWeight = await getTargetWeight(p.workoutExerciseId, p.userId);
     
@@ -98,13 +95,9 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
       .single();
     if (weErr || !we) throw weErr ?? new Error('WE not found');
 
-    console.log('🎯 Using target weight for warmup calculation:', targetWeight, 'kg');
-
     // 3) Get gym constraints
     const minInc = await getGymMinIncrement(null); // use default for now
     const fb = p.feedback ?? we.warmup_feedback ?? null;
-
-    console.log('📝 Using feedback:', fb);
 
     // 4) Build warm-up based on intelligent target weight + feedback + gym increments
     const plan = buildWarmupPlan({
@@ -116,8 +109,6 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
       feedback: fb as Feedback,
     });
 
-    console.log('📋 Generated warmup plan:', plan);
-
     // 5) Persist plan snapshot used by UI
     await supabase.from('workout_exercises')
       .update({
@@ -126,7 +117,6 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
       })
       .eq('id', p.workoutExerciseId);
 
-    console.log('✅ Updated warmup plan for', targetWeight, 'kg successfully');
     return plan;
   } catch (error) {
     console.error('❌ Error updating warmup for workout:', error);
