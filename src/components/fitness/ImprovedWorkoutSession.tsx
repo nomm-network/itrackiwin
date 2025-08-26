@@ -11,6 +11,7 @@ import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPr
 import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
+import { updateWarmupFeedback } from '@/features/workouts/api/warmup';
 
 interface SetData {
   weight: number;
@@ -81,12 +82,12 @@ export default function ImprovedWorkoutSession({
       if (exercise.workout_exercise_id && currentSetNumber === 1) {
         const { data } = await supabase
           .from('workout_exercises')
-          .select('warmup_feedback')
+          .select('warmup_plan')
           .eq('id', exercise.workout_exercise_id)
           .maybeSingle();
         
-        if (data?.warmup_feedback) {
-          setWarmupFeedback(data.warmup_feedback);
+        if (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan) {
+          setWarmupFeedback(data.warmup_plan.feedback as string);
         }
       }
     };
@@ -168,11 +169,11 @@ export default function ImprovedWorkoutSession({
       // Check database directly for warmup feedback
       const { data } = await supabase
         .from('workout_exercises')
-        .select('warmup_feedback')
+        .select('warmup_plan')
         .eq('id', exercise.workout_exercise_id)
         .maybeSingle();
       
-      if (!data?.warmup_feedback) {
+      if (!data?.warmup_plan || typeof data.warmup_plan !== 'object' || !('feedback' in data.warmup_plan)) {
         alert('Please pick a warmup feedback choice before logging your first set.');
         return;
       }
@@ -591,10 +592,7 @@ export default function ImprovedWorkoutSession({
                 variant={warmupFeedback === 'not_enough' ? 'default' : 'outline'}
                 onClick={async () => {
                   try {
-                    await supabase
-                      .from('workout_exercises')
-                      .update({ warmup_feedback: 'not_enough' })
-                      .eq('id', exercise.workout_exercise_id);
+                    await updateWarmupFeedback(exercise.workout_exercise_id, 'not_enough');
                     setWarmupFeedback('not_enough');
                     setShowWarmupDialog(false);
                   } catch (e) {
@@ -609,10 +607,7 @@ export default function ImprovedWorkoutSession({
                 variant={warmupFeedback === 'excellent' ? 'default' : 'outline'}
                 onClick={async () => {
                   try {
-                    await supabase
-                      .from('workout_exercises')
-                      .update({ warmup_feedback: 'excellent' })
-                      .eq('id', exercise.workout_exercise_id);
+                    await updateWarmupFeedback(exercise.workout_exercise_id, 'excellent');
                     setWarmupFeedback('excellent');
                     setShowWarmupDialog(false);
                   } catch (e) {
@@ -627,10 +622,7 @@ export default function ImprovedWorkoutSession({
                 variant={warmupFeedback === 'too_much' ? 'default' : 'outline'}
                 onClick={async () => {
                   try {
-                    await supabase
-                      .from('workout_exercises')
-                      .update({ warmup_feedback: 'too_much' })
-                      .eq('id', exercise.workout_exercise_id);
+                    await updateWarmupFeedback(exercise.workout_exercise_id, 'too_much');
                     setWarmupFeedback('too_much');
                     setShowWarmupDialog(false);
                   } catch (e) {

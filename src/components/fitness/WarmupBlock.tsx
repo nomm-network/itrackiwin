@@ -33,7 +33,7 @@ export function WarmupBlock({
     (async () => {
       const { data, error } = await supabase
         .from('workout_exercises')
-        .select('warmup_plan, warmup_feedback')
+        .select('warmup_plan')
         .eq('id', workoutExerciseId)
         .maybeSingle();
 

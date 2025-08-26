@@ -4393,7 +4393,6 @@ export type Database = {
           notes: string | null
           order_index: number
           target_sets: number | null
-          warmup_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
           warmup_plan: Json | null
           warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot: string | null
@@ -4408,9 +4407,6 @@ export type Database = {
           notes?: string | null
           order_index: number
           target_sets?: number | null
-          warmup_feedback?:
-            | Database["public"]["Enums"]["warmup_feedback"]
-            | null
           warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
@@ -4425,9 +4421,6 @@ export type Database = {
           notes?: string | null
           order_index?: number
           target_sets?: number | null
-          warmup_feedback?:
-            | Database["public"]["Enums"]["warmup_feedback"]
-            | null
           warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null

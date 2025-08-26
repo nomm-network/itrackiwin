@@ -124,10 +124,10 @@ const WorkoutDetail: React.FC = () => {
                   ))}
                   
                   {/* Show warmup feedback if available */}
-                  {ex.warmup_feedback && (
+                  {ex.warmup_plan && typeof ex.warmup_plan === 'object' && 'feedback' in ex.warmup_plan && (
                     <div className="mt-2 pt-2 border-t">
                       <div className="text-xs text-muted-foreground">
-                        Warmup feedback: <span className="font-medium">{ex.warmup_feedback.replace('_', ' ')}</span>
+                        Warmup feedback: <span className="font-medium">{(ex.warmup_plan.feedback as string).replace('_', ' ')}</span>
                       </div>
                     </div>
                   )}
