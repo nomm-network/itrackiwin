@@ -128,6 +128,9 @@ export default function ImprovedWorkoutSession({
       templateTargetWeight,
       userIdType: typeof userId,
       exerciseIdType: typeof exerciseId,
+      setIndexType: typeof currentSetNumber,
+      setIndexValue: currentSetNumber,
+      setIndexIsFinite: Number.isFinite(currentSetNumber),
       hasUserId: !!userId,
       hasExerciseId: !!exerciseId
     });

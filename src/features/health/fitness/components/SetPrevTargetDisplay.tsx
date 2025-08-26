@@ -35,6 +35,18 @@ export function SetPrevTargetDisplay({
   templateTargetWeight,
   onApplyTarget,
 }: SetPrevTargetDisplayProps) {
+  console.log('🔍 SetPrevTargetDisplay called with props:', {
+    userId,
+    exerciseId,
+    setIndex,
+    templateTargetReps,
+    templateTargetWeight,
+    userIdExists: !!userId,
+    exerciseIdExists: !!exerciseId,
+    setIndexIsNumber: typeof setIndex === 'number',
+    setIndexIsFinite: Number.isFinite(setIndex)
+  });
+
   const { data: last, isLoading } = useLastSet(userId, exerciseId, setIndex);
   const { data: estimate } = useExerciseEstimate(exerciseId, 'rm10');
 
