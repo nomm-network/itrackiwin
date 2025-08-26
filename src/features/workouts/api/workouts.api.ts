@@ -70,7 +70,6 @@ export const useGetWorkout = (workoutId?: string) => {
             warmup_plan,
             exercise:exercises(
               id,
-              slug,
               default_grip_ids,
               equipment_id,
               primary_muscle_id,
