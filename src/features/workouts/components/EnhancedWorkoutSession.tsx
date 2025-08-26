@@ -40,7 +40,7 @@ import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 
 // Add readiness check imports
-import ReadinessCheckIn, { ReadinessData } from '@/components/fitness/ReadinessCheckIn';
+import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
 import { useShouldShowReadiness } from '@/features/health/fitness/hooks/useShouldShowReadiness';
 import { usePreWorkoutCheckin } from '@/features/health/fitness/hooks/usePreWorkoutCheckin';
 import { useAuth } from '@/hooks/useAuth';
@@ -378,23 +378,32 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   };
 
   // Readiness check handlers
-  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
+  const handleReadinessSubmit = async (enhancedReadinessData: EnhancedReadinessData) => {
     try {
+      const { readiness, estimates } = enhancedReadinessData;
+      
+      console.log('🔍 EnhancedWorkoutSession: Processing readiness and estimates:', { readiness, estimates });
+      
       // Calculate a simple readiness score (0-10 based on answers)
-      const score = calculateReadinessScore(readinessData);
+      const score = calculateReadinessScore(readiness);
       
       await createCheckin.mutateAsync({
-        answers: readinessData,
+        answers: readiness,
         readiness_score: score
       });
       
       toastUtils({
-        title: "Readiness recorded",
-        description: "Your pre-workout check-in has been saved."
+        title: "Check-in complete",
+        description: `Readiness recorded${Object.keys(estimates).length > 0 ? ` and ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
       queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', workout?.id, user?.id] });
+      
+      // Also invalidate estimate queries to update the UI
+      queryClient.invalidateQueries({ queryKey: ['missingEstimates'] });
+      queryClient.invalidateQueries({ queryKey: ['needsEstimate'] });
+      
     } catch (error) {
       console.error('Error saving readiness check:', error);
       toastUtils({
@@ -406,7 +415,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   };
 
   // Simple readiness score calculation
-  const calculateReadinessScore = (readinessData: ReadinessData): number => {
+  const calculateReadinessScore = (readinessData: any): number => {
     let score = 10;
     if (readinessData.illness) score -= 3;
     if (readinessData.sleep_quality < 5) score -= 2;
@@ -497,7 +506,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       <>
         <PageNav current="Pre-Workout Check" />
         <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
-          <ReadinessCheckIn
+          <EnhancedReadinessCheckIn
+            workoutId={workout.id}
             onSubmit={handleReadinessSubmit}
             isLoading={createCheckin.isPending}
           />
