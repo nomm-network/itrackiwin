@@ -17,7 +17,7 @@ export function useLastSet(
   setIndex?: number
 ) {
   return useQuery({
-    queryKey: ['lastSet', userId, exerciseId], // Remove setIndex from cache key!
+    queryKey: ['lastSet', userId, exerciseId, setIndex], // Include setIndex back in cache key
     enabled: Boolean(userId && exerciseId && Number.isFinite(setIndex)),
     queryFn: async (): Promise<LastSet | null> => {
       console.log('🔍 useLastSet called with params', { userId, exerciseId, setIndex });
@@ -27,14 +27,19 @@ export function useLastSet(
         return null;
       }
 
-      // Get the most recent completed set for this exercise (ANY set index, not just specific one)
-      console.log('🔍 useLastSet: Querying for most recent set for exercise (ANY set_index):', {
+      // Get the most recent completed set for this SPECIFIC set index
+      // Convert 0-based setIndex to 1-based database set_index
+      const dbSetIndex = setIndex + 1;
+      
+      console.log('🔍 useLastSet: Querying for most recent set with SPECIFIC set_index:', {
         userId,
         exerciseId,
         setIndex,
+        dbSetIndex,
         queryFilters: {
           'workout_exercises.workouts.user_id': userId,
           'workout_exercises.exercise_id': exerciseId,
+          'set_index': dbSetIndex,
           'is_completed': true,
           'weight_not_null': true,
           'reps_not_null': true
@@ -52,6 +57,7 @@ export function useLastSet(
         `)
         .eq('workout_exercises.workouts.user_id', userId!)
         .eq('workout_exercises.exercise_id', exerciseId!)
+        .eq('set_index', dbSetIndex)  // Filter by the correct 1-based set_index
         .eq('is_completed', true)
         .not('completed_at', 'is', null)
         .not('weight', 'is', null)
@@ -80,7 +86,7 @@ export function useLastSet(
         };
       }
 
-      console.log('📭 useLastSet: no previous sets found for this exercise (any set index)');
+      console.log('📭 useLastSet: no previous sets found for this specific set index');
       return null;
     },
     staleTime: 5 * 60 * 1000,
