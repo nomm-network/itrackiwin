@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
 import { Edit2, Trash2 } from "lucide-react";
-import { toast } from "@/components/ui/use-toast";
+import { toast } from "@/hooks/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import type { WarmupPlan } from "@/features/workouts/types/warmup";
 import { getStepWeight } from "@/features/workouts/warmup/calcWarmup";
