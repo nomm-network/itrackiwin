@@ -6330,6 +6330,10 @@ export type Database = {
           workout_template_id: string
         }[]
       }
+      get_next_set_index: {
+        Args: { p_workout_exercise_id: string }
+        Returns: number
+      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
