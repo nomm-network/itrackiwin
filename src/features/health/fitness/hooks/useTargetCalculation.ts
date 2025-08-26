@@ -23,6 +23,13 @@ export function useTargetCalculation({
   const { data: lastSet, isLoading: isLoadingLastSet } = useLastSet(userId, exerciseId, setIndex);
   const { data: estimate, isLoading: isLoadingEstimate } = useExerciseEstimate(exerciseId, 'rm10');
 
+  console.log('🎯 useTargetCalculation: Hook inputs:', {
+    userId, exerciseId, setIndex, templateTargetReps, templateTargetWeight,
+    hasLastSet: !!lastSet, hasEstimate: !!estimate,
+    estimateWeight: estimate?.estimated_weight,
+    isLoadingLastSet, isLoadingEstimate
+  });
+
   // Calculate target once with all logic consolidated
   const target = React.useMemo(() => {
     console.log('🎯 useTargetCalculation: Computing target with:', {
@@ -36,7 +43,7 @@ export function useTargetCalculation({
       // No history - use estimate or template as fallback
       const effectiveWeight = (templateTargetWeight && templateTargetWeight > 0) 
         ? templateTargetWeight 
-        : estimate?.estimated_weight || templateTargetWeight || 0;
+        : estimate?.estimated_weight || 60; // Default to 60kg if no estimate
       
       const target = {
         weight: effectiveWeight,

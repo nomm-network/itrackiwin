@@ -358,10 +358,11 @@ export default function ImprovedWorkoutSession({
             <SetPrevTargetDisplay
               userId={userId}
               exerciseId={exerciseId}
-              setIndex={currentSetNumber}
+              setIndex={currentSetNumber - 1} // Convert to 0-based index for set queries
               templateTargetReps={templateTargetReps}
               templateTargetWeight={templateTargetWeight}
               onApplyTarget={(weight, reps) => {
+                console.log('🎯 Applying target from SetPrevTargetDisplay:', { weight, reps });
                 setCurrentSetData(prev => ({ ...prev, weight, reps }));
               }}
             />
