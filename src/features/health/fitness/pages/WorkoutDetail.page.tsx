@@ -17,9 +17,22 @@ import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
 const WorkoutDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { data } = useWorkoutDetail(id);
+  const { data, isLoading, error } = useWorkoutDetail(id);
   const updateMut = useUpdateWorkout();
   const deleteMut = useDeleteWorkout();
+
+  // Debug data structure
+  React.useEffect(() => {
+    console.log("🔍 [WorkoutDetail] Data:", data);
+    console.log("🔍 [WorkoutDetail] Loading:", isLoading);
+    console.log("🔍 [WorkoutDetail] Error:", error);
+    if (data?.exercises) {
+      data.exercises.forEach((ex, i) => {
+        console.log(`Exercise ${i}:`, ex);
+        console.log(`Sets for exercise ${ex.id}:`, data.setsByWe[ex.id]);
+      });
+    }
+  }, [data, isLoading, error]);
 
   const [editingWorkout, setEditingWorkout] = React.useState<any>(null);
   const [title, setTitle] = React.useState("");
@@ -65,12 +78,45 @@ const WorkoutDetail: React.FC = () => {
     }
   };
 
+  if (isLoading) {
+    return (
+      <>
+        <PageNav current="Workout Details" />
+        <main className="container py-8">
+          <div className="text-center">Loading workout details...</div>
+        </main>
+      </>
+    );
+  }
+
+  if (error) {
+    return (
+      <>
+        <PageNav current="Workout Details" />
+        <main className="container py-8">
+          <div className="text-center text-destructive">Error loading workout: {error.message}</div>
+        </main>
+      </>
+    );
+  }
+
+  if (!data?.workout) {
+    return (
+      <>
+        <PageNav current="Workout Details" />
+        <main className="container py-8">
+          <div className="text-center">Workout not found</div>
+        </main>
+      </>
+    );
+  }
+
   return (
     <>
       <PageNav current="Workout Details" />
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{data?.workout?.title || 'Workout'}</h1>
+          <h1 className="text-2xl font-semibold">{data.workout.title || 'Workout'}</h1>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleEdit}>
               <Edit2 className="mr-1 h-4 w-4" />
@@ -115,13 +161,17 @@ const WorkoutDetail: React.FC = () => {
                   )}
                   
                   {/* Show actual logged sets */}
-                  {workoutSets.map(s => (
-                    <div key={s.id} className="flex gap-4">
-                      <span>Set {s.set_index}</span>
-                      <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
-                      <span>x {s.reps ?? '-'} {s.rpe ? rpeToFeel(s.rpe) : ''}</span>
-                    </div>
-                  ))}
+                  {workoutSets.length > 0 ? (
+                    workoutSets.map(s => (
+                      <div key={s.id} className="flex gap-4">
+                        <span>Set {s.set_index}</span>
+                        <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
+                        <span>x {s.reps ?? '-'} {s.rpe ? rpeToFeel(s.rpe) : ''}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-muted-foreground text-sm">No sets logged yet</div>
+                  )}
                   
                   {/* Show warmup feedback if available */}
                   {ex.warmup_plan && typeof ex.warmup_plan === 'object' && 'feedback' in ex.warmup_plan && (
