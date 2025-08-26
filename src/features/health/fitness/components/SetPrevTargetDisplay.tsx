@@ -64,7 +64,10 @@ export function SetPrevTargetDisplay({
     
     if (!last) {
       // Use estimate as fallback only when no previous data exists
-      const effectiveTargetWeight = templateTargetWeight || estimate?.estimated_weight || 0;
+      // Prioritize estimate over templateTargetWeight if templateTargetWeight is 0 or undefined
+      const effectiveTargetWeight = (templateTargetWeight && templateTargetWeight > 0) 
+        ? templateTargetWeight 
+        : estimate?.estimated_weight || templateTargetWeight || 0;
       console.log('🎯 No previous data - using estimate/template:', effectiveTargetWeight);
       return {
         weight: effectiveTargetWeight,
