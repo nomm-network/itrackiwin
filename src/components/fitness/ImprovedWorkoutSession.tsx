@@ -12,8 +12,7 @@ import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPr
 import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
-import { updateWarmupFeedback } from '@/features/workouts/api/warmup';
-import { updateWarmupForWorkoutData } from '@/features/workouts/utils/calcWarmupFromCurrentData';
+import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
 
 interface SetData {
   weight: number;
@@ -82,6 +81,10 @@ export default function ImprovedWorkoutSession({
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
+  
+  // Use the new warmup hooks
+  const warmupFeedbackMutation = useWarmupFeedback();
+  const updateWarmupAfterSetMutation = useUpdateWarmupAfterSet();
 
   // Check warmup feedback from database
   React.useEffect(() => {
@@ -180,8 +183,13 @@ export default function ImprovedWorkoutSession({
       onSetComplete(setData);
       
       // Update warmup plan based on current workout data after first set
-      if (currentSetNumber === 1 && exercise.workout_exercise_id && exercise.id) {
-        updateWarmupForWorkoutData(exercise.workout_exercise_id, exercise.id);
+      if (currentSetNumber === 1 && exercise.workout_exercise_id && userId) {
+        updateWarmupAfterSetMutation.mutate({
+          workoutExerciseId: exercise.workout_exercise_id,
+          userId: userId,
+          workoutId: exercise.id,
+          lastFeel: currentSetData.feel,
+        });
       }
       
       // Keep weight and reps for next set progression, reset everything else
@@ -643,13 +651,15 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'not_enough' ? 'default' : 'outline'}
-                onClick={async () => {
-                  try {
-                    await updateWarmupFeedback(exercise.workout_exercise_id, 'not_enough');
+                onClick={() => {
+                  if (userId) {
+                    warmupFeedbackMutation.mutate({
+                      workoutExerciseId: exercise.workout_exercise_id,
+                      userId: userId,
+                      feedback: 'not_enough',
+                    });
                     setWarmupFeedback('not_enough');
                     setShowWarmupDialog(false);
-                  } catch (e) {
-                    console.error('Failed to save warmup feedback:', e);
                   }
                 }}
               >
@@ -658,13 +668,15 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'excellent' ? 'default' : 'outline'}
-                onClick={async () => {
-                  try {
-                    await updateWarmupFeedback(exercise.workout_exercise_id, 'excellent');
+                onClick={() => {
+                  if (userId) {
+                    warmupFeedbackMutation.mutate({
+                      workoutExerciseId: exercise.workout_exercise_id,
+                      userId: userId,
+                      feedback: 'excellent',
+                    });
                     setWarmupFeedback('excellent');
                     setShowWarmupDialog(false);
-                  } catch (e) {
-                    console.error('Failed to save warmup feedback:', e);
                   }
                 }}
               >
@@ -673,13 +685,15 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'too_much' ? 'default' : 'outline'}
-                onClick={async () => {
-                  try {
-                    await updateWarmupFeedback(exercise.workout_exercise_id, 'too_much');
+                onClick={() => {
+                  if (userId) {
+                    warmupFeedbackMutation.mutate({
+                      workoutExerciseId: exercise.workout_exercise_id,
+                      userId: userId,
+                      feedback: 'too_much',
+                    });
                     setWarmupFeedback('too_much');
                     setShowWarmupDialog(false);
-                  } catch (e) {
-                    console.error('Failed to save warmup feedback:', e);
                   }
                 }}
               >

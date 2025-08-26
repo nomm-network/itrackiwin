@@ -4423,7 +4423,10 @@ export type Database = {
           is_superset_group: string | null
           notes: string | null
           order_index: number
+          target_origin: string | null
           target_sets: number | null
+          warmup_feedback: string | null
+          warmup_feedback_at: string | null
           warmup_plan: Json | null
           warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot: string | null
@@ -4437,7 +4440,10 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index: number
+          target_origin?: string | null
           target_sets?: number | null
+          warmup_feedback?: string | null
+          warmup_feedback_at?: string | null
           warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
@@ -4451,7 +4457,10 @@ export type Database = {
           is_superset_group?: string | null
           notes?: string | null
           order_index?: number
+          target_origin?: string | null
           target_sets?: number | null
+          warmup_feedback?: string | null
+          warmup_feedback_at?: string | null
           warmup_plan?: Json | null
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null

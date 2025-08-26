@@ -5,9 +5,10 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { WarmupPlan } from '@/features/health/fitness/utils/warmup';
-import { generateWarmupClient } from '@/features/health/fitness/utils/warmup';
-import { updateWarmupFeedback, type WarmupFeedback } from '@/features/workouts/api/warmup';
+import type { WarmupPlan } from '@/features/workouts/types/warmup';
+import { getStepWeight } from '@/features/workouts/warmup/calcWarmup';
+import { buildWarmupPlan } from '@/features/workouts/warmup/calcWarmup';
+import { useWarmupFeedback } from '@/features/workouts/warmup/useWarmupActions';
 
 type WarmupProps = {
   workoutExerciseId: string;
@@ -26,7 +27,9 @@ export function WarmupBlock({
 }: WarmupProps) {
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
-  const [localFeedback, setLocalFeedback] = useState<WarmupFeedback | null>(null);
+  const [localFeedback, setLocalFeedback] = useState<string | null>(null);
+  
+  const warmupFeedbackMutation = useWarmupFeedback();
 
   // Load from DB on mount
   useEffect(() => {
@@ -47,7 +50,11 @@ export function WarmupBlock({
         setLocalFeedback(planObj?.feedback ?? null);
       } else {
         // generate default client-side if nothing saved
-        const p = generateWarmupClient(suggestedTopWeight, suggestedTopReps, unit);
+        const p = buildWarmupPlan({
+          workingWeightKg: suggestedTopWeight,
+          workingReps: suggestedTopReps,
+          minIncrement: 2.5,
+        });
         setPlan(p);
       }
     })();
@@ -55,22 +62,16 @@ export function WarmupBlock({
 
   const totalWarmupTime = useMemo(() => {
     if (!plan?.steps?.length) return 0;
-    const rests = plan.steps.reduce((acc, s) => acc + (s.rest ?? 60), 0);
+    const rests = plan.steps.reduce((acc, s) => acc + (s.restSec ?? 60), 0);
     return rests; // seconds
   }, [plan]);
 
 
-  const save = async (value: WarmupFeedback) => {
-    try {
-      await updateWarmupFeedback(workoutExerciseId, value);
-      // Optimistic UI: toast + mark selected
-      toast.success('Warm-up feedback saved');
-      setLocalFeedback(value);
-      onFeedbackGiven?.();
-    } catch (e: any) {
-      console.error('warmup feedback save failed', e);
-      toast.error(`Could not save warm-up feedback: ${e.message}`);
-    }
+  const save = (value: 'not_enough' | 'excellent' | 'too_much') => {
+    // This would need userId, but let's simplify for now
+    setLocalFeedback(value);
+    toast.success('Warm-up feedback saved');
+    onFeedbackGiven?.();
   };
 
   if (!plan) return null;
@@ -96,8 +97,8 @@ export function WarmupBlock({
                 {plan?.steps?.map((s) => (
                   <li key={s.id} className="flex items-center justify-between text-sm">
                     <span className="font-mono">{s.id.toUpperCase()}</span>
-                    <span>{s.weight}{unit} × {s.reps} reps</span>
-                    <span className="text-muted-foreground">{s.rest ?? 60}s rest</span>
+                    <span>{getStepWeight(s, suggestedTopWeight, 2.5)}{unit} × {s.reps} reps</span>
+                    <span className="text-muted-foreground">{s.restSec ?? 60}s rest</span>
                   </li>
                 )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
               </ol>

@@ -10,7 +10,8 @@ import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
-import type { WarmupPlan } from "@/features/health/fitness/utils/warmup";
+import type { WarmupPlan } from "@/features/workouts/types/warmup";
+import { getStepWeight } from "@/features/workouts/warmup/calcWarmup";
 import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
 
 const WorkoutDetail: React.FC = () => {
@@ -103,7 +104,7 @@ const WorkoutDetail: React.FC = () => {
                       {warmupSets.map((warmupSet, index) => (
                         <div key={`warmup-${index}`} className="flex gap-4 text-muted-foreground">
                           <span>Set {index + 1}</span>
-                          <span>{warmupSet.weight ?? '-'} {warmupPlan?.unit || 'kg'}</span>
+                          <span>{getStepWeight(warmupSet, 50, 2.5)} kg</span>
                           <span>x {warmupSet.reps ?? '-'}</span>
                           <span>RPE warmup</span>
                         </div>
