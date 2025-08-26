@@ -375,14 +375,21 @@ export const useEndWorkout = () => {
 export const useUpdateWorkout = () => {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: async (params: any) => {
+    mutationFn: async (params: { workoutId: string; title?: string; notes?: string }) => {
+      const updates: any = {};
+      if (params.title !== undefined) updates.title = params.title;
+      if (params.notes !== undefined) updates.notes = params.notes;
+      
       const { error } = await supabase
         .from("workouts")
-        .update(params.updates)
+        .update(updates)
         .eq("id", params.workoutId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts"] }),
+    onSuccess: (_, vars) => {
+      qc.invalidateQueries({ queryKey: ["workouts"] });
+      qc.invalidateQueries({ queryKey: ["workout_detail_v5", vars.workoutId] });
+    },
   });
 };
 
@@ -396,7 +403,10 @@ export const useDeleteWorkout = () => {
         .eq("id", workoutId);
       if (error) throw error;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts"] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["workouts"] });
+      qc.invalidateQueries({ queryKey: ["workout_detail_v5"] });
+    },
   });
 };
 
@@ -477,17 +487,17 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
 
 export const useWorkoutDetail = (workoutId?: UUID) => {
   return useQuery({
-    queryKey: ["workout_detail_v4", workoutId], // Changed to force refresh
+    queryKey: ["workout_detail_v5", workoutId], // Force refresh with new version
     enabled: !!workoutId,
     queryFn: async () => {
-      console.log("Fetching workout detail for ID:", workoutId);
+      console.log("🔍 [WorkoutDetail] Fetching workout detail for ID:", workoutId);
       
       // Fetch workout data
       const { data: workout, error: workoutError } = await supabase
         .from("workouts")
         .select("*")
         .eq("id", workoutId)
-        .single();
+        .maybeSingle();
       
       if (workoutError) {
         console.error("Workout fetch error:", workoutError);
