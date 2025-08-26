@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -74,8 +74,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [showRecalibration, setShowRecalibration] = useState(false);
   const [workoutStartTime] = useState(new Date());
   const [warmupCompleted, setWarmupCompleted] = useState(false);
+  const [hasExistingWarmupData, setHasExistingWarmupData] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  
+
   // Grip selection state - per exercise
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
   const [showGripSelector, setShowGripSelector] = useState<Record<string, boolean>>({});
@@ -103,6 +104,31 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     () => workout?.exercises?.find((x: any) => x.id === currentExerciseId) ?? workout?.exercises?.[0],
     [workout?.exercises, currentExerciseId]
   );
+
+  // Check for existing warmup data when exercise changes
+  useEffect(() => {
+    const checkExistingWarmup = async () => {
+      if (currentExercise) {
+        const weId = resolveWorkoutExerciseId(currentExercise);
+        const { data } = await supabase
+          .from('workout_exercises')
+          .select('warmup_plan')
+          .eq('id', weId)
+          .maybeSingle();
+        
+        if (data?.warmup_plan && typeof data.warmup_plan === 'object' && Object.keys(data.warmup_plan).length > 0) {
+          setHasExistingWarmupData(true);
+          // If warmup data exists and feedback is given, hide warmup block
+          if ('feedback' in data.warmup_plan && data.warmup_plan.feedback) {
+            setWarmupCompleted(true);
+          }
+        } else {
+          setHasExistingWarmupData(false);
+        }
+      }
+    };
+    checkExistingWarmup();
+  }, [currentExercise]);
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
   
@@ -467,8 +493,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Hide warmup after feedback is given */}
-                {!warmupCompleted && (
+                {/* Hide warmup after feedback is given or if data already exists */}
+                {!warmupCompleted && !hasExistingWarmupData && (
                     <WarmupBlock
                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                      unit="kg"
@@ -499,6 +525,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 onExerciseComplete={() => {
                   // Reset warmup for next exercise
                   setWarmupCompleted(false);
+                  setHasExistingWarmupData(false);
                   handleExerciseComplete(currentExercise.id);
                 }}
                 onFinishWorkout={handleWorkoutComplete}

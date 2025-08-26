@@ -583,7 +583,7 @@ export default function ImprovedWorkoutSession({
             <DialogTitle>Warmup Feedback</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 p-4">
-            <p className="text-sm text-muted-foreground">
+            <p className="text-base text-muted-foreground">
               How was the warm-up for this exercise?
             </p>
             <div className="flex gap-2">

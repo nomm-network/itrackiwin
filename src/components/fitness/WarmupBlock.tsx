@@ -105,7 +105,7 @@ export function WarmupBlock({
 
             {/* One-tap feedback after finishing all warmups for the exercise */}
             <div>
-              <div className="text-xs mb-2">How was the warm‑up? Pick 👇🏻</div>
+              <div className="text-sm mb-2">How was the warm‑up? Pick 👇🏻</div>
                <div className="flex gap-2">
                 <Button
                   size="sm"
