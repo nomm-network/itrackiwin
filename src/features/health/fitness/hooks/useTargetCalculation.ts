@@ -40,26 +40,27 @@ export function useTargetCalculation({
     });
 
     if (!lastSet) {
-      // NO PREVIOUS SETS - ONLY THEN use estimates from readiness dialog
+      // NO PREVIOUS SETS - use estimates FIRST TIME ONLY
       const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 0;
+      const effectiveReps = templateTargetReps || 10;
       
       const target = {
         weight: effectiveWeight,
-        reps: templateTargetReps ?? 10,
+        reps: effectiveReps,
       };
       
-      console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates (ONE TIME ONLY):', { 
+      console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates (FIRST TIME ONLY):', { 
         estimateWeight: estimate?.estimated_weight,
         templateTargetWeight,
+        templateTargetReps,
         effectiveWeight,
+        effectiveReps,
         target 
       });
       return target;
     }
 
     // HAS PREVIOUS SETS - use progressive overload system, NEVER use estimates again
-
-    // Has previous sets - use progressive overload system, IGNORE estimates completely
     const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
     
     const suggestion = suggestTarget({
