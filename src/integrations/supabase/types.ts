@@ -2222,6 +2222,13 @@ export type Database = {
             foreignKeyName: "pre_workout_checkins_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: true
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
             referencedRelation: "v_last_working_set"
             referencedColumns: ["workout_id"]
           },
@@ -2280,6 +2287,13 @@ export type Database = {
           workout_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_preworkout_checkins_workout_id"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "fk_preworkout_checkins_workout_id"
             columns: ["workout_id"]
@@ -2524,6 +2538,13 @@ export type Database = {
           workout_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "readiness_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "readiness_checkins_workout_id_fkey"
             columns: ["workout_id"]
@@ -4358,6 +4379,13 @@ export type Database = {
             foreignKeyName: "workout_exercise_groups_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercise_groups_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "v_last_working_set"
             referencedColumns: ["workout_id"]
           },
@@ -4467,6 +4495,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_workout_id_fkey"
             columns: ["workout_id"]
             isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
             referencedRelation: "v_last_working_set"
             referencedColumns: ["workout_id"]
           },
@@ -4569,6 +4604,13 @@ export type Database = {
           workout_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_session_feedback_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_session_feedback_workout_id_fkey"
             columns: ["workout_id"]
@@ -4823,6 +4865,13 @@ export type Database = {
           workout_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_shares_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_shares_workout_id_fkey"
             columns: ["workout_id"]
@@ -5088,6 +5137,27 @@ export type Database = {
         }
         Relationships: []
       }
+      v_current_workout: {
+        Row: {
+          id: string | null
+          started_at: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          id?: string | null
+          started_at?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          id?: string | null
+          started_at?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       v_equipment_with_translations: {
         Row: {
           created_at: string | null
@@ -5096,6 +5166,47 @@ export type Database = {
           translations: Json | null
         }
         Relationships: []
+      }
+      v_exercise_last_set: {
+        Row: {
+          completed_at: string | null
+          exercise_id: string | null
+          notes: string | null
+          reps: number | null
+          rpe: number | null
+          user_id: string | null
+          weight: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       v_exercises_for_coach: {
         Row: {
