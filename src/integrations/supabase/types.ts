@@ -3318,6 +3318,56 @@ export type Database = {
           },
         ]
       }
+      user_exercise_warmup_prefs: {
+        Row: {
+          ease_bias: number
+          exercise_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          ease_bias?: number
+          exercise_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          ease_bias?: number
+          exercise_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_warmup_prefs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_warmup_prefs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_warmup_prefs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_warmup_prefs_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_exercise_warmups: {
         Row: {
           adaptation_history: Json | null
@@ -7871,6 +7921,10 @@ export type Database = {
           updated_at: string
           user_id: string
         }
+      }
+      upsert_warmup_bias: {
+        Args: { p_delta: number; p_exercise_id: string; p_user_id: string }
+        Returns: undefined
       }
       validate_contraindications: {
         Args: { contraindications: Json }

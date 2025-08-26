@@ -38,6 +38,9 @@ import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../utils/exerciseName';
+import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
+import { recomputeWarmupPlan } from '../warmup/recalc';
+import { submitWarmupFeedback } from '../warmup/feedback';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -62,6 +65,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: grips = [] } = useGrips();
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
+  const { logSet: newLogSet } = useAdvancedSetLogging();
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
@@ -258,7 +262,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   // Function moved above to avoid hoisting issues
 
-  const handleSetComplete = (workoutExerciseId: string, setData: any) => {
+  const handleSetComplete = async (workoutExerciseId: string, setData: any) => {
     console.log('=== SET LOGGING DEBUG ===');
     console.log('Current Exercise Object:', currentExercise);
     console.log('Workout Exercise ID being passed:', workoutExerciseId);
@@ -281,9 +285,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes = notes ? `${notes}. Pain reported` : 'Pain reported';
     }
     
+    // Calculate planned set index (0-based: Set 1 → 0, Set 2 → 1, etc.)
+    const currentSetNumber = (currentExercise?.completed_sets_count || 0) + 1;
+    const plannedSetIndex = currentSetNumber - 1; // Convert to 0-based
+    
     const payload = {
       workout_exercise_id: workoutExerciseId,
-      // Don't specify set_index - let the database trigger assign_next_set_index() handle it
       weight: setData.weight || 0,
       reps: setData.reps || 0,
       rpe: setData.rpe || 5,
@@ -292,30 +299,67 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       grip_ids: gripIds
     };
     
-    console.log('Payload being sent to set_log:', payload);
-    console.log('Payload JSON:', JSON.stringify(payload));
+    console.log('Planned set index:', plannedSetIndex);
+    console.log('Payload being sent:', payload);
     
-        logSet(payload, {
-      onSuccess: (data) => {
-        console.log('Set logged successfully:', data);
-        // Reset form for next set
-        setCurrentSetData({
-          weight: setData.weight || 0, // Keep weight for next set
-          reps: setData.reps || 0,     // Keep reps for next set
-          rpe: 5,
-          feel: '',
-          notes: '',
-          pain: false
-        });
-        toast.success('Set logged successfully!');
-        
-        // Note: Removed window.location.reload() to maintain exercise navigation state
-      },
-      onError: (error) => {
-        console.error('Failed to log set:', error);
-        toast.error(`Failed to log set: ${error.message}`);
+    try {
+      const result = await newLogSet(payload, plannedSetIndex);
+      console.log('Set logged successfully:', result);
+      
+      // Recompute warmup plan after logging working set
+      if (user?.id && currentExercise?.exercise_id) {
+        try {
+          await recomputeWarmupPlan({
+            workoutExerciseId,
+            exerciseId: currentExercise.exercise_id,
+            userId: user.id,
+          });
+          console.log('Warmup plan recalculated successfully');
+        } catch (warmupError) {
+          console.error('Failed to recalculate warmup:', warmupError);
+          // Don't block the set logging for warmup issues
+        }
       }
-    });
+      
+      // Reset form for next set
+      setCurrentSetData({
+        weight: setData.weight || 0, // Keep weight for next set
+        reps: setData.reps || 0,     // Keep reps for next set
+        rpe: 5,
+        feel: '',
+        notes: '',
+        pain: false
+      });
+      
+      toast.success(`Set ${result.action} successfully!`);
+      
+      // Note: Removed window.location.reload() to maintain exercise navigation state
+    } catch (error) {
+      console.error('Failed to log set:', error);
+      toast.error(`Failed to log set: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
+  };
+
+  // Updated handleWarmupFeedback function
+  const handleWarmupFeedback = async (exerciseId: string, feedback: 'not_enough' | 'excellent' | 'too_much') => {
+    if (!user?.id || !currentExercise?.id) {
+      toast.error('Missing user or exercise information');
+      return;
+    }
+
+    try {
+      await submitWarmupFeedback({
+        workoutExerciseId: resolveWorkoutExerciseId(currentExercise),
+        exerciseId,
+        userId: user.id,
+        feedback
+      });
+      
+      toast.success(`Warmup feedback recorded: ${feedback.replace('_', ' ')}`);
+    } catch (error) {
+      console.error('Failed to submit warmup feedback:', error);
+      toast.error('Failed to record warmup feedback');
+    }
   };
 
   const handleSaveSet = () => {
