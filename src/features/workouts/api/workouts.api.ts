@@ -222,6 +222,38 @@ export const useLogSet = () => {
   });
 };
 
+export const useUpdateSet = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (updateData: {
+      setId: string;
+      weight?: number;
+      reps?: number;
+      notes?: string;
+    }) => {
+      const { data, error } = await supabase
+        .from('workout_sets')
+        .update({
+          weight: updateData.weight,
+          reps: updateData.reps,
+          notes: updateData.notes,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updateData.setId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      // Invalidate workout cache to refresh the UI
+      queryClient.invalidateQueries({ queryKey: workoutKeys.all });
+    }
+  });
+};
+
 // ============================================================================
 // PERFORMANCE VIEWS - Thin DTOs for mobile/FlutterFlow
 // ============================================================================

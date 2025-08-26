@@ -28,7 +28,7 @@ import { WorkoutRecalibration } from '@/features/health/fitness/components/Worko
 import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
 import { DefaultSetsManager } from './DefaultSetsManager';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
-import { useLogSet } from '../hooks';
+import { useLogSet, useUpdateSet } from '../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -56,6 +56,7 @@ interface WorkoutSessionProps {
 export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
+  const { mutate: updateSet } = useUpdateSet();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
   const { data: grips = [] } = useGrips();
@@ -623,7 +624,27 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     is_completed: false
                   });
                 }}
-                  unit="kg"
+                onUpdateSet={(setIndex, setData) => {
+                  // Find the set to update by index
+                  const setToUpdate = sets[setIndex];
+                  if (setToUpdate?.id) {
+                    updateSet({
+                      setId: setToUpdate.id,
+                      weight: setData.weight,
+                      reps: setData.reps,
+                      notes: setData.notes
+                    }, {
+                      onSuccess: () => {
+                        toast.success('Set updated successfully!');
+                      },
+                      onError: (error) => {
+                        console.error('Failed to update set:', error);
+                        toast.error(`Failed to update set: ${error.message}`);
+                      }
+                    });
+                  }
+                }}
+                unit="kg"
                 />
               </>
             )}
