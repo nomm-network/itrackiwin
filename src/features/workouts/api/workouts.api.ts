@@ -74,7 +74,7 @@ export const useGetWorkout = (workoutId?: string) => {
               equipment_id,
               primary_muscle_id,
               body_part_id,
-              translations:exercises_translations(
+              exercises_translations(
                 language_code,
                 name,
                 description
