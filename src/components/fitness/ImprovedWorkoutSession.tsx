@@ -580,9 +580,17 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'not_enough' ? 'default' : 'outline'}
-                onClick={() => {
-                  setWarmupFeedback('not_enough');
-                  setShowWarmupDialog(false);
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('workout_exercises')
+                      .update({ warmup_feedback: 'not_enough' })
+                      .eq('id', exercise.workout_exercise_id);
+                    setWarmupFeedback('not_enough');
+                    setShowWarmupDialog(false);
+                  } catch (e) {
+                    console.error('Failed to save warmup feedback:', e);
+                  }
                 }}
               >
                 😴 Not enough
@@ -590,9 +598,17 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'excellent' ? 'default' : 'outline'}
-                onClick={() => {
-                  setWarmupFeedback('excellent');
-                  setShowWarmupDialog(false);
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('workout_exercises')
+                      .update({ warmup_feedback: 'excellent' })
+                      .eq('id', exercise.workout_exercise_id);
+                    setWarmupFeedback('excellent');
+                    setShowWarmupDialog(false);
+                  } catch (e) {
+                    console.error('Failed to save warmup feedback:', e);
+                  }
                 }}
               >
                 🔥 Excellent
@@ -600,9 +616,17 @@ export default function ImprovedWorkoutSession({
               <Button
                 size="sm"
                 variant={warmupFeedback === 'too_much' ? 'default' : 'outline'}
-                onClick={() => {
-                  setWarmupFeedback('too_much');
-                  setShowWarmupDialog(false);
+                onClick={async () => {
+                  try {
+                    await supabase
+                      .from('workout_exercises')
+                      .update({ warmup_feedback: 'too_much' })
+                      .eq('id', exercise.workout_exercise_id);
+                    setWarmupFeedback('too_much');
+                    setShowWarmupDialog(false);
+                  } catch (e) {
+                    console.error('Failed to save warmup feedback:', e);
+                  }
                 }}
               >
                 🥵 Too much

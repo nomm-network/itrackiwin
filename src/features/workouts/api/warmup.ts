@@ -14,6 +14,7 @@ export async function updateWarmupFeedback(
   const { data, error } = await supabase
     .from('workout_exercises')
     .update({
+      warmup_feedback: feedback, // Use the actual DB field that popup checks
       warmup_plan: {
         ...currentPlan,
         feedback,
