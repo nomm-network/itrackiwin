@@ -60,7 +60,10 @@ export const SessionRunner: React.FC<SessionRunnerProps> = ({
   const [lastSetId, setLastSetId] = useState<string | null>(null);
 
   const lastSet = completedSets[completedSets.length - 1];
-  const nextSetIndex = completedSets.length + 1;
+  // Calculate next set index properly: find max existing set_index and add 1
+  const nextSetIndex = completedSets.length > 0 
+    ? Math.max(...completedSets.map(s => s.set_index || 0)) + 1 
+    : 1;
   const isCompleted = completedSets.length >= 3; // Assume 3 sets target
 
   const handleSetComplete = async (setData: SetData) => {

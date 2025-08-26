@@ -66,7 +66,10 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
   const currentExercise = exercises[currentExerciseIndex];
   const completedSets = currentExercise?.sets || [];
   const targetSets = currentExercise?.target_sets || 3;
-  const nextSetIndex = completedSets.length + 1;
+  // Calculate next set index properly: find max existing set_index and add 1
+  const nextSetIndex = completedSets.length > 0 
+    ? Math.max(...completedSets.map(s => s.set_index || 0)) + 1 
+    : 1;
   const isExerciseComplete = completedSets.length >= targetSets;
   
   const lastSet = completedSets[completedSets.length - 1];
