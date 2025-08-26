@@ -69,7 +69,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(workout?.id);
   
-  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(workout?.exercises?.[0]?.id ?? null);
+  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(
+    workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null
+  );
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
@@ -101,10 +103,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     getUser();
   }, []);
 
-  const currentExercise = useMemo(
-    () => workout?.exercises?.find((x: any) => x.id === currentExerciseId) ?? workout?.exercises?.[0],
-    [workout?.exercises, currentExerciseId]
-  );
+  const currentExercise = useMemo(() => {
+    const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
+    return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
+  }, [workout?.exercises, currentExerciseId]);
 
   // Get exercise estimate for current exercise - moved after currentExercise definition
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
@@ -334,10 +336,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const handleExerciseComplete = (exerciseId: string) => {
     setCompletedExercises(prev => new Set([...prev, exerciseId]));
     
-    // Auto-advance to next exercise
-    const currentIndex = workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? -1;
+    // Auto-advance to next exercise using sorted exercises
+    const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
+    const currentIndex = sortedExercises.findIndex((x: any) => x.id === currentExerciseId) ?? -1;
     if (currentIndex < totalExercises - 1) {
-      const nextExercise = workout?.exercises?.[currentIndex + 1];
+      const nextExercise = sortedExercises[currentIndex + 1];
       if (nextExercise?.id) {
         setCurrentExerciseId(nextExercise.id);
       }
@@ -631,7 +634,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 Exercise Navigation
               </div>
               <div className="flex gap-2 overflow-x-auto pb-2">
-                {workout.exercises.map((ex: any, idx: number) => {
+                {workout.exercises.sort((a: any, b: any) => a.order_index - b.order_index).map((ex: any, idx: number) => {
                   const label = `${idx + 1}. ${getExerciseDisplayName(ex)}`;
                   const isActive = ex.id === currentExercise?.id;
                   
