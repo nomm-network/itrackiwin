@@ -267,11 +267,12 @@ export default function ImprovedWorkoutSession({
             onClick={() => toggleSetExpansion(index)}
           >
             <div className="flex items-center gap-3">
+              <span className="font-medium">Set {index + 1}</span>
               <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 Set {set.set_index || index + 1}: {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || ''} reps
+                📜 {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || ''} reps
               </span>
               {set.rpe && (
                 <Badge variant="secondary" className="text-xs">
@@ -305,7 +306,8 @@ export default function ImprovedWorkoutSession({
               <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
                 {currentSetNumber}
               </Badge>
-              <span className="font-medium">Set {currentSetNumber}: Current Set</span>
+              <span className="font-medium">Set {currentSetNumber}</span>
+              <span className="font-medium">Current Set</span>
             </div>
 
             {/* Previous Set and Target Display */}
