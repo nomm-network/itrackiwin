@@ -40,7 +40,7 @@ export function useTargetCalculation({
     });
 
     if (!lastSet) {
-      // No history - use estimate from readiness check or template 
+      // NO PREVIOUS SETS - ONLY THEN use estimates from readiness dialog
       const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 0;
       
       const target = {
@@ -48,7 +48,7 @@ export function useTargetCalculation({
         reps: templateTargetReps ?? 10,
       };
       
-      console.log('🎯 useTargetCalculation: No history, using estimates/template:', { 
+      console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates (ONE TIME ONLY):', { 
         estimateWeight: estimate?.estimated_weight,
         templateTargetWeight,
         effectiveWeight,
@@ -57,7 +57,9 @@ export function useTargetCalculation({
       return target;
     }
 
-    // Has history - use progressive system
+    // HAS PREVIOUS SETS - use progressive overload system, NEVER use estimates again
+
+    // Has previous sets - use progressive overload system, IGNORE estimates completely
     const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
     
     const suggestion = suggestTarget({
@@ -65,11 +67,16 @@ export function useTargetCalculation({
       lastReps: lastSet.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight,
+      templateTargetWeight: undefined, // Don't use template weight when we have history
       stepKg: 2.5
     });
     
-    console.log('🎯 useTargetCalculation: Using progressive system:', suggestion);
+    console.log('🎯 useTargetCalculation: HAS PREVIOUS SETS - using progressive overload (IGNORING estimates):', { 
+      lastSetWeight: lastSet.weight,
+      lastSetReps: lastSet.reps,
+      lastFeel,
+      suggestion 
+    });
     return suggestion;
   }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex]);
 
