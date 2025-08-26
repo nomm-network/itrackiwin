@@ -162,11 +162,20 @@ export default function ImprovedWorkoutSession({
   }, []);
 
   // Auto-advance to next set when current set is completed
-  const handleSetSubmit = useCallback(() => {
+  const handleSetSubmit = useCallback(async () => {
     // Check if warmup feedback is required (for first set)
-    if (currentSetNumber === 1 && !warmupFeedback) {
-      alert('Please pick a warmup feedback choice before logging your first set.');
-      return;
+    if (currentSetNumber === 1) {
+      // Check database directly for warmup feedback
+      const { data } = await supabase
+        .from('workout_exercises')
+        .select('warmup_feedback')
+        .eq('id', exercise.workout_exercise_id)
+        .maybeSingle();
+      
+      if (!data?.warmup_feedback) {
+        alert('Please pick a warmup feedback choice before logging your first set.');
+        return;
+      }
     }
     
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
