@@ -40,17 +40,20 @@ export function useTargetCalculation({
     });
 
     if (!lastSet) {
-      // No history - use estimate or template as fallback
-      const effectiveWeight = (templateTargetWeight && templateTargetWeight > 0) 
-        ? templateTargetWeight 
-        : estimate?.estimated_weight || 60; // Default to 60kg if no estimate
+      // No history - use estimate from readiness check or template 
+      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 0;
       
       const target = {
         weight: effectiveWeight,
         reps: templateTargetReps ?? 10,
       };
       
-      console.log('🎯 useTargetCalculation: No history, using fallback:', target);
+      console.log('🎯 useTargetCalculation: No history, using estimates/template:', { 
+        estimateWeight: estimate?.estimated_weight,
+        templateTargetWeight,
+        effectiveWeight,
+        target 
+      });
       return target;
     }
 
