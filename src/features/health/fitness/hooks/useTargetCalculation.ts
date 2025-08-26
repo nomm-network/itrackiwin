@@ -27,7 +27,8 @@ export function useTargetCalculation({
     userId, exerciseId, setIndex, templateTargetReps, templateTargetWeight,
     hasLastSet: !!lastSet, hasEstimate: !!estimate,
     estimateWeight: estimate?.estimated_weight,
-    isLoadingLastSet, isLoadingEstimate
+    isLoadingLastSet, isLoadingEstimate,
+    estimate: estimate // Full estimate object for debugging
   });
 
   // Calculate target once with all logic consolidated
@@ -40,8 +41,8 @@ export function useTargetCalculation({
     });
 
     if (!lastSet) {
-      // NO PREVIOUS SETS - use estimates or sensible defaults for FIRST TIME ONLY
-      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 20; // Default to 20kg instead of 0
+      // NO PREVIOUS SETS - use estimates FIRST TIME ONLY
+      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 0;
       const effectiveReps = templateTargetReps || 10;
       
       const target = {
