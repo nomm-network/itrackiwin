@@ -203,6 +203,7 @@ export const useLastSetForExercise = (exerciseId?: string) => {
     queryFn: async () => {
       if (!user?.id || !exerciseId) return null;
       
+      // Use existing materialized view
       const { data, error } = await supabase
         .from('mv_last_set_per_user_exercise')
         .select('*')
