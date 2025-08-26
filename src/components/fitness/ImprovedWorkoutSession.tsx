@@ -267,7 +267,7 @@ export default function ImprovedWorkoutSession({
             onClick={() => toggleSetExpansion(index)}
           >
             <div className="flex items-center gap-3">
-              <span className="font-medium">Set {index + 1}</span>
+              <span className="font-medium">Set</span>
               <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
                 {index + 1}
               </Badge>
@@ -303,10 +303,10 @@ export default function ImprovedWorkoutSession({
         <Card className="p-4 border-primary/20 bg-primary/5">
           <div className="space-y-4">
             <div className="flex items-center gap-3">
+              <span className="font-medium">Set</span>
               <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
                 {currentSetNumber}
               </Badge>
-              <span className="font-medium">Set {currentSetNumber}</span>
               <span className="font-medium">Current Set</span>
             </div>
 

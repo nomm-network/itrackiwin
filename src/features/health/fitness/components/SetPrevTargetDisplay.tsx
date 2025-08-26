@@ -85,7 +85,7 @@ export function SetPrevTargetDisplay({
       lastReps: last.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight: last.weight || templateTargetWeight, // Use last weight as baseline, not estimate
+      templateTargetWeight: last.weight, // Use last weight as baseline, not template
       stepKg: 2.5
     });
     
