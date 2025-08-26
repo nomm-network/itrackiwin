@@ -104,7 +104,7 @@ export function SetPrevTargetDisplay({
   }
   
   React.useEffect(() => {
-    if (onApplyTarget && target.weight > 0 && !hasAppliedRef.current) {
+    if (onApplyTarget && !hasAppliedRef.current) {
       console.log('🎯 Applying target values to form:', { weight: target.weight, reps: target.reps, setIndex });
       onApplyTarget(target.weight, target.reps);
       hasAppliedRef.current = true;
