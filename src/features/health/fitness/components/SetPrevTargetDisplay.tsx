@@ -2,6 +2,7 @@ import React from 'react';
 import { Feel, FEEL_OPTIONS } from '../lib/feelToRpe';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { useLastSet } from '../hooks/useLastSet';
+import { useExerciseEstimate } from '@/features/workouts/hooks/useExerciseEstimate';
 
 interface SetPrevTargetDisplayProps {
   userId?: string;
@@ -35,12 +36,23 @@ export function SetPrevTargetDisplay({
   onApplyTarget,
 }: SetPrevTargetDisplayProps) {
   const { data: last, isLoading } = useLastSet(userId, exerciseId, setIndex);
+  const { data: estimate } = useExerciseEstimate(exerciseId, 'rm10');
 
   // Calculate intelligent target using the progressive system
   const target = React.useMemo(() => {
+    // Use estimate as fallback for template target weight
+    const effectiveTargetWeight = templateTargetWeight || estimate?.estimated_weight || 0;
+    
+    console.log('🔍 SetPrevTargetDisplay: Target calculation inputs:', {
+      templateTargetWeight,
+      estimateWeight: estimate?.estimated_weight,
+      effectiveTargetWeight,
+      hasLast: !!last
+    });
+    
     if (!last) {
       return {
-        weight: templateTargetWeight ?? 0,
+        weight: effectiveTargetWeight,
         reps: templateTargetReps ?? 10,
       };
     }
@@ -48,18 +60,18 @@ export function SetPrevTargetDisplay({
     // Parse feel from previous set
     const lastFeel = parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe);
     
-    // Use the progressive target suggestion system
+    // Use the progressive target suggestion system with estimate fallback
     const suggestion = suggestTarget({
       lastWeight: last.weight,
       lastReps: last.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight,
+      templateTargetWeight: effectiveTargetWeight,
       stepKg: 2.5
     });
     
     return suggestion;
-  }, [last, templateTargetReps, templateTargetWeight]);
+  }, [last, templateTargetReps, templateTargetWeight, estimate?.estimated_weight]);
 
   // Auto-apply target values when they change - but only once to prevent infinite loops
   const hasAppliedRef = React.useRef(false);

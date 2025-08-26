@@ -47,6 +47,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
+import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -104,6 +105,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     () => workout?.exercises?.find((x: any) => x.id === currentExerciseId) ?? workout?.exercises?.[0],
     [workout?.exercises, currentExerciseId]
   );
+
+  // Get exercise estimate for current exercise - moved after currentExercise definition
+  const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
+  const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
+  
+  // Debug log the estimate usage
+  console.log('🔍 EnhancedWorkoutSession: Exercise estimate data:', {
+    exerciseId: currentExerciseEstimateId,
+    estimate: currentExerciseEstimate,
+    templateTargetWeight: currentExercise?.target_weight,
+    effectiveWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60
+  });
 
   // Check for existing warmup data when exercise changes
   useEffect(() => {
@@ -559,7 +572,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     <WarmupBlock
                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                      unit="kg"
-                     suggestedTopWeight={currentExercise?.target_weight ?? 60}
+                     suggestedTopWeight={currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60}
                      suggestedTopReps={currentExercise?.target_reps ?? 8}
                      onFeedbackGiven={() => setWarmupCompleted(true)}
                    />
@@ -575,7 +588,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
                 templateTargetReps={currentExercise?.target_reps}
-                templateTargetWeight={currentExercise?.target_weight}
+                templateTargetWeight={currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight}
                 isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
                 onSetComplete={(setData) => {
                   // Hide warmup when first set is completed
