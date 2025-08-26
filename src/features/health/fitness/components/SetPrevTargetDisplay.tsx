@@ -93,11 +93,10 @@ export function SetPrevTargetDisplay({
     return suggestion;
   }, [last, templateTargetReps, templateTargetWeight, estimate?.estimated_weight]);
 
-  // Auto-apply target values when they change - but only once to prevent infinite loops
-  const hasAppliedRef = React.useRef(false);
+  // Auto-apply target values when they change
   React.useEffect(() => {
-    if (onApplyTarget && target.weight > 0 && !hasAppliedRef.current) {
-      hasAppliedRef.current = true;
+    if (onApplyTarget && target.weight > 0) {
+      console.log('🎯 Applying target values to form:', { weight: target.weight, reps: target.reps });
       onApplyTarget(target.weight, target.reps);
     }
   }, [target.weight, target.reps, onApplyTarget]);
