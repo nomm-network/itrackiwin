@@ -132,9 +132,10 @@ export function SetPrevTargetDisplay({
             <span>
               Target&nbsp;
               <strong>
-                {target.weight.toFixed(0)}kg × {target.reps}
+                {target.weight}kg × {target.reps}
               </strong>
             </span>
+            <span className="text-xs text-muted-foreground ml-2">(editable)</span>
           </div>
         </>
       )}

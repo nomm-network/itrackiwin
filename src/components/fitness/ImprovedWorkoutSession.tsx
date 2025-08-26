@@ -263,7 +263,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps} {getFeelEmoji(set.feel, set.notes)} reps
+                📜 {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || parseFeelFromRPE(set.rpe) || ''} reps
               </span>
               {set.rpe && (
                 <Badge variant="secondary" className="text-xs">
@@ -310,9 +310,9 @@ export default function ImprovedWorkoutSession({
           {expandedSet === index && (
             <div className="mt-3 pt-3 border-t space-y-2 text-sm text-muted-foreground">
               {set.rpe && <div>RPE: {set.rpe}</div>}
-              {set.feel && (
+              {(set.feel || parseFeelFromNotes(set.notes)) && (
                 <div className="flex items-center gap-2">
-                  Feel: {getFeelEmoji(set.feel)} {set.feel}
+                  Feel: {getFeelEmoji(set.feel, set.notes)}
                 </div>
               )}
               {set.notes && <div>Notes: {set.notes}</div>}
