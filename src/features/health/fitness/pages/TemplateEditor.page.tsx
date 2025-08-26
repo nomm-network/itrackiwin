@@ -539,7 +539,7 @@ const TemplateEditor: React.FC = () => {
           <CardContent>
             {templateExercises.length > 0 ? (
                <div className="space-y-4">
-                 {templateExercises.map((templateExercise) => (
+                 {templateExercises.sort((a, b) => a.order_index - b.order_index).map((templateExercise) => (
                    <div key={templateExercise.id} className="border rounded-lg">
                      <div className="flex items-center justify-between p-4">
                        <div className="flex-1">
