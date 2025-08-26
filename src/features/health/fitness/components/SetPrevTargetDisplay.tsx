@@ -57,7 +57,10 @@ export function SetPrevTargetDisplay({
     
     console.log('🔍 SetPrevTargetDisplay: Target calculation inputs:', {
       templateTargetWeight,
+      templateTargetWeightType: typeof templateTargetWeight,
       estimateWeight: estimate?.estimated_weight,
+      estimateUnit: estimate?.unit,
+      fullEstimate: estimate,
       effectiveTargetWeight,
       hasLast: !!last
     });

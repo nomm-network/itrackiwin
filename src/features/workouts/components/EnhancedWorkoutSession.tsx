@@ -115,7 +115,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     exerciseId: currentExerciseEstimateId,
     estimate: currentExerciseEstimate,
     templateTargetWeight: currentExercise?.target_weight,
-    effectiveWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60
+    estimateWeight: currentExerciseEstimate?.estimated_weight,
+    finalTemplateWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight,
+    effectiveWeight: currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60,
+    currentExerciseKeys: currentExercise ? Object.keys(currentExercise) : 'no currentExercise'
   });
 
   // Check for existing warmup data when exercise changes

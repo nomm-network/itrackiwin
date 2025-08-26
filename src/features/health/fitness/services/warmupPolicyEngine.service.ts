@@ -69,7 +69,7 @@ export class WarmupPolicyEngine {
       const baseIntensity = this.INTENSITY_PROGRESSION[Math.min(i, this.INTENSITY_PROGRESSION.length - 1)];
       const adjustedIntensity = Math.max(0.3, Math.min(0.9, baseIntensity + intensityAdjustment));
       
-      const weight = Math.round(workingWeight * adjustedIntensity * 2.5) / 2.5; // Round to 2.5kg
+      const weight = Math.round((workingWeight * adjustedIntensity) / 2.5) * 2.5; // Round to 2.5kg increments
       const reps = this.calculateWarmupReps(adjustedIntensity, workingReps);
       const restSeconds = this.calculateWarmupRest(i, totalSets, experienceConfig);
       
