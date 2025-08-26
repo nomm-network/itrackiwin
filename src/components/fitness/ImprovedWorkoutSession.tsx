@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2 } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
@@ -263,15 +263,18 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || parseFeelFromRPE(set.rpe) || ''} reps
+                📜 {set.weight}{unit} × {set.reps} reps {parseFeelFromNotes(set.notes) || parseFeelFromRPE(set.rpe) || ''}
               </span>
-              {set.rpe && (
-                <Badge variant="secondary" className="text-xs">
-                  RPE {set.rpe}
-                </Badge>
-              )}
             </div>
             <div className="flex items-center gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-8 w-8 p-0"
+                onClick={(e) => e.stopPropagation()}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
               {onDeleteSet && (
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
@@ -309,7 +312,6 @@ export default function ImprovedWorkoutSession({
           
           {expandedSet === index && (
             <div className="mt-3 pt-3 border-t space-y-2 text-sm text-muted-foreground">
-              {set.rpe && <div>RPE: {set.rpe}</div>}
               {(set.feel || parseFeelFromNotes(set.notes)) && (
                 <div className="flex items-center gap-2">
                   Feel: {getFeelEmoji(set.feel, set.notes)}
