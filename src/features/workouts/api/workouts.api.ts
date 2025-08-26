@@ -68,13 +68,13 @@ export const useGetWorkout = (workoutId?: string) => {
             exercise_id,
             order_index,
             warmup_plan,
-            exercise:exercises(
+            exercise:exercises!inner(
               id,
               slug,
               default_grip_ids,
-              equipment:equipment(id, slug),
-              primary_muscle:muscle_groups(id, slug),
-              body_part:body_parts(id, slug)
+              equipment:equipment!exercises_equipment_id_fkey(id, slug),
+              primary_muscle:muscle_groups!exercises_primary_muscle_id_fkey(id, slug),
+              body_part:body_parts!exercises_body_part_id_fkey(id, slug)
             ),
             sets:workout_sets(
               id,
@@ -89,7 +89,7 @@ export const useGetWorkout = (workoutId?: string) => {
               completed_at,
               workout_exercise_id,
               grips:workout_set_grips(
-                grip:grips(id, slug)
+                grip:grips!workout_set_grips_grip_id_fkey(id, slug)
               )
             )
           )
