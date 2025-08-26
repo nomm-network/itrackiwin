@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
@@ -42,6 +43,7 @@ interface ImprovedWorkoutSessionProps {
   onExerciseComplete: () => void;
   onAddExtraSet?: () => void;
   onFinishWorkout?: () => void;
+  onDeleteSet?: (setIndex: number) => void;
   isLastExercise?: boolean;
   unit: 'kg' | 'lb';
 }
@@ -56,6 +58,7 @@ export default function ImprovedWorkoutSession({
   onExerciseComplete,
   onAddExtraSet,
   onFinishWorkout,
+  onDeleteSet,
   isLastExercise = false,
   unit = 'kg'
 }: ImprovedWorkoutSessionProps) {
@@ -95,8 +98,8 @@ export default function ImprovedWorkoutSession({
     checkWarmupFeedback();
   }, [exercise.workout_exercise_id, currentSetNumber]);
   
-  // Get target suggestion data for preloading
-  const { data: lastSetForTarget } = useLastSet(userId, exerciseId, currentSetNumber);
+  // Get target suggestion data for preloading - FIXED: Use correct set index (0-based for DB)
+  const { data: lastSetForTarget } = useLastSet(userId, exerciseId, currentSetNumber - 1);
   
   // Auto-preload target values when lastSet data is available
   React.useEffect(() => {
@@ -223,6 +226,16 @@ export default function ImprovedWorkoutSession({
     setExpandedSet(expandedSet === setIndex ? null : setIndex);
   };
 
+  // Helper function to get feel emoji
+  const getFeelEmoji = (feel?: Feel, notes?: string) => {
+    const feelFromNotes = parseFeelFromNotes(notes);
+    const actualFeel = feel || feelFromNotes;
+    if (!actualFeel) return '';
+    
+    const feelOption = FEEL_OPTIONS.find(opt => opt.value === actualFeel);
+    return feelOption ? feelOption.emoji : '';
+  };
+
   return (
     <div className="space-y-3">
       {/* Exercise Header with Grips and Sets Icons */}
@@ -272,7 +285,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps}{parseFeelFromNotes(set.notes) || ''} reps
+                📜 {set.weight}{unit} × {set.reps} {getFeelEmoji(set.feel, set.notes)} reps
               </span>
               {set.rpe && (
                 <Badge variant="secondary" className="text-xs">
@@ -280,13 +293,50 @@ export default function ImprovedWorkoutSession({
                 </Badge>
               )}
             </div>
-            {expandedSet === index ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            <div className="flex items-center gap-2">
+              {onDeleteSet && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Set</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete Set {index + 1}? This action cannot be undone.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={() => onDeleteSet(index)}
+                        className="bg-red-500 hover:bg-red-600"
+                      >
+                        Delete
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              )}
+              {expandedSet === index ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+            </div>
           </div>
           
           {expandedSet === index && (
             <div className="mt-3 pt-3 border-t space-y-2 text-sm text-muted-foreground">
               {set.rpe && <div>RPE: {set.rpe}</div>}
-              {set.feel && <div>Feel: {set.feel}</div>}
+              {set.feel && (
+                <div className="flex items-center gap-2">
+                  Feel: {getFeelEmoji(set.feel)} {set.feel}
+                </div>
+              )}
               {set.notes && <div>Notes: {set.notes}</div>}
               {set.notes?.includes('warmup feedback:') && (
                 <div className="text-green-600">
