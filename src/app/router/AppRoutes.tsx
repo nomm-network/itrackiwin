@@ -44,7 +44,7 @@ const Orbits = lazy(() => import('@/pages/Orbits'));
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
-const LazyWorkoutPage = lazy(() => import('@/app/workouts/[workoutId]/page'));
+const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
