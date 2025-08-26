@@ -345,13 +345,9 @@ export default function ImprovedWorkoutSession({
               setIndex={currentSetNumber}
               templateTargetReps={templateTargetReps}
               templateTargetWeight={templateTargetWeight}
-               onApplyTarget={(weight, reps) => {
-                 console.log('🎯 ImprovedWorkoutSession: onApplyTarget called:', { weight, reps });
-                 setCurrentSetData(prev => {
-                   console.log('🎯 ImprovedWorkoutSession: Updating form data from:', prev, 'to:', { ...prev, weight, reps });
-                   return { ...prev, weight, reps };
-                 });
-               }}
+              onApplyTarget={(weight, reps) => {
+                setCurrentSetData(prev => ({ ...prev, weight, reps }));
+              }}
             />
 
             {/* Weight Input */}
