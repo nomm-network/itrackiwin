@@ -314,7 +314,7 @@ export default function ImprovedWorkoutSession({
             <SetPrevTargetDisplay
               userId={userId}
               exerciseId={exerciseId}
-              setIndex={currentSetNumber}
+              setIndex={currentSetNumber - 1}
               templateTargetReps={templateTargetReps}
               templateTargetWeight={templateTargetWeight}
               onApplyTarget={(weight, reps) => {
