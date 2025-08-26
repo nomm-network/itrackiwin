@@ -258,12 +258,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
   // Function moved above to avoid hoisting issues
 
-  const handleSetComplete = (workoutExerciseId: string, setData: any) => {
+  const handleSetComplete = async (workoutExerciseId: string, setData: any) => {
     console.log('=== SET LOGGING DEBUG ===');
     console.log('Current Exercise Object:', currentExercise);
     console.log('Workout Exercise ID being passed:', workoutExerciseId);
     console.log('Set Data:', setData);
     console.log('Type of workoutExerciseId:', typeof workoutExerciseId);
+    
+    // Get the next set_index by finding the max existing one
+    const { data: existingSets } = await supabase
+      .from('workout_sets')
+      .select('set_index')
+      .eq('workout_exercise_id', workoutExerciseId)
+      .order('set_index', { ascending: false })
+      .limit(1);
+    
+    const nextSetIndex = existingSets && existingSets.length > 0 
+      ? (existingSets[0].set_index || 0) + 1 
+      : 1;
+    
+    console.log('Calculated next set_index:', nextSetIndex);
     
     const exerciseGrips = selectedGrips[workoutExerciseId] || [];
     
@@ -283,6 +297,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     
     const payload = {
       workout_exercise_id: workoutExerciseId,
+      set_index: nextSetIndex,
       weight: setData.weight || 0,
       reps: setData.reps || 0,
       rpe: setData.rpe || 5,
