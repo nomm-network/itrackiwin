@@ -15,6 +15,8 @@ export const useWorkoutSetGrips = () => {
       distance?: number;
       rpe?: number;
       notes?: string;
+      feel?: string;
+      pain?: boolean;
       set_kind?: string;
       is_completed?: boolean;
     },
@@ -24,10 +26,11 @@ export const useWorkoutSetGrips = () => {
     setError(null);
 
     try {
-      // Use the set_log RPC function which handles grips
+      // Use the set_log RPC function which handles grips and computes set_index
       const payload = {
         ...workoutSetData,
         grip_ids: gripIds || []
+        // Note: Do NOT send set_index - let the RPC compute it
       };
 
       const { data, error: rpcError } = await supabase.rpc('set_log', {

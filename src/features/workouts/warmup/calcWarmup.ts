@@ -61,10 +61,14 @@ export function buildWarmupPlan(input: CalcWarmupInput): WarmupPlan {
   });
 
   return {
-    strategy,
-    steps,
-    source: 'auto',
-    updatedAt: new Date().toISOString(),
+    strategy: 'ramped',
+    est_minutes: 3,
+    base_weight: topWeightKg,
+    steps: steps.map(s => ({
+      ...s,
+      rest_sec: s.restSec,
+      id: s.id.toUpperCase() as WarmupStep['id']
+    }))
   };
 }
 

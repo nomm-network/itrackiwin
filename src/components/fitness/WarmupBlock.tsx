@@ -1,14 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { Input } from '@/components/ui/input';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { WarmupPlan } from '@/features/workouts/types/warmup';
-import { getStepWeight } from '@/features/workouts/warmup/calcWarmup';
-import { buildWarmupPlan } from '@/features/workouts/warmup/calcWarmup';
-import { useWarmupFeedback } from '@/features/workouts/warmup/useWarmupActions';
+import type { WarmupPlan, WarmupFeedback, GymConfig } from '@/features/workouts/types/warmup';
+import { useWarmupManager } from '@/features/workouts/hooks/useWarmupManager';
 import { suggestTarget, parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -29,11 +25,11 @@ export function WarmupBlock({
 }: WarmupProps) {
   const [open, setOpen] = useState(true);
   const [plan, setPlan] = useState<WarmupPlan | null>(null);
-  const [localFeedback, setLocalFeedback] = useState<string | null>(null);
+  const [localFeedback, setLocalFeedback] = useState<WarmupFeedback | null>(null);
   const [actualTopWeight, setActualTopWeight] = useState<number>(suggestedTopWeight);
   
   const { user } = useAuth();
-  const warmupFeedbackMutation = useWarmupFeedback();
+  const { recomputeWarmup, saveFeedback, isLoading } = useWarmupManager();
 
   // Helper to get intelligent target weight using progressive overload system
   const getIntelligentTargetWeight = async (workoutExerciseId: string, userId: string): Promise<number> => {
@@ -133,32 +129,71 @@ export function WarmupBlock({
 
       if (data?.warmup_plan) {
         setPlan(data.warmup_plan as WarmupPlan);
-        setLocalFeedback(data.warmup_feedback || null);
+        setLocalFeedback(data.warmup_feedback as WarmupFeedback || null);
       } else {
-        // generate default client-side if nothing saved
-        const p = buildWarmupPlan({
-          topWeightKg: targetWeight,
-          repsGoal: suggestedTopReps,
-          roundingKg: 2.5,
-          minWeightKg: 0,
-        });
-        setPlan(p);
+        // Generate default plan if nothing saved
+        const defaultGym: GymConfig = {
+          loading_mode: 'barbell_sym',
+          bar_kg: 20,
+          min_plate_kg: 1.25
+        };
+
+        try {
+          const updatedPlan = await recomputeWarmup({
+            workoutExerciseId,
+            workingWeight: targetWeight,
+            mainRepRange: [6, 12],
+            gym: defaultGym
+          });
+          
+          setPlan(updatedPlan);
+        } catch (error) {
+          console.error('Failed to generate initial warmup plan:', error);
+        }
       }
     })();
-  }, [workoutExerciseId, unit, suggestedTopWeight, suggestedTopReps, user?.id]);
+  }, [workoutExerciseId, unit, suggestedTopWeight, suggestedTopReps, user?.id, recomputeWarmup]);
 
   const totalWarmupTime = useMemo(() => {
     if (!plan?.steps?.length) return 0;
-    const rests = plan.steps.reduce((acc, s) => acc + (s.restSec ?? 60), 0);
+    const rests = plan.steps.reduce((acc, s) => acc + (s.rest_sec ?? 60), 0);
     return rests; // seconds
   }, [plan]);
 
+  const save = async (value: WarmupFeedback) => {
+    try {
+      await saveFeedback({
+        workoutExerciseId,
+        feedback: value,
+        existingPlan: plan || undefined
+      });
+      
+      setLocalFeedback(value);
+      toast.success('Warm-up feedback saved');
+      onFeedbackGiven?.();
 
-  const save = (value: 'not_enough' | 'excellent' | 'too_much') => {
-    // This would need userId, but let's simplify for now
-    setLocalFeedback(value);
-    toast.success('Warm-up feedback saved');
-    onFeedbackGiven?.();
+      // Recompute warmup with new feedback if we have the necessary data
+      if (actualTopWeight && plan) {
+        const defaultGym: GymConfig = {
+          loading_mode: 'barbell_sym',
+          bar_kg: 20,
+          min_plate_kg: 1.25
+        };
+
+        const updatedPlan = await recomputeWarmup({
+          workoutExerciseId,
+          workingWeight: actualTopWeight,
+          mainRepRange: [6, 12], // Default range
+          feedback: value,
+          gym: defaultGym
+        });
+
+        setPlan(updatedPlan);
+      }
+    } catch (error) {
+      toast.error('Failed to save warmup feedback');
+      console.error('Warmup feedback error:', error);
+    }
   };
 
   if (!plan) return null;
@@ -170,21 +205,23 @@ export function WarmupBlock({
           <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
         </div>
         <div className="text-xs text-muted-foreground">
-          Strategy: {plan.strategy} • est. {Math.round(totalWarmupTime/60)} min
+          Strategy: {plan.strategy} • est. {plan.est_minutes} min
+          {plan.tuned_from_feedback && (
+            <span className="ml-2 text-blue-600">• adjusted from last feedback</span>
+          )}
         </div>
       </CardHeader>
 
       <CardContent className="space-y-3">
-
         {/* Plan preview */}
         <div className="rounded-md border p-3">
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
             {plan?.steps?.map((s) => (
               <li key={s.id} className="flex items-center justify-between text-sm">
-                <span className="font-mono">{s.id.toUpperCase()}</span>
-                <span>{getStepWeight(s, actualTopWeight, 2.5)}{unit} × {s.reps} reps</span>
-                <span className="text-muted-foreground">{s.restSec ?? 60}s rest</span>
+                <span className="font-mono">{s.id}</span>
+                <span>{Math.round(actualTopWeight * s.percent * 4) / 4}{unit} × {s.reps} reps</span>
+                <span className="text-muted-foreground">{s.rest_sec ?? 60}s rest</span>
               </li>
             )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
           </ol>
@@ -198,6 +235,7 @@ export function WarmupBlock({
               size="sm"
               variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
               onClick={() => save('not_enough')}
+              disabled={isLoading}
             >
               🥶 Not enough
             </Button>
@@ -205,6 +243,7 @@ export function WarmupBlock({
               size="sm"
               variant={localFeedback === 'excellent' ? 'default' : 'outline'}
               onClick={() => save('excellent')}
+              disabled={isLoading}
             >
               🔥 Excellent
             </Button>
@@ -212,6 +251,7 @@ export function WarmupBlock({
               size="sm"
               variant={localFeedback === 'too_much' ? 'default' : 'outline'}
               onClick={() => save('too_much')}
+              disabled={isLoading}
             >
               🥵 Too much
             </Button>
