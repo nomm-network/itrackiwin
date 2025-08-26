@@ -128,38 +128,55 @@ const WorkoutDetail: React.FC = () => {
             </Button>
           </div>
         </div>
+        
+        {/* DEBUG INFO - REMOVE WHEN DONE */}
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardHeader>
+            <CardTitle className="text-sm text-yellow-800">🐛 DEBUG INFO</CardTitle>
+          </CardHeader>
+          <CardContent className="text-xs text-yellow-700">
+            <div><strong>Total exercises:</strong> {data?.exercises?.length || 0}</div>
+            <div><strong>Sets count:</strong> {Object.keys(data?.setsByWe || {}).length}</div>
+            <div><strong>setsByWe:</strong> {JSON.stringify(data?.setsByWe, null, 2)}</div>
+            <div><strong>Raw exercises data:</strong></div>
+            <pre className="mt-2 overflow-auto max-h-40">{JSON.stringify(data?.exercises, null, 2)}</pre>
+          </CardContent>
+        </Card>
+
         {(data?.exercises || []).map(ex => {
           const exerciseName = getExerciseNameFromTranslations(ex.exercises?.translations);
           const workoutSets = data?.setsByWe[ex.id] || [];
           
-          // Check if we have warmup plan data and show warmup sets
-          const warmupPlan = ex.warmup_plan as WarmupPlan | null;
-          const warmupSets = warmupPlan?.steps || [];
+          // Show warmup suggestions since there are no actual sets
+          const warmupSuggestion = (ex as any).warmup_suggestion;
+          const warmupSets = warmupSuggestion?.warmup_sets || [];
           
           return (
             <Card key={ex.id}>
               <CardHeader className="pb-2">
                 <CardTitle className="text-base">{ex.order_index + 1}: {exerciseName}</CardTitle>
+                <CardDescription>Exercise ID: {ex.id}</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
-                  {/* Show warmup sets first if they exist */}
+                  
+                  {/* Show suggested warmup sets */}
                   {warmupSets.length > 0 && (
                     <>
-                      <div className="text-xs font-medium text-muted-foreground mb-2">Warmup Sets</div>
+                      <div className="text-xs font-medium text-blue-600 mb-2">💡 Suggested Warmup Sets</div>
                       {warmupSets.map((warmupSet, index) => (
-                        <div key={`warmup-${index}`} className="flex gap-4 text-muted-foreground">
-                          <span>Set {index + 1}</span>
-                          <span>{getStepWeight(warmupSet, 50, 2.5)} kg</span>
-                          <span>x {warmupSet.reps ?? '-'}</span>
-                          <span>RPE warmup</span>
+                        <div key={`warmup-${index}`} className="flex gap-4 text-blue-600">
+                          <span>Warmup {index + 1}</span>
+                          <span>{warmupSet.weight} kg</span>
+                          <span>x {warmupSet.reps}</span>
+                          <span>({warmupSet.rest_seconds}s rest)</span>
                         </div>
                       ))}
                       <div className="h-2"></div>
-                      <div className="text-xs font-medium text-muted-foreground mb-2">Working Sets</div>
                     </>
                   )}
                   
+                  <div className="text-xs font-medium text-muted-foreground mb-2">Logged Working Sets</div>
                   {/* Show actual logged sets */}
                   {workoutSets.length > 0 ? (
                     workoutSets.map(s => (
@@ -170,17 +187,15 @@ const WorkoutDetail: React.FC = () => {
                       </div>
                     ))
                   ) : (
-                    <div className="text-muted-foreground text-sm">No sets logged yet</div>
+                    <div className="text-muted-foreground text-sm">❌ No sets logged yet - sets array is empty!</div>
                   )}
                   
-                  {/* Show warmup feedback if available */}
-                  {ex.warmup_plan && typeof ex.warmup_plan === 'object' && 'feedback' in ex.warmup_plan && (
-                    <div className="mt-2 pt-2 border-t">
-                      <div className="text-xs text-muted-foreground">
-                        Warmup feedback: <span className="font-medium">{(ex.warmup_plan.feedback as string).replace('_', ' ')}</span>
-                      </div>
-                    </div>
-                  )}
+                  {/* DEBUG: Show sets for this exercise */}
+                  <div className="mt-2 p-2 bg-red-50 border border-red-200 rounded text-xs">
+                    <div><strong>🔍 Sets for this exercise:</strong></div>
+                    <div>Exercise workout_exercise ID: {ex.id}</div>
+                    <div>Sets found: {JSON.stringify(workoutSets)}</div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
