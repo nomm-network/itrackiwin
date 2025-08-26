@@ -11,6 +11,7 @@ import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/components/ui/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import type { WarmupPlan } from "@/features/health/fitness/utils/warmup";
+import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
 
 const WorkoutDetail: React.FC = () => {
   const { id } = useParams();
@@ -91,8 +92,7 @@ const WorkoutDetail: React.FC = () => {
           return (
             <Card key={ex.id}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">{exerciseName}</CardTitle>
-                <CardDescription>Order {ex.order_index}</CardDescription>
+                <CardTitle className="text-base">{ex.order_index + 1}: {exerciseName}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
@@ -118,8 +118,7 @@ const WorkoutDetail: React.FC = () => {
                     <div key={s.id} className="flex gap-4">
                       <span>Set {s.set_index}</span>
                       <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
-                      <span>x {s.reps ?? '-'}</span>
-                      <span>RPE {s.rpe ?? '-'}</span>
+                      <span>x {s.reps ?? '-'} {s.rpe ? rpeToFeel(s.rpe) : ''}</span>
                     </div>
                   ))}
                   
