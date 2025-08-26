@@ -196,14 +196,16 @@ export const useLogSet = () => {
       weight?: number;
       reps?: number;
       weight_unit?: string;
-      rpe?: number;
       notes?: string;
       set_kind?: string;
       is_completed?: boolean;
       grip_ids?: string[];
     }) => {
+      // Remove any stray rpe from payload - it will be derived server-side from Feel in notes
+      const { rpe, ...cleanPayload } = setData as any;
+      
       const { data, error } = await supabase.rpc('set_log', {
-        p_payload: setData
+        p_payload: cleanPayload
       });
       
       if (error) throw error;

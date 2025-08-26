@@ -8,6 +8,7 @@ type LastSet = {
   completed_at: string;
   notes: string | null;
   rpe: number | null;
+  feel?: string | null;
 };
 
 export function useLastSet(
@@ -77,6 +78,7 @@ export function useLastSet(
           completed_at: row.completed_at,
           notes: row.notes,
           rpe: row.rpe,
+          feel: null // Will be derived from notes if needed
         };
       }
 

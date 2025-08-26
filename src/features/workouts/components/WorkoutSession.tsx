@@ -40,7 +40,7 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
       workout_exercise_id: exerciseId,
       weight: setData.weight,
       reps: setData.reps,
-      rpe: setData.rpe,
+      notes: setData.notes || '',
       is_completed: true
     });
   };

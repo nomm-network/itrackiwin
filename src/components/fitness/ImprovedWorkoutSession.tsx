@@ -8,6 +8,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
+import { feelEmoji } from '@/features/workouts/utils/feel';
 import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
 import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
@@ -18,7 +19,6 @@ import { updateWarmupForWorkoutData } from '@/features/workouts/utils/calcWarmup
 interface SetData {
   weight: number;
   reps: number;
-  rpe?: number;
   feel?: Feel;
   pain?: boolean;
   notes?: string;
@@ -74,7 +74,6 @@ export default function ImprovedWorkoutSession({
   const [currentSetData, setCurrentSetData] = useState<SetData>({
     weight: 0,
     reps: 0,
-    rpe: undefined,
     feel: '=' as Feel,
     pain: false,
     notes: '',
@@ -168,15 +167,16 @@ export default function ImprovedWorkoutSession({
     }
     
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
-      // Calculate RPE from Feel automatically
-      const rpe = currentSetData.feel ? FEEL_TO_RPE[currentSetData.feel] : 8;
+      // Create notes with feel information
+      const notesWithFeel = currentSetData.feel ? `Feel: ${currentSetData.feel}${currentSetData.notes ? ` | ${currentSetData.notes}` : ''}` : currentSetData.notes;
       
-      const completedSet = { 
-        ...currentSetData, 
-        rpe, // Auto-calculated from feel
-        is_completed: true 
+      const setData = {
+        ...currentSetData,
+        notes: notesWithFeel || '',
+        pain: currentSetData.pain || false,
+        is_completed: true
       };
-      onSetComplete(completedSet);
+      onSetComplete(setData);
       
       // Update warmup plan based on current workout data after first set
       if (currentSetNumber === 1 && exercise.workout_exercise_id && exercise.id) {
@@ -187,7 +187,6 @@ export default function ImprovedWorkoutSession({
       setCurrentSetData({
         weight: currentSetData.weight,
         reps: currentSetData.reps,
-        rpe: undefined,
         feel: '=' as Feel,
         pain: false,
         notes: '',
@@ -214,12 +213,8 @@ export default function ImprovedWorkoutSession({
 
   // Helper function to get feel emoji
   const getFeelEmoji = (feel?: Feel, notes?: string) => {
-    const feelFromNotes = parseFeelFromNotes(notes);
-    const actualFeel = feel || feelFromNotes;
-    if (!actualFeel) return '';
-    
-    const feelOption = FEEL_OPTIONS.find(opt => opt.value === actualFeel);
-    return feelOption ? feelOption.emoji : '';
+    const actualFeel = feel || parseFeelFromNotes(notes);
+    return feelEmoji(actualFeel);
   };
 
   return (
@@ -271,7 +266,7 @@ export default function ImprovedWorkoutSession({
                 {index + 1}
               </Badge>
               <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps} reps {parseFeelFromNotes(set.notes) || parseFeelFromRPE(set.rpe) || ''}
+                📜 {set.weight}{unit} × {set.reps} reps {feelEmoji(set.feel || parseFeelFromNotes(set.notes))}
               </span>
             </div>
             <div className="flex items-center gap-2">

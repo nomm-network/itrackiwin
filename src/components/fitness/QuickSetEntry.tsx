@@ -7,11 +7,13 @@ import { cn } from '@/lib/utils';
 import { Plus, Copy, TrendingUp, Activity, Clock } from 'lucide-react';
 import { toast } from 'sonner';
 import { usePRDetection } from '@/hooks/usePRDetection';
+import { type Feel } from '@/features/workouts/utils/feel';
+import { feelEmoji } from '@/features/workouts/utils/feel';
 
 interface SetData {
   weight?: number;
   reps?: number;
-  rpe?: number;
+  feel?: Feel;
   notes?: string;
 }
 
@@ -43,7 +45,7 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
   // Initialize with target values if available, otherwise empty
   const [weight, setWeight] = useState<string>(targetSet?.weight?.toString() || '');
   const [reps, setReps] = useState<string>(targetSet?.reps?.toString() || '');
-  const [rpe, setRpe] = useState<string>(targetSet?.rpe?.toString() || '');
+  const [feel, setFeel] = useState<Feel>(targetSet?.feel || '=');
   const [notes, setNotes] = useState<string>(targetSet?.notes || '');
 
   const handleQuickAction = (action: 'same' | 'weight_plus_2_5' | 'reps_plus_1' | 'target') => {
@@ -71,7 +73,7 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
 
     setWeight(newWeight.toString());
     setReps(newReps.toString());
-    setRpe(baseData.rpe?.toString() || '');
+    setFeel(baseData.feel || '=');
     setNotes(baseData.notes || '');
 
     toast.success(`Applied ${action.replace('_', ' ')}`);
@@ -88,7 +90,7 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
     const setData: SetData = {
       weight: parseFloat(weight),
       reps: parseInt(reps),
-      rpe: rpe ? parseFloat(rpe) : undefined,
+      feel: feel,
       notes: notes || undefined
     };
 
@@ -108,28 +110,28 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
       );
     }
     
-    // Auto-start rest timer based on RPE/effort
-    const suggestedRest = calculateRestTime(setData.rpe);
+    // Auto-start rest timer based on Feel/effort
+    const suggestedRest = calculateRestTime(setData.feel);
     onRestTimerStart(suggestedRest);
     
     // Clear form
     setWeight('');
     setReps('');
-    setRpe('');
+    setFeel('=');
     setNotes('');
     
     toast.success(`Set logged: ${setData.weight}${unit} × ${setData.reps} reps`);
   };
 
-  const calculateRestTime = (rpe?: number): number => {
-    if (!rpe) return 180; // Default 3 minutes
+  const calculateRestTime = (feel?: Feel): number => {
+    if (!feel) return 180; // Default 3 minutes
     
-    // Rest based on RPE: higher RPE = more rest needed
-    if (rpe >= 9) return 300; // 5 minutes for RPE 9-10
-    if (rpe >= 8) return 240; // 4 minutes for RPE 8-9
-    if (rpe >= 7) return 180; // 3 minutes for RPE 7-8
-    if (rpe >= 6) return 120; // 2 minutes for RPE 6-7
-    return 90; // 1.5 minutes for RPE < 6
+    // Rest based on Feel: harder feel = more rest needed
+    if (feel === '--') return 300; // 5 minutes for maximal
+    if (feel === '-') return 240; // 4 minutes for hard
+    if (feel === '=') return 180; // 3 minutes for just right
+    if (feel === '+') return 120; // 2 minutes for easy
+    return 90; // 1.5 minutes for very easy
   };
 
   return (
@@ -228,13 +230,17 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
           
           <div className="grid grid-cols-2 gap-2">
             <div>
-              <Input
-                value={rpe}
-                onChange={(e) => setRpe(e.target.value)}
-                placeholder="RPE (1-10)"
-                inputMode="decimal"
-                className="text-center"
-              />
+              <select
+                value={feel}
+                onChange={(e) => setFeel(e.target.value as Feel)}
+                className="w-full p-2 border rounded-md text-center"
+              >
+                <option value="++">😄 Very Easy</option>
+                <option value="+">🙂 Easy</option>
+                <option value="=">😐 Just Right</option>
+                <option value="-">😮‍💨 Hard</option>
+                <option value="--">😵‍💫 Maximal</option>
+              </select>
             </div>
             <div>
               <Input
@@ -269,7 +275,7 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
             <div className="text-xs text-muted-foreground mb-1">Previous Set:</div>
             <div className="text-sm font-medium">
               {lastSet.weight}{unit} × {lastSet.reps} reps
-              {lastSet.rpe && ` • RPE ${lastSet.rpe}`}
+              {lastSet.feel && ` ${feelEmoji(lastSet.feel)}`}
               {lastSet.notes && ` • ${lastSet.notes}`}
             </div>
           </div>

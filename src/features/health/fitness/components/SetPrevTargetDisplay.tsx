@@ -1,6 +1,7 @@
 import React from 'react';
 import { Feel, FEEL_OPTIONS } from '../lib/feelToRpe';
-import { parseFeelFromNotes, parseFeelFromRPE } from '../lib/targetSuggestions';
+import { parseFeelFromNotes } from '../lib/targetSuggestions';
+import { feelEmoji } from '@/features/workouts/utils/feel';
 import { useTargetCalculation } from '../hooks/useTargetCalculation';
 
 interface SetPrevTargetDisplayProps {
@@ -58,7 +59,7 @@ export function SetPrevTargetDisplay({
                 <span>
                   Prev&nbsp;
                   <strong>
-                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}{parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe) || ''}
+                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0} {feelEmoji(parseFeelFromNotes(last.notes))}
                   </strong>
                 </span>
               )}
