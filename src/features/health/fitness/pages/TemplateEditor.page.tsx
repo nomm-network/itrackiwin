@@ -444,7 +444,7 @@ const TemplateEditor: React.FC = () => {
     setIsGripDialogOpen(true);
   };
 
-  const handleConfirmAddExercise = (gripIds: string[], displayName: string) => {
+  const handleConfirmAddExercise = (handleId: string | undefined, gripIds: string[], displayName: string) => {
     if (pendingExercise) {
       handleAddExercise(pendingExercise.id, gripIds.length > 0 ? gripIds : undefined, displayName !== pendingExercise.name ? displayName : undefined);
       setPendingExercise(null);

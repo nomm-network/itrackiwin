@@ -994,6 +994,7 @@ export type Database = {
           created_at: string
           default_bar_weight: number | null
           default_grip_ids: string[] | null
+          default_handle_ids: string[] | null
           equipment_id: string
           exercise_skill_level:
             | Database["public"]["Enums"]["exercise_skill_level"]
@@ -1020,6 +1021,7 @@ export type Database = {
           created_at?: string
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
+          default_handle_ids?: string[] | null
           equipment_id: string
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
@@ -1046,6 +1048,7 @@ export type Database = {
           created_at?: string
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
+          default_handle_ids?: string[] | null
           equipment_id?: string
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
@@ -1507,6 +1510,107 @@ export type Database = {
           website?: string | null
         }
         Relationships: []
+      }
+      handle_grip_compatibility: {
+        Row: {
+          created_at: string
+          grip_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+        }
+        Insert: {
+          created_at?: string
+          grip_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+        }
+        Update: {
+          created_at?: string
+          grip_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handle_grip_compatibility_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handle_grip_compatibility_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handles: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          slug?: string
+        }
+        Relationships: []
+      }
+      handles_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          handle_id: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          handle_id: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          handle_id?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handles_translations_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       idempotency_keys: {
         Row: {
@@ -4484,6 +4588,7 @@ export type Database = {
           grip_ids: string[] | null
           grip_key: string | null
           group_id: string | null
+          handle_id: string | null
           id: string
           is_superset_group: string | null
           notes: string | null
@@ -4504,6 +4609,7 @@ export type Database = {
           grip_ids?: string[] | null
           grip_key?: string | null
           group_id?: string | null
+          handle_id?: string | null
           id?: string
           is_superset_group?: string | null
           notes?: string | null
@@ -4524,6 +4630,7 @@ export type Database = {
           grip_ids?: string[] | null
           grip_key?: string | null
           group_id?: string | null
+          handle_id?: string | null
           id?: string
           is_superset_group?: string | null
           notes?: string | null
@@ -4572,6 +4679,13 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "workout_exercise_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
             referencedColumns: ["id"]
           },
           {

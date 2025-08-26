@@ -3,12 +3,12 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import GripSelector from '@/components/GripSelector';
+import { HandleGripSelector } from '@/components/exercise/HandleGripSelector';
 
 interface ExerciseGripDialogProps {
   isOpen: boolean;
   onClose: () => void;
-  onConfirm: (gripIds: string[], displayName: string) => void;
+  onConfirm: (handleId: string | undefined, gripIds: string[], displayName: string) => void;
   exerciseName: string;
 }
 
@@ -18,17 +18,20 @@ export default function ExerciseGripDialog({
   onConfirm,
   exerciseName
 }: ExerciseGripDialogProps) {
+  const [selectedHandleId, setSelectedHandleId] = useState<string | undefined>();
   const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
   const [displayName, setDisplayName] = useState('');
 
   const handleConfirm = () => {
-    onConfirm(selectedGrips, displayName || exerciseName);
+    onConfirm(selectedHandleId, selectedGrips, displayName || exerciseName);
+    setSelectedHandleId(undefined);
     setSelectedGrips([]);
     setDisplayName('');
     onClose();
   };
 
   const handleCancel = () => {
+    setSelectedHandleId(undefined);
     setSelectedGrips([]);
     setDisplayName('');
     onClose();
@@ -36,12 +39,12 @@ export default function ExerciseGripDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={handleCancel}>
-      <DialogContent className="sm:max-w-md">
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Configure Exercise Variation</DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-4">
+        <div className="space-y-6">
           <div>
             <Label htmlFor="exercise-name">Exercise: {exerciseName}</Label>
           </div>
@@ -52,25 +55,22 @@ export default function ExerciseGripDialog({
               id="display-name"
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
-              placeholder={`${exerciseName} (wide grip)`}
+              placeholder={`${exerciseName} (rope pushdown)`}
               className="mt-2"
             />
             <p className="text-sm text-muted-foreground mt-1">
-              Leave empty to use exercise name
+              Leave empty to auto-generate from exercise + handle + grip
             </p>
           </div>
           
           <div>
-            <Label>Select Grips</Label>
-            <div className="mt-2">
-            <GripSelector
-              selectedGrips={selectedGrips}
-              onGripsChange={setSelectedGrips}
+            <HandleGripSelector
+              selectedHandleId={selectedHandleId}
+              selectedGripIds={selectedGrips}
+              onHandleChange={setSelectedHandleId}
+              onGripChange={setSelectedGrips}
+              multiSelect={true}
             />
-            </div>
-            <p className="text-sm text-muted-foreground mt-1">
-              Choose specific grips for this exercise instance
-            </p>
           </div>
         </div>
 
@@ -79,7 +79,7 @@ export default function ExerciseGripDialog({
             Cancel
           </Button>
           <Button onClick={handleConfirm}>
-            Add Exercise
+            Add Exercise Variation
           </Button>
         </DialogFooter>
       </DialogContent>
