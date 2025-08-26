@@ -74,12 +74,12 @@ export function AppRoutes() {
           {/* Main Dashboard */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <UserDashboard />
+              <Dashboard />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.dashboard} element={
             <ProtectedMobileLayout>
-              <UserDashboard />
+              <Dashboard />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.progress} element={
