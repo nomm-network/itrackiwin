@@ -155,21 +155,6 @@ export default function ImprovedWorkoutSession({
 
   // Auto-advance to next set when current set is completed
   const handleSetSubmit = useCallback(async () => {
-    // Check if warmup feedback is required (for first set)
-    if (currentSetNumber === 1) {
-      // Check database directly for warmup feedback
-      const { data } = await supabase
-        .from('workout_exercises')
-        .select('warmup_plan')
-        .eq('id', exercise.workout_exercise_id)
-        .maybeSingle();
-      
-      if (!data?.warmup_plan || typeof data.warmup_plan !== 'object' || !('feedback' in data.warmup_plan)) {
-        alert('Please pick a warmup feedback choice before logging your first set.');
-        return;
-      }
-    }
-    
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
       // Create notes with feel information
       const notesWithFeel = currentSetData.feel ? `Feel: ${currentSetData.feel}${currentSetData.notes ? ` | ${currentSetData.notes}` : ''}` : currentSetData.notes;
