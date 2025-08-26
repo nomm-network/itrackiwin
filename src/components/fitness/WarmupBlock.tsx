@@ -51,8 +51,8 @@ export function WarmupBlock({
       return suggestedTopWeight;
     }
 
-    // Get the most recent completed set for this exercise (from any previous workout)
-    const { data: lastSet } = await supabase
+    // Get the HEAVIEST completed set for this exercise from ANY set index (not just recent by time)
+    const { data: heaviestSet } = await supabase
       .from('workout_sets')
       .select(`
         weight, reps, set_index, completed_at, notes, rpe,
@@ -67,30 +67,46 @@ export function WarmupBlock({
       .not('completed_at', 'is', null)
       .not('weight', 'is', null)
       .not('reps', 'is', null)
-      .order('completed_at', { ascending: false })
+      .order('weight', { ascending: false })  // ORDER BY WEIGHT DESC to get the HEAVIEST
       .limit(1)
       .maybeSingle();
 
-    console.log('🏋️ WarmupBlock: Last set data:', lastSet);
+    console.log('🏋️ WarmupBlock: Heaviest set data:', heaviestSet);
 
-    if (!lastSet) {
-      console.log('⚠️ WarmupBlock: No previous sets found, using suggested weight:', suggestedTopWeight);
+    if (!heaviestSet) {
+      console.log('⚠️ WarmupBlock: No previous sets found, trying estimates...');
+      
+      // Fallback to estimates
+      const { data: estimate } = await supabase
+        .from('user_exercise_estimates')
+        .select('estimated_weight, unit, created_at')
+        .eq('user_id', userId)
+        .eq('exercise_id', we.exercise_id)
+        .eq('type', 'rm10')
+        .maybeSingle();
+      
+      if (estimate?.estimated_weight) {
+        console.log('✅ WarmupBlock: Using estimate weight:', estimate.estimated_weight, 'kg');
+        return estimate.estimated_weight;
+      }
+      
+      console.log('⚠️ WarmupBlock: No estimates found, using suggested weight:', suggestedTopWeight);
       return suggestedTopWeight;
     }
 
-    // Use progressive overload system to calculate target
-    const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
+    // Use progressive overload system to calculate target from the HEAVIEST set
+    const lastFeel = parseFeelFromNotes(heaviestSet.notes) || parseFeelFromRPE(heaviestSet.rpe);
     
     const target = suggestTarget({
-      lastWeight: lastSet.weight,
-      lastReps: lastSet.reps,
+      lastWeight: heaviestSet.weight,
+      lastReps: heaviestSet.reps,
       feel: lastFeel,
       templateTargetReps: undefined,
       templateTargetWeight: undefined,
       stepKg: 2.5
     });
     
-    console.log('🎯 WarmupBlock: Calculated target weight:', target.weight, 'kg (from', lastSet.weight, 'kg)');
+    console.log('🎯 WarmupBlock: Calculated target weight:', target.weight, 'kg (from HEAVIEST set:', heaviestSet.weight, 'kg at set_index:', heaviestSet.set_index, ')');
     return target.weight;
   };
 
