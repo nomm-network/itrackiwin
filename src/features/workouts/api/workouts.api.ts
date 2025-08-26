@@ -55,7 +55,8 @@ export const useGetWorkout = (workoutId?: string) => {
     queryFn: async () => {
       if (!workoutId || !user?.id) return null;
       
-      const { data, error } = await supabase
+      // First, get the workout with exercises (without translations)
+      const { data: workoutData, error: workoutError } = await supabase
         .from('workouts')
         .select(`
           id,
@@ -73,12 +74,7 @@ export const useGetWorkout = (workoutId?: string) => {
               default_grip_ids,
               equipment_id,
               primary_muscle_id,
-              body_part_id,
-              exercises_translations!inner(
-                language_code,
-                name,
-                description
-              )
+              body_part_id
             ),
             sets:workout_sets(
               id,
@@ -102,8 +98,38 @@ export const useGetWorkout = (workoutId?: string) => {
         .eq('user_id', user.id)
         .single();
 
-      if (error) throw error;
-      return data;
+      if (workoutError) throw workoutError;
+      if (!workoutData) return null;
+
+      // Get exercise IDs to fetch translations separately
+      const exerciseIds = workoutData.exercises?.map(ex => ex.exercise?.id).filter(Boolean) || [];
+      
+      // Fetch translations separately
+      const { data: translationsData, error: translationsError } = await supabase
+        .from('exercises_translations')
+        .select('exercise_id, language_code, name, description')
+        .in('exercise_id', exerciseIds);
+
+      if (translationsError) {
+        console.error('🔥 Failed to fetch translations:', translationsError);
+      }
+
+      // Merge translations into workout data
+      if (translationsData && workoutData.exercises) {
+        workoutData.exercises.forEach(workoutEx => {
+          if (workoutEx.exercise) {
+            const exerciseTranslations = translationsData.filter(
+              t => t.exercise_id === workoutEx.exercise.id
+            );
+            // Add the translations to the exercise object
+            (workoutEx.exercise as any).exercises_translations = exerciseTranslations;
+          }
+        });
+      }
+
+      console.log('🔍 Final workout data with translations:', JSON.stringify(workoutData, null, 2));
+      
+      return workoutData;
     },
     staleTime: 30_000,
   });
