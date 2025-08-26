@@ -13,6 +13,7 @@ import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { updateWarmupFeedback } from '@/features/workouts/api/warmup';
+import { updateWarmupForWorkoutData } from '@/features/workouts/utils/calcWarmupFromCurrentData';
 
 interface SetData {
   weight: number;
@@ -63,6 +64,8 @@ export default function ImprovedWorkoutSession({
   unit = 'kg'
 }: ImprovedWorkoutSessionProps) {
   const [expandedSet, setExpandedSet] = useState<number | null>(null);
+  const [editingSet, setEditingSet] = useState<number | null>(null);
+  const [editSetData, setEditSetData] = useState<SetData | null>(null);
   const [showGripsDialog, setShowGripsDialog] = useState(false);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
@@ -175,10 +178,15 @@ export default function ImprovedWorkoutSession({
       };
       onSetComplete(completedSet);
       
+      // Update warmup plan based on current workout data after first set
+      if (currentSetNumber === 1 && exercise.workout_exercise_id && exercise.id) {
+        updateWarmupForWorkoutData(exercise.workout_exercise_id, exercise.id);
+      }
+      
       // Keep weight and reps for next set progression, reset everything else
       setCurrentSetData({
-        weight: currentSetData.weight, // Keep for progression
-        reps: currentSetData.reps,     // Keep for progression
+        weight: currentSetData.weight,
+        reps: currentSetData.reps,
         rpe: undefined,
         feel: '=' as Feel,
         pain: false,
@@ -271,7 +279,11 @@ export default function ImprovedWorkoutSession({
                 variant="ghost"
                 size="sm"
                 className="h-8 w-8 p-0"
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setEditingSet(index);
+                  setEditSetData({ ...set });
+                }}
               >
                 <Edit className="h-4 w-4" />
               </Button>
@@ -312,17 +324,17 @@ export default function ImprovedWorkoutSession({
           
           {expandedSet === index && (
             <div className="mt-3 pt-3 border-t space-y-2 text-sm text-muted-foreground">
-              {(set.feel || parseFeelFromNotes(set.notes)) && (
-                <div className="flex items-center gap-2">
-                  Feel: {getFeelEmoji(set.feel, set.notes)}
-                </div>
-              )}
-              {set.notes && <div>Notes: {set.notes}</div>}
-              {set.notes?.includes('warmup feedback:') && (
-                <div className="text-green-600">
-                  Warmup feedback: excellent
-                </div>
-              )}
+               {(set.feel || parseFeelFromNotes(set.notes)) && (
+                 <div className="flex items-center gap-2">
+                   {getFeelEmoji(set.feel, set.notes)}
+                 </div>
+               )}
+               {set.notes && !set.notes.includes('Feel:') && <div>Notes: {set.notes}</div>}
+               {set.notes?.includes('warmup feedback:') && (
+                 <div className="text-green-600">
+                   Warmup feedback: excellent
+                 </div>
+               )}
             </div>
           )}
         </Card>
@@ -672,6 +684,114 @@ export default function ImprovedWorkoutSession({
           </div>
         </DialogContent>
       </Dialog>
+      
+      {/* Edit Set Dialog */}
+      {editingSet !== null && editSetData && (
+        <Dialog open={true} onOpenChange={() => setEditingSet(null)}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle>Edit Set {editingSet + 1}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {/* Weight */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Weight ({unit})</label>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, weight: Math.max(0, prev.weight - 2.5) } : null)}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Input
+                    type="number"
+                    step="0.5"
+                    value={editSetData.weight || ''}
+                    onChange={(e) => setEditSetData(prev => prev ? { ...prev, weight: parseFloat(e.target.value) || 0 } : null)}
+                    className="text-center text-lg font-semibold"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, weight: prev.weight + 2.5 } : null)}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Reps */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reps</label>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, reps: Math.max(0, prev.reps - 1) } : null)}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Minus className="h-3 w-3" />
+                  </Button>
+                  <Input
+                    type="number"
+                    value={editSetData.reps || ''}
+                    onChange={(e) => setEditSetData(prev => prev ? { ...prev, reps: parseInt(e.target.value) || 0 } : null)}
+                    className="text-center text-lg font-semibold"
+                  />
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, reps: prev.reps + 1 } : null)}
+                    className="w-8 h-8 p-0"
+                  >
+                    <Plus className="h-3 w-3" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Feel Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Feel</label>
+                <div className="grid grid-cols-5 gap-1">
+                  {FEEL_OPTIONS.map((option) => (
+                    <Button
+                      key={option.value}
+                      variant={editSetData.feel === option.value ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setEditSetData(prev => prev ? { ...prev, feel: option.value } : null)}
+                      className="flex flex-col items-center p-1 min-w-[60px] h-14"
+                    >
+                      <span className="text-lg">{option.emoji}</span>
+                      <span className="text-xs font-medium">{option.value}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="flex justify-end space-x-2">
+                <Button variant="outline" onClick={() => setEditingSet(null)}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={() => {
+                    if (editSetData && editingSet !== null) {
+                      // For now, just close the dialog - proper save will need parent callback
+                      setEditingSet(null);
+                      setEditSetData(null);
+                    }
+                  }}
+                  disabled={!editSetData?.weight || !editSetData?.reps}
+                >
+                  Save Changes
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
