@@ -97,7 +97,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
           user_id: user.id,
           exercise_id: exerciseId,
           estimated_weight: weight,
-          type: '10RM',
+          type: 'rm10',
           unit: 'kg',
           source: 'user_input'
         }));

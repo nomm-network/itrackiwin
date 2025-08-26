@@ -61,7 +61,7 @@ export function useMissingEstimates(workoutId?: string, repTarget = 10) {
           .from('user_exercise_estimates')
           .select('exercise_id')
           .eq('user_id', user.id)
-          .eq('type', '10RM')
+          .eq('type', 'rm10')
           .in('exercise_id', exerciseIds);
 
         if (estimatesError) {
