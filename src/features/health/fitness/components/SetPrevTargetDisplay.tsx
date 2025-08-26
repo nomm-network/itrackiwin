@@ -52,20 +52,20 @@ export function SetPrevTargetDisplay({
 
   // Calculate intelligent target using the progressive system
   const target = React.useMemo(() => {
-    // Use estimate as fallback for template target weight
-    const effectiveTargetWeight = templateTargetWeight || estimate?.estimated_weight || 0;
-    
     console.log('🔍 SetPrevTargetDisplay: Target calculation inputs:', {
       templateTargetWeight,
       templateTargetWeightType: typeof templateTargetWeight,
       estimateWeight: estimate?.estimated_weight,
       estimateUnit: estimate?.unit,
       fullEstimate: estimate,
-      effectiveTargetWeight,
-      hasLast: !!last
+      hasLast: !!last,
+      lastData: last
     });
     
     if (!last) {
+      // Use estimate as fallback only when no previous data exists
+      const effectiveTargetWeight = templateTargetWeight || estimate?.estimated_weight || 0;
+      console.log('🎯 No previous data - using estimate/template:', effectiveTargetWeight);
       return {
         weight: effectiveTargetWeight,
         reps: templateTargetReps ?? 10,
@@ -74,17 +74,19 @@ export function SetPrevTargetDisplay({
     
     // Parse feel from previous set
     const lastFeel = parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe);
+    console.log('🔍 Previous set data found:', { weight: last.weight, reps: last.reps, feel: lastFeel });
     
-    // Use the progressive target suggestion system with estimate fallback
+    // Use the progressive target suggestion system - prioritize historical data over estimates
     const suggestion = suggestTarget({
       lastWeight: last.weight,
       lastReps: last.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight: effectiveTargetWeight,
+      templateTargetWeight: last.weight || templateTargetWeight, // Use last weight as baseline, not estimate
       stepKg: 2.5
     });
     
+    console.log('🎯 Progressive target calculated:', suggestion);
     return suggestion;
   }, [last, templateTargetReps, templateTargetWeight, estimate?.estimated_weight]);
 
