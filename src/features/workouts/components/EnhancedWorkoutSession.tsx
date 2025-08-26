@@ -172,27 +172,59 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   );
   
   const getExerciseName = () => {
+    console.log('🚨 DEBUG getExerciseName - Current Exercise:', {
+      currentExercise,
+      exerciseTranslation,
+      hasTranslationName: !!exerciseTranslation?.name,
+      exerciseStructure: currentExercise?.exercise,
+      exerciseTranslations: currentExercise?.exercise?.exercises_translations
+    });
+
     // First try the dedicated exercise translation hook
-    if (exerciseTranslation?.name) return exerciseTranslation.name;
+    if (exerciseTranslation?.name) {
+      console.log('✅ Using exerciseTranslation.name:', exerciseTranslation.name);
+      return exerciseTranslation.name;
+    }
     
     // Then try the translations from the workout query
-    const translations = currentExercise?.exercise?.translations;
+    const translations = currentExercise?.exercise?.exercises_translations;
+    console.log('🔍 Checking workout query translations:', { translations, type: typeof translations, isArray: Array.isArray(translations) });
+    
     if (translations && Array.isArray(translations)) {
-      // Try current locale first (you might want to get this from context)
+      // Try English first
       const enTranslation = translations.find(t => t.language_code === 'en');
-      if (enTranslation?.name) return enTranslation.name;
+      if (enTranslation?.name) {
+        console.log('✅ Using English translation from workout query:', enTranslation.name);
+        return enTranslation.name;
+      }
       
       // Fallback to any available translation
       const anyTranslation = translations.find(t => t.name);
-      if (anyTranslation?.name) return anyTranslation.name;
+      if (anyTranslation?.name) {
+        console.log('✅ Using any translation from workout query:', anyTranslation.name);
+        return anyTranslation.name;
+      }
     }
     
     // Legacy fallbacks
-    if (currentExercise?.exercise?.translations?.en?.name) return currentExercise.exercise.translations.en.name;
-    if (currentExercise?.translations?.en?.name) return currentExercise.translations.en.name;
-    if (currentExercise?.exercise?.name) return currentExercise.exercise.name;
-    if (currentExercise?.name) return currentExercise.name;
+    if (currentExercise?.exercise?.translations?.en?.name) {
+      console.log('✅ Using legacy exercise.translations.en.name:', currentExercise.exercise.translations.en.name);
+      return currentExercise.exercise.translations.en.name;
+    }
+    if (currentExercise?.translations?.en?.name) {
+      console.log('✅ Using legacy translations.en.name:', currentExercise.translations.en.name);
+      return currentExercise.translations.en.name;
+    }
+    if (currentExercise?.exercise?.name) {
+      console.log('✅ Using exercise.name:', currentExercise.exercise.name);
+      return currentExercise.exercise.name;
+    }
+    if (currentExercise?.name) {
+      console.log('✅ Using name:', currentExercise.name);
+      return currentExercise.name;
+    }
     
+    console.log('❌ Falling back to "Exercise"');
     return 'Exercise';
   };
   
@@ -658,6 +690,40 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Debug Area */}
+      <div className="mt-8 p-4 bg-muted rounded-lg">
+        <h3 className="font-bold mb-2">🚨 DEBUG INFO</h3>
+        <div className="space-y-2 text-xs">
+          <div>
+            <strong>Workout ID:</strong> {workout?.id}
+          </div>
+          <div>
+            <strong>Current Exercise Index:</strong> {(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0)}
+          </div>
+          <div>
+            <strong>Total Exercises:</strong> {workout?.exercises?.length}
+          </div>
+          <div>
+            <strong>Exercise Translation Hook Result:</strong> 
+            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(exerciseTranslation, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>Current Exercise Object:</strong>
+            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(currentExercise, null, 2)}</pre>
+          </div>
+          <div>
+            <strong>All Exercises with Names:</strong>
+            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(workout?.exercises?.map((ex: any, i: number) => ({
+              index: i,
+              id: ex.id,
+              exercise_id: ex.exercise_id,
+              exercise: ex.exercise,
+              displayName: getExerciseDisplayName(ex)
+            })), null, 2)}</pre>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
