@@ -79,13 +79,13 @@ export function SetPrevTargetDisplay({
     const lastFeel = parseFeelFromNotes(last.notes) || parseFeelFromRPE(last.rpe);
     console.log('🔍 Previous set data found:', { weight: last.weight, reps: last.reps, feel: lastFeel });
     
-    // Use the progressive target suggestion system - prioritize historical data over estimates
+    // Use the progressive target suggestion system - each set should use template weight as baseline
     const suggestion = suggestTarget({
       lastWeight: last.weight,
       lastReps: last.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight: last.weight, // Use last weight as baseline, not template
+      templateTargetWeight: templateTargetWeight, // Use template weight as baseline, not last performed weight
       stepKg: 2.5
     });
     
