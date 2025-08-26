@@ -27,15 +27,14 @@ export function useLastSet(
         return null;
       }
 
-      // Get the most recent completed set for this SPECIFIC set index
-      console.log('🔍 useLastSet: Querying for most recent set with specific set_index:', {
+      // Get the most recent completed set for this exercise (ANY set index, not just specific one)
+      console.log('🔍 useLastSet: Querying for most recent set for exercise (ANY set_index):', {
         userId,
         exerciseId,
         setIndex,
         queryFilters: {
           'workout_exercises.workouts.user_id': userId,
           'workout_exercises.exercise_id': exerciseId,
-          'set_index': setIndex,
           'is_completed': true,
           'weight_not_null': true,
           'reps_not_null': true
@@ -53,7 +52,6 @@ export function useLastSet(
         `)
         .eq('workout_exercises.workouts.user_id', userId!)
         .eq('workout_exercises.exercise_id', exerciseId!)
-        .eq('set_index', setIndex!)
         .eq('is_completed', true)
         .not('completed_at', 'is', null)
         .not('weight', 'is', null)
@@ -82,7 +80,7 @@ export function useLastSet(
         };
       }
 
-      console.log('📭 useLastSet: no previous sets found for this specific set index');
+      console.log('📭 useLastSet: no previous sets found for this exercise (any set index)');
       return null;
     },
     staleTime: 5 * 60 * 1000,

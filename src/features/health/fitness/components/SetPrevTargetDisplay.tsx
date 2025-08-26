@@ -79,6 +79,20 @@ export function SetPrevTargetDisplay({
               </strong>
             </span>
           </div>
+          
+          {/* DEBUG INFO */}
+          <div className="mt-2 p-2 bg-red-900/20 rounded text-xs">
+            <div><strong>🔍 DEBUG DATA:</strong></div>
+            <div>userId: {userId || 'NULL'}</div>
+            <div>exerciseId: {exerciseId || 'NULL'}</div>
+            <div>setIndex: {setIndex ?? 'NULL'}</div>
+            <div>templateTargetReps: {templateTargetReps ?? 'NULL'}</div>
+            <div>templateTargetWeight: {templateTargetWeight ?? 'NULL'}</div>
+            <div>hasLastSet: {!!last ? 'YES' : 'NO'}</div>
+            <div>lastSet: {last ? `${last.weight}kg × ${last.reps} on ${last.completed_at}` : 'NULL'}</div>
+            <div>target: {target.weight}kg × {target.reps}</div>
+            <div>isLoading: {isLoading ? 'YES' : 'NO'}</div>
+          </div>
         </>
       )}
     </div>
