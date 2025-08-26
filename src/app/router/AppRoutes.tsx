@@ -71,14 +71,12 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Main Dashboard - New unified dashboard */}
+          {/* Main Dashboard */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
               <UserDashboard />
             </ProtectedMobileLayout>
           } />
-
-          {/* Protected routes */}
           <Route path={Paths.dashboard} element={
             <ProtectedMobileLayout>
               <UserDashboard />
