@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit } from 'lucide-react';
+import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { feelEmoji } from '@/features/workouts/utils/feel';
@@ -45,6 +45,7 @@ interface ImprovedWorkoutSessionProps {
   onAddExtraSet?: () => void;
   onFinishWorkout?: () => void;
   onDeleteSet?: (setIndex: number) => void;
+  onUpdateSet?: (setIndex: number, setData: SetData) => void;
   isLastExercise?: boolean;
   unit: 'kg' | 'lb';
 }
@@ -60,6 +61,7 @@ export default function ImprovedWorkoutSession({
   onAddExtraSet,
   onFinishWorkout,
   onDeleteSet,
+  onUpdateSet,
   isLastExercise = false,
   unit = 'kg'
 }: ImprovedWorkoutSessionProps) {
@@ -277,7 +279,14 @@ export default function ImprovedWorkoutSession({
                 onClick={(e) => {
                   e.stopPropagation();
                   setEditingSet(index);
-                  setEditSetData({ ...set });
+                  // Show previously selected values for Feel and Pain
+                  const feelFromNotes = parseFeelFromNotes(set.notes);
+                  const painFromNotes = set.notes?.includes('PAIN REPORTED') || false;
+                  setEditSetData({ 
+                    ...set, 
+                    feel: feelFromNotes || '=',
+                    pain: painFromNotes
+                  });
                 }}
               >
                 <Edit className="h-4 w-4" />
@@ -766,14 +775,51 @@ export default function ImprovedWorkoutSession({
                 </div>
               </div>
 
+              {/* Pain Selector */}
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Pain</label>
+                <div className="flex gap-2">
+                  <Button
+                    variant={editSetData.pain === false ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, pain: false } : null)}
+                    className="flex-1"
+                  >
+                    ✅ No Pain
+                  </Button>
+                  <Button
+                    variant={editSetData.pain === true ? "destructive" : "outline"}
+                    size="sm"
+                    onClick={() => setEditSetData(prev => prev ? { ...prev, pain: true } : null)}
+                    className="flex-1"
+                  >
+                    <AlertTriangle className="h-4 w-4 mr-1" />
+                    Pain
+                  </Button>
+                </div>
+              </div>
+
               <div className="flex justify-end space-x-2">
                 <Button variant="outline" onClick={() => setEditingSet(null)}>
                   Cancel
                 </Button>
                 <Button 
                   onClick={() => {
-                    if (editSetData && editingSet !== null) {
-                      // For now, just close the dialog - proper save will need parent callback
+                    if (editSetData && editingSet !== null && onUpdateSet) {
+                      // Create notes with feel and pain information
+                      const feelNote = editSetData.feel ? `Feel: ${editSetData.feel}` : '';
+                      const painNote = editSetData.pain ? 'PAIN REPORTED' : '';
+                      const existingNotes = editSetData.notes?.replace(/Feel:\s*(--|-|=|\+|\+\+)/, '').replace('PAIN REPORTED', '').trim() || '';
+                      
+                      const notesArray = [feelNote, painNote, existingNotes].filter(Boolean);
+                      const updatedNotes = notesArray.join(' | ');
+                      
+                      const updatedSetData = {
+                        ...editSetData,
+                        notes: updatedNotes
+                      };
+                      
+                      onUpdateSet(editingSet, updatedSetData);
                       setEditingSet(null);
                       setEditSetData(null);
                     }
