@@ -19,9 +19,26 @@ export function useLastSet(
     queryKey: ['lastSet', userId, exerciseId, setIndex],
     enabled: Boolean(userId && exerciseId && Number.isFinite(setIndex)),
     queryFn: async (): Promise<LastSet | null> => {
-      console.log('🔍 useLastSet params', { userId, exerciseId, setIndex });
+      console.log('🔍 useLastSet called with params', { userId, exerciseId, setIndex });
+      
+      if (!userId || !exerciseId || !Number.isFinite(setIndex)) {
+        console.log('❌ useLastSet: Invalid parameters', { userId, exerciseId, setIndex });
+        return null;
+      }
 
       // 1) exact same set number
+      console.log('🔍 useLastSet: Querying for exact set match with:', {
+        userId,
+        exerciseId,
+        setIndex,
+        queryFilters: {
+          'workout_exercises.workouts.user_id': userId,
+          'workout_exercises.exercise_id': exerciseId,
+          'set_index': setIndex,
+          'is_completed': true
+        }
+      });
+
       const sameSet = await supabase
         .from('workout_sets')
         .select(`
@@ -38,6 +55,8 @@ export function useLastSet(
         .not('completed_at', 'is', null)
         .order('completed_at', { ascending: false })
         .limit(1);
+
+      console.log('🔍 useLastSet: Query result:', { data: sameSet.data, error: sameSet.error });
 
       if (sameSet.error) {
         console.error('❌ sameSet query error', sameSet.error);
