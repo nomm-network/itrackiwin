@@ -5070,6 +5070,90 @@ export type Database = {
         }
         Relationships: []
       }
+      workout_checkins: {
+        Row: {
+          alcohol: boolean | null
+          created_at: string
+          energy: number | null
+          id: string
+          illness: boolean | null
+          notes: string | null
+          sleep_hours: number | null
+          sleep_quality: number | null
+          soreness: number | null
+          stress: number | null
+          supplements: string[] | null
+          user_id: string
+          workout_id: string
+        }
+        Insert: {
+          alcohol?: boolean | null
+          created_at?: string
+          energy?: number | null
+          id?: string
+          illness?: boolean | null
+          notes?: string | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
+          soreness?: number | null
+          stress?: number | null
+          supplements?: string[] | null
+          user_id: string
+          workout_id: string
+        }
+        Update: {
+          alcohol?: boolean | null
+          created_at?: string
+          energy?: number | null
+          id?: string
+          illness?: boolean | null
+          notes?: string | null
+          sleep_hours?: number | null
+          sleep_quality?: number | null
+          soreness?: number | null
+          stress?: number | null
+          supplements?: string[] | null
+          user_id?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_has_checkin"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       workout_comments: {
         Row: {
           content: string

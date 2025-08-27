@@ -40,25 +40,20 @@ export const usePreWorkout = ({ workoutId, userId }: UsePreWorkoutOptions) => {
     setError(null);
 
     try {
-      // Save to workout_checkins table (assuming it exists, or create a new readiness table)
-      const { error: insertError } = await supabase
-        .from('workout_checkins')
-        .insert({
-          workout_id: workoutId,
-          user_id: userId,
-          energy: data.energy,
-          sleep_quality: data.sleep_quality,
-          sleep_hours: data.sleep_hours,
-          soreness: data.soreness,
-          stress: data.stress,
-          illness: data.illness,
-          alcohol: data.alcohol,
-          supplements: data.supplements,
-          notes: data.notes,
-          created_at: new Date().toISOString()
-        });
+      // For now, store readiness data in the workout notes or use a simple approach
+      // We'll enhance this when the workout_checkins table is properly typed
+      const { error: updateError } = await supabase
+        .from('workouts')
+        .update({
+          notes: JSON.stringify({
+            readiness: data,
+            updated_at: new Date().toISOString()
+          })
+        })
+        .eq('id', workoutId)
+        .eq('user_id', userId);
 
-      if (insertError) throw insertError;
+      if (updateError) throw updateError;
 
       return true;
     } catch (err) {
@@ -151,15 +146,21 @@ export const usePreWorkout = ({ workoutId, userId }: UsePreWorkoutOptions) => {
   const checkWorkoutReadiness = useCallback(async (workoutId: string) => {
     try {
       const { data, error } = await supabase
-        .from('workout_checkins')
-        .select('id')
-        .eq('workout_id', workoutId)
+        .from('workouts')
+        .select('notes')
+        .eq('id', workoutId)
         .eq('user_id', userId)
-        .maybeSingle();
+        .single();
 
       if (error) throw error;
 
-      return !!data; // Returns true if readiness already completed
+      // Check if readiness data exists in notes
+      try {
+        const parsedNotes = JSON.parse(data.notes || '{}');
+        return !!parsedNotes.readiness;
+      } catch {
+        return false;
+      }
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to check workout readiness';
       setError(errorMessage);
