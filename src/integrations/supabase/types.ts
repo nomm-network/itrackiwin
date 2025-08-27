@@ -453,21 +453,27 @@ export type Database = {
           default_stack: Json | null
           equipment_type: string
           id: string
+          kind: string | null
           slug: string | null
+          weight_kg: number | null
         }
         Insert: {
           created_at?: string
           default_stack?: Json | null
           equipment_type?: string
           id?: string
+          kind?: string | null
           slug?: string | null
+          weight_kg?: number | null
         }
         Update: {
           created_at?: string
           default_stack?: Json | null
           equipment_type?: string
           id?: string
+          kind?: string | null
           slug?: string | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
@@ -1001,6 +1007,7 @@ export type Database = {
             | null
           id: string
           image_url: string | null
+          is_bar_loaded: boolean
           is_public: boolean
           loading_hint: string | null
           movement_pattern:
@@ -1028,6 +1035,7 @@ export type Database = {
             | null
           id?: string
           image_url?: string | null
+          is_bar_loaded?: boolean
           is_public?: boolean
           loading_hint?: string | null
           movement_pattern?:
@@ -1055,6 +1063,7 @@ export type Database = {
             | null
           id?: string
           image_url?: string | null
+          is_bar_loaded?: boolean
           is_public?: boolean
           loading_hint?: string | null
           movement_pattern?:
@@ -4595,6 +4604,7 @@ export type Database = {
           load_entry_mode: string | null
           notes: string | null
           order_index: number
+          selected_bar_id: string | null
           target_origin: string | null
           target_sets: number | null
           warmup_feedback: string | null
@@ -4603,6 +4613,7 @@ export type Database = {
           warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot: string | null
           warmup_updated_at: string | null
+          weight_input_mode: string | null
           workout_id: string
         }
         Insert: {
@@ -4618,6 +4629,7 @@ export type Database = {
           load_entry_mode?: string | null
           notes?: string | null
           order_index: number
+          selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
           warmup_feedback?: string | null
@@ -4626,6 +4638,7 @@ export type Database = {
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
           warmup_updated_at?: string | null
+          weight_input_mode?: string | null
           workout_id: string
         }
         Update: {
@@ -4641,6 +4654,7 @@ export type Database = {
           load_entry_mode?: string | null
           notes?: string | null
           order_index?: number
+          selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
           warmup_feedback?: string | null
@@ -4649,6 +4663,7 @@ export type Database = {
           warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
           warmup_snapshot?: string | null
           warmup_updated_at?: string | null
+          weight_input_mode?: string | null
           workout_id?: string
         }
         Relationships: [
@@ -4699,6 +4714,20 @@ export type Database = {
             columns: ["handle_id"]
             isOneToOne: false
             referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_selected_bar_id_fkey"
+            columns: ["selected_bar_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_selected_bar_id_fkey"
+            columns: ["selected_bar_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
           {
@@ -4965,6 +4994,7 @@ export type Database = {
       }
       workout_sets: {
         Row: {
+          bar_id: string | null
           bar_type_id: string | null
           completed_at: string | null
           distance: number | null
@@ -4988,10 +5018,12 @@ export type Database = {
           side: string | null
           total_weight_kg: number | null
           weight: number | null
+          weight_per_side: number | null
           weight_unit: string | null
           workout_exercise_id: string
         }
         Insert: {
+          bar_id?: string | null
           bar_type_id?: string | null
           completed_at?: string | null
           distance?: number | null
@@ -5015,10 +5047,12 @@ export type Database = {
           side?: string | null
           total_weight_kg?: number | null
           weight?: number | null
+          weight_per_side?: number | null
           weight_unit?: string | null
           workout_exercise_id: string
         }
         Update: {
+          bar_id?: string | null
           bar_type_id?: string | null
           completed_at?: string | null
           distance?: number | null
@@ -5042,10 +5076,25 @@ export type Database = {
           side?: string | null
           total_weight_kg?: number | null
           weight?: number | null
+          weight_per_side?: number | null
           weight_unit?: string | null
           workout_exercise_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_sets_bar_id_fkey"
+            columns: ["bar_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workout_sets_bar_id_fkey"
+            columns: ["bar_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_sets_bar_type_id_fkey"
             columns: ["bar_type_id"]
