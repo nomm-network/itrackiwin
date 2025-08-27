@@ -4583,6 +4583,7 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          bar_type_id: string | null
           display_name: string | null
           exercise_id: string
           grip_ids: string[] | null
@@ -4591,6 +4592,7 @@ export type Database = {
           handle_id: string | null
           id: string
           is_superset_group: string | null
+          load_entry_mode: string | null
           notes: string | null
           order_index: number
           target_origin: string | null
@@ -4604,6 +4606,7 @@ export type Database = {
           workout_id: string
         }
         Insert: {
+          bar_type_id?: string | null
           display_name?: string | null
           exercise_id: string
           grip_ids?: string[] | null
@@ -4612,6 +4615,7 @@ export type Database = {
           handle_id?: string | null
           id?: string
           is_superset_group?: string | null
+          load_entry_mode?: string | null
           notes?: string | null
           order_index: number
           target_origin?: string | null
@@ -4625,6 +4629,7 @@ export type Database = {
           workout_id: string
         }
         Update: {
+          bar_type_id?: string | null
           display_name?: string | null
           exercise_id?: string
           grip_ids?: string[] | null
@@ -4633,6 +4638,7 @@ export type Database = {
           handle_id?: string | null
           id?: string
           is_superset_group?: string | null
+          load_entry_mode?: string | null
           notes?: string | null
           order_index?: number
           target_origin?: string | null
@@ -4646,6 +4652,13 @@ export type Database = {
           workout_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_exercises_bar_type_id_fkey"
+            columns: ["bar_type_id"]
+            isOneToOne: false
+            referencedRelation: "bar_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
@@ -4952,6 +4965,7 @@ export type Database = {
       }
       workout_sets: {
         Row: {
+          bar_type_id: string | null
           completed_at: string | null
           distance: number | null
           duration_seconds: number | null
@@ -4961,7 +4975,9 @@ export type Database = {
           heart_rate: number | null
           id: string
           is_completed: boolean | null
+          load_entry_mode: string | null
           load_meta: Json
+          load_one_side_kg: number | null
           notes: string | null
           reps: number | null
           rest_seconds: number | null
@@ -4970,11 +4986,13 @@ export type Database = {
           set_kind: Database["public"]["Enums"]["set_type"] | null
           settings: Json | null
           side: string | null
+          total_weight_kg: number | null
           weight: number | null
           weight_unit: string | null
           workout_exercise_id: string
         }
         Insert: {
+          bar_type_id?: string | null
           completed_at?: string | null
           distance?: number | null
           duration_seconds?: number | null
@@ -4984,7 +5002,9 @@ export type Database = {
           heart_rate?: number | null
           id?: string
           is_completed?: boolean | null
+          load_entry_mode?: string | null
           load_meta?: Json
+          load_one_side_kg?: number | null
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
@@ -4993,11 +5013,13 @@ export type Database = {
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           side?: string | null
+          total_weight_kg?: number | null
           weight?: number | null
           weight_unit?: string | null
           workout_exercise_id: string
         }
         Update: {
+          bar_type_id?: string | null
           completed_at?: string | null
           distance?: number | null
           duration_seconds?: number | null
@@ -5007,7 +5029,9 @@ export type Database = {
           heart_rate?: number | null
           id?: string
           is_completed?: boolean | null
+          load_entry_mode?: string | null
           load_meta?: Json
+          load_one_side_kg?: number | null
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
@@ -5016,11 +5040,19 @@ export type Database = {
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           side?: string | null
+          total_weight_kg?: number | null
           weight?: number | null
           weight_unit?: string | null
           workout_exercise_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workout_sets_bar_type_id_fkey"
+            columns: ["bar_type_id"]
+            isOneToOne: false
+            referencedRelation: "bar_types"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workout_sets_workout_exercise_id_fkey"
             columns: ["workout_exercise_id"]
@@ -6133,6 +6165,15 @@ export type Database = {
       }
       closest_machine_weight: {
         Args: { aux: number[]; desired: number; stack: number[] }
+        Returns: number
+      }
+      compute_total_weight: {
+        Args: {
+          p_bar_weight: number
+          p_entry_mode: string
+          p_is_symmetrical?: boolean
+          p_value: number
+        }
         Returns: number
       }
       create_admin_user: {
