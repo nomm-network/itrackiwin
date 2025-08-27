@@ -450,28 +450,46 @@ export type Database = {
       equipment: {
         Row: {
           created_at: string
+          default_bar_weight_kg: number | null
+          default_side_min_plate_kg: number | null
+          default_single_min_increment_kg: number | null
           default_stack: Json | null
           equipment_type: string
           id: string
           kind: string | null
+          load_medium: Database["public"]["Enums"]["load_medium"] | null
+          load_type: Database["public"]["Enums"]["load_type"] | null
+          notes: string | null
           slug: string | null
           weight_kg: number | null
         }
         Insert: {
           created_at?: string
+          default_bar_weight_kg?: number | null
+          default_side_min_plate_kg?: number | null
+          default_single_min_increment_kg?: number | null
           default_stack?: Json | null
           equipment_type?: string
           id?: string
           kind?: string | null
+          load_medium?: Database["public"]["Enums"]["load_medium"] | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+          notes?: string | null
           slug?: string | null
           weight_kg?: number | null
         }
         Update: {
           created_at?: string
+          default_bar_weight_kg?: number | null
+          default_side_min_plate_kg?: number | null
+          default_single_min_increment_kg?: number | null
           default_stack?: Json | null
           equipment_type?: string
           id?: string
           kind?: string | null
+          load_medium?: Database["public"]["Enums"]["load_medium"] | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+          notes?: string | null
           slug?: string | null
           weight_kg?: number | null
         }
@@ -512,6 +530,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_equipment_translations_equipment_id"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "fk_equipment_translations_equipment_id"
@@ -604,6 +629,13 @@ export type Database = {
             foreignKeyName: "exercise_equipment_variants_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_variants_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -678,6 +710,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_grip_effects_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "exercise_grip_effects_equipment_id_fkey"
@@ -865,6 +904,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_metric_defs_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "exercise_metric_defs_equipment_id_fkey"
@@ -1097,6 +1143,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "exercises_equipment_id_fkey"
@@ -1396,6 +1449,13 @@ export type Database = {
             foreignKeyName: "gym_equipment_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -1457,11 +1517,112 @@ export type Database = {
             foreignKeyName: "gym_equipment_availability_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_availability_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
           {
             foreignKeyName: "gym_equipment_availability_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_equipment_overrides: {
+        Row: {
+          bar_weight_kg: number | null
+          created_at: string | null
+          equipment_id: string
+          gym_id: string
+          id: string
+          side_min_plate_kg: number | null
+          single_min_increment_kg: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          bar_weight_kg?: number | null
+          created_at?: string | null
+          equipment_id: string
+          gym_id: string
+          id?: string
+          side_min_plate_kg?: number | null
+          single_min_increment_kg?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          bar_weight_kg?: number | null
+          created_at?: string | null
+          equipment_id?: string
+          gym_id?: string
+          id?: string
+          side_min_plate_kg?: number | null
+          single_min_increment_kg?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_equipment_overrides_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_overrides_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_overrides_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_overrides_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_plate_inventory: {
+        Row: {
+          count: number
+          created_at: string | null
+          gym_id: string
+          id: string
+          plate_kg: number
+        }
+        Insert: {
+          count: number
+          created_at?: string | null
+          gym_id: string
+          id?: string
+          plate_kg: number
+        }
+        Update: {
+          count?: number
+          created_at?: string | null
+          gym_id?: string
+          id?: string
+          plate_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_plate_inventory_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
             referencedRelation: "gyms"
@@ -3289,6 +3450,13 @@ export type Database = {
             foreignKeyName: "user_equipment_preferences_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "user_equipment_preferences_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -3827,6 +3995,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_machines_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "user_gym_machines_equipment_id_fkey"
@@ -4727,6 +4902,13 @@ export type Database = {
             foreignKeyName: "workout_exercises_selected_bar_id_fkey"
             columns: ["selected_bar_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "workout_exercises_selected_bar_id_fkey"
+            columns: ["selected_bar_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -5092,6 +5274,13 @@ export type Database = {
             foreignKeyName: "workout_sets_bar_id_fkey"
             columns: ["bar_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "workout_sets_bar_id_fkey"
+            columns: ["bar_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -5436,6 +5625,29 @@ export type Database = {
         }
         Relationships: []
       }
+      v_equipment_effective: {
+        Row: {
+          bar_weight_kg: number | null
+          default_bar_weight_kg: number | null
+          default_side_min_plate_kg: number | null
+          default_single_min_increment_kg: number | null
+          equipment_id: string | null
+          gym_id: string | null
+          load_medium: Database["public"]["Enums"]["load_medium"] | null
+          load_type: Database["public"]["Enums"]["load_type"] | null
+          side_min_plate_kg: number | null
+          single_min_increment_kg: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_equipment_overrides_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_equipment_with_translations: {
         Row: {
           created_at: string | null
@@ -5518,6 +5730,13 @@ export type Database = {
             foreignKeyName: "exercises_equipment_id_fkey"
             columns: ["equipment_id"]
             isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
@@ -5592,6 +5811,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "equipment"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
           },
           {
             foreignKeyName: "exercises_equipment_id_fkey"
@@ -6787,6 +7013,14 @@ export type Database = {
       next_template_id: {
         Args: { _user_id: string }
         Returns: string
+      }
+      next_weight_step_kg: {
+        Args: {
+          p_load_type: Database["public"]["Enums"]["load_type"]
+          p_side_min_plate_kg: number
+          p_single_min_increment_kg: number
+        }
+        Returns: number
       }
       path: {
         Args: { "": unknown }
@@ -8185,6 +8419,8 @@ export type Database = {
         | "general_fitness"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       injury_severity: "mild" | "moderate" | "severe" | "chronic"
+      load_medium: "bar" | "plates" | "stack" | "bodyweight" | "other"
+      load_type: "none" | "single_load" | "dual_load" | "stack"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       movement_pattern:
         | "squat"
@@ -8390,6 +8626,8 @@ export const Constants = {
       ],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       injury_severity: ["mild", "moderate", "severe", "chronic"],
+      load_medium: ["bar", "plates", "stack", "bodyweight", "other"],
+      load_type: ["none", "single_load", "dual_load", "stack"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       movement_pattern: [
         "squat",
