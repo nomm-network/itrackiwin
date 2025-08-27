@@ -69,7 +69,13 @@ params AS (
     ('plank', 'Plank', 'Core stabilization exercise for overall abdominal strength', 'bodyweight', 'rectus_abdominis', 'isolation', 'beginner', 76),
     ('russian-twists', 'Russian Twists', 'Rotational core exercise targeting obliques', 'bodyweight', 'external_obliques', 'isolation', 'beginner', 64),
     ('cable-wood-chops', 'Cable Wood Chops', 'Rotational cable exercise for functional core strength', 'cable-machine', 'external_obliques', 'isolation', 'beginner', 60),
-    ('hanging-leg-raises', 'Hanging Leg Raises', 'Hanging ab exercise for lower abdominal development', 'bodyweight', 'rectus_abdominis', 'isolation', 'medium', 67)
+    ('hanging-leg-raises', 'Hanging Leg Raises', 'Hanging ab exercise for lower abdominal development', 'bodyweight', 'rectus_abdominis', 'isolation', 'medium', 67),
+    ('crunch', 'Crunch', 'Floor abdominal crunch focusing on rectus abdominis', 'bodyweight', 'rectus_abdominis', 'isolation', 'beginner', 73),
+    ('cable-crunch', 'Cable Crunch', 'Kneeling cable crunch emphasizing rectus abdominis with load', 'cable-machine', 'rectus_abdominis', 'isolation', 'beginner', 66),
+    
+    -- BACK EXTENSION EXERCISES  
+    ('back-extension', 'Back Extension', 'Extension on back hyper bench targeting erectors and glutes', 'machine', 'erector_spinae', 'hinge', 'beginner', 63),
+    ('good-morning', 'Good Morning', 'Barbell hip hinge demanding hamstrings and spinal erectors', 'barbell', 'erector_spinae', 'hinge', 'medium', 69)
     
   ) AS t(slug, name, description, equipment_slug, muscle_slug, movement_pattern, skill_level, popularity_rank)
 ),
