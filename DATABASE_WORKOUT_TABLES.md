@@ -1,4 +1,8 @@
-# Workout-Related Tables Detailed Export
+# Database Schema and Foreign Keys - Complete Export
+
+*Generated on: 2025-08-27*
+
+This document provides a comprehensive overview of all database tables, their columns, foreign key relationships, and enums used in the fitness application.
 
 ## Core Workout Flow Tables
 
@@ -6,13 +10,13 @@
 **Purpose**: Main workout sessions
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
-- user_id: uuid, NOT NULL  -- FK to auth.users
-- template_id: uuid, NULL  -- FK to workout_templates (optional)
+- user_id: uuid, NOT NULL
+- template_id: uuid, NULL
 - name: text, NULL
 - notes: text, NULL
 - started_at: timestamptz, NOT NULL, DEFAULT: now()
 - ended_at: timestamptz, NULL
-- gym_id: uuid, NULL  -- FK to gyms
+- gym_id: uuid, NULL
 - estimated_calories_burned: int4, NULL
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
 - updated_at: timestamptz, NOT NULL, DEFAULT: now()
@@ -22,14 +26,18 @@
 **Purpose**: Exercises within a workout session
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
-- workout_id: uuid, NOT NULL  -- FK to workouts
-- exercise_id: uuid, NOT NULL  -- FK to exercises
+- workout_id: uuid, NOT NULL
+- exercise_id: uuid, NOT NULL
 - order_index: int4, NOT NULL, DEFAULT: 0
 - notes: text, NULL
 - warmup_plan: jsonb, NULL
 - target_settings: jsonb, NULL
 - display_name: text, NULL
-- grip_key: text, NULL  -- For grip tracking
+- grip_key: text, NULL
+- warmup_feedback: text, NULL
+- warmup_feedback_at: timestamptz, NULL
+- warmup_updated_at: timestamptz, NULL
+- target_weight: numeric, NULL
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
 - updated_at: timestamptz, NOT NULL, DEFAULT: now()
 ```
@@ -38,18 +46,18 @@
 **Purpose**: Individual sets performed
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
-- workout_exercise_id: uuid, NOT NULL  -- FK to workout_exercises
+- workout_exercise_id: uuid, NOT NULL
 - set_index: int4, NOT NULL
 - set_kind: set_type, NOT NULL, DEFAULT: 'normal'::set_type
 - weight: numeric, NULL
 - reps: int2, NULL
-- weight_unit: text, NULL, DEFAULT: 'kg'::text
+- weight_unit: weight_unit, NOT NULL, DEFAULT: 'kg'::weight_unit
 - notes: text, NULL
 - is_completed: bool, NOT NULL, DEFAULT: false
 - completed_at: timestamptz, NULL
-- rpe: int2, NULL  -- Rate of Perceived Exertion
+- rpe: int2, NULL
 - rest_seconds: int4, NULL
-- side: text, NULL  -- For unilateral exercises
+- side: text, NULL
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
 - updated_at: timestamptz, NOT NULL, DEFAULT: now()
 ```
@@ -60,7 +68,7 @@
 **Purpose**: Reusable workout blueprints
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
-- user_id: uuid, NOT NULL  -- FK to auth.users
+- user_id: uuid, NOT NULL
 - name: text, NOT NULL
 - description: text, NULL
 - notes: text, NULL
@@ -76,17 +84,16 @@
 **Purpose**: Exercises within templates
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
-- template_id: uuid, NOT NULL  -- FK to workout_templates
-- exercise_id: uuid, NOT NULL  -- FK to exercises
+- template_id: uuid, NOT NULL
+- exercise_id: uuid, NOT NULL
 - order_index: int4, NOT NULL, DEFAULT: 0
 - default_sets: int2, NULL
 - target_reps: int2, NULL
 - target_weight: numeric, NULL
-- weight_unit: text, NULL, DEFAULT: 'kg'::text
+- weight_unit: weight_unit, NULL, DEFAULT: 'kg'::weight_unit
 - notes: text, NULL
 - target_settings: jsonb, NULL
 - display_name: text, NULL
-- grip_ids: _text, NULL  -- Array of grip IDs
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
 - updated_at: timestamptz, NOT NULL, DEFAULT: now()
 ```
@@ -116,26 +123,31 @@
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
 - slug: text, NOT NULL
-- owner_user_id: uuid, NOT NULL  -- FK to auth.users
-- equipment_id: uuid, NOT NULL  -- FK to equipment
+- owner_user_id: uuid, NOT NULL
+- equipment_id: uuid, NOT NULL
 - is_public: bool, NOT NULL, DEFAULT: true
 - image_url: text, NULL
 - thumbnail_url: text, NULL
 - source_url: text, NULL
 - is_bar_loaded: bool, NOT NULL, DEFAULT: false
+- is_unilateral: bool, NULL, DEFAULT: false
+- allows_grips: bool, NULL, DEFAULT: true
+- requires_handle: bool, NULL, DEFAULT: false
 - default_bar_weight: numeric, NULL
+- default_bar_type_id: uuid, NULL
 - loading_hint: text, NULL
 - complexity_score: int2, NULL, DEFAULT: 3
 - contraindications: jsonb, NULL, DEFAULT: '[]'::jsonb
-- body_part_id: uuid, NULL  -- FK to body_parts
-- primary_muscle_id: uuid, NULL  -- FK to muscles
-- secondary_muscle_group_ids: _uuid, NULL  -- Array of muscle IDs
+- body_part_id: uuid, NULL
+- primary_muscle_id: uuid, NULL
+- secondary_muscle_group_ids: _uuid, NULL
 - movement_pattern: movement_pattern, NULL
-- exercise_skill_level: exercise_skill_level, NULL, DEFAULT: 'medium'
+- exercise_skill_level: exercise_skill_level, NULL, DEFAULT: 'medium'::exercise_skill_level
 - popularity_rank: int4, NULL
-- default_handle_ids: _uuid, NULL  -- Array of handle IDs
+- default_handle_ids: _uuid, NULL
 - default_grip_ids: _uuid, NULL, DEFAULT: '{}'::uuid[]
 - capability_schema: jsonb, NULL, DEFAULT: '{}'::jsonb
+- load_type: load_type, NULL
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
 ```
 
