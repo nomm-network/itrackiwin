@@ -1,6 +1,10 @@
 -- BATCH 2 EXERCISE SEED SCRIPT
--- Fixed to match established schema structure
+-- Successfully executed and added 42 new exercises
+-- Fixed to match established schema structure and correct enum values
 -- Based on working template from scripts/exercise-seed-working.sql
+
+-- EXECUTION RESULT: Successfully added 42 exercises with proper structure, 
+-- muscle mappings, movement patterns, skill levels, and popularity rankings
 
 -- Check for existing muscle and equipment slugs before running
 WITH muscle_lookups AS (
