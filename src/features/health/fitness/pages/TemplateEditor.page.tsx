@@ -1,19 +1,24 @@
 import React, { useState } from "react";
 import { useParams, useNavigate, NavLink } from "react-router-dom";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { ArrowLeft, Trash2, Edit2, Settings, Plus } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { ArrowLeft, Trash2, Edit2, Settings, Plus, GripHorizontal } from "lucide-react";
 import { useTemplateExercises, useAddExerciseToTemplate, useDeleteTemplateExercise, useTemplateDetail, useUpdateTemplate, useTemplateExercisePreferences, useUpsertTemplateExercisePreferences } from "@/features/health/fitness/services/fitness.api";
 import GripSelector from "@/components/GripSelector";
+import { HandleGripSelector } from "@/components/exercise/HandleGripSelector";
+import ExerciseConfigDialog from "@/components/exercise/ExerciseConfigDialog";
 import { useTranslations } from "@/hooks/useTranslations";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import PageNav from "@/components/PageNav";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import ExerciseGripDialog from "@/components/exercise/ExerciseGripDialog";
+import { toast } from "sonner";
 
 interface BodyPart {
   id: string;
@@ -89,8 +94,63 @@ const TemplateEditor: React.FC = () => {
   const [isGripDialogOpen, setIsGripDialogOpen] = useState(false);
   const [pendingExercise, setPendingExercise] = useState<{ id: string; name: string } | null>(null);
   
+  // Exercise configuration dialog states
+  const [isConfigDialogOpen, setIsConfigDialogOpen] = useState(false);
+  const [configExercise, setConfigExercise] = useState<any>(null);
+  
   // Grips mutation
   const upsertPreferences = useUpsertTemplateExercisePreferences();
+  
+  // Query client for mutations
+  const queryClient = useQueryClient();
+  
+  // Reorder mutation
+  const reorderExercises = useMutation({
+    mutationFn: async (updates: { id: string; order_index: number }[]) => {
+      const promises = updates.map(update => 
+        supabase
+          .from('template_exercises')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id)
+      );
+      
+      const results = await Promise.all(promises);
+      const errors = results.filter(r => r.error);
+      if (errors.length > 0) {
+        throw new Error('Failed to reorder exercises');
+      }
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["template_exercises"] });
+      toast.success("Exercises reordered successfully");
+    },
+    onError: () => {
+      toast.error("Failed to reorder exercises");
+    }
+  });
+  
+  // Update exercise mutation
+  const updateExercise = useMutation({
+    mutationFn: async (updates: any) => {
+      const { data, error } = await supabase
+        .from('template_exercises')
+        .update(updates)
+        .eq('id', updates.id)
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["template_exercises"] });
+      toast.success("Exercise updated successfully");
+    },
+    onError: () => {
+      toast.error("Failed to update exercise");
+    }
+  });
 
   // Filter states
   const [selectedBodyPart, setSelectedBodyPart] = useState<string>("all");
@@ -462,6 +522,85 @@ const TemplateEditor: React.FC = () => {
     });
   };
 
+  // Drag and drop handler
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+
+    const startIndex = result.source.index;
+    const endIndex = result.destination.index;
+
+    if (startIndex === endIndex) return;
+
+    const sortedExercises = [...templateExercises].sort((a, b) => a.order_index - b.order_index);
+    const [removed] = sortedExercises.splice(startIndex, 1);
+    sortedExercises.splice(endIndex, 0, removed);
+
+    // Update order indices
+    const updates = sortedExercises.map((exercise, index) => ({
+      id: exercise.id,
+      order_index: index
+    }));
+
+    reorderExercises.mutate(updates);
+  };
+
+  // Open configuration dialog
+  const handleConfigureExercise = (exercise: any) => {
+    setConfigExercise(exercise);
+    setIsConfigDialogOpen(true);
+  };
+
+  // Query grips for display
+  const { data: gripsData = [] } = useQuery({
+    queryKey: ["grips"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('grips')
+        .select('id, slug');
+      
+      if (error) {
+        console.error('Error fetching grips:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+
+  // Query handles for display  
+  const { data: handlesData = [] } = useQuery({
+    queryKey: ["handles"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('handles')
+        .select('id, slug');
+      
+      if (error) {
+        console.error('Error fetching handles:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+
+  // Helper to get grip names by IDs
+  const getGripDisplay = (gripIds: string[]) => {
+    if (!gripIds || gripIds.length === 0) return '';
+    const gripNames = gripIds.map(id => {
+      const grip = gripsData.find(g => g.id === id);
+      return grip?.slug || id;
+    });
+    return gripNames.join(', ');
+  };
+
+  // Helper to get handle name by ID
+  const getHandleDisplay = (handleId: string) => {
+    if (!handleId) return '';
+    const handle = handlesData.find(h => h.id === handleId);
+    return handle?.slug || handleId;
+  };
+
   if (!templateId) {
     return <div>Template not found</div>;
   }
@@ -572,121 +711,86 @@ const TemplateEditor: React.FC = () => {
           </CardHeader>
           <CardContent>
             {templateExercises.length > 0 ? (
-               <div className="space-y-4">
-                 {templateExercises.sort((a, b) => a.order_index - b.order_index).map((templateExercise) => (
-                   <div key={templateExercise.id} className="border rounded-lg">
-                     <div className="flex items-center justify-between p-4">
-                        <div className="flex-1">
-                          <h4 className="font-medium">
-                            {templateExercise.display_name || getExerciseName(templateExercise.exercise_id)}
-                          </h4>
-                          <p className="text-sm text-muted-foreground">
-                            {templateExercise.default_sets} sets
-                            {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
-                            {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
-                          </p>
-                          {templateExercise.grip_ids && templateExercise.grip_ids.length > 0 && (
-                            <p className="text-xs text-blue-600 mt-1">
-                              Grip variation ({templateExercise.grip_ids.length} grips)
-                            </p>
-                          )}
-                          {templateExercise.notes && (
-                            <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
-                          )}
-                        </div>
-                       <div className="flex items-center gap-2">
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => setEditingExerciseId(
-                             editingExerciseId === templateExercise.id ? null : templateExercise.id
-                           )}
-                         >
-                           <Settings className="h-4 w-4" />
-                         </Button>
-                         <Button
-                           variant="outline"
-                           size="sm"
-                           onClick={() => handleDeleteExercise(templateExercise.id)}
-                         >
-                           <Trash2 className="h-4 w-4" />
-                         </Button>
-                       </div>
-                     </div>
-                     {/* Exercise Settings Panel */}
-                     {editingExerciseId === templateExercise.id && (
-                       <div className="border-t bg-muted/20 p-4">
-                         <h5 className="font-medium mb-3">Exercise Settings</h5>
-                         <div className="space-y-4">
-                           <div className="grid grid-cols-2 gap-4">
-                             <div>
-                               <label className="text-sm font-medium">Sets</label>
-                               <Input 
-                                 type="number" 
-                                 defaultValue={templateExercise.default_sets}
-                                 className="mt-1"
-                               />
-                             </div>
-                             <div>
-                               <label className="text-sm font-medium">Target Reps</label>
-                               <Input 
-                                 type="number" 
-                                 defaultValue={templateExercise.target_reps || ''}
-                                 placeholder="Optional"
-                                 className="mt-1"
-                               />
-                             </div>
-                           </div>
-                           <div className="grid grid-cols-2 gap-4">
-                             <div>
-                               <label className="text-sm font-medium">Target Weight</label>
-                               <Input 
-                                 type="number" 
-                                 defaultValue={templateExercise.target_weight || ''}
-                                 placeholder="Optional"
-                                 className="mt-1"
-                               />
-                             </div>
-                             <div>
-                               <label className="text-sm font-medium">Weight Unit</label>
-                               <Select defaultValue={templateExercise.weight_unit}>
-                                 <SelectTrigger className="mt-1">
-                                   <SelectValue />
-                                 </SelectTrigger>
-                                 <SelectContent>
-                                   <SelectItem value="kg">kg</SelectItem>
-                                   <SelectItem value="lbs">lbs</SelectItem>
-                                 </SelectContent>
-                               </Select>
-                             </div>
-                           </div>
-                           <div>
-                             <label className="text-sm font-medium">Notes</label>
-                             <textarea 
-                               defaultValue={templateExercise.notes || ''}
-                               placeholder="Exercise notes..."
-                               className="w-full mt-1 p-2 border rounded resize-none"
-                               rows={2}
-                             />
-                           </div>
-                           <div className="flex gap-2">
-                             <Button size="sm" variant="outline">
-                               Save Changes
-                             </Button>
-                             <Button 
-                               size="sm" 
-                               variant="ghost"
-                               onClick={() => setEditingExerciseId(null)}
-                             >
-                               Cancel
-                             </Button>
-                           </div>
-                         </div>
-                       </div>
-                     )}
-                   </div>
-                ))}
-              </div>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="template-exercises">
+                  {(provided) => (
+                    <div 
+                      {...provided.droppableProps}
+                      ref={provided.innerRef}
+                      className="space-y-3"
+                    >
+                      {templateExercises
+                        .sort((a, b) => a.order_index - b.order_index)
+                        .map((templateExercise, index) => (
+                          <Draggable 
+                            key={templateExercise.id} 
+                            draggableId={templateExercise.id}
+                            index={index}
+                          >
+                            {(provided, snapshot) => (
+                              <div
+                                ref={provided.innerRef}
+                                {...provided.draggableProps}
+                                className={`border rounded-lg bg-background ${
+                                  snapshot.isDragging ? 'shadow-lg ring-2 ring-primary/20' : ''
+                                }`}
+                              >
+                                <div className="flex items-center p-4">
+                                  <div 
+                                    {...provided.dragHandleProps}
+                                    className="mr-3 p-1 text-muted-foreground hover:text-foreground cursor-grab"
+                                  >
+                                    <GripHorizontal className="h-4 w-4" />
+                                  </div>
+                                  
+                                  <div className="flex-1">
+                                    <h4 className="font-medium">
+                                      {templateExercise.display_name || getExerciseName(templateExercise.exercise_id)}
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground">
+                                      {templateExercise.default_sets} sets
+                                      {templateExercise.target_reps && ` × ${templateExercise.target_reps} reps`}
+                                      {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
+                                    </p>
+                                    
+                                    {/* Display grips and handles */}
+                                    {templateExercise.grip_ids && templateExercise.grip_ids.length > 0 && (
+                                      <p className="text-xs text-blue-600 mt-1">
+                                        Grips: {getGripDisplay(templateExercise.grip_ids)}
+                                      </p>
+                                    )}
+                                    
+                                    {templateExercise.notes && (
+                                      <p className="text-sm text-muted-foreground mt-1">{templateExercise.notes}</p>
+                                    )}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleConfigureExercise(templateExercise)}
+                                    >
+                                      <Settings className="h-4 w-4" />
+                                    </Button>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      onClick={() => handleDeleteExercise(templateExercise.id)}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </Draggable>
+                        ))}
+                      {provided.placeholder}
+                    </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             ) : (
               <p className="text-center text-muted-foreground py-8">
                 No exercises in this template yet. Add some exercises below.
@@ -804,6 +908,24 @@ const TemplateEditor: React.FC = () => {
         onClose={() => setIsGripDialogOpen(false)}
         onConfirm={handleConfirmAddExercise}
         exerciseName={pendingExercise?.name || ''}
+      />
+
+      {/* Exercise Configuration Dialog */}
+      <ExerciseConfigDialog
+        isOpen={isConfigDialogOpen}
+        onClose={() => {
+          setIsConfigDialogOpen(false);
+          setConfigExercise(null);
+        }}
+        onSave={(config) => {
+          if (configExercise) {
+            const { id, ...updates } = { ...config, id: configExercise.id };
+            updateExercise.mutate(updates);
+          }
+          setIsConfigDialogOpen(false);
+          setConfigExercise(null);
+        }}
+        exercise={configExercise}
       />
     </>
   );
