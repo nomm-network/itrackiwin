@@ -1063,7 +1063,7 @@ export type Database = {
           popularity_rank: number | null
           primary_muscle_id: string | null
           secondary_muscle_group_ids: string[] | null
-          slug: string | null
+          slug: string
           source_url: string | null
           thumbnail_url: string | null
         }
@@ -1092,7 +1092,7 @@ export type Database = {
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           secondary_muscle_group_ids?: string[] | null
-          slug?: string | null
+          slug: string
           source_url?: string | null
           thumbnail_url?: string | null
         }
@@ -1121,7 +1121,7 @@ export type Database = {
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           secondary_muscle_group_ids?: string[] | null
-          slug?: string | null
+          slug?: string
           source_url?: string | null
           thumbnail_url?: string | null
         }
@@ -7247,6 +7247,10 @@ export type Database = {
         Args: { p_payload: Json }
         Returns: Json
       }
+      short_hash_uuid: {
+        Args: { u: string }
+        Returns: string
+      }
       show_limit: {
         Args: Record<PropertyKey, never>
         Returns: number
@@ -7254,6 +7258,10 @@ export type Database = {
       show_trgm: {
         Args: { "": string }
         Returns: string[]
+      }
+      slugify: {
+        Args: { txt: string }
+        Returns: string
       }
       spheroid_in: {
         Args: { "": unknown }
@@ -8345,6 +8353,14 @@ export type Database = {
       toggle_workout_like: {
         Args: { share_id: string }
         Returns: boolean
+      }
+      unaccent: {
+        Args: { "": string }
+        Returns: string
+      }
+      unaccent_init: {
+        Args: { "": unknown }
+        Returns: unknown
       }
       unlockrows: {
         Args: { "": string }
