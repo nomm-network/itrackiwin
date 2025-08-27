@@ -836,6 +836,133 @@ export type Database = {
           },
         ]
       }
+      exercise_handle_grips: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          grip_id: string
+          handle_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          grip_id: string
+          handle_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          grip_id?: string
+          handle_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_handle_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_grips_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_grips_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_handles: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handles_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_images: {
         Row: {
           created_at: string
@@ -1714,8 +1841,39 @@ export type Database = {
             referencedRelation: "grips"
             referencedColumns: ["id"]
           },
+        ]
+      }
+      handle_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          handle_id: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          handle_id: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          handle_id?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
           {
-            foreignKeyName: "handle_grip_compatibility_handle_id_fkey"
+            foreignKeyName: "handle_translations_handle_id_fkey"
             columns: ["handle_id"]
             isOneToOne: false
             referencedRelation: "handles"
@@ -1725,24 +1883,21 @@ export type Database = {
       }
       handles: {
         Row: {
+          category: string
           created_at: string
-          description: string | null
           id: string
-          name: string
           slug: string
         }
         Insert: {
+          category: string
           created_at?: string
-          description?: string | null
           id?: string
-          name: string
           slug: string
         }
         Update: {
+          category?: string
           created_at?: string
-          description?: string | null
           id?: string
-          name?: string
           slug?: string
         }
         Relationships: []
@@ -1775,15 +1930,7 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "handles_translations_handle_id_fkey"
-            columns: ["handle_id"]
-            isOneToOne: false
-            referencedRelation: "handles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       idempotency_keys: {
         Row: {
@@ -2972,6 +3119,78 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      template_exercise_grips: {
+        Row: {
+          created_at: string
+          grip_id: string
+          id: string
+          template_exercise_id: string
+        }
+        Insert: {
+          created_at?: string
+          grip_id: string
+          id?: string
+          template_exercise_id: string
+        }
+        Update: {
+          created_at?: string
+          grip_id?: string
+          id?: string
+          template_exercise_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_exercise_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercise_grips_template_exercise_id_fkey"
+            columns: ["template_exercise_id"]
+            isOneToOne: false
+            referencedRelation: "template_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      template_exercise_handles: {
+        Row: {
+          created_at: string
+          handle_id: string
+          id: string
+          template_exercise_id: string
+        }
+        Insert: {
+          created_at?: string
+          handle_id: string
+          id?: string
+          template_exercise_id: string
+        }
+        Update: {
+          created_at?: string
+          handle_id?: string
+          id?: string
+          template_exercise_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "template_exercise_handles_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercise_handles_template_exercise_id_fkey"
+            columns: ["template_exercise_id"]
+            isOneToOne: true
+            referencedRelation: "template_exercises"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       template_exercise_machine_pref: {
         Row: {
@@ -4885,13 +5104,6 @@ export type Database = {
             columns: ["group_id"]
             isOneToOne: false
             referencedRelation: "workout_exercise_groups"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "workout_exercises_handle_id_fkey"
-            columns: ["handle_id"]
-            isOneToOne: false
-            referencedRelation: "handles"
             referencedColumns: ["id"]
           },
           {
