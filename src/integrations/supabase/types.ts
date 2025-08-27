@@ -601,6 +601,57 @@ export type Database = {
           },
         ]
       }
+      exercise_default_handles: {
+        Row: {
+          exercise_id: string
+          handle_id: string
+        }
+        Insert: {
+          exercise_id: string
+          handle_id: string
+        }
+        Update: {
+          exercise_id?: string
+          handle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_default_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_handles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_default_handles_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_equipment_variants: {
         Row: {
           equipment_id: string
@@ -1166,11 +1217,13 @@ export type Database = {
       }
       exercises: {
         Row: {
+          allows_grips: boolean | null
           body_part_id: string | null
           capability_schema: Json | null
           complexity_score: number | null
           contraindications: Json | null
           created_at: string
+          default_bar_type_id: string | null
           default_bar_weight: number | null
           default_grip_ids: string[] | null
           default_handle_ids: string[] | null
@@ -1182,6 +1235,8 @@ export type Database = {
           image_url: string | null
           is_bar_loaded: boolean
           is_public: boolean
+          is_unilateral: boolean | null
+          load_type: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint: string | null
           movement_pattern:
             | Database["public"]["Enums"]["movement_pattern"]
@@ -1189,17 +1244,20 @@ export type Database = {
           owner_user_id: string
           popularity_rank: number | null
           primary_muscle_id: string | null
+          requires_handle: boolean | null
           secondary_muscle_group_ids: string[] | null
           slug: string
           source_url: string | null
           thumbnail_url: string | null
         }
         Insert: {
+          allows_grips?: boolean | null
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
           contraindications?: Json | null
           created_at?: string
+          default_bar_type_id?: string | null
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
@@ -1211,6 +1269,8 @@ export type Database = {
           image_url?: string | null
           is_bar_loaded?: boolean
           is_public?: boolean
+          is_unilateral?: boolean | null
+          load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
@@ -1218,17 +1278,20 @@ export type Database = {
           owner_user_id: string
           popularity_rank?: number | null
           primary_muscle_id?: string | null
+          requires_handle?: boolean | null
           secondary_muscle_group_ids?: string[] | null
           slug: string
           source_url?: string | null
           thumbnail_url?: string | null
         }
         Update: {
+          allows_grips?: boolean | null
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
           contraindications?: Json | null
           created_at?: string
+          default_bar_type_id?: string | null
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
@@ -1240,6 +1303,8 @@ export type Database = {
           image_url?: string | null
           is_bar_loaded?: boolean
           is_public?: boolean
+          is_unilateral?: boolean | null
+          load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
@@ -1247,6 +1312,7 @@ export type Database = {
           owner_user_id?: string
           popularity_rank?: number | null
           primary_muscle_id?: string | null
+          requires_handle?: boolean | null
           secondary_muscle_group_ids?: string[] | null
           slug?: string
           source_url?: string | null
@@ -1265,6 +1331,13 @@ export type Database = {
             columns: ["body_part_id"]
             isOneToOne: false
             referencedRelation: "v_body_parts_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_default_bar_type_id_fkey"
+            columns: ["default_bar_type_id"]
+            isOneToOne: false
+            referencedRelation: "bar_types"
             referencedColumns: ["id"]
           },
           {
@@ -3267,6 +3340,7 @@ export type Database = {
           display_name: string | null
           exercise_id: string
           grip_ids: string[] | null
+          handle_id: string | null
           id: string
           notes: string | null
           order_index: number
@@ -3292,6 +3366,7 @@ export type Database = {
           display_name?: string | null
           exercise_id: string
           grip_ids?: string[] | null
+          handle_id?: string | null
           id?: string
           notes?: string | null
           order_index: number
@@ -3317,6 +3392,7 @@ export type Database = {
           display_name?: string | null
           exercise_id?: string
           grip_ids?: string[] | null
+          handle_id?: string | null
           id?: string
           notes?: string | null
           order_index?: number
@@ -3361,6 +3437,13 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "template_exercises_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
             referencedColumns: ["id"]
           },
           {
@@ -5413,6 +5496,8 @@ export type Database = {
           set_kind: Database["public"]["Enums"]["set_type"] | null
           settings: Json | null
           side: string | null
+          target_reps: number | null
+          target_weight: number | null
           total_weight_kg: number | null
           weight: number | null
           weight_per_side: number | null
@@ -5442,6 +5527,8 @@ export type Database = {
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           side?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
           total_weight_kg?: number | null
           weight?: number | null
           weight_per_side?: number | null
@@ -5471,6 +5558,8 @@ export type Database = {
           set_kind?: Database["public"]["Enums"]["set_type"] | null
           settings?: Json | null
           side?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
           total_weight_kg?: number | null
           weight?: number | null
           weight_per_side?: number | null
@@ -8652,6 +8741,13 @@ export type Database = {
       injury_severity: "mild" | "moderate" | "severe" | "chronic"
       load_medium: "bar" | "plates" | "stack" | "bodyweight" | "other"
       load_type: "none" | "single_load" | "dual_load" | "stack"
+      load_type_enum:
+        | "barbell"
+        | "single_load"
+        | "dual_load"
+        | "stack"
+        | "bodyweight"
+        | "fixed"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       movement_pattern:
         | "squat"
@@ -8859,6 +8955,14 @@ export const Constants = {
       injury_severity: ["mild", "moderate", "severe", "chronic"],
       load_medium: ["bar", "plates", "stack", "bodyweight", "other"],
       load_type: ["none", "single_load", "dual_load", "stack"],
+      load_type_enum: [
+        "barbell",
+        "single_load",
+        "dual_load",
+        "stack",
+        "bodyweight",
+        "fixed",
+      ],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       movement_pattern: [
         "squat",
