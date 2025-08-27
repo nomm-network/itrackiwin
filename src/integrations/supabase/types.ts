@@ -5299,8 +5299,10 @@ export type Database = {
           id: string
           is_superset_group: string | null
           load_entry_mode: string | null
+          load_type: Database["public"]["Enums"]["load_type"] | null
           notes: string | null
           order_index: number
+          per_side_weight: number | null
           selected_bar_id: string | null
           target_origin: string | null
           target_sets: number | null
@@ -5324,8 +5326,10 @@ export type Database = {
           id?: string
           is_superset_group?: string | null
           load_entry_mode?: string | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
           notes?: string | null
           order_index: number
+          per_side_weight?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
@@ -5349,8 +5353,10 @@ export type Database = {
           id?: string
           is_superset_group?: string | null
           load_entry_mode?: string | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
           notes?: string | null
           order_index?: number
+          per_side_weight?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
