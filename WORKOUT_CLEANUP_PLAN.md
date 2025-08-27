@@ -18,47 +18,47 @@ Full reset & curated seed: nuke test data → migrate schema → seed ~50 rock-s
 - [ ] Verify compatibility/link tables: handle_grip_compatibility
 - [ ] Verify user/workout history tables (will truncate, not drop)
 
-### 2) Migrate schema (add missing + remove confusing legacy) ❌
+### 2) Migrate schema (add missing + remove confusing legacy) ✅
 
-#### 2.1 Add slug to exercises (canonical key, required) ❌
-- [ ] Add slug column if missing
-- [ ] Create slugify helper function
-- [ ] Populate slug from EN translations
-- [ ] Enforce uniqueness with index
+#### 2.1 Add slug to exercises (canonical key, required) ✅
+- [x] Add slug column if missing
+- [x] Create slugify helper function
+- [x] Populate slug from EN translations
+- [x] Enforce uniqueness with index
 
-#### 2.2 Remove/retire legacy "name" columns ❌
-- [ ] Rename legacy name columns to name__deprecated on exercises
-- [ ] Rename legacy name columns on equipment/handles/grips if present
+#### 2.2 Remove/retire legacy "name" columns ✅
+- [x] Rename legacy name columns to name__deprecated on exercises
+- [x] Rename legacy name columns on equipment/handles/grips if present
 
-#### 2.3 Template exercise → add optional handle & default grips ❌
-- [ ] Add handle_id column to template_exercises
-- [ ] Add grip_ids array column to template_exercises
+#### 2.3 Template exercise → add optional handle & default grips ✅
+- [x] Add handle_id column to template_exercises
+- [x] Add grip_ids array column to template_exercises
 
-#### 2.4 Workout exercise → record actual chosen handle/grips/bar meta ❌
-- [ ] Add handle_id to workout_exercises
-- [ ] Add grip_ids array to workout_exercises  
-- [ ] Add bar_type_id to workout_exercises
-- [ ] Add load_type to workout_exercises
-- [ ] Add per_side_weight to workout_exercises
+#### 2.4 Workout exercise → record actual chosen handle/grips/bar meta ✅
+- [x] Add handle_id to workout_exercises
+- [x] Add grip_ids array to workout_exercises  
+- [x] Add bar_type_id to workout_exercises
+- [x] Add load_type to workout_exercises
+- [x] Add per_side_weight to workout_exercises
 
-### 3) Clean slate (truncate in the right order) ❌
-- [ ] Truncate workout_sets, workout_exercises, workouts
-- [ ] Truncate template_exercises, workout_templates
-- [ ] Truncate exercise_handle_grips, exercise_grips, exercise_handles
-- [ ] Optional: truncate user_exercise_estimates
+### 3) Clean slate (truncate in the right order) ✅
+- [x] Truncate workout_sets, workout_exercises, workouts
+- [x] Truncate template_exercises, workout_templates
+- [x] Truncate exercise_handle_grips, exercise_grips, exercise_handles
+- [x] Optional: truncate user_exercise_estimates
 
-### 4) Seed a clean "Top 50" exercise library ❌
+### 4) Seed a clean "Top 50" exercise library ⏳
 
-#### 4.1 Insert exercises + translations ❌
-**CHEST (8 exercises)**
-- [ ] Barbell Bench Press
-- [ ] Incline Dumbbell Press  
-- [ ] Decline Barbell Press
-- [ ] Dumbbell Flyes
-- [ ] Cable Crossover
-- [ ] Push-ups
-- [ ] Incline Barbell Press
-- [ ] Dips
+#### 4.1 Insert exercises + translations ⏳
+**CHEST (8 exercises)** ✅
+- [x] Barbell Bench Press
+- [x] Incline Dumbbell Press  
+- [x] Decline Barbell Press
+- [x] Dumbbell Flyes
+- [x] Cable Crossover
+- [x] Push-ups
+- [x] Incline Barbell Press
+- [x] Dips
 
 **BACK (10 exercises)**
 - [ ] Seated Cable Row
