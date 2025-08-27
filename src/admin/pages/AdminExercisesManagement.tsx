@@ -88,6 +88,8 @@ const AdminExercisesManagement: React.FC = () => {
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [formData, setFormData] = useState<{
+    name?: string;
+    description?: string;
     body_part_id?: string;
     primary_muscle_id?: string;
     secondary_muscle_group_ids?: string[];
@@ -95,6 +97,8 @@ const AdminExercisesManagement: React.FC = () => {
     is_public?: boolean;
     default_grip_ids?: string[];
   }>({
+    name: "",
+    description: "",
     body_part_id: "",
     primary_muscle_id: "",
     secondary_muscle_group_ids: [],
@@ -275,9 +279,67 @@ const AdminExercisesManagement: React.FC = () => {
   // Create/Update mutation
   const upsertMutation = useMutation({
     mutationFn: async (exerciseData: any) => {
-      // This is a simplified admin mutation that doesn't handle translations
-      // In a real implementation, you'd want to handle translations separately
-      throw new Error("Admin exercise mutations not implemented for translation system");
+      if (editingExercise) {
+        // Update existing exercise
+        const { error: exerciseError } = await supabase
+          .from("exercises")
+          .update({
+            body_part_id: exerciseData.body_part_id,
+            primary_muscle_id: exerciseData.primary_muscle_id,
+            secondary_muscle_group_ids: exerciseData.secondary_muscle_group_ids,
+            equipment_id: exerciseData.equipment_id,
+            is_public: exerciseData.is_public,
+            default_grip_ids: exerciseData.default_grip_ids,
+          })
+          .eq("id", editingExercise.id);
+        
+        if (exerciseError) throw exerciseError;
+        
+        // Update translation for current language
+        if (exerciseData.name && exerciseData.name.trim()) {
+          const { error: translationError } = await supabase
+            .from("exercises_translations")
+            .upsert({
+              exercise_id: editingExercise.id,
+              language_code: "en", // Default to English for admin
+              name: exerciseData.name.trim(),
+              description: exerciseData.description?.trim() || null,
+            });
+          
+          if (translationError) throw translationError;
+        }
+      } else {
+        // Create new exercise
+        const { data: newExercise, error: exerciseError } = await supabase
+          .from("exercises")
+          .insert({
+            body_part_id: exerciseData.body_part_id,
+            primary_muscle_id: exerciseData.primary_muscle_id,
+            secondary_muscle_group_ids: exerciseData.secondary_muscle_group_ids,
+            equipment_id: exerciseData.equipment_id,
+            is_public: exerciseData.is_public,
+            default_grip_ids: exerciseData.default_grip_ids,
+            owner_user_id: null, // Admin-created exercises don't have an owner
+          })
+          .select()
+          .single();
+        
+        if (exerciseError) throw exerciseError;
+        
+        // Create translation for new exercise
+        if (exerciseData.name && exerciseData.name.trim()) {
+          const { error: translationError } = await supabase
+            .from("exercises_translations")
+            .insert({
+              exercise_id: newExercise.id,
+              language_code: "en", // Default to English for admin
+              name: exerciseData.name.trim(),
+              description: exerciseData.description?.trim() || null,
+            });
+          
+          if (translationError) throw translationError;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["admin_exercises"] });
@@ -285,6 +347,8 @@ const AdminExercisesManagement: React.FC = () => {
       setEditingExercise(null);
       setIsCreateDialogOpen(false);
       setFormData({
+        name: "",
+        description: "",
         body_part_id: "",
         primary_muscle_id: "",
         secondary_muscle_group_ids: [],
@@ -318,7 +382,17 @@ const AdminExercisesManagement: React.FC = () => {
   });
 
   const handleSave = () => {
-    toast({ title: "Error", description: "Exercise management with translations not implemented in admin", variant: "destructive" });
+    if (!formData.name?.trim()) {
+      toast({ title: "Error", description: "Exercise name is required", variant: "destructive" });
+      return;
+    }
+    
+    const dataToSave = {
+      ...formData,
+      default_grip_ids: selectedGrips,
+    };
+    
+    upsertMutation.mutate(dataToSave);
   };
 
   const handleDelete = (exercise: Exercise) => {
@@ -329,7 +403,10 @@ const AdminExercisesManagement: React.FC = () => {
 
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
+    const exerciseName = getExerciseNameFromTranslations(exercise.translations, exercise.id);
     setFormData({
+      name: exerciseName,
+      description: "", // Exercise descriptions are managed through translations separately
       body_part_id: exercise.body_part_id || "",
       primary_muscle_id: exercise.primary_muscle_id || "",
       secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || [],
@@ -453,6 +530,8 @@ const AdminExercisesManagement: React.FC = () => {
             if (!open) {
               setEditingExercise(null);
                 setFormData({
+                  name: "",
+                  description: "",
                   body_part_id: "",
                   primary_muscle_id: "",
                   secondary_muscle_group_ids: [],
@@ -467,6 +546,8 @@ const AdminExercisesManagement: React.FC = () => {
               <Button onClick={() => {
                 setEditingExercise(null);
                 setFormData({
+                  name: "",
+                  description: "",
                   body_part_id: "",
                   primary_muscle_id: "",
                   secondary_muscle_group_ids: [],
@@ -488,11 +569,27 @@ const AdminExercisesManagement: React.FC = () => {
                 </DialogTitle>
               </DialogHeader>
               <div className="grid gap-4 py-4">
-                <div className="p-4 bg-muted/20 rounded border">
-                  <p className="text-sm text-muted-foreground">
-                    Exercise name and description management is handled through the translation system. 
-                    Use the Exercise Translations admin panel to manage names and descriptions.
-                  </p>
+                <div className="grid gap-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="exercise-name">Exercise Name *</Label>
+                    <Input
+                      id="exercise-name"
+                      value={formData.name || ""}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="Enter exercise name..."
+                    />
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="exercise-description">Description</Label>
+                    <Textarea
+                      id="exercise-description"
+                      value={formData.description || ""}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Enter exercise description..."
+                      rows={3}
+                    />
+                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
