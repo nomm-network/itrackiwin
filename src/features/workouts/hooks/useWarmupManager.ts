@@ -1,7 +1,6 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { WarmupPlan, WarmupFeedback, GymConfig } from '../types/warmup';
-import { computeWarmupPlan, roundWarmupToGym } from '../utils/warmupPlanner';
+import { WarmupPlan, WarmupFeedback } from '../types/warmup-unified';
 
 export const useWarmupManager = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -9,38 +8,29 @@ export const useWarmupManager = () => {
 
   const recomputeWarmup = useCallback(async (opts: {
     workoutExerciseId: string;
-    workingWeight: number;
-    mainRepRange: [number, number];
-    feedback?: WarmupFeedback;
-    gym: GymConfig;
   }) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Compute new warmup plan
-      const plan = computeWarmupPlan({
-        workingWeight: opts.workingWeight,
-        mainRepRange: opts.mainRepRange,
-        feedback: opts.feedback,
-        gym: opts.gym
-      });
+      // Use the new database function to recalculate warmup
+      const { error: rpcError } = await supabase
+        .rpc('recalc_warmup_from_last_set', {
+          p_workout_exercise_id: opts.workoutExerciseId
+        });
 
-      // Apply gym rounding
-      const roundedPlan = roundWarmupToGym(plan, opts.gym);
+      if (rpcError) throw rpcError;
 
-      // Update in database
-      const { error: updateError } = await supabase
+      // Fetch the updated warmup plan
+      const { data: workoutExercise, error: fetchError } = await supabase
         .from('workout_exercises')
-        .update({ 
-          warmup_plan: roundedPlan as any,
-          warmup_updated_at: new Date().toISOString()
-        })
-        .eq('id', opts.workoutExerciseId);
+        .select('warmup_plan')
+        .eq('id', opts.workoutExerciseId)
+        .single();
 
-      if (updateError) throw updateError;
+      if (fetchError) throw fetchError;
 
-      return roundedPlan;
+      return workoutExercise.warmup_plan as unknown as WarmupPlan;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to recompute warmup';
       setError(errorMessage);
@@ -53,26 +43,23 @@ export const useWarmupManager = () => {
   const saveFeedback = useCallback(async (opts: {
     workoutExerciseId: string;
     feedback: WarmupFeedback;
-    existingPlan?: WarmupPlan;
   }) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      const updatedPlan = opts.existingPlan ? {
-        ...opts.existingPlan,
-        tuned_from_feedback: opts.feedback
-      } : null;
-
+      // Save feedback and trigger warmup recalculation
       const { error: updateError } = await supabase
         .from('workout_exercises')
         .update({
-          warmup_feedback: opts.feedback,
-          ...(updatedPlan && { warmup_plan: updatedPlan as any })
+          warmup_feedback: opts.feedback
         })
         .eq('id', opts.workoutExerciseId);
 
       if (updateError) throw updateError;
+
+      // Recalculate warmup with new feedback
+      await recomputeWarmup({ workoutExerciseId: opts.workoutExerciseId });
 
       return true;
     } catch (err) {
@@ -82,7 +69,7 @@ export const useWarmupManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [recomputeWarmup]);
 
   return {
     recomputeWarmup,

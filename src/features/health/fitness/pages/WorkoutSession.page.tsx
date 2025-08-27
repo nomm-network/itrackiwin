@@ -526,9 +526,9 @@ const WorkoutSession: React.FC = () => {
                         {completedExercises.has(ex.id) && (
                           <div className="mt-3">
                              <WarmupFeedback
-                               exerciseId={ex.exercise_id}
-                               onComplete={() => setCompletedExercises(prev => new Set([...prev, ex.id]))}
-                             />
+                                workoutExerciseId={ex.id}
+                                onComplete={() => setCompletedExercises(prev => new Set([...prev, ex.id]))}
+                              />
                           </div>
                         )}
                       </div>

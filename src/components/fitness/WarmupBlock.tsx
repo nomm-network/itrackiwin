@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import type { WarmupPlan, WarmupFeedback, GymConfig } from '@/features/workouts/types/warmup';
+import { WarmupPlan, WarmupFeedback } from '@/features/workouts/types/warmup-unified';
 import { useWarmupManager } from '@/features/workouts/hooks/useWarmupManager';
 import { suggestTarget, parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
 import { useAuth } from '@/hooks/useAuth';
@@ -128,22 +128,13 @@ export function WarmupBlock({
       setActualTopWeight(targetWeight);
 
       if (data?.warmup_plan) {
-        setPlan(data.warmup_plan as WarmupPlan);
+        setPlan(data.warmup_plan as unknown as WarmupPlan);
         setLocalFeedback(data.warmup_feedback as WarmupFeedback || null);
       } else {
         // Generate default plan if nothing saved
-        const defaultGym: GymConfig = {
-          loading_mode: 'barbell_sym',
-          bar_kg: 20,
-          min_plate_kg: 1.25
-        };
-
         try {
           const updatedPlan = await recomputeWarmup({
-            workoutExerciseId,
-            workingWeight: targetWeight,
-            mainRepRange: [6, 12],
-            gym: defaultGym
+            workoutExerciseId
           });
           
           setPlan(updatedPlan);
@@ -164,31 +155,23 @@ export function WarmupBlock({
     try {
       await saveFeedback({
         workoutExerciseId,
-        feedback: value,
-        existingPlan: plan || undefined
+        feedback: value
       });
       
       setLocalFeedback(value);
       toast.success('Warm-up feedback saved');
       onFeedbackGiven?.();
 
-      // Recompute warmup with new feedback if we have the necessary data
-      if (actualTopWeight && plan) {
-        const defaultGym: GymConfig = {
-          loading_mode: 'barbell_sym',
-          bar_kg: 20,
-          min_plate_kg: 1.25
-        };
-
-        const updatedPlan = await recomputeWarmup({
-          workoutExerciseId,
-          workingWeight: actualTopWeight,
-          mainRepRange: [6, 12], // Default range
-          feedback: value,
-          gym: defaultGym
-        });
-
-        setPlan(updatedPlan);
+      // The warmup will be automatically recalculated via the database trigger
+      // Fetch the updated plan
+      const { data } = await supabase
+        .from('workout_exercises')
+        .select('warmup_plan')
+        .eq('id', workoutExerciseId)
+        .single();
+      
+      if (data?.warmup_plan) {
+        setPlan(data.warmup_plan as unknown as WarmupPlan);
       }
     } catch (error) {
       toast.error('Failed to save warmup feedback');
@@ -205,10 +188,8 @@ export function WarmupBlock({
           <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
         </div>
         <div className="text-xs text-muted-foreground">
-          Strategy: {plan.strategy} • est. {plan.est_minutes} min
-          {plan.tuned_from_feedback && (
-            <span className="ml-2 text-blue-600">• adjusted from last feedback</span>
-          )}
+          Strategy: {plan.strategy} • Top: {plan.top_weight}kg
+          <span className="ml-2 text-blue-600">• Auto-adjusts from feedback</span>
         </div>
       </CardHeader>
 
@@ -217,11 +198,11 @@ export function WarmupBlock({
         <div className="rounded-md border p-3">
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
-            {plan?.steps?.map((s) => (
-              <li key={s.id} className="flex items-center justify-between text-sm">
-                <span className="font-mono">{s.id}</span>
-                <span>{Math.round(actualTopWeight * s.percent * 4) / 4}{unit} × {s.reps} reps</span>
-                <span className="text-muted-foreground">{s.rest_sec ?? 60}s rest</span>
+            {plan?.steps?.map((s, index) => (
+              <li key={index} className="flex items-center justify-between text-sm">
+                <span className="font-mono">{s.label}</span>
+                <span>{Math.round(plan.top_weight * s.percent * 4) / 4}{unit} × {s.reps} reps</span>
+                <span className="text-muted-foreground">{s.rest_sec}s rest</span>
               </li>
             )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
           </ol>
@@ -233,11 +214,11 @@ export function WarmupBlock({
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
-              onClick={() => save('not_enough')}
+              variant={localFeedback === 'too_little' ? 'default' : 'outline'}
+              onClick={() => save('too_little')}
               disabled={isLoading}
             >
-              🥶 Not enough
+              🥶 Too little
             </Button>
             <Button
               size="sm"

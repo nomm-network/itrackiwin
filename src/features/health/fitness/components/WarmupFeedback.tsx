@@ -3,25 +3,24 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useWarmupFeedback } from "@/features/workouts/warmup/useWarmupActions";
-
-type WarmupQuality = 'not_enough' | 'excellent' | 'too_much';
+import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
+import { WarmupFeedback as WarmupFeedbackType } from "@/features/workouts/types/warmup-unified";
 
 interface WarmupFeedbackProps {
-  exerciseId: string;
+  workoutExerciseId: string;
   onComplete?: () => void;
   className?: string;
 }
 
 const warmupOptions: Array<{
-  value: WarmupQuality;
+  value: WarmupFeedbackType;
   label: string;
   emoji: string;
   description: string;
 }> = [
   {
-    value: 'not_enough',
-    label: 'Not enough',
+    value: 'too_little',
+    label: 'Too little',
     emoji: '🥶',
     description: 'Needed more warm-up'
   },
@@ -40,22 +39,33 @@ const warmupOptions: Array<{
 ];
 
 const WarmupFeedback: React.FC<WarmupFeedbackProps> = ({
-  exerciseId,
+  workoutExerciseId,
   onComplete,
   className
 }) => {
   const { toast } = useToast();
-  const saveFeedbackMutation = useWarmupFeedback();
+  const { saveFeedback, isLoading } = useWarmupManager();
 
-  const handleFeedback = (quality: WarmupQuality) => {
-    // Simplified for now - would need workoutExerciseId and userId
-    console.log('Warmup feedback:', quality);
-    const option = warmupOptions.find(opt => opt.value === quality);
-    toast({
-      title: "Feedback noted",
-      description: option?.description,
-    });
-    onComplete?.();
+  const handleFeedback = async (quality: WarmupFeedbackType) => {
+    try {
+      await saveFeedback({
+        workoutExerciseId,
+        feedback: quality
+      });
+      
+      const option = warmupOptions.find(opt => opt.value === quality);
+      toast({
+        title: "Feedback saved",
+        description: option?.description,
+      });
+      onComplete?.();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to save feedback",
+        variant: "destructive"
+      });
+    }
   };
 
   return (
@@ -70,7 +80,7 @@ const WarmupFeedback: React.FC<WarmupFeedbackProps> = ({
               variant="outline"
               size="sm"
               onClick={() => handleFeedback(option.value)}
-              disabled={saveFeedbackMutation.isPending}
+              disabled={isLoading}
               className="flex flex-col items-center p-2 h-auto min-w-[80px]"
             >
               <span className="text-lg">{option.emoji}</span>
