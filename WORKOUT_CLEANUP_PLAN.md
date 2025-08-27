@@ -60,17 +60,17 @@ Full reset & curated seed: nuke test data → migrate schema → seed ~50 rock-s
 - [x] Incline Barbell Press
 - [x] Dips
 
-**BACK (10 exercises)**
-- [ ] Seated Cable Row
-- [ ] Lat Pulldown
-- [ ] Barbell Rows
-- [ ] T-Bar Row
-- [ ] Cable High Row
-- [ ] Wide Grip Pulldown
-- [ ] Reverse Flyes
-- [ ] Face Pulls
-- [ ] Shrugs
-- [ ] Deadlift
+**BACK (10 exercises)** ✅
+- [x] Seated Cable Row
+- [x] Lat Pulldown
+- [x] Barbell Rows
+- [x] T-Bar Row
+- [x] Cable High Row
+- [x] Wide Grip Pulldown
+- [x] Reverse Flyes
+- [x] Face Pulls
+- [x] Shrugs
+- [x] Deadlift
 
 **LEGS (12 exercises)**
 - [ ] Barbell Back Squat
@@ -155,5 +155,7 @@ Full reset & curated seed: nuke test data → migrate schema → seed ~50 rock-s
 
 ---
 
-## Current Status: Ready to Start ⏳
-**Next Action:** Begin with Step 0 (Preconditions) and Step 2 (Schema Migration)
+## Current Status: Steps 2, 3, and 4.1 (Chest & Back) Complete ✅ 
+**Next Action:** Continue seeding remaining exercises (Legs, Shoulders, Arms, Core) and then configure handle/grip relationships
+
+**Progress:** 18/50 exercises seeded (8 chest + 10 back)
