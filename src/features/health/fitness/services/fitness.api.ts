@@ -869,8 +869,21 @@ export const useAddSet = () => {
     mutationFn: async (params: {
       workoutExerciseId: string; 
       payload: {
-        reps: number;
-        weight: number;
+        // Bilateral fields
+        reps?: number;
+        weight?: number;
+        
+        // Unilateral fields
+        left_weight?: number;
+        left_reps?: number;
+        right_weight?: number;
+        right_reps?: number;
+        is_alternating?: boolean;
+        side?: string;
+        side_pair_key?: string;
+        side_order?: number;
+        
+        // Common fields
         rpe?: number;
         notes?: string;
         had_pain?: boolean;
@@ -902,8 +915,22 @@ export const useAddSet = () => {
       const insertData = {
         workout_exercise_id: workoutExerciseId,
         set_index: nextIndex,
-        reps: payload.reps,
-        weight: payload.weight,
+        
+        // Bilateral fields
+        reps: payload.reps ?? null,
+        weight: payload.weight ?? null,
+        
+        // Unilateral fields
+        left_weight: payload.left_weight ?? null,
+        left_reps: payload.left_reps ?? null,
+        right_weight: payload.right_weight ?? null,
+        right_reps: payload.right_reps ?? null,
+        is_alternating: payload.is_alternating ?? null,
+        side: payload.side ?? 'n/a',
+        side_pair_key: payload.side_pair_key ?? null,
+        side_order: payload.side_order ?? null,
+        
+        // Common fields
         rpe: payload.rpe ?? null,
         notes: payload.notes ?? null,
         had_pain: payload.had_pain ?? false,

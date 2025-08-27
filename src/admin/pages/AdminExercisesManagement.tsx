@@ -322,6 +322,7 @@ const AdminExercisesManagement: React.FC = () => {
             is_public: exerciseData.is_public,
             default_grip_ids: exerciseData.default_grip_ids,
             owner_user_id: null, // Admin-created exercises don't have an owner
+            slug: exerciseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
           })
           .select()
           .single();

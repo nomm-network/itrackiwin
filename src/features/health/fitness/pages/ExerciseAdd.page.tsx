@@ -216,6 +216,7 @@ const primaryMusclesOptions = React.useMemo(() => {
         source_url: values.source_url || null,
         is_public: values.is_public,
         owner_user_id: userId,
+        slug: values.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
       };
 
       console.log('[ExerciseAdd] FINAL PAYLOAD BEING SENT:', JSON.stringify(payload, null, 2));

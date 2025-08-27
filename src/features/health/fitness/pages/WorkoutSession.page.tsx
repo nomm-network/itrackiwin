@@ -40,6 +40,7 @@ import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
+import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -134,6 +135,37 @@ const WorkoutSession: React.FC = () => {
     if (!id) return;
     await addExMut.mutateAsync({ workoutId: id, exerciseId });
     setQ("");
+  };
+
+  // New handler for adaptive sets (bilateral/unilateral)
+  const handleSetSubmit = async (workoutExerciseId: string, setData: any) => {
+    try {
+      const result = await addSetMut.mutateAsync({
+        workoutExerciseId,
+        payload: setData
+      });
+      
+      setCurrentSetData({});
+      
+      // Store the set ID for effort tracking
+      setLastCompletedSetId(result?.id || Math.random().toString());
+      
+      const description = setData.weight 
+        ? `Added ${setData.weight}kg × ${setData.reps} reps`
+        : `Added unilateral set`;
+      
+      toast({
+        title: "Set added!",
+        description,
+      });
+    } catch (error) {
+      console.error('Error in handleSetSubmit:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add set. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
   const addSet = async (workoutExerciseId: string, form: HTMLFormElement) => {
@@ -483,53 +515,12 @@ const WorkoutSession: React.FC = () => {
                         </div>
                         
                          {/* Add Set Form */}
-                        <form 
-                          className="space-y-3"
-                          onSubmit={(e) => {
-                            e.preventDefault();
-                            addSet(ex.id, e.currentTarget);
-                          }}
-                        >
-                          <div className="grid grid-cols-4 gap-2">
-                            <Input name="weight" placeholder={`Weight (${unit})`} inputMode="decimal" />
-                            <Input name="reps" placeholder="Reps" inputMode="numeric" />
-                            <Input name="rpe" placeholder="RPE" inputMode="decimal" />
-                            <Input name="notes" placeholder="Notes" />
-                            <input type="hidden" name="unit" value={unit} />
-                          </div>
-                          
-                          {/* Effort and Pain Selection */}
-                          <div className="space-y-2">
-                            <div>
-                              <label className="text-sm font-medium">How did that feel?</label>
-                              <EffortChips
-                                value={currentSetData.effort}
-                                onChange={(effort) => setCurrentSetData(prev => ({ ...prev, effort }))}
-                                className="mt-1"
-                              />
-                            </div>
-                            
-                            <div className="flex items-center gap-2">
-                              <input 
-                                type="checkbox" 
-                                id={`pain-${ex.id}`} 
-                                className="w-4 h-4" 
-                                checked={currentSetData.hadPain || false}
-                                onChange={(e) => setCurrentSetData(prev => ({ ...prev, hadPain: e.target.checked }))}
-                              />
-                              <label htmlFor={`pain-${ex.id}`} className="text-sm">Had pain during set</label>
-                            </div>
-                          </div>
-                          
-                          <Button 
-                            type="submit" 
-                            size="sm" 
-                            disabled={addSetMut.isPending} 
-                            className="w-full"
-                          >
-                            {addSetMut.isPending ? 'Adding Set...' : 'Add Set'}
-                          </Button>
-                        </form>
+                        <AdaptiveSetForm 
+                          exerciseId={ex.id}
+                          onSubmit={(setData) => handleSetSubmit(ex.id, setData)}
+                          isLoading={addSetMut.isPending}
+                          unit={unit}
+                        />
                         
                         {/* Show warmup feedback after last set */}
                         {completedExercises.has(ex.id) && (
