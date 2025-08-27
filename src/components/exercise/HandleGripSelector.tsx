@@ -3,10 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Loader2 } from "lucide-react";
-import { useHandles } from "@/hooks/useHandles";
-import { useCompatibleGrips } from "@/hooks/useHandleGripCompatibility";
+import { useExerciseHandles, pickHandleName } from "@/hooks/useExerciseHandles";
+import { useGrips } from "@/hooks/useGrips";
 
 interface HandleGripSelectorProps {
+  exerciseId?: string;
   selectedHandleId?: string;
   selectedGripIds?: string[];
   onHandleChange: (handleId: string) => void;
@@ -15,28 +16,18 @@ interface HandleGripSelectorProps {
 }
 
 export function HandleGripSelector({
+  exerciseId,
   selectedHandleId,
   selectedGripIds = [],
   onHandleChange,
   onGripChange,
   multiSelect = true
 }: HandleGripSelectorProps) {
-  const { data: handles, isLoading: handlesLoading } = useHandles();
-  const { data: compatibleGrips, isLoading: gripsLoading } = useCompatibleGrips(selectedHandleId);
+  const { data: exerciseHandles, isLoading: handlesLoading } = useExerciseHandles(exerciseId);
+  const { data: allGrips, isLoading: gripsLoading } = useGrips();
 
-  // Auto-select default grips when handle changes
-  useEffect(() => {
-    if (selectedHandleId && compatibleGrips && compatibleGrips.length > 0) {
-      const defaultGrips = compatibleGrips.filter(grip => grip.is_default);
-      if (defaultGrips.length > 0 && selectedGripIds.length === 0) {
-        if (multiSelect) {
-          onGripChange(defaultGrips.map(grip => grip.id));
-        } else {
-          onGripChange([defaultGrips[0].id]);
-        }
-      }
-    }
-  }, [selectedHandleId, compatibleGrips, selectedGripIds.length, multiSelect, onGripChange]);
+  // For now, show all grips when a handle is selected
+  // TODO: Implement handle-specific grip compatibility later
 
   const handleGripToggle = (gripId: string) => {
     if (multiSelect) {
@@ -71,16 +62,16 @@ export function HandleGripSelector({
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {handles?.map((handle) => (
+            {exerciseHandles?.map((exerciseHandle) => (
               <Button
-                key={handle.id}
-                variant={selectedHandleId === handle.id ? "default" : "outline"}
+                key={exerciseHandle.handle_id}
+                variant={selectedHandleId === exerciseHandle.handle_id ? "default" : "outline"}
                 className="h-auto p-4 text-left flex-col items-start justify-start"
-                onClick={() => onHandleChange(handle.id)}
+                onClick={() => onHandleChange(exerciseHandle.handle_id)}
               >
-                <span className="font-semibold">{handle.name}</span>
-                {handle.description && (
-                  <span className="text-xs opacity-70 mt-1">{handle.description}</span>
+                <span className="font-semibold">{pickHandleName(exerciseHandle)}</span>
+                {exerciseHandle.is_default && (
+                  <span className="text-xs text-blue-600 mt-1">(recommended)</span>
                 )}
               </Button>
             ))}
@@ -100,9 +91,9 @@ export function HandleGripSelector({
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
                 <span>Loading compatible grips...</span>
               </div>
-            ) : compatibleGrips && compatibleGrips.length > 0 ? (
+            ) : allGrips && allGrips.length > 0 ? (
               <div className="flex flex-wrap gap-2">
-                {compatibleGrips.map((grip) => (
+                {allGrips.map((grip) => (
                   <Badge
                     key={grip.id}
                     variant={selectedGripIds.includes(grip.id) ? "default" : "outline"}
@@ -110,14 +101,11 @@ export function HandleGripSelector({
                     onClick={() => handleGripToggle(grip.id)}
                   >
                     {grip.name}
-                    {grip.is_default && (
-                      <span className="ml-1 text-xs opacity-70">(recommended)</span>
-                    )}
                   </Badge>
                 ))}
               </div>
             ) : (
-              <p className="text-muted-foreground">No compatible grips found for this handle.</p>
+              <p className="text-muted-foreground">No grips available.</p>
             )}
           </CardContent>
         </Card>

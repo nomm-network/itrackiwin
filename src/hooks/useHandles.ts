@@ -22,15 +22,14 @@ export const useHandles = () => {
         .select(`
           id,
           slug,
-          name,
-          description,
-          translations:handles_translations(
+          category,
+          translations:handle_translations(
             name,
             description,
             language_code
           )
         `)
-        .order('name');
+        .order('slug');
 
       if (error) throw error;
 
@@ -38,7 +37,6 @@ export const useHandles = () => {
       const processedData = data?.map(handle => ({
         ...handle,
         name: handle.translations?.[0]?.name || 
-              handle.name || 
               handle.slug.split('-').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ')

@@ -753,7 +753,7 @@ const TemplateEditor: React.FC = () => {
                                       {templateExercise.target_weight && ` @ ${templateExercise.target_weight}${templateExercise.weight_unit}`}
                                     </p>
                                     
-                                    {/* Display handle - Note: handle_id not yet implemented in DB */}
+                                    {/* TODO: Display selected handle here */}
                                     
                                     {/* Display grips */}
                                     {templateExercise.grip_ids && templateExercise.grip_ids.length > 0 && (

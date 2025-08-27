@@ -143,6 +143,7 @@ export default function ExerciseConfigDialog({
             <Label>Grips & Handles</Label>
             <div className="mt-2">
               <HandleGripSelector
+                exerciseId={exercise?.id}
                 selectedHandleId={selectedHandleId}
                 selectedGripIds={selectedGrips}
                 onHandleChange={setSelectedHandleId}
