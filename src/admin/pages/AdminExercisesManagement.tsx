@@ -295,7 +295,7 @@ const AdminExercisesManagement: React.FC = () => {
         
         if (exerciseError) throw exerciseError;
         
-        // Update translation for current language
+        // Upsert translation for current language
         if (exerciseData.name && exerciseData.name.trim()) {
           const { error: translationError } = await supabase
             .from("exercises_translations")
@@ -304,6 +304,8 @@ const AdminExercisesManagement: React.FC = () => {
               language_code: "en", // Default to English for admin
               name: exerciseData.name.trim(),
               description: exerciseData.description?.trim() || null,
+            }, {
+              onConflict: 'exercise_id,language_code'
             });
           
           if (translationError) throw translationError;
@@ -326,15 +328,17 @@ const AdminExercisesManagement: React.FC = () => {
         
         if (exerciseError) throw exerciseError;
         
-        // Create translation for new exercise
+        // Upsert translation for new exercise (use upsert in case translation already exists)
         if (exerciseData.name && exerciseData.name.trim()) {
           const { error: translationError } = await supabase
             .from("exercises_translations")
-            .insert({
+            .upsert({
               exercise_id: newExercise.id,
               language_code: "en", // Default to English for admin
               name: exerciseData.name.trim(),
               description: exerciseData.description?.trim() || null,
+            }, {
+              onConflict: 'exercise_id,language_code'
             });
           
           if (translationError) throw translationError;
