@@ -1063,6 +1063,7 @@ export type Database = {
           popularity_rank: number | null
           primary_muscle_id: string | null
           secondary_muscle_group_ids: string[] | null
+          slug: string | null
           source_url: string | null
           thumbnail_url: string | null
         }
@@ -1091,6 +1092,7 @@ export type Database = {
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           secondary_muscle_group_ids?: string[] | null
+          slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
         }
@@ -1119,6 +1121,7 @@ export type Database = {
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           secondary_muscle_group_ids?: string[] | null
+          slug?: string | null
           source_url?: string | null
           thumbnail_url?: string | null
         }
