@@ -1926,7 +1926,7 @@ export type Database = {
           movement_pattern:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
-          owner_user_id: string
+          owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
           requires_handle: boolean | null
@@ -1960,7 +1960,7 @@ export type Database = {
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
-          owner_user_id: string
+          owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           requires_handle?: boolean | null
@@ -1994,7 +1994,7 @@ export type Database = {
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
-          owner_user_id?: string
+          owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
           requires_handle?: boolean | null
