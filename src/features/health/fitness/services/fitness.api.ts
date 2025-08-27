@@ -94,6 +94,7 @@ export interface TemplateExercise {
   notes?: string | null;
   grip_ids?: string[] | null;
   display_name?: string | null;
+  handle_id?: string | null;
 }
 
 export interface PersonalRecord {

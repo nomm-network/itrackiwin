@@ -429,7 +429,7 @@ const primaryMusclesOptions = React.useMemo(() => {
                 <p className="text-xs text-muted-foreground">Upload images for this exercise (first becomes thumbnail).</p>
               </div>
 
-              <div className="flex gap-2 pt-2">
+              <div className="flex gap-2 pt-2 pb-20">
                 <Button type="button" variant="secondary" asChild>
                   <Link to="/fitness/exercises">Cancel</Link>
                 </Button>
