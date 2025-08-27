@@ -189,6 +189,537 @@ export type Database = {
           },
         ]
       }
+      bak_exercise_grips: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          grip_id: string
+          is_default: boolean
+          order_index: number
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          grip_id: string
+          is_default?: boolean
+          order_index?: number
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          grip_id?: string
+          is_default?: boolean
+          order_index?: number
+        }
+        Relationships: []
+      }
+      bak_exercise_handle_grips: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          grip_id: string
+          handle_id: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          grip_id: string
+          handle_id: string
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          grip_id?: string
+          handle_id?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      bak_exercise_handles: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+        }
+        Relationships: []
+      }
+      bak_exercises: {
+        Row: {
+          allows_grips: boolean | null
+          body_part_id: string | null
+          capability_schema: Json | null
+          complexity_score: number | null
+          contraindications: Json | null
+          created_at: string
+          default_bar_type_id: string | null
+          default_bar_weight: number | null
+          default_grip_ids: string[] | null
+          default_handle_ids: string[] | null
+          equipment_id: string
+          exercise_skill_level:
+            | Database["public"]["Enums"]["exercise_skill_level"]
+            | null
+          id: string
+          image_url: string | null
+          is_bar_loaded: boolean
+          is_public: boolean
+          is_unilateral: boolean | null
+          load_type: Database["public"]["Enums"]["load_type_enum"] | null
+          loading_hint: string | null
+          movement_pattern:
+            | Database["public"]["Enums"]["movement_pattern"]
+            | null
+          owner_user_id: string
+          popularity_rank: number | null
+          primary_muscle_id: string | null
+          requires_handle: boolean | null
+          secondary_muscle_group_ids: string[] | null
+          slug: string
+          source_url: string | null
+          thumbnail_url: string | null
+        }
+        Insert: {
+          allows_grips?: boolean | null
+          body_part_id?: string | null
+          capability_schema?: Json | null
+          complexity_score?: number | null
+          contraindications?: Json | null
+          created_at?: string
+          default_bar_type_id?: string | null
+          default_bar_weight?: number | null
+          default_grip_ids?: string[] | null
+          default_handle_ids?: string[] | null
+          equipment_id: string
+          exercise_skill_level?:
+            | Database["public"]["Enums"]["exercise_skill_level"]
+            | null
+          id?: string
+          image_url?: string | null
+          is_bar_loaded?: boolean
+          is_public?: boolean
+          is_unilateral?: boolean | null
+          load_type?: Database["public"]["Enums"]["load_type_enum"] | null
+          loading_hint?: string | null
+          movement_pattern?:
+            | Database["public"]["Enums"]["movement_pattern"]
+            | null
+          owner_user_id: string
+          popularity_rank?: number | null
+          primary_muscle_id?: string | null
+          requires_handle?: boolean | null
+          secondary_muscle_group_ids?: string[] | null
+          slug: string
+          source_url?: string | null
+          thumbnail_url?: string | null
+        }
+        Update: {
+          allows_grips?: boolean | null
+          body_part_id?: string | null
+          capability_schema?: Json | null
+          complexity_score?: number | null
+          contraindications?: Json | null
+          created_at?: string
+          default_bar_type_id?: string | null
+          default_bar_weight?: number | null
+          default_grip_ids?: string[] | null
+          default_handle_ids?: string[] | null
+          equipment_id?: string
+          exercise_skill_level?:
+            | Database["public"]["Enums"]["exercise_skill_level"]
+            | null
+          id?: string
+          image_url?: string | null
+          is_bar_loaded?: boolean
+          is_public?: boolean
+          is_unilateral?: boolean | null
+          load_type?: Database["public"]["Enums"]["load_type_enum"] | null
+          loading_hint?: string | null
+          movement_pattern?:
+            | Database["public"]["Enums"]["movement_pattern"]
+            | null
+          owner_user_id?: string
+          popularity_rank?: number | null
+          primary_muscle_id?: string | null
+          requires_handle?: boolean | null
+          secondary_muscle_group_ids?: string[] | null
+          slug?: string
+          source_url?: string | null
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
+      bak_exercises_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          exercise_id: string
+          id: string
+          language_code: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          exercise_id: string
+          id?: string
+          language_code: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          exercise_id?: string
+          id?: string
+          language_code?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      bak_template_exercises: {
+        Row: {
+          backoff_percent: number | null
+          backoff_sets: number | null
+          default_sets: number
+          default_warmup_plan: Json | null
+          display_name: string | null
+          exercise_id: string
+          grip_ids: string[] | null
+          handle_id: string | null
+          id: string
+          notes: string | null
+          order_index: number
+          progression_policy_id: string | null
+          rep_range_max: number | null
+          rep_range_min: number | null
+          set_scheme: string | null
+          target_rep_max: number | null
+          target_rep_min: number | null
+          target_reps: number | null
+          target_settings: Json | null
+          target_weight: number | null
+          template_id: string
+          top_set_percent_1rm: number | null
+          warmup_policy_id: string | null
+          weight_unit: string
+        }
+        Insert: {
+          backoff_percent?: number | null
+          backoff_sets?: number | null
+          default_sets?: number
+          default_warmup_plan?: Json | null
+          display_name?: string | null
+          exercise_id: string
+          grip_ids?: string[] | null
+          handle_id?: string | null
+          id?: string
+          notes?: string | null
+          order_index: number
+          progression_policy_id?: string | null
+          rep_range_max?: number | null
+          rep_range_min?: number | null
+          set_scheme?: string | null
+          target_rep_max?: number | null
+          target_rep_min?: number | null
+          target_reps?: number | null
+          target_settings?: Json | null
+          target_weight?: number | null
+          template_id: string
+          top_set_percent_1rm?: number | null
+          warmup_policy_id?: string | null
+          weight_unit?: string
+        }
+        Update: {
+          backoff_percent?: number | null
+          backoff_sets?: number | null
+          default_sets?: number
+          default_warmup_plan?: Json | null
+          display_name?: string | null
+          exercise_id?: string
+          grip_ids?: string[] | null
+          handle_id?: string | null
+          id?: string
+          notes?: string | null
+          order_index?: number
+          progression_policy_id?: string | null
+          rep_range_max?: number | null
+          rep_range_min?: number | null
+          set_scheme?: string | null
+          target_rep_max?: number | null
+          target_rep_min?: number | null
+          target_reps?: number | null
+          target_settings?: Json | null
+          target_weight?: number | null
+          template_id?: string
+          top_set_percent_1rm?: number | null
+          warmup_policy_id?: string | null
+          weight_unit?: string
+        }
+        Relationships: []
+      }
+      bak_workout_exercises: {
+        Row: {
+          bar_type_id: string | null
+          display_name: string | null
+          exercise_id: string
+          grip_ids: string[] | null
+          grip_key: string | null
+          group_id: string | null
+          handle_id: string | null
+          id: string
+          is_superset_group: string | null
+          load_entry_mode: string | null
+          load_type: Database["public"]["Enums"]["load_type"] | null
+          notes: string | null
+          order_index: number
+          per_side_weight: number | null
+          selected_bar_id: string | null
+          target_origin: string | null
+          target_sets: number | null
+          warmup_feedback: string | null
+          warmup_feedback_at: string | null
+          warmup_plan: Json | null
+          warmup_quality: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_snapshot: string | null
+          warmup_updated_at: string | null
+          weight_input_mode: string | null
+          workout_id: string
+        }
+        Insert: {
+          bar_type_id?: string | null
+          display_name?: string | null
+          exercise_id: string
+          grip_ids?: string[] | null
+          grip_key?: string | null
+          group_id?: string | null
+          handle_id?: string | null
+          id?: string
+          is_superset_group?: string | null
+          load_entry_mode?: string | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+          notes?: string | null
+          order_index: number
+          per_side_weight?: number | null
+          selected_bar_id?: string | null
+          target_origin?: string | null
+          target_sets?: number | null
+          warmup_feedback?: string | null
+          warmup_feedback_at?: string | null
+          warmup_plan?: Json | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_snapshot?: string | null
+          warmup_updated_at?: string | null
+          weight_input_mode?: string | null
+          workout_id: string
+        }
+        Update: {
+          bar_type_id?: string | null
+          display_name?: string | null
+          exercise_id?: string
+          grip_ids?: string[] | null
+          grip_key?: string | null
+          group_id?: string | null
+          handle_id?: string | null
+          id?: string
+          is_superset_group?: string | null
+          load_entry_mode?: string | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+          notes?: string | null
+          order_index?: number
+          per_side_weight?: number | null
+          selected_bar_id?: string | null
+          target_origin?: string | null
+          target_sets?: number | null
+          warmup_feedback?: string | null
+          warmup_feedback_at?: string | null
+          warmup_plan?: Json | null
+          warmup_quality?: Database["public"]["Enums"]["warmup_quality"] | null
+          warmup_snapshot?: string | null
+          warmup_updated_at?: string | null
+          weight_input_mode?: string | null
+          workout_id?: string
+        }
+        Relationships: []
+      }
+      bak_workout_sets: {
+        Row: {
+          bar_id: string | null
+          bar_type_id: string | null
+          completed_at: string | null
+          distance: number | null
+          duration_seconds: number | null
+          effort: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating: number | null
+          had_pain: boolean | null
+          heart_rate: number | null
+          id: string
+          is_completed: boolean | null
+          load_entry_mode: string | null
+          load_meta: Json
+          load_one_side_kg: number | null
+          notes: string | null
+          reps: number | null
+          rest_seconds: number | null
+          rpe: number | null
+          set_index: number | null
+          set_kind: Database["public"]["Enums"]["set_type"] | null
+          settings: Json | null
+          side: string | null
+          target_reps: number | null
+          target_weight: number | null
+          total_weight_kg: number | null
+          weight: number | null
+          weight_per_side: number | null
+          weight_unit: string | null
+          workout_exercise_id: string
+        }
+        Insert: {
+          bar_id?: string | null
+          bar_type_id?: string | null
+          completed_at?: string | null
+          distance?: number | null
+          duration_seconds?: number | null
+          effort?: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating?: number | null
+          had_pain?: boolean | null
+          heart_rate?: number | null
+          id?: string
+          is_completed?: boolean | null
+          load_entry_mode?: string | null
+          load_meta?: Json
+          load_one_side_kg?: number | null
+          notes?: string | null
+          reps?: number | null
+          rest_seconds?: number | null
+          rpe?: number | null
+          set_index?: number | null
+          set_kind?: Database["public"]["Enums"]["set_type"] | null
+          settings?: Json | null
+          side?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
+          total_weight_kg?: number | null
+          weight?: number | null
+          weight_per_side?: number | null
+          weight_unit?: string | null
+          workout_exercise_id: string
+        }
+        Update: {
+          bar_id?: string | null
+          bar_type_id?: string | null
+          completed_at?: string | null
+          distance?: number | null
+          duration_seconds?: number | null
+          effort?: Database["public"]["Enums"]["effort_code"] | null
+          effort_rating?: number | null
+          had_pain?: boolean | null
+          heart_rate?: number | null
+          id?: string
+          is_completed?: boolean | null
+          load_entry_mode?: string | null
+          load_meta?: Json
+          load_one_side_kg?: number | null
+          notes?: string | null
+          reps?: number | null
+          rest_seconds?: number | null
+          rpe?: number | null
+          set_index?: number | null
+          set_kind?: Database["public"]["Enums"]["set_type"] | null
+          settings?: Json | null
+          side?: string | null
+          target_reps?: number | null
+          target_weight?: number | null
+          total_weight_kg?: number | null
+          weight?: number | null
+          weight_per_side?: number | null
+          weight_unit?: string | null
+          workout_exercise_id?: string
+        }
+        Relationships: []
+      }
+      bak_workout_templates: {
+        Row: {
+          created_at: string
+          id: string
+          name: string | null
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string | null
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      bak_workouts: {
+        Row: {
+          created_at: string
+          ended_at: string | null
+          estimated_duration_minutes: number | null
+          id: string
+          notes: string | null
+          perceived_exertion: number | null
+          started_at: string
+          title: string | null
+          total_duration_seconds: number | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          ended_at?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          perceived_exertion?: number | null
+          started_at?: string
+          title?: string | null
+          total_duration_seconds?: number | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          ended_at?: string | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          notes?: string | null
+          perceived_exertion?: number | null
+          started_at?: string
+          title?: string | null
+          total_duration_seconds?: number | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       bar_types: {
         Row: {
           default_weight: number
