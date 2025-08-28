@@ -384,13 +384,13 @@ const previewName = useMemo(() => {
           <div className="space-y-6">
             {/* Tab Navigation */}
             <div className="border-b border-border">
-              <nav className="flex space-x-8" aria-label="Exercise configuration tabs">
+              <nav className="flex space-x-4" aria-label="Exercise configuration tabs">
                 {[
                   { id: 'basics', label: 'Basics' },
                   { id: 'equipment', label: 'Equipment' },
                   { id: 'handles-grips', label: 'Handles & Grips' },
                   { id: 'attributes', label: 'Attributes' },
-                  { id: 'advanced', label: 'Advanced' }
+                  { id: 'advanced', label: 'Adv.' }
                 ].map((tab) => (
                   <button
                     key={tab.id}
