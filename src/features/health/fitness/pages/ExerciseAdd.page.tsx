@@ -57,6 +57,7 @@ type FormValues = z.infer<typeof schema>;
 const ExerciseAdd: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const [activeTab, setActiveTab] = useState('basics');
   const location = useLocation();
   const isAdminContext = location.pathname.startsWith('/admin');
   useSEO();
@@ -380,142 +381,301 @@ const previewName = useMemo(() => {
         ) : loading ? (
           <p className="text-muted-foreground">Loading options…</p>
         ) : (
-          <form className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" onSubmit={form.handleSubmit(onSubmit)}>
-            <section className="lg:col-span-2 space-y-6">
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <Label className="text-sm font-medium">Exercise Name</Label>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={form.watch('use_custom_name')}
-                      onCheckedChange={(checked) => form.setValue('use_custom_name', checked)}
-                    />
-                    <span className="text-sm text-muted-foreground">Use custom name</span>
-                  </div>
-                </div>
-                
-                {form.watch('use_custom_name') ? (
-                  <div className="space-y-2">
-                    <Input
-                      {...form.register('custom_display_name')}
-                      placeholder="Enter custom exercise name"
-                    />
-                  </div>
-                ) : (
-                  <div className="p-3 bg-muted rounded-md">
-                    {previewName ? (
-                      <div>
-                        <p className="text-sm font-medium text-foreground">{previewName}</p>
-                        <p className="text-xs text-muted-foreground mt-1">
-                          Auto-generated based on your selections
-                        </p>
+          <div className="space-y-6">
+            {/* Tab Navigation */}
+            <div className="border-b border-border">
+              <nav className="flex space-x-8" aria-label="Exercise configuration tabs">
+                {[
+                  { id: 'basics', label: 'Basics' },
+                  { id: 'equipment', label: 'Equipment' },
+                  { id: 'handles-grips', label: 'Handles & Grips' },
+                  { id: 'attributes', label: 'Attributes' },
+                  { id: 'advanced', label: 'Advanced' }
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    onClick={() => setActiveTab(tab.id)}
+                    className={`py-2 px-1 border-b-2 font-medium text-sm ${
+                      activeTab === tab.id
+                        ? 'border-primary text-primary'
+                        : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                    }`}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </nav>
+            </div>
+
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+              {/* Basics Tab */}
+              {activeTab === 'basics' && (
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+                  <section className="lg:col-span-2 space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <Label className="text-sm font-medium">Exercise Name</Label>
+                        <div className="flex items-center gap-2">
+                          <Switch
+                            checked={form.watch('use_custom_name')}
+                            onCheckedChange={(checked) => form.setValue('use_custom_name', checked)}
+                          />
+                          <span className="text-sm text-muted-foreground">Use custom name</span>
+                        </div>
                       </div>
-                    ) : (
-                      <p className="text-sm text-muted-foreground">
-                        Exercise name will be automatically generated based on your selections
-                      </p>
-                    )}
-                  </div>
-                )}
-              </div>
+                      
+                      {form.watch('use_custom_name') ? (
+                        <div className="space-y-2">
+                          <Input
+                            {...form.register('custom_display_name')}
+                            placeholder="e.g., Barbell Bench Press"
+                          />
+                        </div>
+                      ) : (
+                        <div className="p-3 bg-muted rounded-md">
+                          {previewName ? (
+                            <div>
+                              <p className="text-sm font-medium text-foreground">{previewName}</p>
+                              <p className="text-xs text-muted-foreground mt-1">
+                                Auto-generated from name
+                              </p>
+                            </div>
+                          ) : (
+                            <p className="text-sm text-muted-foreground">
+                              Auto-generated from name
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" rows={5} {...form.register('description')} placeholder="Brief instructions, cues, etc." />
-              </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="slug">Slug</Label>
+                      <Input 
+                        id="slug" 
+                        value="Auto-generated from name" 
+                        disabled 
+                        className="bg-muted text-muted-foreground" 
+                      />
+                    </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Body</Label>
-                  <Select onValueChange={(v) => { form.setValue('body_part_id', v); form.setValue('primary_muscle_group_id', ''); form.setValue('primary_muscle_id', ''); }} value={form.watch('body_part_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body part" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bodyParts.map((bp) => (
-                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    <div className="space-y-2">
+                      <Label htmlFor="description">Description</Label>
+                      <Textarea 
+                        id="description" 
+                        rows={4} 
+                        {...form.register('description')} 
+                        placeholder="Exercise description and cues" 
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="space-y-2">
+                        <Label>Body Part *</Label>
+                        <Select onValueChange={(v) => { form.setValue('body_part_id', v); form.setValue('primary_muscle_group_id', ''); form.setValue('primary_muscle_id', ''); }} value={form.watch('body_part_id') || ''}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select body part" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {bodyParts.map((bp) => (
+                              <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Muscle Group *</Label>
+                        <Select onValueChange={(v) => { form.setValue('primary_muscle_group_id', v); form.setValue('primary_muscle_id', ''); }} value={form.watch('primary_muscle_group_id') || ''}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select muscle group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {filteredMuscleGroups.map((g) => (
+                              <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label>Primary Muscle</Label>
+                        <Select onValueChange={(v) => form.setValue('primary_muscle_id', v)} value={form.watch('primary_muscle_id') || ''} disabled={!form.watch('primary_muscle_group_id')}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select primary muscle" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {primaryMusclesOptions.map((mu) => (
+                              <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <SecondaryMuscleGroupSelector
+                      bodyParts={bodyParts}
+                      muscleGroups={muscleGroups}
+                      selectedMuscleGroupIds={form.watch('secondary_muscle_group_ids') || []}
+                      excludedMuscleGroupId={form.watch('primary_muscle_group_id') || ''}
+                      onChange={(ids) => form.setValue('secondary_muscle_group_ids', ids)}
+                    />
+
+                    <div className="space-y-2">
+                      <Label htmlFor="source_url">Source URL (optional)</Label>
+                      <Input id="source_url" {...form.register('source_url')} placeholder="https://example.com" />
+                    </div>
+                  </section>
+
+                  <aside className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Images</Label>
+                      <ExerciseImageUploader files={files} onChange={setFiles} />
+                      <p className="text-xs text-muted-foreground">JPG, PNG. You can select multiple.</p>
+                      <p className="text-xs text-muted-foreground">Upload images for this exercise (first becomes thumbnail).</p>
+                    </div>
+                  </aside>
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label>Equipment</Label>
-                  <Select onValueChange={(v) => form.setValue('equipment_id', v)} value={form.watch('equipment_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select equipment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {equipment.map((eq) => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 gap-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {/* Equipment Tab */}
+              {activeTab === 'equipment' && (
+                <div className="space-y-6">
                   <div className="space-y-2">
-                    <Label>Muscle Group</Label>
-                    <Select onValueChange={(v) => { form.setValue('primary_muscle_group_id', v); form.setValue('primary_muscle_id', ''); }} value={form.watch('primary_muscle_group_id') || ''}>
+                    <Label>Equipment *</Label>
+                    <Select onValueChange={(v) => form.setValue('equipment_id', v)} value={form.watch('equipment_id') || ''}>
                       <SelectTrigger>
-                        <SelectValue placeholder={form.watch('body_part_id') ? 'Select muscle group' : 'Select body part first'} />
+                        <SelectValue placeholder="Select equipment" />
                       </SelectTrigger>
                       <SelectContent>
-                        {filteredMuscleGroups.map((g) => (
-                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
+                        {equipment.map((eq) => (
+                          <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label>Primary Muscle</Label>
-                    <Select onValueChange={(v) => form.setValue('primary_muscle_id', v)} value={form.watch('primary_muscle_id') || ''} disabled={!form.watch('primary_muscle_group_id')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select primary muscle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {primaryMusclesOptions.map((mu) => (
-                          <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h3 className="font-medium">Load Configuration</h3>
+                    <p className="text-sm text-muted-foreground">Configure how weight is loaded for this exercise.</p>
+                    
+                    <div className="space-y-4">
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="barLoaded" className="rounded" />
+                        <Label htmlFor="barLoaded">Bar loaded exercise</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="unilateral" className="rounded" />
+                        <Label htmlFor="unilateral">Unilateral (single side)</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <input type="checkbox" id="requiresHandle" className="rounded" />
+                        <Label htmlFor="requiresHandle">Requires handle</Label>
+                      </div>
+                    </div>
                   </div>
                 </div>
+              )}
 
-                <div className="space-y-2">
-                  <Label>Make Public</Label>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.watch('is_public')} onCheckedChange={(v) => form.setValue('is_public', v)} />
-                    <span className="text-sm text-muted-foreground">Visible to everyone</span>
+              {/* Handles & Grips Tab */}
+              {activeTab === 'handles-grips' && (
+                <div className="space-y-6">
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h3 className="font-medium">Handle Configuration</h3>
+                    <p className="text-sm text-muted-foreground">Configure available handles for this exercise.</p>
+                    <p className="text-sm text-muted-foreground">Handles will be populated here based on equipment selection.</p>
+                  </div>
+
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h3 className="font-medium">Grip Configuration</h3>
+                    <p className="text-sm text-muted-foreground">Configure available grips for this exercise.</p>
+                    <p className="text-sm text-muted-foreground">Grips will be populated here based on equipment and handle selection.</p>
                   </div>
                 </div>
-              </div>
+              )}
 
-              <SecondaryMuscleGroupSelector
-                bodyParts={bodyParts}
-                muscleGroups={muscleGroups}
-                selectedMuscleGroupIds={form.watch('secondary_muscle_group_ids') || []}
-                excludedMuscleGroupId={form.watch('primary_muscle_group_id') || ''}
-                onChange={(ids) => form.setValue('secondary_muscle_group_ids', ids)}
-              />
+              {/* Attributes Tab */}
+              {activeTab === 'attributes' && (
+                <div className="space-y-6">
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h3 className="font-medium">Exercise Attributes</h3>
+                    <p className="text-sm text-muted-foreground">Configure exercise-specific attributes and settings.</p>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Skill Level</Label>
+                        <Select defaultValue="medium">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="beginner">Beginner</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="advanced">Advanced</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="source_url">Source URL (optional)</Label>
-                <Input id="source_url" {...form.register('source_url')} placeholder="https://example.com" />
-              </div>
-            </section>
+                      <div className="space-y-2">
+                        <Label>Movement Pattern</Label>
+                        <Select>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select pattern" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="push">Push</SelectItem>
+                            <SelectItem value="pull">Pull</SelectItem>
+                            <SelectItem value="squat">Squat</SelectItem>
+                            <SelectItem value="hinge">Hinge</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
 
-            <aside className="space-y-4">
-              <div className="space-y-2">
-                <Label>Images</Label>
-                <ExerciseImageUploader files={files} onChange={setFiles} />
-                <p className="text-xs text-muted-foreground">Upload images for this exercise (first becomes thumbnail).</p>
-              </div>
+              {/* Advanced Tab */}
+              {activeTab === 'advanced' && (
+                <div className="space-y-6">
+                  <div className="rounded-lg border border-border p-4 space-y-4">
+                    <h3 className="font-medium">Advanced Configuration</h3>
+                    <p className="text-sm text-muted-foreground">Advanced settings and constraints for this exercise.</p>
+                    
+                    <div className="space-y-4">
+                      <div className="space-y-2">
+                        <Label>Make Public</Label>
+                        <div className="flex items-center gap-3">
+                          <Switch checked={form.watch('is_public')} onCheckedChange={(v) => form.setValue('is_public', v)} />
+                          <span className="text-sm text-muted-foreground">Visible to everyone</span>
+                        </div>
+                      </div>
 
-              <div className="flex gap-2 pt-2 pb-20">
+                      <div className="space-y-2">
+                        <Label>Complexity Score</Label>
+                        <Select defaultValue="3">
+                          <SelectTrigger>
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="1">1 - Very Simple</SelectItem>
+                            <SelectItem value="2">2 - Simple</SelectItem>
+                            <SelectItem value="3">3 - Medium</SelectItem>
+                            <SelectItem value="4">4 - Complex</SelectItem>
+                            <SelectItem value="5">5 - Very Complex</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Action Buttons */}
+              <div className="flex gap-2 pt-6 border-t border-border">
                 <Button type="button" variant="secondary" asChild>
                   <Link to={isAdminContext ? "/admin/exercises" : "/fitness/exercises"}>Cancel</Link>
                 </Button>
@@ -525,8 +685,8 @@ const previewName = useMemo(() => {
               {lastError && (
                 <p role="alert" className="text-destructive text-sm">{lastError}</p>
               )}
-            </aside>
-          </form>
+            </form>
+          </div>
         )}
       </main>
     </>
