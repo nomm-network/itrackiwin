@@ -9765,7 +9765,15 @@ export type Database = {
         | "general_fitness"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       injury_severity: "mild" | "moderate" | "severe" | "chronic"
-      load_medium: "bar" | "plates" | "stack" | "bodyweight" | "other"
+      load_medium:
+        | "bar"
+        | "plates"
+        | "stack"
+        | "bodyweight"
+        | "other"
+        | "band"
+        | "chain"
+        | "flywheel"
       load_type: "none" | "single_load" | "dual_load" | "stack"
       load_type_enum:
         | "barbell"
@@ -9979,7 +9987,16 @@ export const Constants = {
       ],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       injury_severity: ["mild", "moderate", "severe", "chronic"],
-      load_medium: ["bar", "plates", "stack", "bodyweight", "other"],
+      load_medium: [
+        "bar",
+        "plates",
+        "stack",
+        "bodyweight",
+        "other",
+        "band",
+        "chain",
+        "flywheel",
+      ],
       load_type: ["none", "single_load", "dual_load", "stack"],
       load_type_enum: [
         "barbell",
