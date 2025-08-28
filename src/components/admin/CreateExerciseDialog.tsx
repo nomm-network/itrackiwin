@@ -81,6 +81,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
     description: '',
     slug: '',
     isPublic: true,
+    useCustomName: false,
     // Movement
     bodyPartId: '',
     muscleGroupId: '',
@@ -199,9 +200,27 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
 
   // Grips for selected equipment and handles
   const { data: availableGrips = [] } = useQuery({
-    queryKey: ['equipment-handle-grips', formData.equipmentId, formData.selectedHandles],
+    queryKey: ['equipment-handle-grips', formData.equipmentId, formData.selectedHandles, formData.allowsGrips],
     queryFn: async () => {
-      if (!formData.equipmentId || formData.selectedHandles.length === 0) return [];
+      if (!formData.equipmentId || !formData.allowsGrips) return [];
+      
+      // If handles are selected, get grips for those handles
+      if (formData.selectedHandles.length > 0) {
+        const { data, error } = await supabase
+          .from('equipment_handle_grips')
+          .select(`
+            grip:grips(
+              id, slug, category,
+              translations:grips_translations(language_code, name, description)
+            )
+          `)
+          .eq('equipment_id', formData.equipmentId)
+          .in('handle_id', formData.selectedHandles);
+        if (error) throw error;
+        return data.map(item => item.grip).filter(Boolean);
+      }
+      
+      // If no handles selected but grips enabled, get all grips for equipment
       const { data, error } = await supabase
         .from('equipment_handle_grips')
         .select(`
@@ -210,12 +229,20 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
             translations:grips_translations(language_code, name, description)
           )
         `)
-        .eq('equipment_id', formData.equipmentId)
-        .in('handle_id', formData.selectedHandles);
+        .eq('equipment_id', formData.equipmentId);
       if (error) throw error;
-      return data.map(item => item.grip).filter(Boolean);
+      
+      // Remove duplicates
+      const uniqueGrips = data.reduce((acc, item) => {
+        if (item.grip && !acc.find(g => g.id === item.grip.id)) {
+          acc.push(item.grip);
+        }
+        return acc;
+      }, [] as any[]);
+      
+      return uniqueGrips;
     },
-    enabled: !!formData.equipmentId && formData.selectedHandles.length > 0,
+    enabled: !!formData.equipmentId && formData.allowsGrips,
   });
 
   // New hooks for attribute system
@@ -269,6 +296,47 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
       }));
     }
   }, [selectedEquipment]);
+
+  // Auto-generate exercise name from selections if not using custom name
+  useEffect(() => {
+    if (formData.useCustomName) return;
+
+    const parts = [];
+    
+    // Add equipment name
+    if (formData.equipmentId) {
+      const eq = equipment.find(e => e.id === formData.equipmentId);
+      if (eq) {
+        parts.push(getName(eq));
+      }
+    }
+    
+    // Add primary muscle name
+    if (formData.primaryMuscleId) {
+      const muscle = muscles.find(m => m.id === formData.primaryMuscleId);
+      if (muscle) {
+        const muscleName = getName(muscle);
+        // Add common exercise patterns
+        if (muscleName.toLowerCase().includes('pectoral')) {
+          parts.push('Press');
+        } else if (muscleName.toLowerCase().includes('latissimus')) {
+          parts.push('Pull');
+        } else if (muscleName.toLowerCase().includes('deltoid')) {
+          parts.push('Raise');
+        } else if (muscleName.toLowerCase().includes('bicep')) {
+          parts.push('Curl');
+        } else if (muscleName.toLowerCase().includes('tricep')) {
+          parts.push('Extension');
+        } else {
+          parts.push(muscleName);
+        }
+      }
+    }
+
+    if (parts.length > 0) {
+      setFormData(prev => ({ ...prev, name: parts.join(' ') }));
+    }
+  }, [formData.equipmentId, formData.primaryMuscleId, formData.useCustomName, equipment, muscles]);
 
   // Helper functions
   const getTranslation = (translations: any[], lang = 'en') => {
@@ -421,6 +489,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
       description: '',
       slug: '',
       isPublic: true,
+      useCustomName: false,
       bodyPartId: '',
       muscleGroupId: '',
       primaryMuscleId: '',
@@ -476,6 +545,19 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
           </TabsList>
 
           <TabsContent value="basics" className="space-y-6">
+            <div className="flex items-center space-x-2 mb-4">
+              <Checkbox
+                id="useCustomName"
+                checked={formData.useCustomName}
+                onCheckedChange={(checked) => setFormData(prev => ({ 
+                  ...prev, 
+                  useCustomName: !!checked,
+                  name: checked ? prev.name : ''
+                }))}
+              />
+              <Label htmlFor="useCustomName">Use custom name</Label>
+            </div>
+
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="name">Name *</Label>
@@ -483,7 +565,8 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
                   id="name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="e.g., Barbell Bench Press"
+                  placeholder={formData.useCustomName ? "Enter custom name" : "Auto-generated from selections"}
+                  disabled={!formData.useCustomName}
                 />
               </div>
               <div className="space-y-2">
