@@ -14,6 +14,8 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
+import { useMovements, useEquipments, useEffectiveSchema } from '@/hooks/useAttributeSchemas';
+import { DynamicAttributeForm } from './DynamicAttributeForm';
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -67,6 +69,12 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
 
   // Form state
   const [activeTab, setActiveTab] = useState('basics');
+  
+  // New attribute system state
+  const [movementId, setMovementId] = useState<string>('');
+  const [equipmentRefId, setEquipmentRefId] = useState<string>('');
+  const [attributeValues, setAttributeValues] = useState<Record<string, any>>({});
+  
   const [formData, setFormData] = useState({
     // Basics
     name: '',
@@ -210,6 +218,11 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
     enabled: !!formData.equipmentId && formData.selectedHandles.length > 0,
   });
 
+  // New hooks for attribute system
+  const { data: movements } = useMovements();
+  const { data: equipments } = useEquipments();
+  const { data: effectiveSchema } = useEffectiveSchema(movementId, equipmentRefId);
+
   // Filtered data
   const filteredMuscleGroups = useMemo(() => {
     if (!formData.bodyPartId) return [];
@@ -325,6 +338,9 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
         source_url: formData.sourceUrl || null,
         loading_hint: formData.loadingHint || null,
         contraindications: formData.contraindications.length > 0 ? formData.contraindications : null,
+        movement_id: movementId || null,
+        equipment_ref_id: equipmentRefId || null,
+        attribute_values_json: attributeValues,
       };
 
       const { data: exercise, error: exerciseError } = await supabase
@@ -451,10 +467,11 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
 
         <form onSubmit={handleSubmit}>
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="basics">Basics</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
             <TabsTrigger value="handles">Handles & Grips</TabsTrigger>
+            <TabsTrigger value="attributes">Attributes</TabsTrigger>
             <TabsTrigger value="advanced">Advanced</TabsTrigger>
           </TabsList>
 
@@ -809,6 +826,61 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
                   </div>
                 )}
               </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="attributes" className="space-y-6">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="movement">Movement Type</Label>
+                <Select value={movementId} onValueChange={setMovementId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select movement type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {movements?.map((movement) => (
+                      <SelectItem key={movement.id} value={movement.id}>
+                        {movement.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipment-ref">Equipment Reference</Label>
+                <Select value={equipmentRefId} onValueChange={setEquipmentRefId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select equipment reference" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipments?.map((equip) => (
+                      <SelectItem key={equip.id} value={equip.id}>
+                        {equip.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {effectiveSchema && (
+              <div className="space-y-4">
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-medium mb-4">Dynamic Attributes</h3>
+                  <DynamicAttributeForm
+                    schema={effectiveSchema}
+                    values={attributeValues}
+                    onChange={setAttributeValues}
+                  />
+                </div>
+              </div>
+            )}
+
+            {!effectiveSchema && movementId && equipmentRefId && (
+              <div className="text-center text-muted-foreground py-8">
+                No attribute schema found for this movement and equipment combination.
+              </div>
             )}
           </TabsContent>
 

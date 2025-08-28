@@ -107,6 +107,42 @@ export type Database = {
         }
         Relationships: []
       }
+      attribute_schemas: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          schema_json: Json
+          scope: Database["public"]["Enums"]["attr_scope"]
+          scope_ref_id: string | null
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          schema_json: Json
+          scope: Database["public"]["Enums"]["attr_scope"]
+          scope_ref_id?: string | null
+          title: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          schema_json?: Json
+          scope?: Database["public"]["Enums"]["attr_scope"]
+          scope_ref_id?: string | null
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
+      }
       auto_deload_triggers: {
         Row: {
           created_at: string
@@ -1155,6 +1191,24 @@ export type Database = {
           },
         ]
       }
+      equipments: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
       exercise_default_grips: {
         Row: {
           exercise_id: string
@@ -1966,6 +2020,7 @@ export type Database = {
       exercises: {
         Row: {
           allows_grips: boolean | null
+          attribute_values_json: Json
           body_part_id: string | null
           capability_schema: Json | null
           complexity_score: number | null
@@ -1976,6 +2031,7 @@ export type Database = {
           default_grip_ids: string[] | null
           default_handle_ids: string[] | null
           equipment_id: string
+          equipment_ref_id: string | null
           exercise_skill_level:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -1986,6 +2042,7 @@ export type Database = {
           is_unilateral: boolean | null
           load_type: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint: string | null
+          movement_id: string | null
           movement_pattern:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
@@ -2000,6 +2057,7 @@ export type Database = {
         }
         Insert: {
           allows_grips?: boolean | null
+          attribute_values_json?: Json
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
@@ -2010,6 +2068,7 @@ export type Database = {
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
           equipment_id: string
+          equipment_ref_id?: string | null
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -2020,6 +2079,7 @@ export type Database = {
           is_unilateral?: boolean | null
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
+          movement_id?: string | null
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
@@ -2034,6 +2094,7 @@ export type Database = {
         }
         Update: {
           allows_grips?: boolean | null
+          attribute_values_json?: Json
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
@@ -2044,6 +2105,7 @@ export type Database = {
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
           equipment_id?: string
+          equipment_ref_id?: string | null
           exercise_skill_level?:
             | Database["public"]["Enums"]["exercise_skill_level"]
             | null
@@ -2054,6 +2116,7 @@ export type Database = {
           is_unilateral?: boolean | null
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
+          movement_id?: string | null
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
@@ -2107,6 +2170,20 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_equipment_ref_id_fkey"
+            columns: ["equipment_ref_id"]
+            isOneToOne: false
+            referencedRelation: "equipments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercises_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "movements"
             referencedColumns: ["id"]
           },
           {
@@ -3162,6 +3239,24 @@ export type Database = {
           label?: string
           unit?: string | null
           value_type?: Database["public"]["Enums"]["metric_value_type"]
+        }
+        Relationships: []
+      }
+      movements: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -8269,6 +8364,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: string
       }
+      get_effective_attribute_schema: {
+        Args: { p_equipment_id: string; p_movement_id: string }
+        Returns: Json
+      }
       get_effective_muscles: {
         Args: {
           _equipment_id?: string
@@ -9895,6 +9994,7 @@ export type Database = {
     }
     Enums: {
       app_role: "superadmin" | "admin" | "mentor" | "user"
+      attr_scope: "global" | "movement" | "equipment"
       body_side: "left" | "right" | "bilateral" | "unspecified"
       effort_code: "++" | "+" | "-" | "--"
       exercise_skill_level: "low" | "medium" | "high"
@@ -10115,6 +10215,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["superadmin", "admin", "mentor", "user"],
+      attr_scope: ["global", "movement", "equipment"],
       body_side: ["left", "right", "bilateral", "unspecified"],
       effort_code: ["++", "+", "-", "--"],
       exercise_skill_level: ["low", "medium", "high"],
