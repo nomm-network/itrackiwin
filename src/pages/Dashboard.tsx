@@ -4,8 +4,10 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Settings } from 'lucide-react';
 import { useLifeCategoriesWithSubcategories, getCategoryBySlug } from '@/hooks/useLifeCategories';
 import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/registry';
+import { useUserRole } from '@/hooks/useUserRole';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
@@ -16,6 +18,7 @@ const Dashboard: React.FC = () => {
   const navigate = useNavigate();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
   const { checkAndRedirect } = useFitnessProfileCheck();
+  const { isSuperAdmin } = useUserRole();
   
   // Use real database data instead of static config
   const { data: categories, isLoading } = useLifeCategoriesWithSubcategories('en');
@@ -77,13 +80,25 @@ const Dashboard: React.FC = () => {
       <div className="space-y-1 sm:space-y-2">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <Button 
-            variant="outline" 
-            onClick={() => navigate('/explore')}
-            className="text-sm"
-          >
-            Explore by Planets
-          </Button>
+          <div className="flex items-center gap-2">
+            {isSuperAdmin && (
+              <Button 
+                variant="default" 
+                onClick={() => navigate('/admin')}
+                className="text-sm"
+              >
+                <Settings className="w-4 h-4 mr-2" />
+                Admin
+              </Button>
+            )}
+            <Button 
+              variant="outline" 
+              onClick={() => navigate('/explore')}
+              className="text-sm"
+            >
+              Explore by Planets
+            </Button>
+          </div>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
           Track your progress across all areas of life.
