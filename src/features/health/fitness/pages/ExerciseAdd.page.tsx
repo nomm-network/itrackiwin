@@ -39,7 +39,7 @@ interface Muscle { id: string; name: string; muscle_group_id: string }
 interface Equipment { id: string; name: string }
 
 const schema = z.object({
-  name: z.string().min(2, 'Name is required'),
+  custom_display_name: z.string().optional(),
   description: z.string().optional(),
   body_part_id: z.string().uuid().optional().or(z.literal('')),
   primary_muscle_group_id: z.string().uuid().optional().or(z.literal('')),
@@ -48,6 +48,7 @@ const schema = z.object({
   equipment_id: z.string().uuid().optional().or(z.literal('')),
   source_url: z.string().url().optional().or(z.literal('')),
   is_public: z.boolean().default(true),
+  use_custom_name: z.boolean().default(false),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -73,7 +74,7 @@ const ExerciseAdd: React.FC = () => {
 const form = useForm<FormValues>({
   resolver: zodResolver(schema),
   defaultValues: {
-    name: "",
+    custom_display_name: "",
     description: "",
     body_part_id: "",
     primary_muscle_group_id: "",
@@ -82,6 +83,7 @@ const form = useForm<FormValues>({
     equipment_id: "",
     source_url: "",
     is_public: true,
+    use_custom_name: false,
   },
 });
 
@@ -177,8 +179,9 @@ const primaryMusclesOptions = React.useMemo(() => {
     console.log('[ExerciseAdd] Form submission started');
     console.log('[ExerciseAdd] Current user state:', user);
     
-    if (!values.name.trim()) {
-      toast({ title: 'Name is required' });
+    // Name validation only if using custom name
+    if (values.use_custom_name && !values.custom_display_name?.trim()) {
+      toast({ title: 'Custom name is required when enabled' });
       return;
     }
     
@@ -207,7 +210,7 @@ const primaryMusclesOptions = React.useMemo(() => {
       console.log('[ExerciseAdd] Using user ID:', userId);
 
       const payload = {
-        name: values.name.trim(),
+        custom_display_name: values.use_custom_name ? values.custom_display_name?.trim() || null : null,
         description: values.description || null,
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
@@ -216,7 +219,7 @@ const primaryMusclesOptions = React.useMemo(() => {
         source_url: values.source_url || null,
         is_public: values.is_public,
         owner_user_id: userId,
-        slug: values.name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
+        slug: (values.use_custom_name ? values.custom_display_name?.trim() : 'exercise') + '-' + Math.random().toString(36).substring(2, 8),
       };
 
       console.log('[ExerciseAdd] FINAL PAYLOAD BEING SENT:', JSON.stringify(payload, null, 2));
@@ -328,9 +331,32 @@ const primaryMusclesOptions = React.useMemo(() => {
         ) : (
           <form className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8" onSubmit={form.handleSubmit(onSubmit)}>
             <section className="lg:col-span-2 space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" {...form.register('name')} placeholder="e.g., Barbell Bench Press" />
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-medium">Exercise Name</Label>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      checked={form.watch('use_custom_name')}
+                      onCheckedChange={(checked) => form.setValue('use_custom_name', checked)}
+                    />
+                    <span className="text-sm text-muted-foreground">Use custom name</span>
+                  </div>
+                </div>
+                
+                {form.watch('use_custom_name') ? (
+                  <div className="space-y-2">
+                    <Input
+                      {...form.register('custom_display_name')}
+                      placeholder="Enter custom exercise name"
+                    />
+                  </div>
+                ) : (
+                  <div className="p-3 bg-muted rounded-md">
+                    <p className="text-sm text-muted-foreground">
+                      Exercise name will be automatically generated based on your selections
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="space-y-2">
