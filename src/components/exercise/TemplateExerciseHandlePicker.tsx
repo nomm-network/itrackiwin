@@ -71,8 +71,7 @@ export function TemplateExerciseHandlePicker({
                 {pickHandleName(opt, lang)}
               </span>
               <span className="text-xs text-muted-foreground">
-                ({opt.handle?.category})
-                {opt.is_default && ' • default'}
+                {opt.is_default && 'Default'}
               </span>
             </div>
           </Button>

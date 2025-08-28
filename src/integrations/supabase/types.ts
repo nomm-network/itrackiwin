@@ -2641,19 +2641,16 @@ export type Database = {
       }
       handles: {
         Row: {
-          category: string
           created_at: string
           id: string
           slug: string
         }
         Insert: {
-          category: string
           created_at?: string
           id?: string
           slug: string
         }
         Update: {
-          category?: string
           created_at?: string
           id?: string
           slug?: string

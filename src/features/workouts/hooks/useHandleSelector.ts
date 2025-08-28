@@ -21,7 +21,6 @@ export const useHandleSelector = ({ exerciseId }: HandleSelectorOptions) => {
           handles!inner (
             id,
             slug,
-            category,
             handle_translations (
               language_code,
               name,
@@ -55,7 +54,6 @@ export const useHandleSelector = ({ exerciseId }: HandleSelectorOptions) => {
           grips!inner (
             id,
             slug,
-            category,
             grips_translations (
               language_code,
               name,

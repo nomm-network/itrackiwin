@@ -20,7 +20,6 @@ interface HandleData {
   handles: {
     id: string;
     slug: string;
-    category: string;
     handle_translations: Array<{
       language_code: string;
       name: string;
@@ -34,7 +33,6 @@ interface GripData {
   grips: {
     id: string;
     slug: string;
-    category: string;
     grips_translations: Array<{
       language_code: string;
       name: string;
@@ -144,9 +142,6 @@ export function HandleGripSelector({
                   className="text-xs"
                 >
                   {getHandleName(handleData.handles)}
-                  <Badge variant="secondary" className="ml-1 text-[10px]">
-                    {handleData.handles.category}
-                  </Badge>
                 </Button>
               ))}
             </div>
@@ -172,9 +167,6 @@ export function HandleGripSelector({
                   className="text-xs"
                 >
                   {getGripName(gripData.grips)}
-                  <Badge variant="secondary" className="ml-1 text-[10px]">
-                    {gripData.grips.category}
-                  </Badge>
                 </Button>
               ))}
             </div>

@@ -7,7 +7,6 @@ export type ExerciseHandleRow = {
   handle: {
     id: string;
     slug: string;
-    category: string;
     translations: { language_code: string; name: string; description?: string }[];
   };
 };
@@ -22,7 +21,7 @@ export function useExerciseHandles(exerciseId?: string, lang: 'en' | 'ro' = 'en'
         .select(`
           handle_id, is_default,
           handle:handles (
-            id, slug, category,
+            id, slug,
             translations:handle_translations (language_code, name, description)
           )
         `)

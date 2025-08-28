@@ -22,7 +22,6 @@ export const useHandles = () => {
         .select(`
           id,
           slug,
-          category,
           translations:handle_translations(
             name,
             description,
