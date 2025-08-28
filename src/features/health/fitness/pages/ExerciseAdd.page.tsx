@@ -54,6 +54,9 @@ const schema = z.object({
   source_url: z.string().url().optional().or(z.literal('')),
   is_public: z.boolean().default(true),
   use_custom_name: z.boolean().default(false),
+  skill_level: z.string().optional(),
+  movement_pattern: z.string().optional(),
+  selected_grips: z.array(z.string()).optional(),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -107,6 +110,9 @@ const form = useForm<FormValues>({
     source_url: "",
     is_public: true,
     use_custom_name: false,
+    skill_level: "medium",
+    movement_pattern: "",
+    selected_grips: [],
   },
 });
 
@@ -265,14 +271,15 @@ const previewName = useMemo(() => {
         primary_muscle_id: values.primary_muscle_id || null,
         secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
-        equipment_ref_id: values.equipment_id || null, // Set equipment_ref_id to the same as equipment_id
         is_bar_loaded: values.is_bar_loaded || false,
         is_unilateral: values.is_unilateral || false,
         requires_handle: values.requires_handle || false,
         source_url: values.source_url || null,
         is_public: values.is_public,
         owner_user_id: userId,
-        load_type: values.is_bar_loaded ? 'dual_load' as const : 'bodyweight' as const, // Set load_type based on is_bar_loaded
+        load_type: values.is_bar_loaded ? 'dual_load' as const : 'bodyweight' as const,
+        movement_pattern: (values.movement_pattern as 'squat' | 'hinge' | 'horizontal_push' | 'vertical_push' | 'horizontal_pull' | 'vertical_pull' | 'lunge' | 'carry' | 'rotation' | 'isolation') || null,
+        exercise_skill_level: (values.skill_level as 'low' | 'medium' | 'high') || 'medium',
         slug: (values.use_custom_name ? values.custom_display_name?.trim() : 'exercise') + '-' + Math.random().toString(36).substring(2, 8),
       };
 
@@ -663,22 +670,25 @@ const previewName = useMemo(() => {
                         <div className="space-y-2">
                           <Label>Available Grips</Label>
                           <div className="grid grid-cols-2 gap-2">
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="overhand" className="rounded" />
-                              <Label htmlFor="overhand">Overhand</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="underhand" className="rounded" />
-                              <Label htmlFor="underhand">Underhand</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="neutral" className="rounded" />
-                              <Label htmlFor="neutral">Neutral</Label>
-                            </div>
-                            <div className="flex items-center space-x-2">
-                              <input type="checkbox" id="mixed" className="rounded" />
-                              <Label htmlFor="mixed">Mixed</Label>
-                            </div>
+                            {['overhand', 'underhand', 'neutral', 'mixed'].map((grip) => (
+                              <div key={grip} className="flex items-center space-x-2">
+                                <input 
+                                  type="checkbox" 
+                                  id={grip} 
+                                  className="rounded" 
+                                  checked={form.watch('selected_grips')?.includes(grip) || false}
+                                  onChange={(e) => {
+                                    const current = form.watch('selected_grips') || [];
+                                    if (e.target.checked) {
+                                      form.setValue('selected_grips', [...current, grip]);
+                                    } else {
+                                      form.setValue('selected_grips', current.filter(g => g !== grip));
+                                    }
+                                  }}
+                                />
+                                <Label htmlFor={grip} className="capitalize">{grip}</Label>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
@@ -703,7 +713,10 @@ const previewName = useMemo(() => {
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <Label>Skill Level</Label>
-                        <Select defaultValue="medium">
+                        <Select 
+                          value={form.watch('skill_level') || 'medium'} 
+                          onValueChange={(v) => form.setValue('skill_level', v)}
+                        >
                           <SelectTrigger>
                             <SelectValue />
                           </SelectTrigger>
@@ -717,15 +730,24 @@ const previewName = useMemo(() => {
 
                       <div className="space-y-2">
                         <Label>Movement Pattern</Label>
-                        <Select>
+                        <Select 
+                          value={form.watch('movement_pattern') || ''} 
+                          onValueChange={(v) => form.setValue('movement_pattern', v)}
+                        >
                           <SelectTrigger>
                             <SelectValue placeholder="Select pattern" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="push">Push</SelectItem>
-                            <SelectItem value="pull">Pull</SelectItem>
+                            <SelectItem value="horizontal_push">Horizontal Push</SelectItem>
+                            <SelectItem value="vertical_push">Vertical Push</SelectItem>
+                            <SelectItem value="horizontal_pull">Horizontal Pull</SelectItem>
+                            <SelectItem value="vertical_pull">Vertical Pull</SelectItem>
                             <SelectItem value="squat">Squat</SelectItem>
                             <SelectItem value="hinge">Hinge</SelectItem>
+                            <SelectItem value="lunge">Lunge</SelectItem>
+                            <SelectItem value="carry">Carry</SelectItem>
+                            <SelectItem value="rotation">Rotation</SelectItem>
+                            <SelectItem value="isolation">Isolation</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
