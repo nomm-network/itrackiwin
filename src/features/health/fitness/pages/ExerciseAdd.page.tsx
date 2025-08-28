@@ -179,11 +179,12 @@ const primaryMusclesOptions = React.useMemo(() => {
   return muscles.filter((mu) => mu.muscle_group_id === selectedGroupId);
 }, [muscles, selectedGroupId]);
 
+// Watch form values for live preview
+const primaryMuscleId = form.watch('primary_muscle_id');
+const equipmentId = form.watch('equipment_id');
+
 // Live preview of auto-generated name
 const previewName = useMemo(() => {
-  const primaryMuscleId = form.watch('primary_muscle_id');
-  const equipmentId = form.watch('equipment_id');
-  
   if (!primaryMuscleId && !equipmentId) return '';
   
   // Find names for the selected items
@@ -203,7 +204,7 @@ const previewName = useMemo(() => {
     grip: '',
     separator: namingTemplates?.[0]?.sep || ' – '
   });
-}, [form.watch('primary_muscle_id'), form.watch('equipment_id'), muscles, equipment, namingTemplates]);
+}, [primaryMuscleId, equipmentId, muscles, equipment, namingTemplates]);
 
   const onSubmit = async (values: FormValues) => {
     console.log('[ExerciseAdd] Form submission started');
@@ -312,24 +313,24 @@ const previewName = useMemo(() => {
       <PageNav current="Fitness" />
       <nav className="container pt-4" aria-label="Fitness navigation">
         <NavigationMenu>
-          <NavigationMenuList>
+          <NavigationMenuList className="grid grid-cols-2 gap-1 w-full">
             <NavigationMenuItem>
-              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
                 Workouts
               </NavLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
                 Exercises
               </NavLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
                 Templates
               </NavLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
                 Configure
               </NavLink>
             </NavigationMenuItem>
@@ -405,7 +406,7 @@ const previewName = useMemo(() => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Body Part</Label>
+                  <Label>Body</Label>
                   <Select onValueChange={(v) => { form.setValue('body_part_id', v); form.setValue('primary_muscle_group_id', ''); form.setValue('primary_muscle_id', ''); }} value={form.watch('body_part_id') || ''}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select body part" />
