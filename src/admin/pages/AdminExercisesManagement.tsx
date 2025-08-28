@@ -19,6 +19,7 @@ import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
+import { CreateExerciseDialog } from "@/components/admin/CreateExerciseDialog";
 
 interface Exercise {
   id: string;
@@ -530,208 +531,16 @@ const AdminExercisesManagement: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
-          <Dialog open={isCreateDialogOpen} onOpenChange={(open) => {
-            setIsCreateDialogOpen(open);
-            if (!open) {
-              setEditingExercise(null);
-                setFormData({
-                  name: "",
-                  description: "",
-                  body_part_id: "",
-                  primary_muscle_id: "",
-                  secondary_muscle_group_ids: [],
-                  equipment_id: "",
-                  is_public: true,
-                  default_grip_ids: [],
-                });
-                  setSelectedGrips([]);
-                }
-              }}>
-                <DialogTrigger asChild>
-              <Button onClick={() => {
-                setEditingExercise(null);
-                setFormData({
-                  name: "",
-                  description: "",
-                  body_part_id: "",
-                  primary_muscle_id: "",
-                  secondary_muscle_group_ids: [],
-                  equipment_id: "",
-                  is_public: true,
-                  default_grip_ids: [],
-                });
-                setSelectedGrips([]);
-                setIsCreateDialogOpen(true);
-              }}>
-                <Plus className="w-4 h-4 mr-2" />
-                Create Exercise
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
-              <DialogHeader>
-                <DialogTitle>
-                  {editingExercise ? "Edit Exercise" : "Create New Exercise"}
-                </DialogTitle>
-              </DialogHeader>
-              <div className="grid gap-4 py-4">
-                <div className="grid gap-4">
-                  <div className="grid gap-2">
-                    <Label htmlFor="exercise-name">Exercise Name *</Label>
-                    <Input
-                      id="exercise-name"
-                      value={formData.name || ""}
-                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      placeholder="Enter exercise name..."
-                    />
-                  </div>
-                  
-                  <div className="grid gap-2">
-                    <Label htmlFor="exercise-description">Description</Label>
-                    <Textarea
-                      id="exercise-description"
-                      value={formData.description || ""}
-                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                      placeholder="Enter exercise description..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <Label>Body Part</Label>
-                    <Select 
-                      value={formData.body_part_id || ""} 
-                      onValueChange={(value) => setFormData({ 
-                        ...formData, 
-                        body_part_id: value,
-                        primary_muscle_id: "" // Reset muscle when body part changes
-                      })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select body part" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {bodyParts.map((bp) => (
-                          <SelectItem key={bp.id} value={bp.id}>
-                            {bp.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="grid gap-2">
-                    <Label>Primary Muscle</Label>
-                    <Select 
-                      value={formData.primary_muscle_id || ""} 
-                      onValueChange={(value) => setFormData({ ...formData, primary_muscle_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select primary muscle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {formFilteredMuscles.map((muscle) => (
-                          <SelectItem key={muscle.id} value={muscle.id}>
-                            {muscle.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Equipment</Label>
-                  <Select 
-                    value={formData.equipment_id || ""} 
-                    onValueChange={(value) => setFormData({ ...formData, equipment_id: value })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select equipment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {equipment.map((eq) => (
-                        <SelectItem key={eq.id} value={eq.id}>
-                          {getTranslatedName(eq)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <SecondaryMuscleGroupSelector
-                  bodyParts={bodyParts}
-                  muscleGroups={muscleGroups}
-                  selectedMuscleGroupIds={formData.secondary_muscle_group_ids || []}
-                  excludedMuscleGroupId={
-                    formData.primary_muscle_id 
-                      ? muscles.find(m => m.id === formData.primary_muscle_id)?.muscle_group_id 
-                      : undefined
-                  }
-                  onChange={(ids) => setFormData({ ...formData, secondary_muscle_group_ids: ids })}
-                />
-
-                {/* Grips Selection */}
-                <div className="grid gap-2">
-                  <Label>Default Grips</Label>
-                  <div className="space-y-3">
-                    {['width', 'orientation', 'attachment'].map(category => {
-                      const categoryGrips = grips.filter(g => g.category === category);
-                      if (categoryGrips.length === 0) return null;
-                      
-                      return (
-                        <div key={category} className="space-y-2">
-                          <h4 className="text-sm font-medium capitalize">{category}</h4>
-                          <div className="grid grid-cols-2 gap-2">
-                            {categoryGrips.map(grip => {
-                              const isSelected = selectedGrips.includes(grip.id);
-                              return (
-                                <Button
-                                  key={grip.id}
-                                  type="button"
-                                  variant={isSelected ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => handleGripToggle(grip.id)}
-                                  className="justify-start"
-                                >
-                                  {getTranslatedName(grip)}
-                                </Button>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Select one grip from each category. Only one grip per category is allowed.
-                  </p>
-                </div>
-
-                <div className="grid gap-2">
-                  <Label>Visibility</Label>
-                  <Select 
-                    value={formData.is_public ? "true" : "false"} 
-                    onValueChange={(value) => setFormData({ ...formData, is_public: value === "true" })}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select visibility" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="true">Public</SelectItem>
-                      <SelectItem value="false">Private</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Button type="button" onClick={handleSave} disabled={upsertMutation.isPending}>
-                  {upsertMutation.isPending ? "Saving..." : editingExercise ? "Save Changes" : "Save Exercise"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={() => setIsCreateDialogOpen(true)}>
+            <Plus className="w-4 h-4 mr-2" />
+            Create Exercise
+          </Button>
         </div>
+
+        <CreateExerciseDialog 
+          open={isCreateDialogOpen} 
+          onOpenChange={setIsCreateDialogOpen} 
+        />
 
         {/* Filters */}
         <Card>
