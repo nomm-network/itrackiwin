@@ -2026,10 +2026,13 @@ export type Database = {
           complexity_score: number | null
           contraindications: Json | null
           created_at: string
+          custom_display_name: string | null
           default_bar_type_id: string | null
           default_bar_weight: number | null
           default_grip_ids: string[] | null
           default_handle_ids: string[] | null
+          display_name: string | null
+          display_name_tsv: unknown | null
           equipment_id: string
           equipment_ref_id: string | null
           exercise_skill_level:
@@ -2046,6 +2049,8 @@ export type Database = {
           movement_pattern:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
+          name_locale: string | null
+          name_version: number | null
           owner_user_id: string | null
           popularity_rank: number | null
           primary_muscle_id: string | null
@@ -2063,10 +2068,13 @@ export type Database = {
           complexity_score?: number | null
           contraindications?: Json | null
           created_at?: string
+          custom_display_name?: string | null
           default_bar_type_id?: string | null
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
+          display_name?: string | null
+          display_name_tsv?: unknown | null
           equipment_id: string
           equipment_ref_id?: string | null
           exercise_skill_level?:
@@ -2083,6 +2091,8 @@ export type Database = {
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
+          name_locale?: string | null
+          name_version?: number | null
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
@@ -2100,10 +2110,13 @@ export type Database = {
           complexity_score?: number | null
           contraindications?: Json | null
           created_at?: string
+          custom_display_name?: string | null
           default_bar_type_id?: string | null
           default_bar_weight?: number | null
           default_grip_ids?: string[] | null
           default_handle_ids?: string[] | null
+          display_name?: string | null
+          display_name_tsv?: unknown | null
           equipment_id?: string
           equipment_ref_id?: string | null
           exercise_skill_level?:
@@ -2120,6 +2133,8 @@ export type Database = {
           movement_pattern?:
             | Database["public"]["Enums"]["movement_pattern"]
             | null
+          name_locale?: string | null
+          name_version?: number | null
           owner_user_id?: string | null
           popularity_rank?: number | null
           primary_muscle_id?: string | null
@@ -3449,6 +3464,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      naming_templates: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          locale: string
+          scope: string
+          scope_ref_id: string | null
+          sep: string
+          template: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locale?: string
+          scope: string
+          scope_ref_id?: string | null
+          sep?: string
+          template: string
+          updated_at?: string
+          version?: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          locale?: string
+          scope?: string
+          scope_ref_id?: string | null
+          sep?: string
+          template?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: []
       }
       pain_events: {
         Row: {
@@ -7761,6 +7815,18 @@ export type Database = {
       }
     }
     Functions: {
+      _pascalize: {
+        Args: { key: string }
+        Returns: string
+      }
+      _pick_template: {
+        Args: {
+          p_equipment_id: string
+          p_locale: string
+          p_movement_id: string
+        }
+        Returns: string
+      }
       _postgis_deprecate: {
         Args: { newname: string; oldname: string; version: string }
         Returns: undefined
@@ -8127,6 +8193,18 @@ export type Database = {
           p_working_weight?: number
         }
         Returns: Json
+      }
+      generate_exercise_name: {
+        Args: {
+          p_attr: Json
+          p_equipment_id: string
+          p_grip_type_key: string
+          p_handle_key: string
+          p_locale?: string
+          p_movement_id: string
+          p_primary_muscle: string
+        }
+        Returns: string
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
