@@ -48,6 +48,9 @@ const schema = z.object({
   primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
   secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
   equipment_id: z.string().uuid().optional().or(z.literal('')),
+  is_bar_loaded: z.boolean().optional(),
+  is_unilateral: z.boolean().optional(), 
+  requires_handle: z.boolean().optional(),
   source_url: z.string().url().optional().or(z.literal('')),
   is_public: z.boolean().default(true),
   use_custom_name: z.boolean().default(false),
@@ -98,6 +101,9 @@ const form = useForm<FormValues>({
     primary_muscle_id: "",
     secondary_muscle_group_ids: [],
     equipment_id: "",
+    is_bar_loaded: false,
+    is_unilateral: false,
+    requires_handle: false,
     source_url: "",
     is_public: true,
     use_custom_name: false,
@@ -590,17 +596,29 @@ const previewName = useMemo(() => {
                     
                     <div className="space-y-4">
                       <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="barLoaded" className="rounded" />
+                        <Switch 
+                          id="barLoaded" 
+                          checked={form.watch('is_bar_loaded') || false}
+                          onCheckedChange={(checked) => form.setValue('is_bar_loaded', checked)}
+                        />
                         <Label htmlFor="barLoaded">Bar loaded exercise</Label>
                       </div>
                       
                       <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="unilateral" className="rounded" />
+                        <Switch 
+                          id="unilateral" 
+                          checked={form.watch('is_unilateral') || false}
+                          onCheckedChange={(checked) => form.setValue('is_unilateral', checked)}
+                        />
                         <Label htmlFor="unilateral">Unilateral (single side)</Label>
                       </div>
                       
                       <div className="flex items-center space-x-2">
-                        <input type="checkbox" id="requiresHandle" className="rounded" />
+                        <Switch 
+                          id="requiresHandle" 
+                          checked={form.watch('requires_handle') || false}
+                          onCheckedChange={(checked) => form.setValue('requires_handle', checked)}
+                        />
                         <Label htmlFor="requiresHandle">Requires handle</Label>
                       </div>
                     </div>
@@ -611,17 +629,62 @@ const previewName = useMemo(() => {
               {/* Handles & Grips Tab */}
               {activeTab === 'handles-grips' && (
                 <div className="space-y-6">
-                  <div className="rounded-lg border border-border p-4 space-y-4">
-                    <h3 className="font-medium">Handle Configuration</h3>
-                    <p className="text-sm text-muted-foreground">Configure available handles for this exercise.</p>
-                    <p className="text-sm text-muted-foreground">Handles will be populated here based on equipment selection.</p>
-                  </div>
+                  {form.watch('requires_handle') ? (
+                    <>
+                      <div className="rounded-lg border border-border p-4 space-y-4">
+                        <h3 className="font-medium">Handle Configuration</h3>
+                        <p className="text-sm text-muted-foreground">Available handles for the selected equipment.</p>
+                        
+                        <div className="space-y-2">
+                          <Label>Available Handles</Label>
+                          <Select>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select handle" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="standard">Standard Handle</SelectItem>
+                              <SelectItem value="lat-pulldown">Lat Pulldown Bar</SelectItem>
+                              <SelectItem value="cable-attachment">Cable Attachment</SelectItem>
+                              <SelectItem value="rope">Rope Attachment</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      </div>
 
-                  <div className="rounded-lg border border-border p-4 space-y-4">
-                    <h3 className="font-medium">Grip Configuration</h3>
-                    <p className="text-sm text-muted-foreground">Configure available grips for this exercise.</p>
-                    <p className="text-sm text-muted-foreground">Grips will be populated here based on equipment and handle selection.</p>
-                  </div>
+                      <div className="rounded-lg border border-border p-4 space-y-4">
+                        <h3 className="font-medium">Grip Configuration</h3>
+                        <p className="text-sm text-muted-foreground">Available grip types for the selected handle.</p>
+                        
+                        <div className="space-y-2">
+                          <Label>Available Grips</Label>
+                          <div className="grid grid-cols-2 gap-2">
+                            <div className="flex items-center space-x-2">
+                              <input type="checkbox" id="overhand" className="rounded" />
+                              <Label htmlFor="overhand">Overhand</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input type="checkbox" id="underhand" className="rounded" />
+                              <Label htmlFor="underhand">Underhand</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input type="checkbox" id="neutral" className="rounded" />
+                              <Label htmlFor="neutral">Neutral</Label>
+                            </div>
+                            <div className="flex items-center space-x-2">
+                              <input type="checkbox" id="mixed" className="rounded" />
+                              <Label htmlFor="mixed">Mixed</Label>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </>
+                  ) : (
+                    <div className="rounded-lg border border-border p-4 space-y-4">
+                      <h3 className="font-medium">Handle Configuration</h3>
+                      <p className="text-sm text-muted-foreground">This exercise does not require handles.</p>
+                      <p className="text-sm text-muted-foreground">Enable "Requires handle" in the Equipment tab to configure handles and grips.</p>
+                    </div>
+                  )}
                 </div>
               )}
 
