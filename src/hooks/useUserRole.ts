@@ -8,13 +8,25 @@ export const useUserRole = () => {
   useEffect(() => {
     const checkUserRole = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
+        console.log('🔍 [useUserRole] Starting role check...');
         
-        if (!user) {
+        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        
+        if (userError) {
+          console.error('🔍 [useUserRole] Auth error:', userError);
           setIsSuperAdmin(false);
           setIsLoading(false);
           return;
         }
+        
+        if (!user) {
+          console.log('🔍 [useUserRole] No user found');
+          setIsSuperAdmin(false);
+          setIsLoading(false);
+          return;
+        }
+
+        console.log('🔍 [useUserRole] User found:', user.id);
 
         // Check if user has superadmin role
         const { data, error } = await supabase
@@ -22,16 +34,18 @@ export const useUserRole = () => {
           .select('role')
           .eq('user_id', user.id)
           .eq('role', 'superadmin')
-          .single();
+          .maybeSingle(); // Use maybeSingle instead of single to avoid errors when no rows
 
-        if (error && error.code !== 'PGRST116') {
-          console.error('Error checking user role:', error);
+        if (error) {
+          console.error('🔍 [useUserRole] Database error:', error);
           setIsSuperAdmin(false);
         } else {
-          setIsSuperAdmin(!!data);
+          const hasRole = !!data;
+          console.log('🔍 [useUserRole] Superadmin role check result:', hasRole);
+          setIsSuperAdmin(hasRole);
         }
       } catch (error) {
-        console.error('Error in checkUserRole:', error);
+        console.error('🔍 [useUserRole] Unexpected error:', error);
         setIsSuperAdmin(false);
       } finally {
         setIsLoading(false);
@@ -39,13 +53,6 @@ export const useUserRole = () => {
     };
 
     checkUserRole();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(() => {
-      checkUserRole();
-    });
-
-    return () => subscription.unsubscribe();
   }, []);
 
   return { isSuperAdmin, isLoading };
