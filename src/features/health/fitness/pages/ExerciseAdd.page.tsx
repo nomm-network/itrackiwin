@@ -16,6 +16,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useNamingTemplates, buildExerciseName } from "@/hooks/useNamingTemplates";
+import { Search } from "lucide-react";
 
 // Basic SEO
 const useSEO = () => {
@@ -58,6 +59,7 @@ const ExerciseAdd: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
   const [activeTab, setActiveTab] = useState('basics');
+  const [equipmentSearch, setEquipmentSearch] = useState('');
   const location = useLocation();
   const isAdminContext = location.pathname.startsWith('/admin');
   useSEO();
@@ -77,6 +79,14 @@ const ExerciseAdd: React.FC = () => {
   
   // Fetch naming templates
   const { data: namingTemplates } = useNamingTemplates();
+
+  // Filter equipment based on search
+  const filteredEquipment = useMemo(() => {
+    if (!equipmentSearch.trim()) return equipment;
+    return equipment.filter(eq => 
+      eq.name.toLowerCase().includes(equipmentSearch.toLowerCase())
+    );
+  }, [equipment, equipmentSearch]);
 
 const form = useForm<FormValues>({
   resolver: zodResolver(schema),
@@ -542,18 +552,36 @@ const previewName = useMemo(() => {
               {/* Equipment Tab */}
               {activeTab === 'equipment' && (
                 <div className="space-y-6">
-                  <div className="space-y-2">
-                    <Label>Equipment *</Label>
-                    <Select onValueChange={(v) => form.setValue('equipment_id', v)} value={form.watch('equipment_id') || ''}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select equipment" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {equipment.map((eq) => (
-                          <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label>Search Equipment</Label>
+                      <div className="relative">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                        <Input
+                          placeholder="Search equipment..."
+                          value={equipmentSearch}
+                          onChange={(e) => setEquipmentSearch(e.target.value)}
+                          className="pl-9"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label>Equipment *</Label>
+                      <Select onValueChange={(v) => form.setValue('equipment_id', v)} value={form.watch('equipment_id') || ''}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select equipment" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-background border border-border shadow-md z-50">
+                          {filteredEquipment.map((eq) => (
+                            <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                          ))}
+                          {filteredEquipment.length === 0 && (
+                            <div className="px-3 py-2 text-sm text-muted-foreground">No equipment found</div>
+                          )}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                   
                   <div className="rounded-lg border border-border p-4 space-y-4">
