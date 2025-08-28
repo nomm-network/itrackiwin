@@ -265,12 +265,14 @@ const previewName = useMemo(() => {
         primary_muscle_id: values.primary_muscle_id || null,
         secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
+        equipment_ref_id: values.equipment_id || null, // Set equipment_ref_id to the same as equipment_id
         is_bar_loaded: values.is_bar_loaded || false,
         is_unilateral: values.is_unilateral || false,
         requires_handle: values.requires_handle || false,
         source_url: values.source_url || null,
         is_public: values.is_public,
         owner_user_id: userId,
+        load_type: values.is_bar_loaded ? 'dual_load' as const : 'bodyweight' as const, // Set load_type based on is_bar_loaded
         slug: (values.use_custom_name ? values.custom_display_name?.trim() : 'exercise') + '-' + Math.random().toString(36).substring(2, 8),
       };
 
