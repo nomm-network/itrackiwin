@@ -98,6 +98,11 @@ const AdminExercisesManagement: React.FC = () => {
     equipment_id?: string;
     is_public?: boolean;
     default_grip_ids?: string[];
+    is_bar_loaded?: boolean;
+    is_unilateral?: boolean;
+    requires_handle?: boolean;
+    movement_pattern?: string;
+    skill_level?: string;
   }>({
     name: "",
     description: "",
@@ -107,6 +112,11 @@ const AdminExercisesManagement: React.FC = () => {
     equipment_id: "",
     is_public: true,
     default_grip_ids: [],
+    is_bar_loaded: false,
+    is_unilateral: false,
+    requires_handle: false,
+    movement_pattern: "",
+    skill_level: "medium",
   });
   const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
 
@@ -292,6 +302,12 @@ const AdminExercisesManagement: React.FC = () => {
             equipment_id: exerciseData.equipment_id,
             is_public: exerciseData.is_public,
             default_grip_ids: exerciseData.default_grip_ids,
+            load_type: exerciseData.is_bar_loaded ? 'dual_load' as const : 'bodyweight' as const,
+            movement_pattern: exerciseData.movement_pattern || null,
+            exercise_skill_level: exerciseData.skill_level || 'medium',
+            is_bar_loaded: exerciseData.is_bar_loaded || false,
+            is_unilateral: exerciseData.is_unilateral || false,
+            requires_handle: exerciseData.requires_handle || false,
           })
           .eq("id", editingExercise.id);
         
@@ -323,6 +339,12 @@ const AdminExercisesManagement: React.FC = () => {
             equipment_id: exerciseData.equipment_id,
             is_public: exerciseData.is_public,
             default_grip_ids: exerciseData.default_grip_ids,
+            load_type: exerciseData.is_bar_loaded ? 'dual_load' as const : 'bodyweight' as const,
+            movement_pattern: exerciseData.movement_pattern || null,
+            exercise_skill_level: exerciseData.skill_level || 'medium',
+            is_bar_loaded: exerciseData.is_bar_loaded || false,
+            is_unilateral: exerciseData.is_unilateral || false,
+            requires_handle: exerciseData.requires_handle || false,
             owner_user_id: null, // Admin-created exercises don't have an owner
             slug: exerciseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
           })
@@ -362,6 +384,11 @@ const AdminExercisesManagement: React.FC = () => {
         equipment_id: "",
         is_public: true,
         default_grip_ids: [],
+        is_bar_loaded: false,
+        is_unilateral: false,
+        requires_handle: false,
+        movement_pattern: "",
+        skill_level: "medium",
       });
       setSelectedGrips([]);
     },
@@ -533,16 +560,11 @@ const AdminExercisesManagement: React.FC = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
           <div className="flex flex-col gap-2">
-            <Button onClick={() => setIsCreateDialogOpen(true)} variant="outline">
+            <Button onClick={() => setIsCreateDialogOpen(true)}>
               <Plus className="w-4 h-4 mr-2" />
-              Quick Create (Legacy)
+              Add Exercise
             </Button>
-            <Button asChild>
-              <Link to="/admin/exercises/add">
-                <Plus className="w-4 h-4 mr-2" />
-                Add Exercise
-              </Link>
-            </Button>
+            {/* Exercise creation is now handled through the dialog only */}
           </div>
         </div>
 

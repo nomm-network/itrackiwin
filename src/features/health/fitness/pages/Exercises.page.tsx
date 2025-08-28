@@ -213,9 +213,6 @@ const Exercises: React.FC = () => {
       <main className="container py-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="text-xl md:text-2xl font-semibold">Exercises</h1>
-          <Button asChild className="w-full sm:w-auto">
-            <Link to="/fitness/exercises/add">Add Exercise</Link>
-          </Button>
         </div>
 
         <section className="grid gap-4">
