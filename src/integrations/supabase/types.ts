@@ -2569,6 +2569,85 @@ export type Database = {
         }
         Relationships: []
       }
+      handle_equipment: {
+        Row: {
+          equipment_id: string
+          handle_id: string
+        }
+        Insert: {
+          equipment_id: string
+          handle_id: string
+        }
+        Update: {
+          equipment_id?: string
+          handle_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handle_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handle_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "handle_equipment_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "handle_equipment_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handle_equipment_rules: {
+        Row: {
+          equipment_type: string | null
+          handle_id: string
+          id: string
+          kind: string | null
+          load_medium: Database["public"]["Enums"]["load_medium"] | null
+          load_type: Database["public"]["Enums"]["load_type"] | null
+        }
+        Insert: {
+          equipment_type?: string | null
+          handle_id: string
+          id?: string
+          kind?: string | null
+          load_medium?: Database["public"]["Enums"]["load_medium"] | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+        }
+        Update: {
+          equipment_type?: string | null
+          handle_id?: string
+          id?: string
+          kind?: string | null
+          load_medium?: Database["public"]["Enums"]["load_medium"] | null
+          load_type?: Database["public"]["Enums"]["load_type"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handle_equipment_rules_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       handle_grip_compatibility: {
         Row: {
           created_at: string
@@ -6705,6 +6784,13 @@ export type Database = {
           f_table_schema?: unknown | null
           srid?: number | null
           type?: string | null
+        }
+        Relationships: []
+      }
+      handle_equipment_effective: {
+        Row: {
+          equipment_id: string | null
+          handle_id: string | null
         }
         Relationships: []
       }
