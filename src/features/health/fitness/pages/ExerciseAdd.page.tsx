@@ -353,6 +353,8 @@ const previewName = useMemo(() => {
           <p className="text-sm text-yellow-700">Email: {user?.email || 'NULL'}</p>
           <p className="text-sm text-yellow-700">Auth Checking: {isAuthChecking ? 'YES' : 'NO'}</p>
           <p className="text-sm text-yellow-700">Loading: {loading ? 'YES' : 'NO'}</p>
+          <p className="text-sm text-yellow-700">Current Route: {window.location.pathname}</p>
+          <p className="text-sm text-yellow-700">Page Rendered At: {new Date().toLocaleTimeString()}</p>
         </div>
 
         {isAuthChecking ? (
