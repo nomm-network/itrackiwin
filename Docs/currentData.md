@@ -78,22 +78,12 @@ This file contains all current data from the handle-related tables in our fitnes
 ## Grips Table
 *Hand positions and grip width options*
 
+**Available Grip Slugs for inserts:**
+- **Hand Position**: mixed, neutral, overhand, underhand
+- **Width**: close, medium, wide
+
 ```json
 [
-  {
-    "id": "15201a40-0acf-43a4-9736-1bc334b22a66",
-    "slug": "close",
-    "category": "width",
-    "is_compatible_with": [],
-    "created_at": "2025-08-28T11:43:53.330933+00:00"
-  },
-  {
-    "id": "2a40b2e7-0f4c-403a-ab77-ce33edce93c3",
-    "slug": "medium",
-    "category": "width",
-    "is_compatible_with": [],
-    "created_at": "2025-08-28T11:43:53.330933+00:00"
-  },
   {
     "id": "353c77e2-cd33-43c5-a396-095b96c2f4cc",
     "slug": "mixed",
@@ -119,6 +109,20 @@ This file contains all current data from the handle-related tables in our fitnes
     "id": "255960ca-ec28-484f-8f2f-11089be4fb19",
     "slug": "underhand",
     "category": "hand_position",
+    "is_compatible_with": [],
+    "created_at": "2025-08-28T11:43:53.330933+00:00"
+  },
+  {
+    "id": "15201a40-0acf-43a4-9736-1bc334b22a66",
+    "slug": "close",
+    "category": "width",
+    "is_compatible_with": [],
+    "created_at": "2025-08-28T11:43:53.330933+00:00"
+  },
+  {
+    "id": "2a40b2e7-0f4c-403a-ab77-ce33edce93c3",
+    "slug": "medium",
+    "category": "width",
     "is_compatible_with": [],
     "created_at": "2025-08-28T11:43:53.330933+00:00"
   },
@@ -248,38 +252,57 @@ This file contains all current data from the handle-related tables in our fitnes
 ]
 ```
 
-## Handle Equipment Table
-*Direct handle-to-equipment mappings - CURRENTLY EMPTY*
-
-```json
-[]
-```
-
-## Handle Equipment Rules Table  
-*Rule-based handle-equipment compatibility - CURRENTLY EMPTY*
-
-```json
-[]
-```
-
 ## Handle Grip Compatibility Table
 *Which grips can be used with which handles - CURRENTLY EMPTY*
 
+**Schema:**
+```sql
+handle_grip_compatibility (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  handle_id uuid NOT NULL REFERENCES handles(id),
+  grip_id uuid NOT NULL REFERENCES grips(id),
+  is_default boolean NOT NULL DEFAULT false,
+  created_at timestamp with time zone NOT NULL DEFAULT now(),
+  UNIQUE(handle_id, grip_id)
+)
+```
+
 ```json
 []
 ```
+
+## Table Clarification for Inserts
+
+**CONFIRMED TABLE NAMES:**
+- ❌ `equipment_handles` - **Does NOT exist**
+- ❌ `equipment_handle_grips` - **Does NOT exist** 
+- ✅ `exercise_handles` - **EXISTS** (columns: id, exercise_id, handle_id, is_default, created_at)
+- ✅ `exercise_handle_grips` - **EXISTS** (columns: id, exercise_id, handle_id, grip_id, created_at)
+- ✅ `equipment_handle_grips` - **EXISTS** (columns: id, equipment_id, handle_id, grip_id, is_default, created_at)
+
+**NOTE:** If you need `equipment_handles` table, it must be created as it doesn't exist in the schema.
 
 ---
 
 **Last Updated:** August 28, 2025  
 **Total Tables:** 7  
 **Tables with Data:** 4 (handles, grips, equipment, handle_translations)  
-**Empty Tables:** 3 (handle_equipment, handle_equipment_rules, handle_grip_compatibility)
+**Empty Tables:** 3 (handle_grip_compatibility and relationship tables)
+
+## Complete Grip Reference for Inserts
+
+**Available Grip Slugs with IDs:**
+- `mixed` → `353c77e2-cd33-43c5-a396-095b96c2f4cc`
+- `neutral` → `3f119821-a26d-43c9-ac19-1746f286862f`
+- `overhand` → `38571da9-3843-4004-b0e5-dee9c953bde1`
+- `underhand` → `255960ca-ec28-484f-8f2f-11089be4fb19`
+- `close` → `15201a40-0acf-43a4-9736-1bc334b22a66`
+- `medium` → `2a40b2e7-0f4c-403a-ab77-ce33edce93c3`
+- `wide` → `0b08d4eb-1845-41fd-8777-5f2833bbd656`
 
 ## Notes
 
-- The handle_equipment and handle_equipment_rules tables are empty, indicating the compatibility mapping system hasn't been populated yet
-- The handle_grip_compatibility table is also empty, meaning grip-handle relationships need to be established
-- All handles and grips have been created with basic structure
-- Handle translations are available in English and Romanian
-- Equipment table contains comprehensive fitness equipment with proper loading characteristics
+- The `handle_grip_compatibility` table exists but is empty - ready for inserts
+- Tables `equipment_handles` and `equipment_handle_grips` referenced in your question **DO NOT EXIST**
+- The actual tables are `exercise_handles`, `exercise_handle_grips`, and `equipment_handle_grips`
+- All grip slugs and IDs are provided above for generating working insert scripts
