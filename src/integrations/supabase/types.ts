@@ -1040,6 +1040,69 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_handle_grips: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          grip_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          grip_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          grip_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_handle_grips_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_grips_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_grips_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_grips_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_grips_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_translations: {
         Row: {
           created_at: string
@@ -2573,14 +2636,17 @@ export type Database = {
         Row: {
           equipment_id: string
           handle_id: string
+          is_default: boolean
         }
         Insert: {
           equipment_id: string
           handle_id: string
+          is_default?: boolean
         }
         Update: {
           equipment_id?: string
           handle_id?: string
+          is_default?: boolean
         }
         Relationships: [
           {

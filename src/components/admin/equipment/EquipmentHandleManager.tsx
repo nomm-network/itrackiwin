@@ -4,11 +4,13 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import { Plus, X, Settings } from "lucide-react";
 import { useHandles } from "@/hooks/useHandles";
 import { toast } from "sonner";
 import { AddDirectHandleDialog } from "./AddDirectHandleDialog";
 import { AddHandleRuleDialog } from "./AddHandleRuleDialog";
+import { HandleGripManager } from "./HandleGripManager";
 
 interface EquipmentHandleManagerProps {
   equipmentId: string;
@@ -16,6 +18,7 @@ interface EquipmentHandleManagerProps {
 
 interface DirectHandle {
   handle_id: string;
+  is_default: boolean;
   handle: {
     id: string;
     slug: string;
@@ -40,6 +43,7 @@ interface HandleRule {
 export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerProps) {
   const [showDirectDialog, setShowDirectDialog] = useState(false);
   const [showRuleDialog, setShowRuleDialog] = useState(false);
+  const [selectedHandle, setSelectedHandle] = useState<{ id: string; name: string } | null>(null);
   const queryClient = useQueryClient();
 
   // Fetch direct handle mappings
@@ -50,6 +54,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
         .from('handle_equipment')
         .select(`
           handle_id,
+          is_default,
           handle:handles (
             id, slug,
             translations:handle_translations (language_code, name)
@@ -58,7 +63,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
         .eq('equipment_id', equipmentId);
       
       if (error) throw error;
-      return data as DirectHandle[];
+      return data as any;
     }
   });
 
@@ -92,7 +97,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
       if (error) throw error;
 
       // Filter rules that match this equipment
-      return (data as HandleRule[]).filter(rule => {
+      return (data as any).filter((rule: any) => {
         return (
           (!rule.equipment_type || rule.equipment_type === equipment.equipment_type) &&
           (!rule.kind || rule.kind === equipment.kind) &&
@@ -122,6 +127,25 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
     }
   });
 
+  const toggleHandleDefault = useMutation({
+    mutationFn: async ({ handleId, isDefault }: { handleId: string; isDefault: boolean }) => {
+      const { error } = await supabase
+        .from('handle_equipment')
+        .update({ is_default: isDefault })
+        .eq('equipment_id', equipmentId)
+        .eq('handle_id', handleId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipment-direct-handles', equipmentId] });
+      toast.success("Default handle setting updated");
+    },
+    onError: (error) => {
+      toast.error("Failed to update default: " + error.message);
+    }
+  });
+
   const getHandleName = (handle: any) => {
     return handle?.translations?.find((t: any) => t.language_code === 'en')?.name || 
            handle?.slug?.replace(/-/g, ' ') || 
@@ -141,6 +165,17 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
           <div className="text-center py-4 text-muted-foreground">Loading...</div>
         </CardContent>
       </Card>
+    );
+  }
+
+  if (selectedHandle) {
+    return (
+      <HandleGripManager
+        equipmentId={equipmentId}
+        handleId={selectedHandle.id}
+        handleName={selectedHandle.name}
+        onClose={() => setSelectedHandle(null)}
+      />
     );
   }
 
@@ -178,19 +213,51 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
             <div className="space-y-2">
               {directHandles.map((mapping) => (
                 <div key={mapping.handle_id} className="flex items-center justify-between p-3 border rounded-md">
-                  <div>
-                    <Badge variant="default" className="mb-1">Direct</Badge>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="default">Direct</Badge>
+                      {mapping.is_default && (
+                        <Badge variant="secondary" className="text-xs">Default</Badge>
+                      )}
+                    </div>
                     <div className="font-medium">{getHandleName(mapping.handle)}</div>
                     <div className="text-sm text-muted-foreground">{mapping.handle.slug}</div>
                   </div>
-                  <Button
-                    onClick={() => removeDirectHandle.mutate(mapping.handle_id)}
-                    size="sm"
-                    variant="ghost"
-                    className="text-destructive hover:text-destructive"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      onClick={() => setSelectedHandle({ 
+                        id: mapping.handle_id, 
+                        name: getHandleName(mapping.handle) 
+                      })}
+                      size="sm"
+                      variant="outline"
+                    >
+                      Configure Grips
+                    </Button>
+                    <div className="flex items-center gap-2">
+                      <label htmlFor={`default-handle-${mapping.handle_id}`} className="text-sm">
+                        Default
+                      </label>
+                      <Switch
+                        id={`default-handle-${mapping.handle_id}`}
+                        checked={mapping.is_default}
+                        onCheckedChange={(checked) => 
+                          toggleHandleDefault.mutate({ 
+                            handleId: mapping.handle_id, 
+                            isDefault: checked 
+                          })
+                        }
+                      />
+                    </div>
+                    <Button
+                      onClick={() => removeDirectHandle.mutate(mapping.handle_id)}
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
