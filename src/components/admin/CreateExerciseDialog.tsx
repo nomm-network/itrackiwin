@@ -431,14 +431,26 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
     setActiveTab('basics');
   };
 
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    createMutation.mutate();
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <Dialog open={open} onOpenChange={onOpenChange} modal={true}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto" onInteractOutside={(e) => {
+        // Prevent dialog from closing when clicking on dropdown portals
+        const target = e.target as Element;
+        if (target?.closest('[data-radix-select-content]') || target?.closest('[data-radix-popper-content-wrapper]')) {
+          e.preventDefault();
+        }
+      }}>
         <DialogHeader>
           <DialogTitle>Create New Exercise</DialogTitle>
         </DialogHeader>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <form onSubmit={handleSubmit}>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="basics">Basics</TabsTrigger>
             <TabsTrigger value="equipment">Equipment</TabsTrigger>
@@ -830,18 +842,19 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
           </TabsContent>
         </Tabs>
 
-        <div className="flex justify-between pt-6">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => createMutation.mutate()}
-            disabled={createMutation.isPending}
-          >
-            {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-            Create Exercise
-          </Button>
-        </div>
+          <div className="flex justify-between pt-6">
+            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
+            <Button 
+              type="submit"
+              disabled={createMutation.isPending}
+            >
+              {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+              Create Exercise
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   );
