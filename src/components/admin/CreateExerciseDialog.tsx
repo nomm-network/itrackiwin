@@ -75,6 +75,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
     isPublic: true,
     // Movement
     bodyPartId: '',
+    muscleGroupId: '',
     primaryMuscleId: '',
     secondaryMuscleGroupIds: [] as string[],
     movementPattern: '',
@@ -215,23 +216,14 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
     return muscleGroups.filter(mg => mg.body_part_id === formData.bodyPartId);
   }, [muscleGroups, formData.bodyPartId]);
 
-  const primaryMuscleGroup = useMemo(() => {
-    if (!formData.primaryMuscleId) return null;
-    const muscle = muscles.find(m => m.id === formData.primaryMuscleId);
-    return muscle ? muscleGroups.find(mg => mg.id === muscle.muscle_group_id) : null;
-  }, [muscles, muscleGroups, formData.primaryMuscleId]);
-
   const availableMuscles = useMemo(() => {
-    if (!primaryMuscleGroup) return [];
-    return muscles.filter(m => m.muscle_group_id === primaryMuscleGroup.id);
-  }, [muscles, primaryMuscleGroup]);
+    if (!formData.muscleGroupId) return [];
+    return muscles.filter(m => m.muscle_group_id === formData.muscleGroupId);
+  }, [muscles, formData.muscleGroupId]);
 
-  const secondaryMuscleGroupOptions = useMemo(() => {
-    return muscleGroups.filter(mg => 
-      mg.body_part_id === formData.bodyPartId && 
-      mg.id !== primaryMuscleGroup?.id
-    );
-  }, [muscleGroups, formData.bodyPartId, primaryMuscleGroup]);
+  const allMuscleGroupsForSecondary = useMemo(() => {
+    return muscleGroups.filter(mg => mg.id !== formData.muscleGroupId);
+  }, [muscleGroups, formData.muscleGroupId]);
 
   // Grouped grips by category
   const gripsByCategory = useMemo(() => {
@@ -414,6 +406,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
       slug: '',
       isPublic: true,
       bodyPartId: '',
+      muscleGroupId: '',
       primaryMuscleId: '',
       secondaryMuscleGroupIds: [],
       movementPattern: '',
@@ -486,7 +479,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Body Part *</Label>
                 <Select
@@ -494,6 +487,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
                   onValueChange={(value) => setFormData(prev => ({ 
                     ...prev, 
                     bodyPartId: value,
+                    muscleGroupId: '',
                     primaryMuscleId: '',
                     secondaryMuscleGroupIds: []
                   }))}
@@ -512,11 +506,35 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
               </div>
 
               <div className="space-y-2">
+                <Label>Muscle Group *</Label>
+                <Select
+                  value={formData.muscleGroupId}
+                  onValueChange={(value) => setFormData(prev => ({ 
+                    ...prev, 
+                    muscleGroupId: value,
+                    primaryMuscleId: '',
+                  }))}
+                  disabled={!formData.bodyPartId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select muscle group" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredMuscleGroups.map((mg) => (
+                      <SelectItem key={mg.id} value={mg.id}>
+                        {getName(mg)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
                 <Label>Primary Muscle *</Label>
                 <Select
                   value={formData.primaryMuscleId}
                   onValueChange={(value) => setFormData(prev => ({ ...prev, primaryMuscleId: value }))}
-                  disabled={!formData.bodyPartId}
+                  disabled={!formData.muscleGroupId}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select primary muscle" />
@@ -535,7 +553,7 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
             <div className="space-y-2">
               <Label>Secondary Muscle Groups</Label>
               <div className="grid grid-cols-3 gap-2">
-                {secondaryMuscleGroupOptions.map((mg) => (
+                {allMuscleGroupsForSecondary.map((mg) => (
                   <div key={mg.id} className="flex items-center space-x-2">
                     <Checkbox
                       checked={formData.secondaryMuscleGroupIds.includes(mg.id)}
