@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 import { Switch } from "@/components/ui/switch";
-import { Link, NavLink, useNavigate } from "react-router-dom";
+import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ExerciseImageUploader from "@/components/ExerciseImageUploader";
@@ -57,6 +57,8 @@ type FormValues = z.infer<typeof schema>;
 const ExerciseAdd: React.FC = () => {
   const [user, setUser] = useState<any>(null);
   const [isAuthChecking, setIsAuthChecking] = useState(true);
+  const location = useLocation();
+  const isAdminContext = location.pathname.startsWith('/admin');
   useSEO();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -298,7 +300,11 @@ const previewName = useMemo(() => {
       }
 
       toast({ title: 'Exercise added' });
-      navigate('/fitness/exercises');
+      if (isAdminContext) {
+        navigate('/admin/exercises');
+      } else {
+        navigate('/fitness/exercises');
+      }
     } catch (e: any) {
       console.error('[ExerciseAdd] create error', e);
       setLastError(e?.message || String(e));
@@ -310,39 +316,43 @@ const previewName = useMemo(() => {
 
   return (
     <>
-      <PageNav current="Fitness" />
-      <nav className="container pt-4" aria-label="Fitness navigation">
-        <NavigationMenu>
-          <NavigationMenuList className="grid grid-cols-2 gap-1 w-full">
-            <NavigationMenuItem>
-              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
-                Workouts
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
-                Exercises
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
-                Templates
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
-                Configure
-              </NavLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </nav>
+      <PageNav current={isAdminContext ? "Admin / Add Exercise" : "Fitness"} />
+      {!isAdminContext && (
+        <nav className="container pt-4" aria-label="Fitness navigation">
+          <NavigationMenu>
+            <NavigationMenuList className="grid grid-cols-2 gap-1 w-full">
+              <NavigationMenuItem>
+                <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
+                  Workouts
+                </NavLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
+                  Exercises
+                </NavLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
+                  Templates
+                </NavLink>
+              </NavigationMenuItem>
+              <NavigationMenuItem>
+                <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''} w-full justify-center`}>
+                  Configure
+                </NavLink>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+        </nav>
+      )}
 
       <main className="container py-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="text-xl md:text-2xl font-semibold">Add Exercise</h1>
           <Button variant="secondary" asChild className="w-full sm:w-auto">
-            <Link to="/fitness/exercises">Back to Exercises</Link>
+            <Link to={isAdminContext ? "/admin/exercises" : "/fitness/exercises"}>
+              Back to Exercises
+            </Link>
           </Button>
         </div>
 
@@ -499,7 +509,7 @@ const previewName = useMemo(() => {
 
               <div className="flex gap-2 pt-2 pb-20">
                 <Button type="button" variant="secondary" asChild>
-                  <Link to="/fitness/exercises">Cancel</Link>
+                  <Link to={isAdminContext ? "/admin/exercises" : "/fitness/exercises"}>Cancel</Link>
                 </Button>
                 <Button type="submit" disabled={saving}>{saving ? 'Adding…' : 'Add Exercise'}</Button>
               </div>

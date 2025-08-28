@@ -20,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import { CreateExerciseDialog } from "@/components/admin/CreateExerciseDialog";
+import { Link } from "react-router-dom";
 
 interface Exercise {
   id: string;
@@ -531,10 +532,18 @@ const AdminExercisesManagement: React.FC = () => {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
-          <Button onClick={() => setIsCreateDialogOpen(true)}>
-            <Plus className="w-4 h-4 mr-2" />
-            Create Exercise
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={() => setIsCreateDialogOpen(true)} variant="outline">
+              <Plus className="w-4 h-4 mr-2" />
+              Quick Create (Legacy)
+            </Button>
+            <Button asChild>
+              <Link to="/admin/exercises/add">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Exercise
+              </Link>
+            </Button>
+          </div>
         </div>
 
         <CreateExerciseDialog 

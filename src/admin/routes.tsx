@@ -15,6 +15,8 @@ const AdminSubcategoryPage = lazy(() => import("./pages/AdminSubcategoryPage"));
 const AdminCoachLogs = lazy(() => import("./pages/AdminCoachLogs"));
 const AdminAttributeSchemas = lazy(() => import("./pages/AdminAttributeSchemas"));
 const AdminNamingTemplates = lazy(() => import("./pages/AdminNamingTemplates"));
+// Reuse the fitness exercise add page for admin
+const ExerciseAdd = lazy(() => import("@/features/health/fitness/pages/ExerciseAdd.page"));
 
 export function AdminRoutes() {
   return (
@@ -25,6 +27,7 @@ export function AdminRoutes() {
             <Routes>
               <Route index element={<AdminHomePage />} />
               <Route path="exercises" element={<AdminExercisesManagement />} />
+              <Route path="exercises/add" element={<ExerciseAdd />} />
               <Route path="attribute-schemas" element={<AdminAttributeSchemas />} />
               <Route path="naming-templates" element={<AdminNamingTemplates />} />
               <Route path="muscles" element={<AdminMusclesManagement />} />
