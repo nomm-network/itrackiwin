@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import PageNav from "@/components/PageNav";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
@@ -15,6 +15,7 @@ import ExerciseImageUploader from "@/components/ExerciseImageUploader";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useNamingTemplates, buildExerciseName } from "@/hooks/useNamingTemplates";
 
 // Basic SEO
 const useSEO = () => {
@@ -70,6 +71,9 @@ const ExerciseAdd: React.FC = () => {
   const [equipment, setEquipment] = React.useState<Equipment[]>([]);
 
   const [files, setFiles] = React.useState<File[]>([]);
+  
+  // Fetch naming templates
+  const { data: namingTemplates } = useNamingTemplates();
 
 const form = useForm<FormValues>({
   resolver: zodResolver(schema),
@@ -174,6 +178,32 @@ const primaryMusclesOptions = React.useMemo(() => {
   if (!selectedGroupId) return [] as Muscle[];
   return muscles.filter((mu) => mu.muscle_group_id === selectedGroupId);
 }, [muscles, selectedGroupId]);
+
+// Live preview of auto-generated name
+const previewName = useMemo(() => {
+  const primaryMuscleId = form.watch('primary_muscle_id');
+  const equipmentId = form.watch('equipment_id');
+  
+  if (!primaryMuscleId && !equipmentId) return '';
+  
+  // Find names for the selected items
+  const primaryMuscleName = muscles.find(m => m.id === primaryMuscleId)?.name || '';
+  const equipmentName = equipment.find(e => e.id === equipmentId)?.name || '';
+  
+  // Get the appropriate template (fallback to default)
+  const template = namingTemplates?.[0]?.template || '{PrimaryMuscle} – {Equipment} {Movement}';
+  
+  return buildExerciseName({
+    template,
+    primaryMuscle: primaryMuscleName,
+    movement: '', // No movement selection in current form
+    equipment: equipmentName,
+    attrs: {},
+    handle: '',
+    grip: '',
+    separator: namingTemplates?.[0]?.sep || ' – '
+  });
+}, [form.watch('primary_muscle_id'), form.watch('equipment_id'), muscles, equipment, namingTemplates]);
 
   const onSubmit = async (values: FormValues) => {
     console.log('[ExerciseAdd] Form submission started');
@@ -352,9 +382,18 @@ const primaryMusclesOptions = React.useMemo(() => {
                   </div>
                 ) : (
                   <div className="p-3 bg-muted rounded-md">
-                    <p className="text-sm text-muted-foreground">
-                      Exercise name will be automatically generated based on your selections
-                    </p>
+                    {previewName ? (
+                      <div>
+                        <p className="text-sm font-medium text-foreground">{previewName}</p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Auto-generated based on your selections
+                        </p>
+                      </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">
+                        Exercise name will be automatically generated based on your selections
+                      </p>
+                    )}
                   </div>
                 )}
               </div>
