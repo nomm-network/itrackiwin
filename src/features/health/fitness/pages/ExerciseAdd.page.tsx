@@ -244,7 +244,6 @@ const previewName = useMemo(() => {
 
       const payload = {
         custom_display_name: values.use_custom_name ? values.custom_display_name?.trim() || null : null,
-        description: values.description || null,
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
         secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
@@ -268,6 +267,25 @@ const previewName = useMemo(() => {
       }
       const exerciseId = inserted?.id;
       if (!exerciseId) throw new Error('Failed to get new exercise id');
+
+      // Insert translations for name and description
+      const exerciseName = values.use_custom_name ? values.custom_display_name?.trim() : previewName;
+      if (exerciseName || values.description) {
+        const { error: translationError } = await supabase
+          .from('exercises_translations')
+          .insert({
+            exercise_id: exerciseId,
+            language_code: 'en', // Default to English, could be made dynamic based on user locale
+            name: exerciseName || 'Untitled Exercise',
+            description: values.description || null
+          });
+        
+        if (translationError) {
+          console.error('[ExerciseAdd] Translation insert error:', translationError);
+          // Don't throw here - exercise was created successfully, just warn about translation
+          toast({ title: 'Warning', description: 'Exercise created but translation failed to save' });
+        }
+      }
 
       // Upload images if any
       if (files.length > 0) {
