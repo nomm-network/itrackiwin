@@ -1,16 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface EquipmentHandle {
+export interface EquipmentHandleRow {
   handle_id: string;
-  handle: {
+  is_default: boolean;
+  handles: {
     id: string;
     slug: string;
-    translations: Array<{
-      language_code: string;
-      name: string;
-      description?: string;
-    }>;
+    handle_translations: { language_code: string; name: string; description?: string }[];
   };
 }
 
@@ -18,32 +15,38 @@ export function useEquipmentHandles(equipmentId?: string, lang: 'en' | 'ro' = 'e
   return useQuery({
     queryKey: ['equipment-handles', equipmentId, lang],
     enabled: !!equipmentId,
-    queryFn: async (): Promise<EquipmentHandle[]> => {
+    queryFn: async (): Promise<EquipmentHandleRow[]> => {
       const { data, error } = await supabase
-        .from('handle_equipment')
+        .from('equipment_handle_grips')
         .select(`
-          handle_id,
-          handle:handles (
-            id,
-            slug,
-            translations:handle_translations (
-              language_code,
-              name,
-              description
-            )
+          handle_id, is_default,
+          handles!inner (
+            id, slug,
+            handle_translations (language_code, name, description)
           )
         `)
         .eq('equipment_id', equipmentId);
 
       if (error) throw error;
 
-      return (data || []) as EquipmentHandle[];
+      // Remove duplicates and sort by default first
+      const uniqueHandles = data?.reduce((acc, curr) => {
+        const existing = acc.find(h => h.handle_id === curr.handle_id);
+        if (!existing) {
+          acc.push(curr);
+        } else if (curr.is_default && !existing.is_default) {
+          Object.assign(existing, curr);
+        }
+        return acc;
+      }, [] as EquipmentHandleRow[]) || [];
+
+      return uniqueHandles.sort((a, b) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1));
     },
   });
 }
 
-export function pickEquipmentHandleName(row: EquipmentHandle, lang: 'en' | 'ro' = 'en') {
-  const t = row.handle?.translations?.find(t => t.language_code === lang)
-        || row.handle?.translations?.[0];
-  return t?.name || row.handle?.slug || 'Handle';
+export function pickEquipmentHandleName(row: EquipmentHandleRow, lang: 'en' | 'ro' = 'en') {
+  const t = row.handles?.handle_translations?.find(t => t.language_code === lang)
+        || row.handles?.handle_translations?.[0];
+  return t?.name || row.handles?.slug || 'Handle';
 }

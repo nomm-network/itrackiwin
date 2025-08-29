@@ -98,8 +98,8 @@ export function HandleGripSelector({
         const transformedHandles = equipmentHandles.map(eh => ({
           handle_id: eh.handle_id,
           handles: {
-            ...eh.handle,
-            handle_translations: eh.handle.translations
+            ...eh.handles,
+            handle_translations: eh.handles.handle_translations
           }
         }));
         setHandles(transformedHandles);
@@ -119,7 +119,7 @@ export function HandleGripSelector({
     if (!exerciseId && equipmentGrips) {
       const transformedGrips = equipmentGrips.map(eg => ({
         grip_id: eg.grip_id,
-        grips: eg.grip
+        grips: eg.grips
       }));
       setGrips(transformedGrips);
     }
