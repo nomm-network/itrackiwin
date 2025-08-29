@@ -831,13 +831,48 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="space-y-2">
                       <Label>Load Type</Label>
-                      <Input value={selectedEquipment.load_type} disabled />
+                      <Select
+                        value={formData.loadType}
+                        onValueChange={(value) => setFormData(prev => ({ ...prev, loadType: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select load type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="fixed">Fixed</SelectItem>
+                          <SelectItem value="barbell">Barbell</SelectItem>
+                          <SelectItem value="single_load">Single Load</SelectItem>
+                          <SelectItem value="dual_load">Dual Load</SelectItem>
+                          <SelectItem value="stack">Stack</SelectItem>
+                          <SelectItem value="bodyweight">Bodyweight</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <div>
+                    <div className="space-y-2">
                       <Label>Load Medium</Label>
-                      <Input value={selectedEquipment.load_medium} disabled />
+                      <Select
+                        value={selectedEquipment?.load_medium || ''}
+                        onValueChange={(value) => {
+                          // Update the equipment's load_medium if needed
+                          // This would require updating the equipment data
+                        }}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select load medium" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="weight">Weight</SelectItem>
+                          <SelectItem value="cable">Cable</SelectItem>
+                          <SelectItem value="band">Band</SelectItem>
+                          <SelectItem value="hydraulic">Hydraulic</SelectItem>
+                          <SelectItem value="pneumatic">Pneumatic</SelectItem>
+                          <SelectItem value="gravity">Gravity</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
