@@ -269,6 +269,12 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
     return muscleGroups.filter(mg => mg.id !== formData.muscleGroupId);
   }, [muscleGroups, formData.muscleGroupId]);
 
+  const filteredEquipment = useMemo(() => {
+    return equipment
+      .filter(eq => getName(eq).toLowerCase().includes(equipmentSearch.toLowerCase()))
+      .sort((a, b) => getName(a).localeCompare(getName(b)));
+  }, [equipment, equipmentSearch]);
+
   // Grouped grips by category
   const gripsByCategory = useMemo(() => {
     const grouped: Record<string, any[]> = {};
@@ -673,41 +679,36 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
             <div className="space-y-2">
               <Label>Secondary Muscle Groups</Label>
               <div className="grid grid-cols-3 gap-2">
-                {allMuscleGroupsForSecondary.map((mg) => (
-                  <div key={mg.id} className="flex items-center space-x-2 cursor-pointer hover:bg-muted/50 rounded p-1"
-                       onClick={() => {
-                         const isChecked = formData.secondaryMuscleGroupIds.includes(mg.id);
-                         if (isChecked) {
-                           setFormData(prev => ({
-                             ...prev,
-                             secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
-                           }));
-                         } else {
-                           setFormData(prev => ({
-                             ...prev,
-                             secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
-                           }));
-                         }
-                       }}>
-                    <Checkbox
-                      checked={formData.secondaryMuscleGroupIds.includes(mg.id)}
-                      onCheckedChange={(checked) => {
-                        if (checked) {
-                          setFormData(prev => ({
-                            ...prev,
-                            secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
-                          }));
-                        } else {
-                          setFormData(prev => ({
-                            ...prev,
-                            secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
-                          }));
-                        }
-                      }}
-                    />
-                    <Label className="text-sm cursor-pointer flex-1">{getName(mg)}</Label>
-                  </div>
-                ))}
+                {allMuscleGroupsForSecondary.map((mg) => {
+                  const isChecked = formData.secondaryMuscleGroupIds.includes(mg.id);
+                  const handleToggle = () => {
+                    if (isChecked) {
+                      setFormData(prev => ({
+                        ...prev,
+                        secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
+                      }));
+                    } else {
+                      setFormData(prev => ({
+                        ...prev,
+                        secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
+                      }));
+                    }
+                  };
+                  
+                  return (
+                    <div 
+                      key={mg.id} 
+                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/50 rounded p-1"
+                      onClick={handleToggle}
+                    >
+                      <Checkbox
+                        checked={isChecked}
+                        onCheckedChange={handleToggle}
+                      />
+                      <Label className="text-sm cursor-pointer flex-1">{getName(mg)}</Label>
+                    </div>
+                  );
+                })}
               </div>
             </div>
 
@@ -799,14 +800,11 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                       onChange={(e) => setEquipmentSearch(e.target.value)}
                     />
                   </div>
-                  {equipment
-                    .filter(eq => getName(eq).toLowerCase().includes(equipmentSearch.toLowerCase()))
-                    .sort((a, b) => getName(a).localeCompare(getName(b)))
-                    .map((eq) => (
-                      <SelectItem key={eq.id} value={eq.id}>
-                        {getName(eq)}
-                      </SelectItem>
-                    ))}
+                  {filteredEquipment.map((eq) => (
+                    <SelectItem key={eq.id} value={eq.id}>
+                      {getName(eq)}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
