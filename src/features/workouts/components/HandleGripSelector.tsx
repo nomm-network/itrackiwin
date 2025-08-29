@@ -4,10 +4,13 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useHandleSelector } from '@/features/workouts/hooks/useHandleSelector';
+import { useEquipmentHandles, pickEquipmentHandleName } from '@/hooks/useEquipmentHandles';
+import { useEquipmentHandleGrips, pickEquipmentGripName } from '@/hooks/useEquipmentHandleGrips';
 import { Loader2, Grip } from 'lucide-react';
 
 interface HandleSelectorProps {
-  exerciseId: string;
+  exerciseId?: string;
+  equipmentId?: string; // For new exercises
   selectedHandleId?: string;
   selectedGripIds?: string[];
   onHandleChange: (handleId: string | undefined) => void;
@@ -20,7 +23,12 @@ interface HandleData {
   handles: {
     id: string;
     slug: string;
-    handle_translations: Array<{
+    handle_translations?: Array<{
+      language_code: string;
+      name: string;
+      description?: string;
+    }>;
+    translations?: Array<{
       language_code: string;
       name: string;
       description?: string;
@@ -33,7 +41,7 @@ interface GripData {
   grips: {
     id: string;
     slug: string;
-    grips_translations: Array<{
+    grips_translations?: Array<{
       language_code: string;
       name: string;
       description?: string;
@@ -43,6 +51,7 @@ interface GripData {
 
 export function HandleGripSelector({
   exerciseId,
+  equipmentId,
   selectedHandleId,
   selectedGripIds = [],
   onHandleChange,
@@ -51,30 +60,76 @@ export function HandleGripSelector({
 }: HandleSelectorProps) {
   const [handles, setHandles] = useState<HandleData[]>([]);
   const [grips, setGrips] = useState<GripData[]>([]);
-  const { getDefaultHandles, getDefaultGrips, isLoading } = useHandleSelector({ exerciseId });
+  
+  // For existing exercises, use exercise-specific handles/grips
+  const { getDefaultHandles, getDefaultGrips, isLoading: exerciseLoading } = useHandleSelector({ 
+    exerciseId: exerciseId || '' 
+  });
+  
+  // For new exercises, use equipment-based handles/grips
+  const { data: equipmentHandles, isLoading: equipmentHandlesLoading } = useEquipmentHandles(equipmentId);
+  const { data: equipmentGrips, isLoading: equipmentGripsLoading } = useEquipmentHandleGrips(
+    equipmentId, 
+    selectedHandleId
+  );
 
-  // Load default handles and grips for this exercise
+  const isLoading = exerciseId 
+    ? exerciseLoading 
+    : (equipmentHandlesLoading || equipmentGripsLoading);
+
+  // Load data based on context (existing exercise vs new exercise)
   useEffect(() => {
-    const loadDefaults = async () => {
-      try {
-        const [handlesData, gripsData] = await Promise.all([
-          getDefaultHandles(),
-          getDefaultGrips()
-        ]);
+    const loadData = async () => {
+      if (exerciseId) {
+        // For existing exercises
+        try {
+          const [handlesData, gripsData] = await Promise.all([
+            getDefaultHandles(),
+            getDefaultGrips()
+          ]);
+          
+          setHandles(handlesData as unknown as HandleData[]);
+          setGrips(gripsData as unknown as GripData[]);
+        } catch (error) {
+          console.error('Failed to load exercise defaults:', error);
+        }
+      } else if (equipmentId && equipmentHandles) {
+        // For new exercises, transform equipment handles to match expected format
+        const transformedHandles = equipmentHandles.map(eh => ({
+          handle_id: eh.handle_id,
+          handles: {
+            ...eh.handle,
+            handle_translations: eh.handle.translations
+          }
+        }));
+        setHandles(transformedHandles);
         
-        setHandles(handlesData as unknown as HandleData[]);
-        setGrips(gripsData as unknown as GripData[]);
-      } catch (error) {
-        console.error('Failed to load defaults:', error);
+        // Clear grips when handles change (will be refetched based on selected handle)
+        if (!selectedHandleId) {
+          setGrips([]);
+        }
       }
     };
 
-    loadDefaults();
-  }, [exerciseId, getDefaultHandles, getDefaultGrips]);
+    loadData();
+  }, [exerciseId, equipmentId, equipmentHandles, getDefaultHandles, getDefaultGrips, selectedHandleId]);
+
+  // Update grips when equipment grips are available (for new exercises)
+  useEffect(() => {
+    if (!exerciseId && equipmentGrips) {
+      const transformedGrips = equipmentGrips.map(eg => ({
+        grip_id: eg.grip_id,
+        grips: eg.grip
+      }));
+      setGrips(transformedGrips);
+    }
+  }, [exerciseId, equipmentGrips]);
 
   const getHandleName = (handle: HandleData['handles']) => {
     const translation = handle.handle_translations?.find(t => t.language_code === 'en') 
-                       || handle.handle_translations?.[0];
+                       || handle.translations?.find(t => t.language_code === 'en')
+                       || handle.handle_translations?.[0]
+                       || handle.translations?.[0];
     return translation?.name || handle.slug.replace(/-/g, ' ');
   };
 
@@ -87,6 +142,11 @@ export function HandleGripSelector({
   const handleHandleSelect = (handleId: string) => {
     const newHandleId = selectedHandleId === handleId ? undefined : handleId;
     onHandleChange(newHandleId);
+    
+    // Clear grips when handle changes (for new exercises)
+    if (!exerciseId) {
+      onGripChange([]);
+    }
   };
 
   const handleGripToggle = (gripId: string) => {
@@ -116,7 +176,12 @@ export function HandleGripSelector({
       <Card>
         <CardContent className="p-4 text-center">
           <Grip className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-          <p className="text-sm text-muted-foreground">No handles or grips configured for this exercise</p>
+          <p className="text-sm text-muted-foreground">
+            {exerciseId 
+              ? "No handles or grips configured for this exercise" 
+              : "Select equipment first to see available handles and grips"
+            }
+          </p>
         </CardContent>
       </Card>
     );
@@ -151,11 +216,11 @@ export function HandleGripSelector({
         {/* Separator if both handles and grips exist */}
         {handles.length > 0 && grips.length > 0 && <Separator />}
 
-        {/* Grips Section */}
-        {grips.length > 0 && (
+        {/* Grips Section - Only show for new exercises if handle is selected, or always for existing exercises */}
+        {grips.length > 0 && (exerciseId || selectedHandleId) && (
           <div>
             <h4 className="text-xs font-medium text-muted-foreground mb-2">
-              GRIPS {multiSelectGrips && '(multi-select)'}
+              GRIP ORIENTATION {multiSelectGrips && '(multi-select)'}
             </h4>
             <div className="flex flex-wrap gap-2">
               {grips.map((gripData) => (
@@ -170,6 +235,13 @@ export function HandleGripSelector({
                 </Button>
               ))}
             </div>
+          </div>
+        )}
+
+        {/* Hint for new exercises */}
+        {!exerciseId && selectedHandleId && grips.length === 0 && !equipmentGripsLoading && (
+          <div className="text-xs text-muted-foreground text-center py-2">
+            No grip options available for the selected handle
           </div>
         )}
 

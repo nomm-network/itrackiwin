@@ -68,42 +68,18 @@ export const GripSelector: React.FC<GripSelectorProps> = ({
     },
   });
 
-  // Group grips by category
-  const gripsByCategory = grips.reduce((acc, grip) => {
-    if (!acc[grip.category]) {
-      acc[grip.category] = [];
-    }
-    acc[grip.category].push(grip);
-    return acc;
-  }, {} as Record<string, Grip[]>);
-
   const handleGripToggle = (grip: Grip) => {
     const isSelected = selectedGrips.includes(grip.id);
     
     if (isSelected) {
-      // Check if this is the last selected grip in its category and requireSelection is true
-      if (requireSelection) {
-        const categoryGrips = grips.filter(g => g.category === grip.category);
-        const selectedInCategory = selectedGrips.filter(selectedId => {
-          const selectedGrip = grips.find(g => g.id === selectedId);
-          return selectedGrip?.category === grip.category;
-        });
-        
-        // Don't allow removing if it's the last one in a required category
-        if (selectedInCategory.length === 1) {
-          return;
-        }
+      // For orientation grips, allow removing unless requireSelection is true and it's the only one
+      if (requireSelection && selectedGrips.length === 1) {
+        return; // Don't allow removing the last grip when selection is required
       }
-      
-      // Remove the grip
       onGripsChange(selectedGrips.filter(id => id !== grip.id));
     } else {
-      // Add the grip, but first remove any other grip from the same category
-      const newGrips = selectedGrips.filter(selectedId => {
-        const selectedGrip = grips.find(g => g.id === selectedId);
-        return selectedGrip?.category !== grip.category;
-      });
-      onGripsChange([...newGrips, grip.id]);
+      // For orientation grips, allow multiple selections (overhand + underhand, etc.)
+      onGripsChange([...selectedGrips, grip.id]);
     }
   };
 
@@ -113,41 +89,39 @@ export const GripSelector: React.FC<GripSelectorProps> = ({
         <CardTitle className="text-sm">Preferred Grips</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {Object.entries(gripsByCategory).map(([category, categoryGrips]) => (
-          <div key={category} className="space-y-2">
-            <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-              {category}
-            </h4>
-            <div className="flex flex-wrap gap-2">
-              {categoryGrips.map((grip) => (
-                <div key={grip.id} className="flex items-center gap-2">
-                  <Button
-                    variant={selectedGrips.includes(grip.id) ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => handleGripToggle(grip)}
-                    className="justify-start text-left flex-1"
-                  >
-                    {getTranslatedName(grip)}
-                  </Button>
-                  {getTranslatedDescription(grip) && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <Info className="h-4 w-4" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p className="max-w-xs">{getTranslatedDescription(grip)}</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                </div>
-              ))}
-            </div>
+        <div className="space-y-2">
+          <h4 className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Grip Orientation
+          </h4>
+          <div className="flex flex-wrap gap-2">
+            {grips.map((grip) => (
+              <div key={grip.id} className="flex items-center gap-2">
+                <Button
+                  variant={selectedGrips.includes(grip.id) ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => handleGripToggle(grip)}
+                  className="justify-start text-left"
+                >
+                  {getTranslatedName(grip)}
+                </Button>
+                {getTranslatedDescription(grip) && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <Info className="h-4 w-4" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">{getTranslatedDescription(grip)}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
         
         {selectedGrips.length > 0 && (
           <div className="space-y-2 pt-2 border-t">
