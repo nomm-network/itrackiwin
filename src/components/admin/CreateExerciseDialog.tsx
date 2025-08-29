@@ -16,6 +16,8 @@ import { Loader2, X } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import { useMovements, useEquipments, useEffectiveSchema } from '@/hooks/useAttributeSchemas';
 import { DynamicAttributeForm } from './DynamicAttributeForm';
+import { validateExerciseForUser } from '@/lib/exerciseValidation';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CreateExerciseDialogProps {
   open: boolean;
@@ -63,9 +65,10 @@ interface Muscle {
   translations: Record<string, { name: string }>;
 }
 
-export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open, onOpenChange }) => {
+export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerciseDialogProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { user } = useAuth();
 
   // Form state
   const [activeTab, setActiveTab] = useState('basics');
@@ -411,9 +414,12 @@ export const CreateExerciseDialog: React.FC<CreateExerciseDialogProps> = ({ open
         attribute_values_json: attributeValues,
       };
 
+      // Validate and sanitize exercise data for Pro features
+      const validatedData = await validateExerciseForUser(exerciseData, user?.id);
+
       const { data: exercise, error: exerciseError } = await supabase
         .from('exercises')
-        .insert(exerciseData)
+        .insert(validatedData)
         .select()
         .single();
 

@@ -12,6 +12,7 @@ import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
+import { ProStatusToggle } from '@/components/admin/ProStatusToggle';
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -81,6 +82,7 @@ const Dashboard: React.FC = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
           <div className="flex items-center gap-2">
+            <ProStatusToggle />
             {isSuperAdmin && (
               <Button 
                 variant="default" 

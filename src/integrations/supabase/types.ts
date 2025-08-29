@@ -6004,6 +6004,27 @@ export type Database = {
         }
         Relationships: []
       }
+      users: {
+        Row: {
+          created_at: string | null
+          id: string
+          is_pro: boolean
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          id: string
+          is_pro?: boolean
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          is_pro?: boolean
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       warmup_policies: {
         Row: {
           created_at: string
@@ -8603,6 +8624,10 @@ export type Database = {
       }
       is_admin_with_rate_limit: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_pro_user: {
+        Args: { user_id: string }
         Returns: boolean
       }
       is_superadmin: {

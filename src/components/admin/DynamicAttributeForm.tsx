@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
+import { ProGate } from '@/components/ui/ProGate';
 
 interface DynamicAttributeFormProps {
   schema: any;
@@ -42,11 +43,17 @@ export const DynamicAttributeForm: React.FC<DynamicAttributeFormProps> = ({
     return true;
   };
 
-  const renderAttribute = (attribute: any) => {
-    if (!isVisible(attribute)) return null;
+  const isAngleAttribute = (attribute: any) => {
+    return attribute.key === 'angle' || 
+           attribute.key === 'angle_degrees' ||
+           attribute.key === 'incline_angle' ||
+           attribute.key === 'decline_angle' ||
+           attribute.label?.toLowerCase().includes('angle') ||
+           attribute.label?.toLowerCase().includes('incline') ||
+           attribute.label?.toLowerCase().includes('decline');
+  };
 
-    const value = localValues[attribute.key] ?? attribute.default;
-
+  const renderAttributeControl = (attribute: any, value: any) => {
     switch (attribute.type) {
       case 'enum':
         return (
@@ -162,6 +169,37 @@ export const DynamicAttributeForm: React.FC<DynamicAttributeFormProps> = ({
           </div>
         );
     }
+  };
+
+  const renderAttribute = (attribute: any) => {
+    if (!isVisible(attribute)) return null;
+
+    const value = localValues[attribute.key] ?? attribute.default;
+
+    // Gate angle attributes behind Pro membership
+    if (isAngleAttribute(attribute)) {
+      return (
+        <ProGate 
+          key={attribute.key} 
+          hideForFree={true}
+          fallback={
+            <div className="space-y-2 opacity-50 pointer-events-none">
+              <Label className="flex items-center gap-2">
+                {attribute.label} 
+                <Badge variant="secondary" className="text-xs">Pro</Badge>
+              </Label>
+              <div className="p-3 bg-muted rounded-md text-sm text-muted-foreground">
+                Angle settings require Pro membership
+              </div>
+            </div>
+          }
+        >
+          {renderAttributeControl(attribute, value)}
+        </ProGate>
+      );
+    }
+
+    return renderAttributeControl(attribute, value);
   };
 
   if (!schema?.groups) {
