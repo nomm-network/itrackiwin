@@ -10552,6 +10552,8 @@ export type Database = {
         | "carry"
         | "rotation"
         | "isolation"
+        | "press"
+        | "front_raise"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
       progression_algo:
         | "rep_range_linear"
@@ -10778,6 +10780,8 @@ export const Constants = {
         "carry",
         "rotation",
         "isolation",
+        "press",
+        "front_raise",
       ],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
       progression_algo: [
