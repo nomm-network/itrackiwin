@@ -108,12 +108,13 @@ Cable handles, bars, and attachments.
 
 ```sql
 handles (
-  id        uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug      text NOT NULL,
-  category  text NOT NULL,
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug       text,  -- NOT NULL in practice but nullable in schema
   created_at timestamptz NOT NULL DEFAULT now()
 )
 ```
+
+**Current Data:** 13 handles (straight-bar, ez-curl-bar, trap-bar, swiss-bar, lat-pulldown-bar, seated-row-bar, tricep-rope, single-handle, dual-d-handle, dip-handles, pull-up-bar, parallel-bars, suspension-straps)
 
 ### handle_translations
 Handle names and descriptions.
@@ -130,6 +131,8 @@ handle_translations (
 )
 ```
 
+**Current Data:** Translations for all 13 handles in English and Romanian
+
 ## Grip System
 
 ### grips
@@ -138,12 +141,16 @@ Hand positions and grip styles.
 ```sql
 grips (
   id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug                text NOT NULL,
-  category            text NOT NULL,
-  is_compatible_with  jsonb DEFAULT '[]',
+  slug                text,  -- NOT NULL in practice but nullable in schema
+  category            text,  -- NOT NULL in practice but nullable in schema  
+  is_compatible_with  jsonb DEFAULT '[]',  -- Changed to jsonb in actual schema
   created_at          timestamptz NOT NULL DEFAULT now()
 )
 ```
+
+**Current Data:** 7 grips total
+- **Hand Position Category:** overhand, underhand, neutral, mixed
+- **Width Category:** close, medium, wide
 
 ### grips_translations
 Grip descriptions in multiple languages.
@@ -154,11 +161,13 @@ grips_translations (
   grip_id       uuid NOT NULL REFERENCES grips(id),
   language_code text NOT NULL,
   name          text NOT NULL,
-  description   text,
+  description   text,  -- Nullable in actual schema
   created_at    timestamptz NOT NULL DEFAULT now(),
   updated_at    timestamptz NOT NULL DEFAULT now()
 )
 ```
+
+**Current Data:** Translations for all 7 grips in English and Romanian
 
 ## Exercise Relationship Tables
 
@@ -175,21 +184,10 @@ exercise_handles (
 )
 ```
 
-### exercise_default_grips
-Default grips with priority ordering.
-
-```sql
-exercise_default_grips (
-  exercise_id uuid NOT NULL REFERENCES exercises(id),
-  grip_id     uuid NOT NULL REFERENCES grips(id),
-  order_index integer NOT NULL DEFAULT 1,
-  
-  PRIMARY KEY(exercise_id, grip_id)
-)
-```
+**Current Data:** 0 rows (no exercises created yet)
 
 ### exercise_grips
-Available grips for exercises.
+Available grips for exercises with primary key.
 
 ```sql
 exercise_grips (
@@ -197,9 +195,13 @@ exercise_grips (
   grip_id     uuid NOT NULL REFERENCES grips(id),
   is_default  boolean NOT NULL DEFAULT false,
   order_index integer NOT NULL DEFAULT 1,
-  created_at  timestamptz NOT NULL DEFAULT now()
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  
+  PRIMARY KEY(exercise_id, grip_id)
 )
 ```
+
+**Current Data:** 0 rows (no exercises created yet)
 
 ### exercise_handle_grips
 Valid handle and grip combinations.
@@ -213,6 +215,29 @@ exercise_handle_grips (
   created_at  timestamptz NOT NULL DEFAULT now()
 )
 ```
+
+**Current Data:** 0 rows (no exercises created yet)
+
+## Equipment Compatibility Tables
+
+### equipment_handle_grips
+Equipment-handle-grip compatibility mappings. **This is the key table for new exercise creation.**
+
+```sql
+equipment_handle_grips (
+  id           uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id uuid NOT NULL REFERENCES equipment(id),
+  handle_id    uuid NOT NULL REFERENCES handles(id),
+  grip_id      uuid NOT NULL REFERENCES grips(id),
+  is_default   boolean NOT NULL DEFAULT false,
+  created_at   timestamptz NOT NULL DEFAULT now()
+)
+```
+
+**Current Data:** 100+ rows defining which handles/grips work with which equipment
+- Maps equipment to compatible handle/grip combinations
+- Includes default selections for each equipment type
+- **Critical for new exercise creation workflow**
 
 ### exercise_grip_effects
 Muscle activation changes by grip.

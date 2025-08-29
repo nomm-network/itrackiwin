@@ -23,10 +23,7 @@ grips_translations.grip_id → grips.id
 exercise_handles.exercise_id → exercises.id
 exercise_handles.handle_id → handles.id
 
--- Grip associations
-exercise_default_grips.exercise_id → exercises.id
-exercise_default_grips.grip_id → grips.id
-
+-- Grip associations  
 exercise_grips.exercise_id → exercises.id
 exercise_grips.grip_id → grips.id
 
@@ -34,6 +31,11 @@ exercise_grips.grip_id → grips.id
 exercise_handle_grips.exercise_id → exercises.id
 exercise_handle_grips.handle_id → handles.id
 exercise_handle_grips.grip_id → grips.id
+
+-- Equipment compatibility (KEY for new exercises)
+equipment_handle_grips.equipment_id → equipment.id
+equipment_handle_grips.handle_id → handles.id
+equipment_handle_grips.grip_id → grips.id
 ```
 
 ### Exercise Effects & Variants
