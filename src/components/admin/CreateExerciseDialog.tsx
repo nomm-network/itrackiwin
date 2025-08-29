@@ -407,7 +407,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
         exercise_skill_level: formData.exerciseSkillLevel === 'advanced' ? 'high' : formData.exerciseSkillLevel === 'beginner' ? 'low' : 'medium' as 'low' | 'medium' | 'high',
         complexity_score: formData.complexityScore,
         is_unilateral: formData.isUnilateral,
-        load_type: formData.loadType as 'fixed' | 'barbell' | 'single_load' | 'dual_load' | 'stack' | 'bodyweight' || null,
+        load_type: (formData.loadType && formData.loadType !== '' ? formData.loadType : null) as 'fixed' | 'barbell' | 'single_load' | 'dual_load' | 'stack' | 'bodyweight' | null,
         requires_handle: formData.requiresHandle,
         allows_grips: formData.allowsGrips,
         is_bar_loaded: formData.isBarLoaded,
@@ -1093,7 +1093,9 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
             ) : (
               <Button 
                 type="button"
-                onClick={() => {
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
                   const tabs = ['basics', 'equipment', 'handles', 'attributes', 'advanced'];
                   const currentIndex = tabs.indexOf(activeTab);
                   if (currentIndex < tabs.length - 1) {
