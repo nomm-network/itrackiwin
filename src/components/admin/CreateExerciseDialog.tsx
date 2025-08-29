@@ -254,6 +254,17 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
   const { data: equipments } = useEquipments();
   const { data: effectiveSchema } = useEffectiveSchema(movementId, equipmentRefId);
 
+  // Helper functions
+  const getTranslation = (translations: any[], lang = 'en') => {
+    if (!translations || !Array.isArray(translations)) return null;
+    return translations.find(t => t.language_code === lang);
+  };
+
+  const getName = (item: any, lang = 'en') => {
+    const translation = getTranslation(item.translations, lang);
+    return translation?.name || item.slug || 'Unknown';
+  };
+
   // Filtered data
   const filteredMuscleGroups = useMemo(() => {
     if (!formData.bodyPartId) return [];
@@ -347,17 +358,6 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
       setFormData(prev => ({ ...prev, name: parts.join(' ') }));
     }
   }, [formData.equipmentId, formData.primaryMuscleId, formData.useCustomName, equipment, muscles]);
-
-  // Helper functions
-  const getTranslation = (translations: any[], lang = 'en') => {
-    if (!translations || !Array.isArray(translations)) return null;
-    return translations.find(t => t.language_code === lang);
-  };
-
-  const getName = (item: any, lang = 'en') => {
-    const translation = getTranslation(item.translations, lang);
-    return translation?.name || item.slug || 'Unknown';
-  };
 
   // Handle grip selection (one per category)
   const handleGripToggle = (gripId: string, category: string) => {
