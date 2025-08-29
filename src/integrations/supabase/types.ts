@@ -1079,6 +1079,69 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_grip_defaults: {
+        Row: {
+          created_at: string | null
+          equipment_id: string
+          grip_id: string
+          handle_id: string | null
+          id: string
+          is_default: boolean
+        }
+        Insert: {
+          created_at?: string | null
+          equipment_id: string
+          grip_id: string
+          handle_id?: string | null
+          id?: string
+          is_default?: boolean
+        }
+        Update: {
+          created_at?: string | null
+          equipment_id?: string
+          grip_id?: string
+          handle_id?: string | null
+          id?: string
+          is_default?: boolean
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_grip_defaults_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_grip_defaults_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "equipment_grip_defaults_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_grip_defaults_grip_id_fkey"
+            columns: ["grip_id"]
+            isOneToOne: false
+            referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_grip_defaults_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_handle_grips: {
         Row: {
           created_at: string
