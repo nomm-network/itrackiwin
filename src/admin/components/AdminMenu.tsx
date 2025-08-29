@@ -7,19 +7,25 @@ const AdminMenu: React.FC = () => {
   const location = useLocation();
 
   const menuItems = [
-    { label: t('navigation.translations'), href: '/admin/translations' },
-    { label: 'Exercise Management', href: '/admin/exercises' },
-    { label: 'Attribute Schemas', href: '/admin/attribute-schemas' },
-    { label: 'Naming Templates', href: '/admin/naming-templates' },
-    { label: 'Muscles', href: '/admin/muscles' },
-    { label: 'Coach Logs', href: '/admin/coach-logs' },
     { 
-      label: 'Others', 
-      href: '/admin/others',
+      label: 'Setup Flow', 
+      href: '/admin/setup',
       submenu: [
-        { label: 'Equipment', href: '/admin/others/equipment' },
-        { label: 'Grips', href: '/admin/others/grips' },
-        { label: 'Gyms', href: '/admin/others/gyms' }
+        { label: '1. Body Taxonomy', href: '/admin/setup/body-taxonomy' },
+        { label: '2. Movements', href: '/admin/setup/movements' },
+        { label: '3. Equipment', href: '/admin/setup/equipment' },
+        { label: '4. Handles', href: '/admin/setup/handles' },
+        { label: '5. Grips', href: '/admin/setup/grips' },
+        { label: '6. Compatibility', href: '/admin/setup/compatibility' },
+        { label: '7. Tags & Aliases', href: '/admin/setup/tags-aliases' },
+      ]
+    },
+    { label: 'Exercise Management', href: '/admin/exercises' },
+    { label: t('navigation.translations'), href: '/admin/translations' },
+    { label: 'Tools', href: '/admin/tools', submenu: [
+        { label: 'Attribute Schemas', href: '/admin/attribute-schemas' },
+        { label: 'Naming Templates', href: '/admin/naming-templates' },
+        { label: 'Coach Logs', href: '/admin/coach-logs' },
       ]
     },
   ];

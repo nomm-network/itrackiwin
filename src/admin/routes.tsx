@@ -8,6 +8,10 @@ const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManage
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
+const AdminHandlesManagement = lazy(() => import("./pages/AdminHandlesManagement"));
+const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManagement"));
+const AdminCompatibilityManagement = lazy(() => import("./pages/AdminCompatibilityManagement"));
+const AdminTagsAliasesManagement = lazy(() => import("./pages/AdminTagsAliasesManagement"));
 const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
 const AdminCategoryPage = lazy(() => import("./pages/AdminCategoryPage"));
@@ -25,12 +29,24 @@ export function AdminRoutes() {
             <Routes>
               <Route index element={<AdminHomePage />} />
               <Route path="exercises" element={<AdminExercisesManagement />} />
-              <Route path="attribute-schemas" element={<AdminAttributeSchemas />} />
-              <Route path="naming-templates" element={<AdminNamingTemplates />} />
+              
+              {/* Setup Flow Routes */}
+              <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
+              <Route path="setup/movements" element={<AdminMovementsManagement />} />
+              <Route path="setup/equipment" element={<AdminEquipmentManagement />} />
+              <Route path="setup/handles" element={<AdminHandlesManagement />} />
+              <Route path="setup/grips" element={<AdminGripsManagement />} />
+              <Route path="setup/compatibility" element={<AdminCompatibilityManagement />} />
+              <Route path="setup/tags-aliases" element={<AdminTagsAliasesManagement />} />
+              
+              {/* Legacy routes for backwards compatibility */}
               <Route path="muscles" element={<AdminMusclesManagement />} />
               <Route path="others/equipment" element={<AdminEquipmentManagement />} />
               <Route path="others/grips" element={<AdminGripsManagement />} />
               <Route path="others/gyms" element={<AdminGymsManagement />} />
+              
+              <Route path="attribute-schemas" element={<AdminAttributeSchemas />} />
+              <Route path="naming-templates" element={<AdminNamingTemplates />} />
               <Route path="translations/*" element={<AdminTranslations />} />
               <Route path="coach-logs" element={<AdminCoachLogs />} />
               <Route path="category/:categoryId" element={<AdminCategoryPage />} />
