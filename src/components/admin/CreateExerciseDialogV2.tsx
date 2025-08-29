@@ -15,6 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, X, Plus, Info } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import SecondaryMuscleGroupSelector from '@/components/SecondaryMuscleGroupSelector';
+import { HandleGripSelector } from '@/features/workouts/components/HandleGripSelector';
 import { useAuth } from '@/hooks/useAuth';
 
 interface CreateExerciseDialogProps {
@@ -122,34 +123,47 @@ export default function CreateExerciseDialogV2({ open, onOpenChange }: CreateExe
   const isPro = userFeatures?.features && typeof userFeatures.features === 'object' && 'pro' in userFeatures.features;
 
   // Fetch body parts
-  const { data: bodyParts = [] } = useQuery({
+  const { data: bodyPartsResult = [] } = useQuery({
     queryKey: ['body-parts'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('body_parts')
         .select(`
           id, slug,
-          translations:body_parts_translations(language_code, name)
+          body_part_translations(language_code, name)
         `);
       if (error) throw error;
       return data;
     },
   });
 
+  const bodyParts = bodyPartsResult.map((bp: any) => ({
+    id: bp.id,
+    slug: bp.slug,
+    name: bp.body_part_translations?.[0]?.name || bp.slug.replace(/-/g, ' '),
+  }));
+
   // Fetch muscle groups
-  const { data: muscleGroups = [] } = useQuery({
+  const { data: muscleGroupsResult = [] } = useQuery({
     queryKey: ['muscle-groups'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('muscle_groups')
         .select(`
           id, slug, body_part_id,
-          translations:muscle_groups_translations(language_code, name)
+          muscle_group_translations(language_code, name)
         `);
       if (error) throw error;
       return data;
     },
   });
+
+  const muscleGroups = muscleGroupsResult.map((mg: any) => ({
+    id: mg.id,
+    slug: mg.slug,
+    name: mg.muscle_group_translations?.[0]?.name || mg.slug.replace(/-/g, ' '),
+    body_part_id: mg.body_part_id,
+  }));
 
   // Fetch muscles
   const { data: muscles = [] } = useQuery({
@@ -188,6 +202,7 @@ export default function CreateExerciseDialogV2({ open, onOpenChange }: CreateExe
   };
 
   const getName = (item: any, lang = 'en') => {
+    if (item.name) return item.name; // For processed items
     const translation = getTranslation(item.translations, lang);
     return translation?.name || item.slug || 'Unknown';
   };
@@ -483,11 +498,11 @@ export default function CreateExerciseDialogV2({ open, onOpenChange }: CreateExe
                         <SelectValue placeholder="Select body part" />
                       </SelectTrigger>
                       <SelectContent>
-                        {bodyParts.map((bp) => (
-                          <SelectItem key={bp.id} value={bp.id}>
-                            {getName(bp)}
-                          </SelectItem>
-                        ))}
+                         {bodyParts.map((bp) => (
+                           <SelectItem key={bp.id} value={bp.id}>
+                             {bp.name}
+                           </SelectItem>
+                         ))}
                       </SelectContent>
                     </Select>
                   </div>
@@ -842,6 +857,23 @@ export default function CreateExerciseDialogV2({ open, onOpenChange }: CreateExe
                     Only attributes that don't affect primary muscle targeting are shown here.
                   </p>
                 </div>
+
+                {formData.allowsGrips && (
+                  <div className="space-y-2">
+                    <Label className="text-base font-medium">Default Handles & Grips</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Select default handles and grips for this exercise. Users can still change them during workouts.
+                    </p>
+                    <HandleGripSelector
+                      exerciseId={undefined}
+                      selectedHandleId={formData.defaultHandleIds[0]}
+                      selectedGripIds={formData.defaultGripIds}
+                      onHandleChange={(handleId) => setFormData(prev => ({ ...prev, defaultHandleIds: [handleId] }))}
+                      onGripChange={(gripIds) => setFormData(prev => ({ ...prev, defaultGripIds: gripIds }))}
+                      multiSelectGrips={true}
+                    />
+                  </div>
+                )}
 
                 <div className="flex items-center space-x-2">
                   <Switch

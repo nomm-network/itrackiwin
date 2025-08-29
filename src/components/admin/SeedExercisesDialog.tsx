@@ -220,9 +220,9 @@ export default function SeedExercisesDialog({ open, onOpenChange }: SeedExercise
             owner_user_id: null, // System exercise
             equipment_id: 'dummy-equipment-id', // Would need to look up actual equipment IDs
             is_public: true,
-            movement_pattern: seed.movementPattern,
+            movement_pattern: seed.movementPattern as 'squat' | 'hinge' | 'horizontal_push' | 'vertical_push' | 'horizontal_pull' | 'vertical_pull' | 'lunge' | 'carry' | 'rotation' | 'isolation',
             exercise_skill_level: seed.skillLevel,
-            load_type: seed.loadType,
+            load_type: seed.loadType as 'fixed' | 'barbell' | 'single_load' | 'dual_load' | 'stack' | 'bodyweight',
             is_unilateral: false,
             requires_handle: seed.equipment === 'cable-machine',
             allows_grips: true,
