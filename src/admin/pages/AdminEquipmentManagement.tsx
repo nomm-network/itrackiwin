@@ -34,13 +34,27 @@ const AdminEquipmentManagement: React.FC = () => {
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery({
     queryKey: ['admin-equipment'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('v_equipment_with_translations')
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from('equipment')
         .select('*')
         .order('created_at');
-      
-      if (error) throw error;
-      return data as Equipment[];
+      if (equipmentError) throw equipmentError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from('equipment_translations')
+        .select('*');
+      if (translationsError) throw translationsError;
+
+      return equipmentData.map(equipment => {
+        const translations = translationsData
+          .filter(t => t.equipment_id === equipment.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = { name: t.name, description: t.description };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return { ...equipment, translations };
+      });
     },
   });
 

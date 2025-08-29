@@ -5,31 +5,33 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "@/hooks/use-toast";
-import { Search, Plus, Edit, Trash2 } from "lucide-react";
+import { useTranslations } from '@/hooks/useTranslations';
+import { Plus, Edit, Trash2 } from "lucide-react";
 import AdminMenu from "@/admin/components/AdminMenu";
 
 interface MovementPattern {
   id: string;
-  name: string;
   slug: string;
-  description?: string;
   created_at: string;
+  updated_at: string;
+  translations?: Record<string, { name: string; description?: string }>;
 }
 
 const AdminMovementsManagement: React.FC = () => {
+  const { getTranslatedName } = useTranslations();
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingMovement, setEditingMovement] = useState<MovementPattern | null>(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [formData, setFormData] = useState({
-    name: "",
     slug: "",
-    description: "",
+    name_en: "",
+    description_en: "",
   });
 
   const queryClient = useQueryClient();
@@ -38,24 +40,36 @@ const AdminMovementsManagement: React.FC = () => {
     document.title = "Movement Patterns | Admin";
   }, []);
 
-  // Note: This is a demo implementation. In reality, you'd need a movement_patterns table
+  // Fetch movement patterns with translations
   const { data: movements = [], isLoading } = useQuery({
-    queryKey: ["admin-movements"],
+    queryKey: ["movement-patterns-with-translations"],
     queryFn: async () => {
-      // Mock data for now - replace with actual database query when movement_patterns table is created
-      return [
-        { id: "1", name: "Press", slug: "press", description: "Pushing movements", created_at: new Date().toISOString() },
-        { id: "2", name: "Pull", slug: "pull", description: "Pulling movements", created_at: new Date().toISOString() },
-        { id: "3", name: "Squat", slug: "squat", description: "Squatting movements", created_at: new Date().toISOString() },
-        { id: "4", name: "Hinge", slug: "hinge", description: "Hip hinge movements", created_at: new Date().toISOString() },
-        { id: "5", name: "Carry", slug: "carry", description: "Loaded carries", created_at: new Date().toISOString() },
-        { id: "6", name: "Row", slug: "row", description: "Rowing movements", created_at: new Date().toISOString() }
-      ] as MovementPattern[];
+      const { data: movementsData, error: movementsError } = await supabase
+        .from("movement_patterns")
+        .select("*")
+        .order("slug");
+      if (movementsError) throw movementsError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("movement_patterns_translations")
+        .select("*");
+      if (translationsError) throw translationsError;
+
+      return movementsData.map(movement => {
+        const translations = translationsData
+          .filter(t => t.movement_pattern_id === movement.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = { name: t.name, description: t.description };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return { ...movement, translations };
+      });
     },
   });
 
   const resetForm = () => {
-    setFormData({ name: "", slug: "", description: "" });
+    setFormData({ slug: "", name_en: "", description_en: "" });
     setEditingMovement(null);
   };
 
@@ -64,95 +78,141 @@ const AdminMovementsManagement: React.FC = () => {
     setIsCreateDialogOpen(true);
   };
 
-  const handleEdit = (movement: MovementPattern) => {
-    setFormData({
-      name: movement.name,
-      slug: movement.slug,
-      description: movement.description || "",
-    });
+  const openEditDialog = (movement: MovementPattern) => {
     setEditingMovement(movement);
-    setIsCreateDialogOpen(true);
+    setFormData({
+      slug: movement.slug,
+      name_en: movement.translations?.en?.name || "",
+      description_en: movement.translations?.en?.description || "",
+    });
+    setIsEditDialogOpen(true);
   };
 
-  const generateSlug = (name: string) => {
-    return name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  };
+  // Create movement pattern
+  const createMovementMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      // Create movement pattern
+      const { data: movementData, error: movementError } = await supabase
+        .from("movement_patterns")
+        .insert({ slug: data.slug })
+        .select()
+        .single();
+      if (movementError) throw movementError;
 
-  const handleNameChange = (name: string) => {
-    setFormData(prev => ({
-      ...prev,
-      name,
-      slug: generateSlug(name)
-    }));
-  };
-
-  const upsertMutation = useMutation({
-    mutationFn: async (movement: Partial<MovementPattern>) => {
-      toast({
-        title: "Demo Mode",
-        description: "Movement patterns management requires database table creation. This is a demonstration interface.",
-        variant: "default"
-      });
-      throw new Error("Demo mode - no actual database operations");
+      // Create English translation
+      const { error: translationError } = await supabase
+        .from("movement_patterns_translations")
+        .insert({
+          movement_pattern_id: movementData.id,
+          language_code: "en",
+          name: data.name_en,
+          description: data.description_en || null,
+        });
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       toast({
-        title: editingMovement ? "Movement updated" : "Movement created",
-        description: editingMovement 
-          ? `Movement "${formData.name}" has been updated successfully.`
-          : `Movement "${formData.name}" has been created successfully.`,
+        title: "Movement pattern created",
+        description: "Movement pattern has been created successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["admin-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["movement-patterns-with-translations"] });
       setIsCreateDialogOpen(false);
       resetForm();
     },
     onError: (error: any) => {
-      console.error("Movement operation error:", error);
+      console.error("Create movement error:", error);
+      toast({
+        title: "Creation failed",
+        description: error.message || "Failed to create movement pattern. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: string) => {
-      toast({
-        title: "Demo Mode",
-        description: "Movement patterns management requires database table creation.",
-        variant: "default"
-      });
-      throw new Error("Demo mode");
+  // Update movement pattern
+  const updateMovementMutation = useMutation({
+    mutationFn: async (data: typeof formData) => {
+      if (!editingMovement) return;
+
+      // Update movement pattern
+      const { error: movementError } = await supabase
+        .from("movement_patterns")
+        .update({ slug: data.slug })
+        .eq("id", editingMovement.id);
+      if (movementError) throw movementError;
+
+      // Update English translation
+      const { error: translationError } = await supabase
+        .from("movement_patterns_translations")
+        .upsert({
+          movement_pattern_id: editingMovement.id,
+          language_code: "en",
+          name: data.name_en,
+          description: data.description_en || null,
+        });
+      if (translationError) throw translationError;
     },
     onSuccess: () => {
       toast({
-        title: "Movement deleted",
+        title: "Movement pattern updated",
+        description: "Movement pattern has been updated successfully.",
+      });
+      queryClient.invalidateQueries({ queryKey: ["movement-patterns-with-translations"] });
+      setIsEditDialogOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      console.error("Update movement error:", error);
+      toast({
+        title: "Update failed",
+        description: error.message || "Failed to update movement pattern. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const deleteMovementMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("movement_patterns")
+        .delete()
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast({
+        title: "Movement pattern deleted",
         description: "Movement pattern has been deleted successfully.",
       });
-      queryClient.invalidateQueries({ queryKey: ["admin-movements"] });
+      queryClient.invalidateQueries({ queryKey: ["movement-patterns-with-translations"] });
     },
     onError: (error: any) => {
       console.error("Delete movement error:", error);
+      toast({
+        title: "Delete failed",
+        description: error.message || "Failed to delete movement pattern. Please try again.",
+        variant: "destructive",
+      });
     },
   });
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name.trim() || !formData.slug.trim()) {
+    if (!formData.slug || !formData.name_en) {
       toast({
         title: "Validation Error",
-        description: "Name and slug are required.",
+        description: "Please fill in slug and English name.",
         variant: "destructive",
       });
       return;
     }
-    upsertMutation.mutate(formData);
-  };
 
-  const handleDelete = (id: string) => {
-    deleteMutation.mutate(id);
+    if (editingMovement) {
+      updateMovementMutation.mutate(formData);
+    } else {
+      createMovementMutation.mutate(formData);
+    }
   };
-
-  const filteredMovements = movements.filter(movement =>
-    movement.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    movement.slug.toLowerCase().includes(searchTerm.toLowerCase())
-  );
 
   if (isLoading) {
     return (
@@ -174,7 +234,7 @@ const AdminMovementsManagement: React.FC = () => {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle>Movement Patterns Management</CardTitle>
+            <CardTitle>Movement Patterns</CardTitle>
             <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
               <DialogTrigger asChild>
                 <Button onClick={openCreateDialog}>
@@ -184,38 +244,34 @@ const AdminMovementsManagement: React.FC = () => {
               </DialogTrigger>
               <DialogContent className="sm:max-w-md">
                 <DialogHeader>
-                  <DialogTitle>
-                    {editingMovement ? "Edit Movement Pattern" : "Create Movement Pattern"}
-                  </DialogTitle>
+                  <DialogTitle>Create Movement Pattern</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
-                  <div>
-                    <Label htmlFor="name">Name</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleNameChange(e.target.value)}
-                      placeholder="e.g., Press, Pull, Squat"
-                      required
-                    />
-                  </div>
                   <div>
                     <Label htmlFor="slug">Slug</Label>
                     <Input
                       id="slug"
                       value={formData.slug}
                       onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
-                      placeholder="Auto-generated from name"
-                      required
+                      placeholder="press, row, squat..."
                     />
                   </div>
                   <div>
-                    <Label htmlFor="description">Description</Label>
+                    <Label htmlFor="name_en">English Name</Label>
+                    <Input
+                      id="name_en"
+                      value={formData.name_en}
+                      onChange={(e) => setFormData(prev => ({ ...prev, name_en: e.target.value }))}
+                      placeholder="Press, Row, Squat..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="description_en">English Description</Label>
                     <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                      placeholder="Brief description of this movement pattern"
+                      id="description_en"
+                      value={formData.description_en}
+                      onChange={(e) => setFormData(prev => ({ ...prev, description_en: e.target.value }))}
+                      placeholder="Description of the movement pattern..."
                       rows={3}
                     />
                   </div>
@@ -227,8 +283,8 @@ const AdminMovementsManagement: React.FC = () => {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={upsertMutation.isPending}>
-                      {upsertMutation.isPending ? "Saving..." : (editingMovement ? "Update" : "Create")}
+                    <Button type="submit" disabled={createMovementMutation.isPending}>
+                      {createMovementMutation.isPending ? "Creating..." : "Create"}
                     </Button>
                   </div>
                 </form>
@@ -238,50 +294,38 @@ const AdminMovementsManagement: React.FC = () => {
         </CardHeader>
         <CardContent>
           <div className="mb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search movement patterns..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-            <h3 className="font-medium text-blue-900 mb-2">Setup Required</h3>
-            <p className="text-blue-800 text-sm">
-              Movement patterns management requires a <code>movement_patterns</code> table to be created. 
-              This interface shows example movement patterns that would be available once the database table is set up.
+            <p className="text-sm text-muted-foreground">
+              Movement patterns are fundamental movement types used to categorize exercises.
             </p>
           </div>
 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
+                <TableHead>Name</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredMovements.map((movement) => (
+              {movements.map((movement) => (
                 <TableRow key={movement.id}>
-                  <TableCell className="font-medium">{movement.name}</TableCell>
-                  <TableCell>
-                    <code className="bg-muted px-2 py-1 rounded text-sm">{movement.slug}</code>
+                  <TableCell className="font-mono text-sm">{movement.slug}</TableCell>
+                  <TableCell className="font-medium">
+                    {getTranslatedName(movement) || movement.slug}
                   </TableCell>
-                  <TableCell>{movement.description || "—"}</TableCell>
+                  <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                    {movement.translations?.en?.description || "-"}
+                  </TableCell>
                   <TableCell>{new Date(movement.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => handleEdit(movement)}
+                        onClick={() => openEditDialog(movement)}
                       >
                         <Edit className="h-4 w-4" />
                       </Button>
@@ -295,12 +339,12 @@ const AdminMovementsManagement: React.FC = () => {
                           <AlertDialogHeader>
                             <AlertDialogTitle>Delete Movement Pattern</AlertDialogTitle>
                             <AlertDialogDescription>
-                              Are you sure you want to delete "{movement.name}"? This action cannot be undone.
+                              Are you sure you want to delete this movement pattern? This action cannot be undone.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
                             <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={() => handleDelete(movement.id)}>
+                            <AlertDialogAction onClick={() => deleteMovementMutation.mutate(movement.id)}>
                               Delete
                             </AlertDialogAction>
                           </AlertDialogFooter>
@@ -310,10 +354,68 @@ const AdminMovementsManagement: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ))}
+              {movements.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    No movement patterns found. Add some to categorize exercises by movement type.
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Movement Pattern</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="edit_slug">Slug</Label>
+              <Input
+                id="edit_slug"
+                value={formData.slug}
+                onChange={(e) => setFormData(prev => ({ ...prev, slug: e.target.value }))}
+                placeholder="press, row, squat..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_name_en">English Name</Label>
+              <Input
+                id="edit_name_en"
+                value={formData.name_en}
+                onChange={(e) => setFormData(prev => ({ ...prev, name_en: e.target.value }))}
+                placeholder="Press, Row, Squat..."
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit_description_en">English Description</Label>
+              <Textarea
+                id="edit_description_en"
+                value={formData.description_en}
+                onChange={(e) => setFormData(prev => ({ ...prev, description_en: e.target.value }))}
+                placeholder="Description of the movement pattern..."
+                rows={3}
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsEditDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateMovementMutation.isPending}>
+                {updateMovementMutation.isPending ? "Updating..." : "Update"}
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
     </main>
   );
 };

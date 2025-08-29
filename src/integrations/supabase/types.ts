@@ -3555,6 +3555,65 @@ export type Database = {
         }
         Relationships: []
       }
+      movement_patterns: {
+        Row: {
+          created_at: string
+          id: string
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      movement_patterns_translations: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          language_code: string
+          movement_pattern_id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code: string
+          movement_pattern_id: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          language_code?: string
+          movement_pattern_id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movement_patterns_translations_movement_pattern_id_fkey"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movements: {
         Row: {
           created_at: string

@@ -34,12 +34,27 @@ const AdminHandleEquipmentCompatibility: React.FC = () => {
   const { data: equipment = [] } = useQuery({
     queryKey: ["equipment-with-translations"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_equipment_with_translations")
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from("equipment")
         .select("*")
-        .order("name");
-      if (error) throw error;
-      return data || [];
+        .order("slug");
+      if (equipmentError) throw equipmentError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("equipment_translations")
+        .select("*");
+      if (translationsError) throw translationsError;
+
+      return equipmentData.map(equipment => {
+        const translations = translationsData
+          .filter(t => t.equipment_id === equipment.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = { name: t.name, description: t.description };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return { ...equipment, translations, name: translations.en?.name || equipment.slug };
+      });
     },
   });
 
@@ -187,7 +202,7 @@ const AdminHandleEquipmentCompatibility: React.FC = () => {
 
   const getEquipmentName = (equipmentId: string) => {
     const eq = equipment.find(e => e.id === equipmentId);
-    return (eq as any)?.name || "Unknown Equipment";
+    return eq?.name || "Unknown Equipment";
   };
 
   const getHandleName = (handleId: string) => {
