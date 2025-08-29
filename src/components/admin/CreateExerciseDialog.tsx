@@ -98,6 +98,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
     // Equipment & Loading
     equipmentId: '',
     loadType: '',
+    loadMedium: '',
     requiresHandle: false,
     allowsGrips: true,
     isBarLoaded: false,
@@ -513,6 +514,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
       isUnilateral: false,
       equipmentId: '',
       loadType: '',
+      loadMedium: '',
       requiresHandle: false,
       allowsGrips: true,
       isBarLoaded: false,
@@ -854,10 +856,9 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                     <div className="space-y-2">
                       <Label>Load Medium</Label>
                       <Select
-                        value={selectedEquipment?.load_medium || ''}
+                        value={formData.loadMedium || ''}
                         onValueChange={(value) => {
-                          // Update the equipment's load_medium if needed
-                          // This would require updating the equipment data
+                          setFormData(prev => ({ ...prev, loadMedium: value }));
                         }}
                       >
                         <SelectTrigger>
