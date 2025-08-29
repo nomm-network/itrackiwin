@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 export interface UserProfile {
   id: string;
   is_pro: boolean;
+  default_unit: 'kg' | 'lb';
   created_at: string;
   updated_at: string;
 }

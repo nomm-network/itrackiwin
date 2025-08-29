@@ -13,6 +13,10 @@ interface SetLogPayload {
   weight_per_side?: number;
   // For regular exercises
   weight_total?: number;
+  // New dual storage fields
+  weight_kg?: number;
+  input_weight?: number;
+  input_unit?: 'kg' | 'lb';
 }
 
 export const useSetLogging = () => {

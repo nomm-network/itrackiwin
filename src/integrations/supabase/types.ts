@@ -4357,6 +4357,7 @@ export type Database = {
           target_reps: number | null
           target_settings: Json | null
           target_weight: number | null
+          target_weight_kg: number | null
           template_id: string
           top_set_percent_1rm: number | null
           warmup_policy_id: string | null
@@ -4383,6 +4384,7 @@ export type Database = {
           target_reps?: number | null
           target_settings?: Json | null
           target_weight?: number | null
+          target_weight_kg?: number | null
           template_id: string
           top_set_percent_1rm?: number | null
           warmup_policy_id?: string | null
@@ -4409,6 +4411,7 @@ export type Database = {
           target_reps?: number | null
           target_settings?: Json | null
           target_weight?: number | null
+          target_weight_kg?: number | null
           template_id?: string
           top_set_percent_1rm?: number | null
           warmup_policy_id?: string | null
@@ -6007,18 +6010,21 @@ export type Database = {
       users: {
         Row: {
           created_at: string | null
+          default_unit: string
           id: string
           is_pro: boolean
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          default_unit?: string
           id: string
           is_pro?: boolean
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          default_unit?: string
           id?: string
           is_pro?: boolean
           updated_at?: string | null
@@ -6282,6 +6288,7 @@ export type Database = {
           selected_bar_id: string | null
           target_origin: string | null
           target_sets: number | null
+          target_weight_kg: number | null
           warmup_feedback: string | null
           warmup_feedback_at: string | null
           warmup_plan: Json | null
@@ -6309,6 +6316,7 @@ export type Database = {
           selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
+          target_weight_kg?: number | null
           warmup_feedback?: string | null
           warmup_feedback_at?: string | null
           warmup_plan?: Json | null
@@ -6336,6 +6344,7 @@ export type Database = {
           selected_bar_id?: string | null
           target_origin?: string | null
           target_sets?: number | null
+          target_weight_kg?: number | null
           warmup_feedback?: string | null
           warmup_feedback_at?: string | null
           warmup_plan?: Json | null
@@ -6697,6 +6706,8 @@ export type Database = {
           had_pain: boolean | null
           heart_rate: number | null
           id: string
+          input_unit: string | null
+          input_weight: number | null
           is_completed: boolean | null
           load_entry_mode: string | null
           load_meta: Json
@@ -6713,6 +6724,7 @@ export type Database = {
           target_weight: number | null
           total_weight_kg: number | null
           weight: number | null
+          weight_kg: number | null
           weight_per_side: number | null
           weight_unit: string | null
           workout_exercise_id: string
@@ -6728,6 +6740,8 @@ export type Database = {
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
+          input_unit?: string | null
+          input_weight?: number | null
           is_completed?: boolean | null
           load_entry_mode?: string | null
           load_meta?: Json
@@ -6744,6 +6758,7 @@ export type Database = {
           target_weight?: number | null
           total_weight_kg?: number | null
           weight?: number | null
+          weight_kg?: number | null
           weight_per_side?: number | null
           weight_unit?: string | null
           workout_exercise_id: string
@@ -6759,6 +6774,8 @@ export type Database = {
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
+          input_unit?: string | null
+          input_weight?: number | null
           is_completed?: boolean | null
           load_entry_mode?: string | null
           load_meta?: Json
@@ -6775,6 +6792,7 @@ export type Database = {
           target_weight?: number | null
           total_weight_kg?: number | null
           weight?: number | null
+          weight_kg?: number | null
           weight_per_side?: number | null
           weight_unit?: string | null
           workout_exercise_id?: string
@@ -6948,6 +6966,7 @@ export type Database = {
           id: string
           notes: string | null
           perceived_exertion: number | null
+          session_unit: string
           started_at: string
           title: string | null
           total_duration_seconds: number | null
@@ -6960,6 +6979,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          session_unit?: string
           started_at?: string
           title?: string | null
           total_duration_seconds?: number | null
@@ -6972,6 +6992,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          session_unit?: string
           started_at?: string
           title?: string | null
           total_duration_seconds?: number | null
