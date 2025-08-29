@@ -1142,6 +1142,62 @@ export type Database = {
           },
         ]
       }
+      equipment_handle_orientations: {
+        Row: {
+          created_at: string | null
+          equipment_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Insert: {
+          created_at?: string | null
+          equipment_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Update: {
+          created_at?: string | null
+          equipment_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+          orientation?: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_handle_orientations_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_orientations_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_orientations_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_handle_orientations_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_translations: {
         Row: {
           created_at: string
@@ -1760,6 +1816,83 @@ export type Database = {
           },
           {
             foreignKeyName: "exercise_handle_grips_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_handle_orientations: {
+        Row: {
+          created_at: string | null
+          exercise_id: string
+          handle_id: string
+          id: string
+          is_default: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Insert: {
+          created_at?: string | null
+          exercise_id: string
+          handle_id: string
+          id?: string
+          is_default?: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Update: {
+          created_at?: string | null
+          exercise_id?: string
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+          orientation?: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercise_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_localized"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_handle_orientations_handle_id_fkey"
             columns: ["handle_id"]
             isOneToOne: false
             referencedRelation: "handles"
@@ -2904,6 +3037,38 @@ export type Database = {
             columns: ["grip_id"]
             isOneToOne: false
             referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      handle_orientation_compatibility: {
+        Row: {
+          created_at: string | null
+          handle_id: string
+          id: string
+          is_default: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Insert: {
+          created_at?: string | null
+          handle_id: string
+          id?: string
+          is_default?: boolean
+          orientation: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Update: {
+          created_at?: string | null
+          handle_id?: string
+          id?: string
+          is_default?: boolean
+          orientation?: Database["public"]["Enums"]["grip_orientation"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "handle_orientation_compatibility_handle_id_fkey"
+            columns: ["handle_id"]
+            isOneToOne: false
+            referencedRelation: "handles"
             referencedColumns: ["id"]
           },
         ]
@@ -10230,6 +10395,7 @@ export type Database = {
         | "increase_strength"
         | "improve_endurance"
         | "general_fitness"
+      grip_orientation: "overhand" | "underhand" | "neutral" | "mixed"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       injury_severity: "mild" | "moderate" | "severe" | "chronic"
       load_medium:
@@ -10453,6 +10619,7 @@ export const Constants = {
         "improve_endurance",
         "general_fitness",
       ],
+      grip_orientation: ["overhand", "underhand", "neutral", "mixed"],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       injury_severity: ["mild", "moderate", "severe", "chronic"],
       load_medium: [
