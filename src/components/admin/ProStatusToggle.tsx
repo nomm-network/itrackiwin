@@ -58,7 +58,7 @@ export const ProStatusToggle = () => {
     <div className="flex items-center gap-2">
       <Badge variant={isPro ? "default" : "secondary"} className="flex items-center gap-1">
         <Crown className="w-3 h-3" />
-        {isPro ? 'Pro' : 'Free'}
+        {isPro ? 'Pro' : 'Amateur'}
       </Badge>
       <Button
         variant="outline"
