@@ -681,31 +681,46 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
               <div className="grid grid-cols-3 gap-2">
                 {allMuscleGroupsForSecondary.map((mg) => {
                   const isChecked = formData.secondaryMuscleGroupIds.includes(mg.id);
-                  const handleToggle = () => {
-                    if (isChecked) {
-                      setFormData(prev => ({
-                        ...prev,
-                        secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
-                      }));
-                    } else {
-                      setFormData(prev => ({
-                        ...prev,
-                        secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
-                      }));
-                    }
-                  };
                   
                   return (
                     <div 
                       key={mg.id} 
-                      className="flex items-center space-x-2 cursor-pointer hover:bg-muted/50 rounded p-1"
-                      onClick={handleToggle}
+                      className="flex items-center space-x-2 hover:bg-muted/50 rounded p-1"
                     >
                       <Checkbox
                         checked={isChecked}
-                        onCheckedChange={handleToggle}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
+                            }));
+                          }
+                        }}
                       />
-                      <Label className="text-sm cursor-pointer flex-1">{getName(mg)}</Label>
+                      <Label 
+                        className="text-sm cursor-pointer flex-1"
+                        onClick={() => {
+                          if (isChecked) {
+                            setFormData(prev => ({
+                              ...prev,
+                              secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
+                            }));
+                          } else {
+                            setFormData(prev => ({
+                              ...prev,
+                              secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
+                            }));
+                          }
+                        }}
+                      >
+                        {getName(mg)}
+                      </Label>
                     </div>
                   );
                 })}
