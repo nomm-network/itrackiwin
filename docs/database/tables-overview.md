@@ -1,17 +1,23 @@
 # Database Tables Overview
 
+*Last Updated: 2025-01-29 - See docs/structureCheckup.md for complete audit*
+
 ## Core Exercise System
 
 | Table | Purpose | Key Features |
 |-------|---------|--------------|
-| `exercises` | Core exercise definitions | Slug-based, supports custom user exercises |
+| `exercises` | Core exercise definitions | Slug-based, supports custom user exercises, dynamic naming |
 | `exercises_translations` | Multi-language exercise names/descriptions | Language code + exercise mapping |
-| `equipment` | Exercise equipment (barbells, machines, etc.) | Load types, weight specs |
-| `equipment_translations` | Equipment names in multiple languages | |
-| `handles` | Cable handles, bars, attachments | Categorized by type |
-| `handle_translations` | Handle names/descriptions | |
-| `grips` | Hand positions and grip styles | Compatible grip combinations |
-| `grips_translations` | Grip descriptions | |
+| `movements` | Exercise movement definitions | Base movement patterns for exercises |
+| `movement_patterns` | Movement pattern categories | Classification system (push, pull, squat, etc.) |
+| `movement_patterns_translations` | Movement pattern localization | Multi-language movement pattern names |
+| `equipment` | Exercise equipment (barbells, machines, etc.) | Load types, weight specs, equipment categories |
+| `equipment_translations` | Equipment names in multiple languages | Internationalization support |
+| `handles` | Cable handles, bars, attachments | Categorized by type, compatibility rules |
+| `handles_translations` | Handle names/descriptions | Multi-language handle information |
+| `handle_translations` | Handle localization (alternative) | Secondary handle translation table |
+| `grips` | Hand positions and grip styles | Compatible grip combinations, categories |
+| `grips_translations` | Grip descriptions | Multi-language grip information |
 
 ## Exercise Relationships
 
