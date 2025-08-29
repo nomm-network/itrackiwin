@@ -118,6 +118,7 @@ export type Database = {
           title: string
           updated_at: string
           version: number
+          visibility: string | null
         }
         Insert: {
           created_at?: string
@@ -129,6 +130,7 @@ export type Database = {
           title: string
           updated_at?: string
           version?: number
+          visibility?: string | null
         }
         Update: {
           created_at?: string
@@ -140,6 +142,7 @@ export type Database = {
           title?: string
           updated_at?: string
           version?: number
+          visibility?: string | null
         }
         Relationships: []
       }
@@ -1209,6 +1212,70 @@ export type Database = {
         }
         Relationships: []
       }
+      exercise_aliases: {
+        Row: {
+          alias: string
+          created_at: string
+          exercise_id: string
+          id: string
+        }
+        Insert: {
+          alias: string
+          created_at?: string
+          exercise_id: string
+          id?: string
+        }
+        Update: {
+          alias?: string
+          created_at?: string
+          exercise_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercise_display"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_for_coach"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_localized"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_aliases_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_safe_exercises_for_user"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       exercise_default_grips: {
         Row: {
           exercise_id: string
@@ -2058,6 +2125,7 @@ export type Database = {
           secondary_muscle_group_ids: string[] | null
           slug: string
           source_url: string | null
+          tags: string[] | null
           thumbnail_url: string | null
         }
         Insert: {
@@ -2100,6 +2168,7 @@ export type Database = {
           secondary_muscle_group_ids?: string[] | null
           slug: string
           source_url?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
         }
         Update: {
@@ -2142,6 +2211,7 @@ export type Database = {
           secondary_muscle_group_ids?: string[] | null
           slug?: string
           source_url?: string | null
+          tags?: string[] | null
           thumbnail_url?: string | null
         }
         Relationships: [
@@ -5113,6 +5183,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      user_features: {
+        Row: {
+          created_at: string
+          features: Json
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          features?: Json
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          features?: Json
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       user_fitness_profile: {
         Row: {
