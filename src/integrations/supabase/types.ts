@@ -1337,18 +1337,21 @@ export type Database = {
           created_at: string
           exercise_id: string
           id: string
+          language_code: string | null
         }
         Insert: {
           alias: string
           created_at?: string
           exercise_id: string
           id?: string
+          language_code?: string | null
         }
         Update: {
           alias?: string
           created_at?: string
           exercise_id?: string
           id?: string
+          language_code?: string | null
         }
         Relationships: [
           {
