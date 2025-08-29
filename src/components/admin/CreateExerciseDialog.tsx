@@ -72,6 +72,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
 
   // Form state
   const [activeTab, setActiveTab] = useState('basics');
+  const [equipmentSearch, setEquipmentSearch] = useState('');
   
   // New attribute system state
   const [movementId, setMovementId] = useState<string>('');
@@ -520,6 +521,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
       contraindications: [],
     });
     setActiveTab('basics');
+    setEquipmentSearch('');
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -672,7 +674,21 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
               <Label>Secondary Muscle Groups</Label>
               <div className="grid grid-cols-3 gap-2">
                 {allMuscleGroupsForSecondary.map((mg) => (
-                  <div key={mg.id} className="flex items-center space-x-2">
+                  <div key={mg.id} className="flex items-center space-x-2 cursor-pointer hover:bg-muted/50 rounded p-1"
+                       onClick={() => {
+                         const isChecked = formData.secondaryMuscleGroupIds.includes(mg.id);
+                         if (isChecked) {
+                           setFormData(prev => ({
+                             ...prev,
+                             secondaryMuscleGroupIds: prev.secondaryMuscleGroupIds.filter(id => id !== mg.id)
+                           }));
+                         } else {
+                           setFormData(prev => ({
+                             ...prev,
+                             secondaryMuscleGroupIds: [...prev.secondaryMuscleGroupIds, mg.id]
+                           }));
+                         }
+                       }}>
                     <Checkbox
                       checked={formData.secondaryMuscleGroupIds.includes(mg.id)}
                       onCheckedChange={(checked) => {
@@ -689,7 +705,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                         }
                       }}
                     />
-                    <Label className="text-sm">{getName(mg)}</Label>
+                    <Label className="text-sm cursor-pointer flex-1">{getName(mg)}</Label>
                   </div>
                 ))}
               </div>
@@ -774,12 +790,23 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                 <SelectTrigger>
                   <SelectValue placeholder="Select equipment" />
                 </SelectTrigger>
-                <SelectContent>
-                  {equipment.map((eq) => (
-                    <SelectItem key={eq.id} value={eq.id}>
-                      {getName(eq)}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-[200px]">
+                  <div className="px-2 pb-2 sticky top-0 bg-background z-10">
+                    <Input 
+                      placeholder="Search equipment..." 
+                      className="h-8"
+                      value={equipmentSearch}
+                      onChange={(e) => setEquipmentSearch(e.target.value)}
+                    />
+                  </div>
+                  {equipment
+                    .filter(eq => getName(eq).toLowerCase().includes(equipmentSearch.toLowerCase()))
+                    .sort((a, b) => getName(a).localeCompare(getName(b)))
+                    .map((eq) => (
+                      <SelectItem key={eq.id} value={eq.id}>
+                        {getName(eq)}
+                      </SelectItem>
+                    ))}
                 </SelectContent>
               </Select>
             </div>
@@ -1007,13 +1034,28 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button 
-              type="submit"
-              disabled={createMutation.isPending}
-            >
-              {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
-              Create Exercise
-            </Button>
+            {activeTab === 'advanced' ? (
+              <Button 
+                type="submit"
+                disabled={createMutation.isPending}
+              >
+                {createMutation.isPending && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
+                Create Exercise
+              </Button>
+            ) : (
+              <Button 
+                type="button"
+                onClick={() => {
+                  const tabs = ['basics', 'equipment', 'handles', 'attributes', 'advanced'];
+                  const currentIndex = tabs.indexOf(activeTab);
+                  if (currentIndex < tabs.length - 1) {
+                    setActiveTab(tabs[currentIndex + 1]);
+                  }
+                }}
+              >
+                Next
+              </Button>
+            )}
           </div>
         </form>
       </DialogContent>
