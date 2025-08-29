@@ -10,6 +10,8 @@ const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManage
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
 const AdminHandlesManagement = lazy(() => import("./pages/AdminHandlesManagement"));
 const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManagement"));
+const AdminHandleEquipmentCompatibility = lazy(() => import("./pages/AdminHandleEquipmentCompatibility"));
+const AdminHandleGripCompatibility = lazy(() => import("./pages/AdminHandleGripCompatibility"));
 const AdminCompatibilityManagement = lazy(() => import("./pages/AdminCompatibilityManagement"));
 const AdminTagsAliasesManagement = lazy(() => import("./pages/AdminTagsAliasesManagement"));
 const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
@@ -36,6 +38,8 @@ export function AdminRoutes() {
               <Route path="setup/equipment" element={<AdminEquipmentManagement />} />
               <Route path="setup/handles" element={<AdminHandlesManagement />} />
               <Route path="setup/grips" element={<AdminGripsManagement />} />
+              <Route path="setup/handle-equipment-compatibility" element={<AdminHandleEquipmentCompatibility />} />
+              <Route path="setup/handle-grip-compatibility" element={<AdminHandleGripCompatibility />} />
               <Route path="setup/compatibility" element={<AdminCompatibilityManagement />} />
               <Route path="setup/tags-aliases" element={<AdminTagsAliasesManagement />} />
               
