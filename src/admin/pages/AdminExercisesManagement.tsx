@@ -232,9 +232,13 @@ const AdminExercisesManagement: React.FC = () => {
   });
 
   // Fetch exercises with filters
-  const { data: exercises = [], isLoading } = useQuery({
+  const { data: exercises = [], isLoading, error: exercisesError } = useQuery({
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
     queryFn: async () => {
+      console.log('[Admin] Fetching exercises with filters:', {
+        searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic
+      });
+      
       let query = supabase
         .from("exercises")
         .select(`
@@ -260,7 +264,11 @@ const AdminExercisesManagement: React.FC = () => {
       }
 
       const { data, error } = await query;
-      if (error) throw error;
+      console.log('[Admin] Exercises query result:', { data: data?.length || 0, error });
+      if (error) {
+        console.error('[Admin] Exercises query error:', error);
+        throw error;
+      }
       
       let results = data || [];
       
@@ -585,6 +593,7 @@ const AdminExercisesManagement: React.FC = () => {
           <div><strong>Selected Equipment:</strong> {selectedEquipment}</div>
           <div><strong>Is Public:</strong> {isPublic}</div>
           <div><strong>Query Loading:</strong> {isLoading.toString()}</div>
+          <div><strong>Query Error:</strong> {exercisesError ? JSON.stringify(exercisesError) : 'None'}</div>
           <div><strong>Raw Exercises Count:</strong> {exercises.length}</div>
           <div><strong>Body Parts Count:</strong> {bodyParts.length}</div>
           <div><strong>Muscles Count:</strong> {muscles.length}</div>
