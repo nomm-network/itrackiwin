@@ -575,8 +575,8 @@ const AdminExercisesManagement: React.FC = () => {
       <AdminMenu />
       
       {/* DEBUG BOX */}
-      <div className="bg-yellow-100 border border-yellow-400 p-4 mb-6 rounded">
-        <h3 className="font-bold text-yellow-800 mb-2">DEBUG INFO</h3>
+      <div className="bg-gray-800 border border-gray-600 p-4 mb-6 rounded text-white">
+        <h3 className="font-bold text-gray-200 mb-2">DEBUG INFO</h3>
         <div className="text-sm space-y-2">
           <div><strong>Search Term:</strong> "{searchTerm}"</div>
           <div><strong>Selected Body Part:</strong> {selectedBodyPart}</div>
