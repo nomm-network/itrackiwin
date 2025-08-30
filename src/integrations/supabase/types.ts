@@ -3416,7 +3416,36 @@ export type Database = {
         }
         Relationships: []
       }
-      movement_translations: {
+      movements: {
+        Row: {
+          created_at: string
+          id: string
+          movement_pattern_id: string
+          slug: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          movement_pattern_id: string
+          slug: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          movement_pattern_id?: string
+          slug?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_movements_pattern"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      movements_translations: {
         Row: {
           created_at: string | null
           description: string | null
@@ -3450,35 +3479,6 @@ export type Database = {
             columns: ["movement_id"]
             isOneToOne: false
             referencedRelation: "movements"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      movements: {
-        Row: {
-          created_at: string
-          id: string
-          movement_pattern_id: string
-          slug: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          movement_pattern_id: string
-          slug: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          movement_pattern_id?: string
-          slug?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_movements_pattern"
-            columns: ["movement_pattern_id"]
-            isOneToOne: false
-            referencedRelation: "movement_patterns"
             referencedColumns: ["id"]
           },
         ]

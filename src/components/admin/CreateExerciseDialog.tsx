@@ -295,7 +295,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
         .from("movements")
         .select(`
           id, slug, movement_pattern_id,
-          movement_translations(language_code, name, description)
+          movements_translations(language_code, name, description)
         `)
         .order("slug");
       
@@ -310,8 +310,8 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
         id: movement.id,
         slug: movement.slug,
         movement_pattern_id: movement.movement_pattern_id,
-        name: movement.movement_translations?.find(t => t.language_code === 'en')?.name || movement.slug,
-        description: movement.movement_translations?.find(t => t.language_code === 'en')?.description
+        name: movement.movements_translations?.find(t => t.language_code === 'en')?.name || movement.slug,
+        description: movement.movements_translations?.find(t => t.language_code === 'en')?.description
       }));
     },
     enabled: !!selectedMovementPatternId,

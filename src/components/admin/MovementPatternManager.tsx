@@ -103,7 +103,7 @@ export function MovementPatternManager({
       if (movementsError) throw movementsError;
 
       const { data: translationsData, error: translationsError } = await supabase
-        .from('movement_translations')
+        .from('movements_translations')
         .select('*');
       if (translationsError) throw translationsError;
 
@@ -221,7 +221,7 @@ export function MovementPatternManager({
       if (movementError) throw movementError;
 
       const { error: translationError } = await supabase
-        .from('movement_translations')
+        .from('movements_translations')
         .insert({
           movement_id: movement.id,
           language_code: 'en',
@@ -257,7 +257,7 @@ export function MovementPatternManager({
       if (movementError) throw movementError;
 
       const { error: translationError } = await supabase
-        .from('movement_translations')
+        .from('movements_translations')
         .upsert({
           movement_id: editingMovement.id,
           language_code: 'en',

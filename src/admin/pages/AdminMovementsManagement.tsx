@@ -109,7 +109,7 @@ const AdminMovementsManagement: React.FC = () => {
       if (movementsError) throw movementsError;
 
       const { data: translationsData, error: translationsError } = await supabase
-        .from("movement_translations")
+        .from("movements_translations")
         .select("*");
       if (translationsError) throw translationsError;
 
@@ -233,7 +233,7 @@ const AdminMovementsManagement: React.FC = () => {
 
       // Create English translation
       const { error: translationError } = await supabase
-        .from("movement_translations")
+        .from("movements_translations")
         .insert({
           movement_id: movementData.id,
           language_code: "en",
@@ -320,7 +320,7 @@ const AdminMovementsManagement: React.FC = () => {
 
       // Update English translation
       const { error: translationError } = await supabase
-        .from("movement_translations")
+        .from("movements_translations")
         .upsert({
           movement_id: editingMovement.id,
           language_code: "en",
