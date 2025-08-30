@@ -837,7 +837,7 @@ const TemplateEditor: React.FC = () => {
             {exercises.length > 0 && (
               <div className="space-y-2">
                 <h4 className="font-medium">Available Exercises</h4>
-                <div className="grid gap-2 max-h-96 overflow-y-auto">
+                <div className="grid gap-2 max-h-96 overflow-y-auto pb-24">
                   {exercises.map((exercise) => (
                      <div key={exercise.id} className="flex items-center justify-between p-3 border rounded-lg">
                        <div>
