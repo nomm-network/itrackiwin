@@ -574,6 +574,32 @@ const AdminExercisesManagement: React.FC = () => {
       <PageNav current="Admin / Exercise Management" />
       <AdminMenu />
       
+      {/* DEBUG BOX */}
+      <div className="bg-yellow-100 border border-yellow-400 p-4 mb-6 rounded">
+        <h3 className="font-bold text-yellow-800 mb-2">DEBUG INFO</h3>
+        <div className="text-sm space-y-2">
+          <div><strong>Search Term:</strong> "{searchTerm}"</div>
+          <div><strong>Selected Body Part:</strong> {selectedBodyPart}</div>
+          <div><strong>Selected Muscle Group:</strong> {selectedMuscleGroup}</div>
+          <div><strong>Selected Muscle:</strong> {selectedMuscle}</div>
+          <div><strong>Selected Equipment:</strong> {selectedEquipment}</div>
+          <div><strong>Is Public:</strong> {isPublic}</div>
+          <div><strong>Query Loading:</strong> {isLoading.toString()}</div>
+          <div><strong>Raw Exercises Count:</strong> {exercises.length}</div>
+          <div><strong>Body Parts Count:</strong> {bodyParts.length}</div>
+          <div><strong>Muscles Count:</strong> {muscles.length}</div>
+          <div><strong>Equipment Count:</strong> {equipment.length}</div>
+          {exercises.length > 0 && (
+            <div>
+              <strong>First Exercise:</strong>
+              <pre className="text-xs bg-gray-100 p-2 mt-1 overflow-auto max-h-32">
+                {JSON.stringify(exercises[0], null, 2)}
+              </pre>
+            </div>
+          )}
+        </div>
+      </div>
+      
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
