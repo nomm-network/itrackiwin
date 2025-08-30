@@ -252,10 +252,70 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
     enabled: !!formData.equipmentId && formData.allowsGrips,
   });
 
+  // Movement patterns
+  const [selectedMovementPatternId, setSelectedMovementPatternId] = useState<string>('');
+
+  // Fetch movement patterns with translations
+  const { data: movementPatterns = [] } = useQuery({
+    queryKey: ['movement-patterns-admin'],
+    queryFn: async () => {
+      const { data: patternsData, error: patternsError } = await supabase
+        .from("movement_patterns")
+        .select("*")
+        .order("slug");
+      if (patternsError) throw patternsError;
+
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("movement_patterns_translations")
+        .select("*");
+      if (translationsError) throw translationsError;
+
+      return patternsData.map(pattern => {
+        const translations = translationsData
+          .filter(t => t.movement_pattern_id === pattern.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = { name: t.name, description: t.description };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>);
+
+        return { ...pattern, translations };
+      });
+    },
+  });
+
   // New hooks for attribute system
-  const { data: movements } = useMovements();
   const { data: equipments } = useEquipments();
   const { data: effectiveSchema } = useEffectiveSchema(movementId, equipmentRefId);
+
+  // Filtered movements based on selected pattern
+  const { data: movements = [] } = useQuery({
+    queryKey: ['movements-filtered', selectedMovementPatternId],
+    queryFn: async () => {
+      let query = supabase
+        .from("movements")
+        .select(`
+          id, slug, movement_pattern_id,
+          movement_translations(language_code, name, description)
+        `)
+        .order("slug");
+      
+      if (selectedMovementPatternId) {
+        query = query.eq("movement_pattern_id", selectedMovementPatternId);
+      }
+      
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data.map(movement => ({
+        id: movement.id,
+        slug: movement.slug,
+        movement_pattern_id: movement.movement_pattern_id,
+        name: movement.movement_translations?.find(t => t.language_code === 'en')?.name || movement.slug,
+        description: movement.movement_translations?.find(t => t.language_code === 'en')?.description
+      }));
+    },
+    enabled: !!selectedMovementPatternId,
+  });
 
   // Helper functions
   const getTranslation = (translations: any[], lang = 'en') => {
@@ -999,23 +1059,21 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
               <div className="space-y-2">
                 <Label>Movement Pattern *</Label>
                 <Select
-                  value={formData.movementPattern}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, movementPattern: value }))}
+                  value={selectedMovementPatternId}
+                  onValueChange={(value) => {
+                    setSelectedMovementPatternId(value);
+                    setMovementId(''); // Reset movement selection when pattern changes
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select movement pattern" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="squat">Squat</SelectItem>
-                    <SelectItem value="hinge">Hinge</SelectItem>
-                    <SelectItem value="horizontal_push">Horizontal Push</SelectItem>
-                    <SelectItem value="vertical_push">Vertical Push</SelectItem>
-                    <SelectItem value="horizontal_pull">Horizontal Pull</SelectItem>
-                    <SelectItem value="vertical_pull">Vertical Pull</SelectItem>
-                    <SelectItem value="lunge">Lunge</SelectItem>
-                    <SelectItem value="carry">Carry</SelectItem>
-                    <SelectItem value="rotation">Rotation</SelectItem>
-                    <SelectItem value="isolation">Isolation</SelectItem>
+                    {movementPatterns.map((pattern) => (
+                      <SelectItem key={pattern.id} value={pattern.id}>
+                        {pattern.translations?.en?.name || pattern.slug}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -1060,9 +1118,17 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="movement">Movement Type</Label>
-                <Select value={movementId} onValueChange={setMovementId}>
+                <Select 
+                  value={movementId} 
+                  onValueChange={setMovementId}
+                  disabled={!selectedMovementPatternId}
+                >
                   <SelectTrigger>
-                    <SelectValue placeholder="Select movement type" />
+                    <SelectValue placeholder={
+                      selectedMovementPatternId 
+                        ? "Select movement type" 
+                        : "Select a pattern first"
+                    } />
                   </SelectTrigger>
                   <SelectContent>
                     {movements?.map((movement) => (
