@@ -3414,7 +3414,15 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_movement_patterns_translations_movement_pattern_id"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       movements: {
         Row: {
@@ -3474,6 +3482,13 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_movements_translations_movement_id"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "movements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "movement_translations_movement_id_fkey"
             columns: ["movement_id"]

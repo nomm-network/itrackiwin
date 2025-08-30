@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Pencil, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 
 // Basic SEO for the page (non-visual)
 const useSEO = () => {
@@ -174,16 +174,12 @@ const Exercises: React.FC = () => {
 
   const filtered = React.useMemo(() => rows.filter(matchesFilters), [rows, matchesFilters]);
 
-  const handleDelete = async (id: string) => {
-    const ok = window.confirm('Delete this exercise? This cannot be undone.');
-    if (!ok) return;
-    const { error } = await supabase.from('exercises').delete().eq('id', id);
-    if (error) {
-      toast({ title: 'Failed to delete', description: error.message });
-    } else {
-      setRows((prev) => prev.filter((x) => x.id !== id));
-      toast({ title: 'Exercise deleted' });
-    }
+  const handleAddToTemplate = async (exerciseId: string, exerciseName: string) => {
+    // For now, show a toast indicating the feature is available
+    toast({ 
+      title: 'Add to Template', 
+      description: `Feature to add "${exerciseName}" to a template will be available in the templates section.` 
+    });
   };
 
   return (
@@ -321,20 +317,15 @@ const Exercises: React.FC = () => {
                       )}
                     </div>
                     <div className="flex items-center gap-2 w-full sm:w-auto">
-                      {r.owner_user_id === userId && (
-                        <>
-                          <Button asChild variant="outline" size="sm" className="flex-1 sm:flex-none">
-                            <Link to={`/fitness/exercises/${r.id}/edit`}>
-                              <Pencil className="mr-1 h-4 w-4" />
-                              <span className="hidden sm:inline">Edit</span>
-                            </Link>
-                          </Button>
-                          <Button variant="destructive" size="sm" onClick={() => handleDelete(r.id)} className="flex-1 sm:flex-none">
-                            <Trash2 className="mr-1 h-4 w-4" />
-                            <span className="hidden sm:inline">Delete</span>
-                          </Button>
-                        </>
-                      )}
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        onClick={() => handleAddToTemplate(r.id, getExerciseName(r.translations))}
+                        className="flex-1 sm:flex-none"
+                      >
+                        <Plus className="mr-1 h-4 w-4" />
+                        <span className="hidden sm:inline">Add to Template</span>
+                      </Button>
                     </div>
                   </div>
                 </li>
