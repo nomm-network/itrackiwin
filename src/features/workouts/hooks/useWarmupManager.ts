@@ -48,21 +48,30 @@ export const useWarmupManager = () => {
     setError(null);
 
     try {
+      console.log('🔍 useWarmupManager: Saving feedback:', opts);
+      
       // Save feedback and trigger warmup recalculation
       const { error: updateError } = await supabase
         .from('workout_exercises')
         .update({
-          warmup_feedback: opts.feedback
+          warmup_feedback: opts.feedback,
+          warmup_feedback_at: new Date().toISOString()
         })
         .eq('id', opts.workoutExerciseId);
 
-      if (updateError) throw updateError;
+      if (updateError) {
+        console.error('❌ useWarmupManager: Update error:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ useWarmupManager: Feedback saved successfully');
 
       // Recalculate warmup with new feedback
       await recomputeWarmup({ workoutExerciseId: opts.workoutExerciseId });
 
       return true;
     } catch (err) {
+      console.error('❌ useWarmupManager: Error in saveFeedback:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to save warmup feedback';
       setError(errorMessage);
       throw err;

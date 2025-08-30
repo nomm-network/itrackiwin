@@ -156,8 +156,11 @@ export const useAdvancedSetLogging = () => {
         }
       }
 
+      console.log('✅ useAdvancedSetLogging: Set logged successfully', { set_index: index, action: exists ? 'updated' : 'inserted' });
+
       return { success: true, set_index: index, action: exists ? 'updated' : 'inserted' };
     } catch (err) {
+      console.error('❌ useAdvancedSetLogging: Error in logSet:', err);
       const errorMessage = err instanceof Error ? err.message : 'Failed to log set';
       setError(errorMessage);
       throw err;
