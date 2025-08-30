@@ -53,15 +53,15 @@ export const useMovements = () => {
         .from('movements')
         .select(`
           id, slug, created_at, movement_pattern_id,
-          movement_translations(language_code, name, description)
+          movements_translations(language_code, name, description)
         `)
         .order('slug');
 
       if (error) throw error;
       return (data || []).map(item => ({
         ...item,
-        name: Array.isArray(item.movement_translations) 
-          ? item.movement_translations.find(t => t.language_code === 'en')?.name || item.slug
+        name: Array.isArray(item.movements_translations) 
+          ? item.movements_translations.find(t => t.language_code === 'en')?.name || item.slug
           : item.slug
       })) as Movement[];
     },
