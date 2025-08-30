@@ -139,7 +139,7 @@ const AdminExerciseEdit: React.FC = () => {
           supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
           supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
           supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
-          supabase.from("movements").select("id, slug, movements_translations!inner(name)").eq('movements_translations.language_code', 'en'),
+          supabase.from("movements").select("id, slug, movements_translations!fk_movements_translations_movement_id(name)").eq('movements_translations.language_code', 'en'),
           supabase.from("movement_patterns").select("id, slug, movement_pattern_translations!inner(name)").eq('movement_pattern_translations.language_code', 'en'),
         ]);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; 

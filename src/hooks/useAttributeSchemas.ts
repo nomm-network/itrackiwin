@@ -53,7 +53,7 @@ export const useMovements = () => {
         .from('movements')
         .select(`
           id, slug, created_at, movement_pattern_id,
-          movements_translations(language_code, name, description)
+          movements_translations!fk_movements_translations_movement_id(language_code, name, description)
         `)
         .order('slug');
 
