@@ -6,8 +6,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
 import { Switch } from "@/components/ui/switch";
+import { Slider } from "@/components/ui/slider";
 import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,7 @@ import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { getExerciseNameFromTranslations, getExerciseDescriptionFromTranslations } from "@/utils/exerciseTranslations";
+import { X } from "lucide-react";
 
 // Basic SEO
 const useSEO = (name?: string) => {
@@ -38,6 +41,8 @@ interface BodyPart { id: string; name: string }
 interface MuscleGroup { id: string; name: string; body_part_id: string }
 interface Muscle { id: string; name: string; muscle_group_id: string }
 interface Equipment { id: string; name: string }
+interface Movement { id: string; name: string }
+interface MovementPattern { id: string; name: string }
 
 const schema = z.object({
   name: z.string().min(2, 'Name is required'),
@@ -47,7 +52,19 @@ const schema = z.object({
   primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
   secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
   equipment_id: z.string().uuid().optional().or(z.literal('')),
+  movement_id: z.string().uuid().optional().or(z.literal('')),
+  movement_pattern_id: z.string().uuid().optional().or(z.literal('')),
+  exercise_skill_level: z.enum(['low', 'medium', 'high']).optional(),
+  complexity_score: z.number().min(1).max(10).optional(),
+  load_type: z.enum(['single_load', 'dual_load', 'stack', 'fixed', 'barbell', 'bodyweight']).optional(),
+  is_unilateral: z.boolean().default(false),
+  requires_handle: z.boolean().default(false),
+  allows_grips: z.boolean().default(true),
+  tags: z.array(z.string()).optional(),
   source_url: z.string().url().optional().or(z.literal('')),
+  image_url: z.string().url().optional().or(z.literal('')),
+  thumbnail_url: z.string().url().optional().or(z.literal('')),
+  loading_hint: z.string().optional(),
   is_public: z.boolean().default(true),
 });
 
@@ -68,6 +85,9 @@ const ExerciseEdit: React.FC = () => {
   const [muscleGroups, setMuscleGroups] = React.useState<MuscleGroup[]>([]);
   const [muscles, setMuscles] = React.useState<Muscle[]>([]);
   const [equipment, setEquipment] = React.useState<Equipment[]>([]);
+  const [movements, setMovements] = React.useState<Movement[]>([]);
+  const [movementPatterns, setMovementPatterns] = React.useState<MovementPattern[]>([]);
+  const [newTag, setNewTag] = React.useState('');
 
   const [files, setFiles] = React.useState<File[]>([]);
 
@@ -81,7 +101,19 @@ const ExerciseEdit: React.FC = () => {
       primary_muscle_id: "",
       secondary_muscle_group_ids: [],
       equipment_id: "",
+      movement_id: "",
+      movement_pattern_id: "",
+      exercise_skill_level: "medium",
+      complexity_score: 3,
+      load_type: undefined,
+      is_unilateral: false,
+      requires_handle: false,
+      allows_grips: true,
+      tags: [],
       source_url: "",
+      image_url: "",
+      thumbnail_url: "",
+      loading_hint: "",
       is_public: true,
     },
   });
@@ -103,17 +135,23 @@ const ExerciseEdit: React.FC = () => {
     const loadAll = async () => {
       try {
         setLoading(true);
-        const [bp, mg, m, eq] = await Promise.all([
+        const [bp, mg, m, eq, mv, mp] = await Promise.all([
           supabase.from("body_parts").select("id, slug, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
           supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
           supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
           supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
+          supabase.from("movements").select("id, slug, movement_translations!inner(name)").eq('movement_translations.language_code', 'en'),
+          supabase.from("movement_patterns").select("id, slug, movement_pattern_translations!inner(name)").eq('movement_pattern_translations.language_code', 'en'),
         ]);
-        if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; if (eq.error) throw eq.error;
+        if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; 
+        if (eq.error) throw eq.error; if (mv.error) throw mv.error; if (mp.error) throw mp.error;
+        
         setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
         setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
         setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
         setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
+        setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movement_translations as any)[0]?.name || '' })) || []);
+        setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_pattern_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
         console.error("[ExerciseEdit] load options error", e);
         setLastError(e?.message || String(e));
@@ -133,7 +171,9 @@ const ExerciseEdit: React.FC = () => {
           .from('v_exercises_with_translations')
           .select(`
             id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, 
-            equipment_id, source_url, is_public, translations
+            equipment_id, movement_id, movement_pattern_id, exercise_skill_level,
+            complexity_score, load_type, is_unilateral, requires_handle, allows_grips,
+            tags, source_url, image_url, thumbnail_url, loading_hint, is_public, translations
           `)
           .eq('id', id)
           .maybeSingle();
@@ -160,7 +200,19 @@ const ExerciseEdit: React.FC = () => {
         }
         form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
         form.setValue('equipment_id', data.equipment_id || '');
+        form.setValue('movement_id', data.movement_id || '');
+        form.setValue('movement_pattern_id', data.movement_pattern_id || '');
+        form.setValue('exercise_skill_level', data.exercise_skill_level || 'medium');
+        form.setValue('complexity_score', data.complexity_score || 3);
+        form.setValue('load_type', data.load_type);
+        form.setValue('is_unilateral', data.is_unilateral || false);
+        form.setValue('requires_handle', data.requires_handle || false);
+        form.setValue('allows_grips', data.allows_grips ?? true);
+        form.setValue('tags', data.tags || []);
         form.setValue('source_url', data.source_url || '');
+        form.setValue('image_url', data.image_url || '');
+        form.setValue('thumbnail_url', data.thumbnail_url || '');
+        form.setValue('loading_hint', data.loading_hint || '');
         form.setValue('is_public', data.is_public ?? true);
       } catch (e: any) {
         console.error('[ExerciseEdit] load error', e);
@@ -185,7 +237,19 @@ const ExerciseEdit: React.FC = () => {
         primary_muscle_id: values.primary_muscle_id || null,
         secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
+        movement_id: values.movement_id || null,
+        movement_pattern_id: values.movement_pattern_id || null,
+        exercise_skill_level: values.exercise_skill_level || null,
+        complexity_score: values.complexity_score || null,
+        load_type: values.load_type || null,
+        is_unilateral: values.is_unilateral,
+        requires_handle: values.requires_handle,
+        allows_grips: values.allows_grips,
+        tags: values.tags && values.tags.length > 0 ? values.tags : null,
         source_url: values.source_url || null,
+        image_url: values.image_url || null,
+        thumbnail_url: values.thumbnail_url || null,
+        loading_hint: values.loading_hint || null,
         is_public: values.is_public,
       };
 
@@ -243,6 +307,19 @@ const ExerciseEdit: React.FC = () => {
     } finally {
       setSaving(false);
     }
+  };
+
+  const addTag = () => {
+    if (newTag.trim() && !form.watch('tags')?.includes(newTag.trim())) {
+      const currentTags = form.watch('tags') || [];
+      form.setValue('tags', [...currentTags, newTag.trim()]);
+      setNewTag('');
+    }
+  };
+
+  const removeTag = (tagToRemove: string) => {
+    const currentTags = form.watch('tags') || [];
+    form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
   };
 
   return (
@@ -329,6 +406,36 @@ const ExerciseEdit: React.FC = () => {
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Movement</Label>
+                  <Select onValueChange={(v) => form.setValue('movement_id', v)} value={form.watch('movement_id') || ''}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select movement" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {movements.map((mv) => (
+                        <SelectItem key={mv.id} value={mv.id}>{mv.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Movement Pattern</Label>
+                  <Select onValueChange={(v) => form.setValue('movement_pattern_id', v)} value={form.watch('movement_pattern_id') || ''}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select movement pattern" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {movementPatterns.map((mp) => (
+                        <SelectItem key={mp.id} value={mp.id}>{mp.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-4">
                   <div className="space-y-2">
                     <Label>Muscle Group</Label>
@@ -359,12 +466,123 @@ const ExerciseEdit: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Make Public</Label>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.watch('is_public')} onCheckedChange={(v) => form.setValue('is_public', v)} />
-                    <span className="text-sm text-muted-foreground">Visible to everyone</span>
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label>Skill Level</Label>
+                    <Select onValueChange={(v) => form.setValue('exercise_skill_level', v as any)} value={form.watch('exercise_skill_level') || 'medium'}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select skill level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Beginner</SelectItem>
+                        <SelectItem value="medium">Intermediate</SelectItem>
+                        <SelectItem value="high">Advanced</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
+
+                  <div className="space-y-2">
+                    <Label>Load Type</Label>
+                    <Select onValueChange={(v) => form.setValue('load_type', v === 'none' ? undefined : v as any)} value={form.watch('load_type') || 'none'}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select load type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">None</SelectItem>
+                        <SelectItem value="single_load">Single Load</SelectItem>
+                        <SelectItem value="dual_load">Dual Load</SelectItem>
+                        <SelectItem value="stack">Stack</SelectItem>
+                        <SelectItem value="fixed">Fixed</SelectItem>
+                        <SelectItem value="barbell">Barbell</SelectItem>
+                        <SelectItem value="bodyweight">Bodyweight</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Complexity Score: {form.watch('complexity_score')}</Label>
+                <Slider
+                  value={[form.watch('complexity_score') || 3]}
+                  onValueChange={(value) => form.setValue('complexity_score', value[0])}
+                  max={10}
+                  min={1}
+                  step={1}
+                  className="w-full"
+                />
+                <p className="text-xs text-muted-foreground">1 = Very Simple, 10 = Very Complex</p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label>Unilateral Exercise</Label>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={form.watch('is_unilateral')} onCheckedChange={(v) => form.setValue('is_unilateral', v)} />
+                    <span className="text-sm text-muted-foreground">Single limb</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Requires Handle</Label>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={form.watch('requires_handle')} onCheckedChange={(v) => form.setValue('requires_handle', v)} />
+                    <span className="text-sm text-muted-foreground">Needs attachment</span>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Allows Grips</Label>
+                  <div className="flex items-center gap-3">
+                    <Switch checked={form.watch('allows_grips')} onCheckedChange={(v) => form.setValue('allows_grips', v)} />
+                    <span className="text-sm text-muted-foreground">Multiple grips</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex gap-2 mb-2">
+                  <Input
+                    value={newTag}
+                    onChange={(e) => setNewTag(e.target.value)}
+                    placeholder="Add a tag"
+                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                  />
+                  <Button type="button" onClick={addTag} variant="outline">Add</Button>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {form.watch('tags')?.map((tag, index) => (
+                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                      {tag}
+                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="image_url">Image URL (optional)</Label>
+                  <Input id="image_url" {...form.register('image_url')} placeholder="https://example.com/image.jpg" />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="thumbnail_url">Thumbnail URL (optional)</Label>
+                  <Input id="thumbnail_url" {...form.register('thumbnail_url')} placeholder="https://example.com/thumb.jpg" />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="loading_hint">Loading Hint (optional)</Label>
+                <Input id="loading_hint" {...form.register('loading_hint')} placeholder="e.g., Load plates on both sides" />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Make Public</Label>
+                <div className="flex items-center gap-3">
+                  <Switch checked={form.watch('is_public')} onCheckedChange={(v) => form.setValue('is_public', v)} />
+                  <span className="text-sm text-muted-foreground">Visible to everyone</span>
                 </div>
               </div>
 
