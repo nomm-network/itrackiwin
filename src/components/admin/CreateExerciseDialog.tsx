@@ -10,7 +10,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MovementPatternManager } from './MovementPatternManager';
+
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, X } from 'lucide-react';
@@ -75,9 +75,6 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
   const [activeTab, setActiveTab] = useState('basics');
   const [equipmentSearch, setEquipmentSearch] = useState('');
   
-  // Movement Pattern & Movement management state
-  const [selectedPatternId, setSelectedPatternId] = useState<string>('');
-  const [selectedMovementTypeId, setSelectedMovementTypeId] = useState<string>('');
   
   // New attribute system state
   const [movementId, setMovementId] = useState<string>('');
@@ -998,68 +995,126 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-6">
-            {/* Movement Pattern & Movement Selection */}
-            <MovementPatternManager 
-              selectedPatternId={selectedPatternId}
-              onPatternSelect={setSelectedPatternId}
-              selectedMovementId={selectedMovementTypeId}
-              onMovementSelect={setSelectedMovementTypeId}
-            />
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label>Movement Pattern *</Label>
+                <Select
+                  value={formData.movementPattern}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, movementPattern: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select movement pattern" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="squat">Squat</SelectItem>
+                    <SelectItem value="hinge">Hinge</SelectItem>
+                    <SelectItem value="horizontal_push">Horizontal Push</SelectItem>
+                    <SelectItem value="vertical_push">Vertical Push</SelectItem>
+                    <SelectItem value="horizontal_pull">Horizontal Pull</SelectItem>
+                    <SelectItem value="vertical_pull">Vertical Pull</SelectItem>
+                    <SelectItem value="lunge">Lunge</SelectItem>
+                    <SelectItem value="carry">Carry</SelectItem>
+                    <SelectItem value="rotation">Rotation</SelectItem>
+                    <SelectItem value="isolation">Isolation</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            {selectedMovementTypeId && (
-              <div className="border-t pt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="movement">Movement Type</Label>
-                    <Select value={movementId} onValueChange={setMovementId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select movement type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {movements?.map((movement) => (
-                          <SelectItem key={movement.id} value={movement.id}>
-                            {movement.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-2">
+                <Label>Skill Level</Label>
+                <Select
+                  value={formData.exerciseSkillLevel}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, exerciseSkillLevel: value as 'beginner' | 'medium' | 'advanced' }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select skill level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="beginner">Beginner</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="equipment-ref">Equipment Reference</Label>
-                    <Select value={equipmentRefId} onValueChange={setEquipmentRefId}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select equipment reference" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {equipments?.map((equip) => (
-                          <SelectItem key={equip.id} value={equip.id}>
-                            {equip.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+              <div className="space-y-2">
+                <Label>Complexity Score</Label>
+                <Select
+                  value={formData.complexityScore.toString()}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, complexityScore: parseInt(value) }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select complexity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 - Very Simple</SelectItem>
+                    <SelectItem value="2">2 - Simple</SelectItem>
+                    <SelectItem value="3">3 - Medium</SelectItem>
+                    <SelectItem value="4">4 - Complex</SelectItem>
+                    <SelectItem value="5">5 - Very Complex</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="movement">Movement Type</Label>
+                <Select value={movementId} onValueChange={setMovementId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select movement type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {movements?.map((movement) => (
+                      <SelectItem key={movement.id} value={movement.id}>
+                        {movement.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipment-ref">Equipment Reference</Label>
+                <Select value={equipmentRefId} onValueChange={setEquipmentRefId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select equipment reference" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipments?.map((equip) => (
+                      <SelectItem key={equip.id} value={equip.id}>
+                        {equip.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={formData.isUnilateral}
+                onCheckedChange={(checked) => setFormData(prev => ({ ...prev, isUnilateral: checked }))}
+              />
+              <Label>Unilateral Exercise</Label>
+            </div>
+
+            {effectiveSchema && (
+              <div className="space-y-4 mt-4">
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-medium mb-4">Dynamic Attributes</h3>
+                  <DynamicAttributeForm
+                    schema={effectiveSchema}
+                    values={attributeValues}
+                    onChange={setAttributeValues}
+                  />
                 </div>
+              </div>
+            )}
 
-                {effectiveSchema && (
-                  <div className="space-y-4 mt-4">
-                    <div className="border-t pt-4">
-                      <h3 className="text-lg font-medium mb-4">Dynamic Attributes</h3>
-                      <DynamicAttributeForm
-                        schema={effectiveSchema}
-                        values={attributeValues}
-                        onChange={setAttributeValues}
-                      />
-                    </div>
-                  </div>
-                )}
-
-                {!effectiveSchema && movementId && equipmentRefId && (
-                  <div className="text-center text-muted-foreground py-8">
-                    No attribute schema found for this movement and equipment combination.
-                  </div>
-                )}
+            {!effectiveSchema && movementId && equipmentRefId && (
+              <div className="text-center text-muted-foreground py-8">
+                No attribute schema found for this movement and equipment combination.
               </div>
             )}
           </TabsContent>

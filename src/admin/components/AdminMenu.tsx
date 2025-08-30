@@ -18,6 +18,7 @@ const AdminMenu: React.FC = () => {
         { label: '5.1 Handle-Equipment', href: '/admin/setup/handle-equipment-compatibility' },
         { label: '5.2 Handle-Grip', href: '/admin/setup/handle-grip-compatibility' },
         { label: '5.3 Equipment Defaults', href: '/admin/setup/compatibility' },
+        { label: '6. Movement Patterns', href: '/admin/setup/movement-patterns' },
         { label: '7. Tags & Aliases', href: '/admin/setup/tags-aliases' },
       ]
     },

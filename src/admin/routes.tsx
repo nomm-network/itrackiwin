@@ -40,6 +40,7 @@ export function AdminRoutes() {
               <Route path="setup/handle-equipment-compatibility" element={<AdminHandleEquipmentCompatibility />} />
               <Route path="setup/handle-grip-compatibility" element={<AdminHandleGripCompatibility />} />
               <Route path="setup/compatibility" element={<AdminCompatibilityManagement />} />
+              <Route path="setup/movement-patterns" element={<AdminMovementsManagement />} />
               <Route path="setup/tags-aliases" element={<AdminTagsAliasesManagement />} />
               
               {/* Legacy routes for backwards compatibility */}

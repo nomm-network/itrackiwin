@@ -20,6 +20,7 @@ export interface Movement {
   id: string;
   name: string;
   created_at: string;
+  movement_pattern_id: string;
 }
 
 export interface Equipment {
@@ -51,7 +52,7 @@ export const useMovements = () => {
       const { data, error } = await supabase
         .from('movements')
         .select(`
-          id, slug, created_at,
+          id, slug, created_at, movement_pattern_id,
           movement_translations(language_code, name, description)
         `)
         .order('slug');
