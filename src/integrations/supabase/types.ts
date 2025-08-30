@@ -2467,7 +2467,7 @@ export type Database = {
             foreignKeyName: "exercises_movement_id_fkey"
             columns: ["movement_id"]
             isOneToOne: false
-            referencedRelation: "movements"
+            referencedRelation: "movement_patterns"
             referencedColumns: ["id"]
           },
           {
