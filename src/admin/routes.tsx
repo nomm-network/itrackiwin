@@ -34,7 +34,6 @@ export function AdminRoutes() {
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
-              <Route path="setup/movements" element={<AdminMovementsManagement />} />
               <Route path="setup/equipment" element={<AdminEquipmentManagement />} />
               <Route path="setup/handles" element={<AdminHandlesManagement />} />
               <Route path="setup/grips" element={<AdminGripsManagement />} />
