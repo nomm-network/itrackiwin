@@ -309,9 +309,6 @@ export type Database = {
           is_unilateral: boolean | null
           load_type: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint: string | null
-          movement_pattern:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
           owner_user_id: string
           popularity_rank: number | null
           primary_muscle_id: string | null
@@ -343,9 +340,6 @@ export type Database = {
           is_unilateral?: boolean | null
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
           owner_user_id: string
           popularity_rank?: number | null
           primary_muscle_id?: string | null
@@ -377,9 +371,6 @@ export type Database = {
           is_unilateral?: boolean | null
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
-          movement_pattern?:
-            | Database["public"]["Enums"]["movement_pattern"]
-            | null
           owner_user_id?: string
           popularity_rank?: number | null
           primary_muscle_id?: string | null
@@ -2283,13 +2274,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "exercises_movement_pattern_id_fkey"
-            columns: ["movement_pattern_id"]
-            isOneToOne: false
-            referencedRelation: "movement_patterns"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "exercises_primary_muscle_fk"
             columns: ["primary_muscle_id"]
             isOneToOne: false
@@ -2301,6 +2285,13 @@ export type Database = {
             columns: ["primary_muscle_id"]
             isOneToOne: false
             referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_exercises_pattern"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
             referencedColumns: ["id"]
           },
         ]
@@ -3382,19 +3373,16 @@ export type Database = {
           created_at: string
           id: string
           slug: string
-          updated_at: string
         }
         Insert: {
           created_at?: string
           id?: string
           slug: string
-          updated_at?: string
         }
         Update: {
           created_at?: string
           id?: string
           slug?: string
-          updated_at?: string
         }
         Relationships: []
       }
@@ -3426,15 +3414,7 @@ export type Database = {
           name?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "movement_patterns_translations_movement_pattern_id_fkey"
-            columns: ["movement_pattern_id"]
-            isOneToOne: false
-            referencedRelation: "movement_patterns"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       movement_translations: {
         Row: {
@@ -3478,19 +3458,30 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          movement_pattern_id: string
           slug: string
         }
         Insert: {
           created_at?: string
           id?: string
+          movement_pattern_id: string
           slug: string
         }
         Update: {
           created_at?: string
           id?: string
+          movement_pattern_id?: string
           slug?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_movements_pattern"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       muscle_groups: {
         Row: {
@@ -7526,13 +7517,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "exercises_movement_pattern_id_fkey"
-            columns: ["movement_pattern_id"]
-            isOneToOne: false
-            referencedRelation: "movement_patterns"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "exercises_primary_muscle_fk"
             columns: ["primary_muscle_id"]
             isOneToOne: false
@@ -7544,6 +7528,13 @@ export type Database = {
             columns: ["primary_muscle_id"]
             isOneToOne: false
             referencedRelation: "v_muscles_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_exercises_pattern"
+            columns: ["movement_pattern_id"]
+            isOneToOne: false
+            referencedRelation: "movement_patterns"
             referencedColumns: ["id"]
           },
         ]
@@ -10181,19 +10172,6 @@ export type Database = {
         | "bodyweight"
         | "fixed"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
-      movement_pattern:
-        | "squat"
-        | "hinge"
-        | "horizontal_push"
-        | "vertical_push"
-        | "horizontal_pull"
-        | "vertical_pull"
-        | "lunge"
-        | "carry"
-        | "rotation"
-        | "isolation"
-        | "press"
-        | "front_raise"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
       progression_algo:
         | "rep_range_linear"
@@ -10409,20 +10387,6 @@ export const Constants = {
         "fixed",
       ],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
-      movement_pattern: [
-        "squat",
-        "hinge",
-        "horizontal_push",
-        "vertical_push",
-        "horizontal_pull",
-        "vertical_pull",
-        "lunge",
-        "carry",
-        "rotation",
-        "isolation",
-        "press",
-        "front_raise",
-      ],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
       progression_algo: [
         "rep_range_linear",
