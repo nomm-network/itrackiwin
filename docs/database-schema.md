@@ -3,138 +3,369 @@
 ## Core Exercise System Tables
 
 ### exercises
-Main table storing exercise definitions with foreign key relationships to other entities.
+Main exercise definitions table.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text, NOT NULL, UNIQUE) - URL-friendly identifier
-- `display_name` (text) - Auto-generated or custom display name
-- `custom_display_name` (text) - User-provided display name
-- `movement_pattern_id` (uuid, FK) → movement_patterns(id)
-- `movement_id` (uuid, FK) → movements(id)
-- `equipment_id` (uuid, NOT NULL, FK) → equipment(id)
-- `primary_muscle_id` (uuid, FK) → muscles(id)
-- `body_part_id` (uuid, FK) → body_parts(id)
-- `load_type` (load_type_enum) - How weight is loaded
-- `exercise_skill_level` (exercise_skill_level) - Difficulty level
-- `complexity_score` (smallint) - Numerical complexity rating
-- `is_bar_loaded` (boolean) - Whether exercise uses a barbell
-- `default_bar_weight` (numeric) - Default bar weight in kg
-- `loading_hint` (text) - How to enter weight (per_side, total, etc.)
-- `popularity_rank` (integer) - Ranking for sorting
-- `tags` (text[]) - Array of tags
-- `secondary_muscle_group_ids` (uuid[]) - Array of secondary muscle group IDs
-- `is_public` (boolean) - Visibility flag
-- `owner_user_id` (uuid) - User who created exercise
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE exercises (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  owner_user_id UUID REFERENCES auth.users(id),
+  is_public BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  -- Exercise Properties
+  display_name TEXT,
+  custom_display_name TEXT,
+  name_locale TEXT DEFAULT 'en',
+  tags TEXT[] DEFAULT '{}',
+  
+  -- Physical Properties
+  body_part_id UUID REFERENCES body_parts(id),
+  primary_muscle_id UUID REFERENCES muscles(id),
+  equipment_id UUID NOT NULL REFERENCES equipment(id),
+  secondary_muscle_group_ids UUID[],
+  
+  -- Movement & Skill
+  movement_id UUID REFERENCES movements(id),
+  movement_pattern_id UUID REFERENCES movement_patterns(id),
+  equipment_ref_id UUID REFERENCES equipment(id),
+  exercise_skill_level exercise_skill_level DEFAULT 'medium',
+  complexity_score SMALLINT DEFAULT 3,
+  
+  -- Equipment & Loading
+  load_type load_type,
+  is_bar_loaded BOOLEAN NOT NULL DEFAULT false,
+  default_bar_weight NUMERIC,
+  default_bar_type_id UUID REFERENCES bar_types(id),
+  
+  -- Handle & Grip System
+  requires_handle BOOLEAN DEFAULT false,
+  allows_grips BOOLEAN DEFAULT true,
+  default_handle_ids UUID[],
+  default_grip_ids UUID[] DEFAULT '{}',
+  
+  -- Metadata
+  popularity_rank INTEGER,
+  capability_schema JSONB DEFAULT '{}',
+  contraindications JSONB DEFAULT '[]',
+  attribute_values_json JSONB NOT NULL DEFAULT '{}',
+  name_version INTEGER DEFAULT 1,
+  display_name_tsv TSVECTOR,
+  
+  -- Media
+  image_url TEXT,
+  thumbnail_url TEXT,
+  source_url TEXT,
+  loading_hint TEXT,
+  
+  -- Unilateral exercises
+  is_unilateral BOOLEAN DEFAULT false
+);
+```
+
+### exercises_translations
+Localized names and descriptions for exercises.
+
+```sql
+CREATE TABLE exercises_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(exercise_id, language_code)
+);
+```
+
+## Movement System Tables
 
 ### movements
-Table storing movement patterns with slug-based identification.
+Core movement patterns/actions.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text, NOT NULL, UNIQUE) - URL-friendly identifier
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE movements (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
 ### movement_translations
-Translation table for movement names.
+Localized names for movements.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `movement_id` (uuid, NOT NULL, FK) → movements(id)
-- `language_code` (text, NOT NULL) - Language code (en, ro, etc.)
-- `name` (text, NOT NULL) - Translated name
-- `description` (text) - Translated description
-- `created_at` (timestamptz) - Creation timestamp
-- `updated_at` (timestamptz) - Last update timestamp
-- **UNIQUE:** (movement_id, language_code)
+```sql
+CREATE TABLE movement_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  movement_id UUID NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(movement_id, language_code)
+);
+```
 
 ### movement_patterns
-Table storing movement pattern definitions.
+High-level movement categorization.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text, UNIQUE) - URL-friendly identifier
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE movement_patterns (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
-### movement_patterns_translations
-Translation table for movement pattern names.
-
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `movement_pattern_id` (uuid, NOT NULL, FK) → movement_patterns(id)
-- `language_code` (text, NOT NULL) - Language code
-- `name` (text, NOT NULL) - Translated name
-- `description` (text) - Translated description
-- `created_at` (timestamptz) - Creation timestamp
-- `updated_at` (timestamptz) - Last update timestamp
-- **UNIQUE:** (movement_pattern_id, language_code)
+## Equipment System Tables
 
 ### equipment
-Table storing equipment definitions.
+Exercise equipment definitions.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text) - URL-friendly identifier
-- `equipment_type` (text) - Type of equipment
-- `load_type` (load_type) - How weight is loaded
-- `load_medium` (load_medium) - Medium of load application
-- `weight_kg` (numeric) - Equipment weight
-- `default_stack` (jsonb) - Default weight stack
-- `default_bar_weight_kg` (numeric) - Default bar weight
-- `default_side_min_plate_kg` (numeric) - Minimum plate weight per side
-- `default_single_min_increment_kg` (numeric) - Minimum increment
-- `notes` (text) - Additional notes
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE equipment (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT UNIQUE,
+  equipment_type TEXT NOT NULL DEFAULT 'machine',
+  kind TEXT,
+  load_type load_type DEFAULT 'none',
+  load_medium load_medium DEFAULT 'other',
+  weight_kg NUMERIC,
+  default_bar_weight_kg NUMERIC,
+  default_side_min_plate_kg NUMERIC,
+  default_single_min_increment_kg NUMERIC,
+  default_stack JSONB DEFAULT '[]',
+  notes TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### equipment_translations
+Localized names for equipment.
+
+```sql
+CREATE TABLE equipment_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(equipment_id, language_code)
+);
+```
+
+## Muscle System Tables
 
 ### muscles
-Table storing individual muscle definitions.
+Individual muscle definitions.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text) - URL-friendly identifier
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE muscles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
-### muscle_groups
-Table storing muscle group definitions.
+### muscles_translations
+Localized names for muscles.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text) - URL-friendly identifier
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE muscles_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  muscle_id UUID NOT NULL REFERENCES muscles(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(muscle_id, language_code)
+);
+```
 
 ### body_parts
-Table storing body part definitions.
+Major body regions.
 
-**Columns:**
-- `id` (uuid, PK) - Unique identifier
-- `slug` (text) - URL-friendly identifier
-- `created_at` (timestamptz) - Creation timestamp
+```sql
+CREATE TABLE body_parts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
-## Key Relationships
+### body_parts_translations
+Localized names for body parts.
 
-1. **exercises → movement_patterns**: Each exercise belongs to a movement pattern
-2. **exercises → movements**: Each exercise belongs to a movement type
-3. **exercises → equipment**: Each exercise requires specific equipment
-4. **exercises → muscles**: Each exercise targets a primary muscle
-5. **exercises → body_parts**: Each exercise targets a body part
-6. **exercises → muscle_groups[]**: Each exercise can target multiple secondary muscle groups
+```sql
+CREATE TABLE body_parts_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  body_part_id UUID NOT NULL REFERENCES body_parts(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(body_part_id, language_code)
+);
+```
 
-## Enums
+## Handle & Grip System Tables
 
-### load_type_enum
-- `dual_load` - Weight loaded on both sides (barbells)
-- `single_load` - Weight loaded as single unit
-- `stack` - Machine stack loading
-- `none` - No additional load
+### handles
+Handle/attachment definitions.
 
-### exercise_skill_level
-- `low` - Beginner level
-- `medium` - Intermediate level
-- `high` - Advanced level
+```sql
+CREATE TABLE handles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
 
-### load_medium
-- `weight_plates` - Free weight plates
-- `machine_stack` - Machine weight stack
-- `bodyweight` - Body weight only
-- `other` - Other loading method
+### handle_translations
+Localized names for handles.
+
+```sql
+CREATE TABLE handle_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  handle_id UUID NOT NULL REFERENCES handles(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(handle_id, language_code)
+);
+```
+
+### grips
+Grip style/position definitions.
+
+```sql
+CREATE TABLE grips (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  slug TEXT NOT NULL UNIQUE,
+  category TEXT,
+  is_compatible_with UUID[],
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+```
+
+### grips_translations
+Localized names for grips.
+
+```sql
+CREATE TABLE grips_translations (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  grip_id UUID NOT NULL REFERENCES grips(id) ON DELETE CASCADE,
+  language_code TEXT NOT NULL DEFAULT 'en',
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(grip_id, language_code)
+);
+```
+
+## Relationship Tables
+
+### equipment_handle_grips
+Maps equipment to compatible handle/grip combinations.
+
+```sql
+CREATE TABLE equipment_handle_grips (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  equipment_id UUID NOT NULL REFERENCES equipment(id),
+  handle_id UUID NOT NULL REFERENCES handles(id),
+  grip_id UUID NOT NULL REFERENCES grips(id),
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(equipment_id, handle_id, grip_id)
+);
+```
+
+### exercise_handles
+Maps exercises to their valid handles.
+
+```sql
+CREATE TABLE exercise_handles (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  exercise_id UUID NOT NULL REFERENCES exercises(id),
+  handle_id UUID NOT NULL REFERENCES handles(id),
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(exercise_id, handle_id)
+);
+```
+
+### exercise_grips
+Maps exercises to their valid grips.
+
+```sql
+CREATE TABLE exercise_grips (
+  exercise_id UUID NOT NULL REFERENCES exercises(id),
+  grip_id UUID NOT NULL REFERENCES grips(id),
+  is_default BOOLEAN NOT NULL DEFAULT false,
+  order_index INTEGER NOT NULL DEFAULT 1,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  PRIMARY KEY(exercise_id, grip_id)
+);
+```
+
+### exercise_handle_grips
+Maps exercises to specific handle/grip combinations.
+
+```sql
+CREATE TABLE exercise_handle_grips (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  exercise_id UUID NOT NULL REFERENCES exercises(id),
+  handle_id UUID NOT NULL REFERENCES handles(id),
+  grip_id UUID NOT NULL REFERENCES grips(id),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  
+  UNIQUE(exercise_id, handle_id, grip_id)
+);
+```
+
+## Custom Data Types
+
+### Enums
+```sql
+CREATE TYPE movement_pattern_enum AS ENUM (
+  'push', 'pull', 'squat', 'hinge', 'lunge', 'carry', 'gait', 'rotation'
+);
+
+CREATE TYPE load_type_enum AS ENUM (
+  'dual_load', 'single_load', 'stack', 'none'
+);
+
+CREATE TYPE exercise_skill_level_enum AS ENUM (
+  'beginner', 'intermediate', 'advanced'
+);
+
+CREATE TYPE load_medium AS ENUM (
+  'barbell', 'dumbbell', 'cable', 'machine', 'bodyweight', 'other'
+);
+
+CREATE TYPE weight_unit AS ENUM ('kg', 'lbs');
+
+CREATE TYPE handle_orientation AS ENUM (
+  'horizontal', 'vertical', 'angled_up', 'angled_down'
+);
+```
