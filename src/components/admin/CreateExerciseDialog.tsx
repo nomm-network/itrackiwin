@@ -314,7 +314,6 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
         description: movement.movements_translations?.find(t => t.language_code === 'en')?.description
       }));
     },
-    enabled: !!selectedMovementPatternId,
   });
 
   // Helper functions
@@ -1055,7 +1054,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
           </TabsContent>
 
           <TabsContent value="attributes" className="space-y-6">
-            <div className="grid grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Movement Pattern *</Label>
                 <Select
@@ -1078,6 +1077,32 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label htmlFor="movement">Movement Type</Label>
+                <Select 
+                  value={movementId} 
+                  onValueChange={setMovementId}
+                  disabled={!selectedMovementPatternId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      selectedMovementPatternId 
+                        ? "Select movement type" 
+                        : "Select a pattern first"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {movements?.map((movement) => (
+                      <SelectItem key={movement.id} value={movement.id}>
+                        {movement.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-3 gap-4">
               <div className="space-y-2">
                 <Label>Skill Level</Label>
                 <Select
@@ -1110,32 +1135,6 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
                     <SelectItem value="3">3 - Medium</SelectItem>
                     <SelectItem value="4">4 - Complex</SelectItem>
                     <SelectItem value="5">5 - Very Complex</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="movement">Movement Type</Label>
-                <Select 
-                  value={movementId} 
-                  onValueChange={setMovementId}
-                  disabled={!selectedMovementPatternId}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder={
-                      selectedMovementPatternId 
-                        ? "Select movement type" 
-                        : "Select a pattern first"
-                    } />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {movements?.map((movement) => (
-                      <SelectItem key={movement.id} value={movement.id}>
-                        {movement.name}
-                      </SelectItem>
-                    ))}
                   </SelectContent>
                 </Select>
               </div>
