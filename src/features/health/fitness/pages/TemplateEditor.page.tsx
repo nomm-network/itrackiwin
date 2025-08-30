@@ -71,8 +71,11 @@ const TemplateEditor: React.FC = () => {
       
       const exerciseIds = templateExercises.map(te => te.exercise_id);
       const { data, error } = await supabase
-        .from('v_exercises_with_translations')
-        .select('id, translations')
+        .from('exercises')
+        .select(`
+          id,
+          exercises_translations(language_code, name, description)
+        `)
         .in('id', exerciseIds);
       
       if (error) {

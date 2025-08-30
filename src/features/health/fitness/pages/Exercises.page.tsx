@@ -66,8 +66,11 @@ const Exercises: React.FC = () => {
         setError(null);
         const [{ data, error }, u, bp, mg, m] = await Promise.all([
           supabase
-            .from('v_exercises_with_translations')
-            .select('id,translations,owner_user_id,primary_muscle_id,secondary_muscle_group_ids')
+            .from('exercises')
+            .select(`
+              id, owner_user_id, primary_muscle_id, secondary_muscle_group_ids,
+              exercises_translations(language_code, name, description)
+            `)
             .order('popularity_rank', { ascending: false, nullsFirst: false })
             .limit(100),
           supabase.auth.getUser(),

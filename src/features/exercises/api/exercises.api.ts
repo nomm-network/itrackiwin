@@ -10,12 +10,15 @@ export const exercisesApi = {
     const language = filters?.language || 'en';
     
     let query = supabase
-      .from('v_exercises_with_translations')
-      .select('*');
+      .from('exercises')
+      .select(`
+        *,
+        exercises_translations(language_code, name, description)
+      `);
 
     if (filters?.search) {
-      // Search in translations data
-      query = query.or(`translations->>en->>name.ilike.%${filters.search}%,translations->>ro->>name.ilike.%${filters.search}%`);
+      // Search in exercise translations
+      query = query.filter('exercises_translations.name', 'ilike', `%${filters.search}%`);
     }
     if (filters?.muscleId) {
       query = query.eq('primary_muscle_id', filters.muscleId);
@@ -31,8 +34,11 @@ export const exercisesApi = {
 
   async getExercise(exerciseId: string, language: string = 'en') {
     const { data, error } = await supabase
-      .from('v_exercises_with_translations')
-      .select('*')
+      .from('exercises')
+      .select(`
+        *,
+        exercises_translations(language_code, name, description)
+      `)
       .eq('id', exerciseId)
       .single();
 

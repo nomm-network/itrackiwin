@@ -66,8 +66,12 @@ const AdminExercisesTranslations: React.FC = () => {
     queryKey: ["exercises", searchTerm],
     queryFn: async () => {
       let query = supabase
-        .from("v_exercises_with_translations")
-        .select("id, slug, body_part_slug, is_public, translations")
+        .from("exercises")
+        .select(`
+          id, slug, is_public, body_part_id,
+          exercises_translations(language_code, name, description),
+          body_parts(slug)
+        `)
         .eq("is_public", true);
       
       const { data, error } = await query.limit(100);
@@ -77,9 +81,9 @@ const AdminExercisesTranslations: React.FC = () => {
       const exercisesWithNames = data?.map(item => ({
         id: item.id,
         slug: item.slug,
-        body_part_slug: item.body_part_slug,
+        body_part_slug: item.body_parts?.slug || '',
         is_public: item.is_public,
-        name: getExerciseNameFromTranslations(item.translations, item.id)
+        name: getExerciseNameFromTranslations(item.exercises_translations || [], item.id)
       })) || [];
       
       // Filter by search term if provided

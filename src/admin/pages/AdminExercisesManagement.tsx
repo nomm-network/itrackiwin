@@ -236,8 +236,14 @@ const AdminExercisesManagement: React.FC = () => {
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
     queryFn: async () => {
       let query = supabase
-        .from("v_exercises_with_translations")
-        .select('id, translations, body_part_slug, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, default_grip_ids, created_at')
+        .from("exercises")
+        .select(`
+          id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, 
+          image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, 
+          default_grip_ids, created_at, slug,
+          exercises_translations(language_code, name, description),
+          body_parts(slug)
+        `)
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
@@ -262,7 +268,7 @@ const AdminExercisesManagement: React.FC = () => {
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         results = results.filter(exercise => {
-          const name = getExerciseNameFromTranslations(exercise.translations, exercise.id);
+          const name = getExerciseNameFromTranslations(exercise.exercises_translations || [], exercise.id);
           
           // Get muscle and muscle group names for this exercise
           const muscle = muscles.find(m => m.id === exercise.primary_muscle_id);

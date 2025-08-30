@@ -130,8 +130,12 @@ const ExerciseEdit: React.FC = () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('v_exercises_with_translations')
-          .select('id,translations,body_part_id,primary_muscle_id,secondary_muscle_group_ids,equipment_id,source_url,is_public')
+          .from('exercises')
+          .select(`
+            id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, 
+            equipment_id, source_url, is_public,
+            exercises_translations(language_code, name, description)
+          `)
           .eq('id', id)
           .maybeSingle();
         if (error) throw error;
