@@ -241,12 +241,8 @@ const AdminExercisesManagement: React.FC = () => {
       })}`);
       
       let query = supabase
-        .from("exercises")
-        .select(`
-          id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, equipment_id, 
-          image_url, thumbnail_url, is_public, owner_user_id, source_url, popularity_rank, 
-          default_grip_ids, created_at, slug
-        `)
+        .from("v_exercises_with_translations")
+        .select("*")
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
@@ -272,33 +268,16 @@ const AdminExercisesManagement: React.FC = () => {
       }
       
       let results = data || [];
-      debugLog.push(`[Admin] Raw results: ${results.length}`);
+      debugLog.push(`[Admin] Raw results from view: ${results.length}`);
       
-      // Now fetch translations separately for each exercise
-      if (results.length > 0) {
-        const exerciseIds = results.map(ex => ex.id);
-        const { data: translations, error: translationsError } = await supabase
-          .from("exercises_translations")
-          .select("exercise_id, language_code, name, description")
-          .in("exercise_id", exerciseIds);
-          
-        debugLog.push(`[Admin] Translations query: ${translations?.length || 0} translations, error=${translationsError ? JSON.stringify(translationsError) : 'None'}`);
-        
-        if (!translationsError && translations) {
-          // Add translations to each exercise
-          results = results.map(exercise => ({
-            ...exercise,
-            exercises_translations: translations.filter(t => t.exercise_id === exercise.id)
-          }));
-        }
-      }
+      // The view already includes translations, so no need to fetch separately
       
       // Client-side filtering for search
       if (searchTerm) {
         const searchLower = searchTerm.toLowerCase();
         results = results.filter(exercise => {
-          const exerciseTranslations = (exercise as any).exercises_translations || [];
-          const name = getExerciseNameFromTranslations(exerciseTranslations, exercise.id);
+          const translations = (exercise as any).translations || [];
+          const name = getExerciseNameFromTranslations(translations, exercise.id);
           
           // Get muscle and muscle group names for this exercise
           const muscle = muscles.find(m => m.id === exercise.primary_muscle_id);
@@ -320,9 +299,11 @@ const AdminExercisesManagement: React.FC = () => {
       debugLog.push(`[Admin] After filtering: ${results.length}`);
       
       const finalResults = results.map((exercise: any) => {
-        // Transform exercises_translations array to translations object  
-        const exerciseTranslations = (exercise as any).exercises_translations || [];
-        const translations = exerciseTranslations.reduce((acc: any, t: any) => {
+        // The view already has translations in the correct format
+        const translations = exercise.translations || [];
+        
+        // Convert translations array to the expected object format
+        const translationsObj = translations.reduce((acc: any, t: any) => {
           acc[t.language_code] = {
             name: t.name,
             description: t.description
@@ -333,7 +314,7 @@ const AdminExercisesManagement: React.FC = () => {
         return {
           ...exercise,
           default_grip_ids: exercise.default_grip_ids || [],
-          translations: translations
+          translations: translationsObj
         };
       });
       
