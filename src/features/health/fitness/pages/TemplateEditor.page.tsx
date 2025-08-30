@@ -71,11 +71,8 @@ const TemplateEditor: React.FC = () => {
       
       const exerciseIds = templateExercises.map(te => te.exercise_id);
       const { data, error } = await supabase
-        .from('exercises')
-        .select(`
-          id,
-          exercises_translations(language_code, name, description)
-        `)
+        .from('v_exercises_with_translations')
+        .select(`id, translations`)
         .in('id', exerciseIds);
       
       if (error) {
@@ -275,31 +272,16 @@ const TemplateEditor: React.FC = () => {
         return [];
       }
 
-      // Simple query that gets exercises with basic info
+      // Use the view instead of direct table query
       const { data: exerciseData, error: exerciseError } = await supabase
-        .from('exercises')
-        .select('id, primary_muscle_id, body_part_id, popularity_rank, is_public')
+        .from('v_exercises_with_translations')
+        .select('id, primary_muscle_id, body_part_id, popularity_rank, is_public, translations')
         .eq('is_public', true)
         .limit(100);
 
       if (exerciseError) {
         console.error('Error fetching exercises:', exerciseError);
         throw exerciseError;
-      }
-
-      // Get translations separately
-      const exerciseIds = exerciseData?.map(e => e.id) || [];
-      if (exerciseIds.length === 0) return [];
-
-      const { data: translationData, error: translationError } = await supabase
-        .from('exercises_translations')
-        .select('exercise_id, name, description, language_code')
-        .in('exercise_id', exerciseIds)
-        .eq('language_code', 'en');
-
-      if (translationError) {
-        console.error('Error fetching translations:', translationError);
-        // Continue without translations rather than failing
       }
 
       // Get muscle data for enhanced search
@@ -320,11 +302,6 @@ const TemplateEditor: React.FC = () => {
         .eq('muscle_groups_translations.language_code', 'en');
 
       // Create lookup maps
-      const translationMap = new Map();
-      translationData?.forEach(t => {
-        translationMap.set(t.exercise_id, { name: t.name, description: t.description });
-      });
-
       const muscleMap = new Map();
       muscleData?.forEach(m => {
         const translation = (m.muscles_translations as any[])?.[0];
@@ -352,7 +329,9 @@ const TemplateEditor: React.FC = () => {
       });
 
       let results = (exerciseData || []).map(item => {
-        const translation = translationMap.get(item.id) || { name: '', description: '' };
+        // Extract name from the translations object in the view
+        const translations = item.translations || {};
+        const exerciseName = getExerciseNameFromTranslations(translations, item.id);
         const muscleName = muscleMap.get(item.primary_muscle_id) || '';
         const muscleGroupId = muscleToGroupMap.get(item.primary_muscle_id);
         const muscleGroupName = muscleGroupId ? muscleGroupMap.get(muscleGroupId) || '' : '';
@@ -364,8 +343,8 @@ const TemplateEditor: React.FC = () => {
           popularity_rank: item.popularity_rank,
           translations: {
             en: {
-              name: translation.name,
-              description: translation.description
+              name: exerciseName,
+              description: ''
             }
           },
           muscle_name: muscleName,
@@ -449,10 +428,10 @@ const TemplateEditor: React.FC = () => {
     const exercise = templateExerciseDetails.find(e => e.id === exerciseId);
     if (!exercise) return `Exercise ${exerciseId}`;
     
-    // Get translated name from translations
-    const translations = Array.isArray(exercise.exercises_translations) ? exercise.exercises_translations : [];
-    const translatedName = getTranslatedNameFromData(translations);
-    return translatedName || `Exercise ${exerciseId}`;
+    // Get translated name from the view's translations object
+    const translations = exercise.translations || {};
+    const exerciseName = getExerciseNameFromTranslations(translations, exerciseId);
+    return exerciseName || `Exercise ${exerciseId}`;
   };
 
   // Helper functions
