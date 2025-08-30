@@ -3345,23 +3345,58 @@ export type Database = {
           },
         ]
       }
+      movement_translations: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string
+          language_code: string
+          movement_id: string
+          name: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code: string
+          movement_id: string
+          name: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string
+          language_code?: string
+          movement_id?: string
+          name?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "movement_translations_movement_id_fkey"
+            columns: ["movement_id"]
+            isOneToOne: false
+            referencedRelation: "movements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       movements: {
         Row: {
           created_at: string
           id: string
-          name: string
           slug: string
         }
         Insert: {
           created_at?: string
           id?: string
-          name: string
           slug: string
         }
         Update: {
           created_at?: string
           id?: string
-          name?: string
           slug?: string
         }
         Relationships: []
