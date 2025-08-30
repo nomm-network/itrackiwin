@@ -1,5 +1,4 @@
 import React from "react";
-import PageNav from "@/components/PageNav";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
-import { Link, NavLink, useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import ExerciseImageUploader from "@/components/ExerciseImageUploader";
@@ -23,15 +22,15 @@ import { X } from "lucide-react";
 // Basic SEO
 const useSEO = (name?: string) => {
   React.useEffect(() => {
-    document.title = name ? `Edit Exercise | ${name}` : "Edit Exercise | I Track I Win";
+    document.title = name ? `Edit Exercise | ${name} | Admin` : "Edit Exercise | Admin";
     const desc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     desc.setAttribute('name', 'description');
-    desc.setAttribute('content', 'Edit an existing exercise: muscles, equipment and images.');
+    desc.setAttribute('content', 'Edit exercise properties, muscles, equipment and configuration.');
     document.head.appendChild(desc);
 
     const link = document.querySelector('link[rel="canonical"]') || document.createElement('link');
     link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', `${window.location.origin}/fitness/exercises/edit`);
+    link.setAttribute('href', `${window.location.origin}/admin/exercises/edit`);
     document.head.appendChild(link);
   }, [name]);
 };
@@ -70,7 +69,7 @@ const schema = z.object({
 
 type FormValues = z.infer<typeof schema>;
 
-const ExerciseEdit: React.FC = () => {
+const AdminExerciseEdit: React.FC = () => {
   const params = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -299,7 +298,7 @@ const ExerciseEdit: React.FC = () => {
       }
 
       toast({ title: 'Exercise updated' });
-      navigate('/fitness/exercises');
+      navigate('/admin/exercises');
     } catch (e: any) {
       console.error('[ExerciseEdit] update error', e);
       setLastError(e?.message || String(e));
@@ -323,57 +322,28 @@ const ExerciseEdit: React.FC = () => {
   };
 
   return (
-    <>
-      <PageNav current="Fitness" />
-      <nav className="container pt-4" aria-label="Fitness navigation">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Workouts
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Exercises
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Templates
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Configure
-              </NavLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </nav>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Edit Exercise</h1>
+        <Button variant="secondary" asChild>
+          <Link to="/admin/exercises">Back to Exercise Management</Link>
+        </Button>
+      </div>
 
-      <main className="container py-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">Edit Exercise</h1>
-          <Button variant="secondary" asChild>
-            <Link to="/fitness/exercises">Back to Exercises</Link>
-          </Button>
-        </div>
+      {loading ? (
+        <p className="text-muted-foreground">Loading…</p>
+      ) : (
+        <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={form.handleSubmit(onSubmit)}>
+          <section className="lg:col-span-2 space-y-6">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name</Label>
+              <Input id="name" {...form.register('name')} placeholder="e.g., Barbell Bench Press" />
+            </div>
 
-        {loading ? (
-          <p className="text-muted-foreground">Loading…</p>
-        ) : (
-          <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={form.handleSubmit(onSubmit)}>
-            <section className="lg:col-span-2 space-y-6">
-              <div className="space-y-2">
-                <Label htmlFor="name">Name</Label>
-                <Input id="name" {...form.register('name')} placeholder="e.g., Barbell Bench Press" />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="description">Description</Label>
-                <Textarea id="description" rows={5} {...form.register('description')} placeholder="Brief instructions, cues, etc." />
-              </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea id="description" rows={5} {...form.register('description')} placeholder="Brief instructions, cues, etc." />
+            </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
@@ -601,12 +571,12 @@ const ExerciseEdit: React.FC = () => {
                 <p className="text-xs text-muted-foreground">First image becomes the thumbnail if none is set.</p>
               </div>
 
-              <div className="flex gap-2 pt-2">
-                <Button type="button" variant="secondary" asChild>
-                  <Link to="/fitness/exercises">Cancel</Link>
-                </Button>
-                <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
-              </div>
+                <div className="flex gap-2 pt-2">
+                  <Button type="button" variant="secondary" asChild>
+                    <Link to="/admin/exercises">Cancel</Link>
+                  </Button>
+                  <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
+                </div>
 
               {lastError && (
                 <p role="alert" className="text-destructive text-sm">{lastError}</p>
@@ -614,9 +584,8 @@ const ExerciseEdit: React.FC = () => {
             </aside>
           </form>
         )}
-      </main>
-    </>
-  );
+      </div>
+    );
 };
 
-export default ExerciseEdit;
+export default AdminExerciseEdit;

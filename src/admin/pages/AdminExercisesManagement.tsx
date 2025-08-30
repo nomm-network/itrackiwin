@@ -755,7 +755,7 @@ const AdminExercisesManagement: React.FC = () => {
                             size="sm"
                             asChild
                           >
-                            <Link to={`/fitness/exercises/${exercise.id}/edit`}>
+                            <Link to={`/admin/exercises/${exercise.id}/edit`}>
                               <Edit className="w-4 h-4" />
                             </Link>
                           </Button>

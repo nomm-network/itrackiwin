@@ -5,6 +5,7 @@ import AdminLayout from "./layout/AdminLayout";
 
 const AdminHomePage = lazy(() => import("./pages/AdminHome.page"));
 const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManagement"));
+const AdminExerciseEdit = lazy(() => import("./pages/AdminExerciseEdit"));
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
@@ -31,6 +32,7 @@ export function AdminRoutes() {
             <Routes>
               <Route index element={<AdminHomePage />} />
               <Route path="exercises" element={<AdminExercisesManagement />} />
+              <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
