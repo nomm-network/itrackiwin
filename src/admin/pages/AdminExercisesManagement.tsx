@@ -235,9 +235,10 @@ const AdminExercisesManagement: React.FC = () => {
   const { data: exercises = [], isLoading, error: exercisesError } = useQuery({
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
     queryFn: async () => {
-      console.log('[Admin] Fetching exercises with filters:', {
+      const debugLog = [];
+      debugLog.push(`[Admin] Fetching exercises with filters: ${JSON.stringify({
         searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic
-      });
+      })}`);
       
       let query = supabase
         .from("exercises")
@@ -264,13 +265,17 @@ const AdminExercisesManagement: React.FC = () => {
       }
 
       const { data, error } = await query;
-      console.log('[Admin] Exercises query result:', { data: data?.length || 0, error });
+      debugLog.push(`[Admin] Exercises query result: data=${data?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
+      
       if (error) {
-        console.error('[Admin] Exercises query error:', error);
+        debugLog.push(`[Admin] Exercises query error: ${JSON.stringify(error)}`);
+        // Store debug logs in window for debug box access
+        (window as any).adminDebugLogs = debugLog;
         throw error;
       }
       
       let results = data || [];
+      debugLog.push(`[Admin] Raw results: ${results.length}`);
       
       // Client-side filtering for search
       if (searchTerm) {
@@ -295,7 +300,9 @@ const AdminExercisesManagement: React.FC = () => {
         });
       }
       
-      return results.map((exercise: any) => {
+      debugLog.push(`[Admin] After filtering: ${results.length}`);
+      
+      const finalResults = results.map((exercise: any) => {
         // Transform exercises_translations array to translations object
         const translations = (exercise.exercises_translations || []).reduce((acc: any, t: any) => {
           acc[t.language_code] = {
@@ -311,6 +318,12 @@ const AdminExercisesManagement: React.FC = () => {
           translations: translations
         };
       });
+      
+      debugLog.push(`[Admin] Final results: ${finalResults.length}`);
+      // Store debug logs in window for debug box access
+      (window as any).adminDebugLogs = debugLog;
+      
+      return finalResults;
     },
   });
 
@@ -598,6 +611,12 @@ const AdminExercisesManagement: React.FC = () => {
           <div><strong>Body Parts Count:</strong> {bodyParts.length}</div>
           <div><strong>Muscles Count:</strong> {muscles.length}</div>
           <div><strong>Equipment Count:</strong> {equipment.length}</div>
+          <div>
+            <strong>Debug Logs:</strong>
+            <pre className="text-xs bg-gray-900 p-2 mt-1 overflow-auto max-h-40 whitespace-pre-wrap">
+              {((window as any).adminDebugLogs || []).join('\n')}
+            </pre>
+          </div>
           {exercises.length > 0 && (
             <div>
               <strong>First Exercise:</strong>
