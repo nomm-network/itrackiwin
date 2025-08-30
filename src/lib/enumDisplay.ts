@@ -132,35 +132,45 @@ export const primaryGoalDisplay: EnumDisplayConfig = {
 
 // Movement pattern enum display
 export const movementPatternDisplay: EnumDisplayConfig = {
-  squat: {
-    key: 'enum.movement.squat',
-    icon: '⬇️',
-    color: 'blue'
+  carry: {
+    key: 'enum.movement.carry',
+    icon: '🏃‍♂️',
+    color: 'purple'
   },
   hinge: {
     key: 'enum.movement.hinge',
     icon: '🔄',
     color: 'orange'
   },
-  push: {
-    key: 'enum.movement.push',
-    icon: '👐',
-    color: 'red'
+  isolation: {
+    key: 'enum.movement.isolation',
+    icon: '🎯',
+    color: 'indigo'
+  },
+  lunge: {
+    key: 'enum.movement.lunge',
+    icon: '🦵',
+    color: 'teal'
   },
   pull: {
     key: 'enum.movement.pull',
     icon: '🤲',
     color: 'green'
   },
-  carry: {
-    key: 'enum.movement.carry',
-    icon: '🏃‍♂️',
-    color: 'purple'
+  push: {
+    key: 'enum.movement.push',
+    icon: '👐',
+    color: 'red'
   },
-  lunge: {
-    key: 'enum.movement.lunge',
-    icon: '🦵',
-    color: 'teal'
+  rotation: {
+    key: 'enum.movement.rotation',
+    icon: '🌀',
+    color: 'amber'
+  },
+  squat: {
+    key: 'enum.movement.squat',
+    icon: '⬇️',
+    color: 'blue'
   }
 };
 
