@@ -118,29 +118,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
   
 
-  // Check for existing warmup data when exercise changes
+  // Check if warmup feedback was already given when exercise changes
   useEffect(() => {
-    const checkExistingWarmup = async () => {
+    const checkWarmupFeedback = async () => {
       if (currentExercise) {
         const weId = resolveWorkoutExerciseId(currentExercise);
         const { data } = await supabase
           .from('workout_exercises')
-          .select('warmup_plan')
+          .select('warmup_feedback, warmup_feedback_at')
           .eq('id', weId)
           .maybeSingle();
         
-        if (data?.warmup_plan && typeof data.warmup_plan === 'object' && Object.keys(data.warmup_plan).length > 0) {
-          setHasExistingWarmupData(true);
-          // If warmup data exists and feedback is given, hide warmup block
-          if ('feedback' in data.warmup_plan && data.warmup_plan.feedback) {
-            setWarmupCompleted(true);
-          }
+        // Only hide warmup if feedback was explicitly given
+        if (data?.warmup_feedback && data?.warmup_feedback_at) {
+          setWarmupCompleted(true);
         } else {
-          setHasExistingWarmupData(false);
+          setWarmupCompleted(false);
         }
       }
     };
-    checkExistingWarmup();
+    checkWarmupFeedback();
   }, [currentExercise]);
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
@@ -577,8 +574,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Hide warmup after feedback is given or if data already exists */}
-                {!warmupCompleted && !hasExistingWarmupData && (
+                {/* Show warmup if we have a plan and haven't completed it yet */}
+                {!warmupCompleted && currentExercise?.warmup_plan && (
                     <WarmupBlock
                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                      unit="kg"

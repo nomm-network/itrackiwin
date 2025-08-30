@@ -55,17 +55,26 @@ export const useAdvancedSetLogging = () => {
     setError(null);
 
     try {
+      console.log('🔍 useAdvancedSetLogging: Starting log set with data:', {
+        setData,
+        plannedSetIndex
+      });
+
       // Resolve the correct set_index and whether to update or insert
       const { index, exists } = await resolveSetIndex(
         setData.workout_exercise_id, 
         plannedSetIndex
       );
 
+      console.log('🔍 Set index resolved:', { index, exists });
+
       const payload = {
         ...setData,
         set_index: index,
         grip_ids: setData.grip_ids || []
       };
+
+      console.log('🔍 Final payload:', payload);
 
       if (exists) {
         // UPDATE the existing planned set
