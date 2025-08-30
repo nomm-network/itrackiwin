@@ -118,7 +118,8 @@ const WorkoutDetail: React.FC = () => {
         </div>
 
         {(data?.exercises || []).map(ex => {
-          const exerciseName = getExerciseNameFromTranslations(ex.exercises?.translations);
+          const exerciseTranslations = Array.isArray(ex.exercises?.translations) ? ex.exercises.translations : [];
+          const exerciseName = getExerciseNameFromTranslations(exerciseTranslations);
           const workoutSets = data?.setsByWe[ex.id] || [];
           
           // Show warmup suggestions since there are no actual sets

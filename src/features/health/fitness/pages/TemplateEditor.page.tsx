@@ -450,7 +450,8 @@ const TemplateEditor: React.FC = () => {
     if (!exercise) return `Exercise ${exerciseId}`;
     
     // Get translated name from translations
-    const translatedName = getTranslatedNameFromData(exercise.translations);
+    const translations = Array.isArray(exercise.exercises_translations) ? exercise.exercises_translations : [];
+    const translatedName = getTranslatedNameFromData(translations);
     return translatedName || `Exercise ${exerciseId}`;
   };
 

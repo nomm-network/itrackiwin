@@ -80,7 +80,10 @@ const Exercises: React.FC = () => {
         ]);
         if (!isMounted) return;
         if (error) setError(error.message);
-        setRows(data || []);
+        setRows((data || []).map(row => ({
+          ...row,
+          translations: Array.isArray(row.exercises_translations) ? row.exercises_translations : []
+        })));
         setUserId(u.data.user?.id || null);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error;
         setBodyParts(bp.data?.map(item => ({ 

@@ -447,7 +447,10 @@ const WorkoutSession: React.FC = () => {
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <h3 className="font-medium">{getExerciseNameFromTranslations(ex.exercises?.translations, ex.exercises?.id) || 'Unknown Exercise'}</h3>
+                          <h3 className="font-medium">{(() => {
+                            const exerciseTranslations = Array.isArray(ex.exercises?.translations) ? ex.exercises.translations : [];
+                            return getExerciseNameFromTranslations(exerciseTranslations, ex.exercises?.id) || 'Unknown Exercise';
+                          })()}</h3>
                           {isCompleted && (
                             <span className="text-xs bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded">
                               {completedSets.length} sets

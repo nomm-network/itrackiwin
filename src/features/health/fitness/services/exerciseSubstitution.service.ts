@@ -85,15 +85,15 @@ export async function findAlternatives(
   try {
     // Get the original exercise details
     const { data: originalExercise } = await supabase
-      .from('v_exercises_with_translations')
+      .from('exercises')
       .select(`
-        id, slug, translations,
+        id, slug,
         primary_muscle_id,
         secondary_muscle_group_ids,
         equipment_id,
-        equipment_slug,
         body_part_id,
-        muscle_name
+        exercises_translations(language_code, name, description),
+        equipment!inner(slug)
       `)
       .eq('id', exerciseId)
       .single();
@@ -111,14 +111,14 @@ export async function findAlternatives(
         similar_exercise_id,
         reason,
         similarity_score,
-        similar_exercise:v_exercises_with_translations!similar_exercise_id(
-          id, slug, translations,
+        similar_exercise:exercises!similar_exercise_id(
+          id, slug,
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
-          equipment_slug,
           body_part_id,
-          muscle_name
+          exercises_translations(language_code, name, description),
+          equipment!inner(slug)
         )
       `)
       .eq('exercise_id', exerciseId);
@@ -130,12 +130,16 @@ export async function findAlternatives(
         if (!exercise) continue;
 
         // Check equipment availability
-        if (!isEquipmentAvailable(exercise.equipment_slug, equipmentCaps)) continue;
+        const equipmentSlug = exercise.equipment?.[0]?.slug;
+        if (!isEquipmentAvailable(equipmentSlug, equipmentCaps)) continue;
 
         // Apply constraints
         if (!meetsConstraints(exercise, constraints)) continue;
 
-        const name = (exercise.translations as any)?.en?.name || (exercise.translations as any)?.ro?.name || `Exercise ${exercise.id.slice(0, 8)}`;
+        const translations = Array.isArray(exercise.exercises_translations) ? exercise.exercises_translations : [];
+        const name = translations.find(t => t.language_code === 'en')?.name || 
+                    translations[0]?.name || 
+                    `Exercise ${exercise.id.slice(0, 8)}`;
         
         scoredAlternatives.push({
           exerciseId: exercise.id,
@@ -143,9 +147,9 @@ export async function findAlternatives(
           slug: exercise.slug,
           matchScore: Math.round((similar.similarity_score || 0.9) * 100),
           matchReasons: similar.reason ? [similar.reason] : ['Curated match'],
-          equipment: exercise.equipment_slug ? {
+          equipment: equipmentSlug ? {
             id: exercise.equipment_id || 'unknown',
-            slug: exercise.equipment_slug
+            slug: equipmentSlug
           } : undefined,
           movementPattern: inferMovementPattern(exercise.slug)?.primary
         });
@@ -155,16 +159,16 @@ export async function findAlternatives(
     // If we need more alternatives, find computed ones
     if (scoredAlternatives.length < 8) {
       let query = supabase
-        .from('v_exercises_with_translations')
+        .from('exercises')
         .select(`
-          id, slug, translations,
+          id, slug,
           primary_muscle_id,
           secondary_muscle_group_ids, 
           equipment_id,
-          equipment_slug,
           body_part_id,
           popularity_rank,
-          muscle_name
+          exercises_translations(language_code, name, description),
+          equipment!inner(slug)
         `)
         .eq('is_public', true)
         .neq('id', exerciseId)
@@ -195,12 +199,16 @@ export async function findAlternatives(
           if (score.total < 50) continue;
 
           // Check equipment availability
-          if (!isEquipmentAvailable(alternative.equipment_slug, equipmentCaps)) continue;
+          const altEquipmentSlug = alternative.equipment?.[0]?.slug;
+          if (!isEquipmentAvailable(altEquipmentSlug, equipmentCaps)) continue;
 
           // Apply constraints
           if (!meetsConstraints(alternative, constraints)) continue;
 
-          const name = (alternative.translations as any)?.en?.name || (alternative.translations as any)?.ro?.name || `Exercise ${alternative.id.slice(0, 8)}`;
+          const translations = Array.isArray(alternative.exercises_translations) ? alternative.exercises_translations : [];
+          const name = translations.find(t => t.language_code === 'en')?.name || 
+                      translations[0]?.name || 
+                      `Exercise ${alternative.id.slice(0, 8)}`;
           
           scoredAlternatives.push({
             exerciseId: alternative.id,
@@ -208,9 +216,9 @@ export async function findAlternatives(
             slug: alternative.slug,
             matchScore: score.total,
             matchReasons: score.reasons,
-            equipment: alternative.equipment_slug ? {
+            equipment: altEquipmentSlug ? {
               id: alternative.equipment_id || 'unknown',
-              slug: alternative.equipment_slug
+              slug: altEquipmentSlug
             } : undefined,
             movementPattern: inferMovementPattern(alternative.slug)?.primary
           });

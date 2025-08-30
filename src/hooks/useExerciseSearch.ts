@@ -16,19 +16,20 @@ export function useExerciseSearch(filters: SearchFilters = {}) {
     queryKey: ['exercise-search', filters],
     queryFn: async () => {
       let query = supabase
-        .from('v_exercises_with_translations')
+        .from('exercises')
         .select(`
           *,
           aliases:exercise_aliases(alias),
-          equipment:equipment!inner(slug, translations:equipment_translations(name, language_code)),
-          body_part:body_parts!inner(slug, translations:body_parts_translations(name, language_code))
+          equipment:equipment!inner(slug, equipment_translations(name, language_code)),
+          body_part:body_parts!inner(slug, body_parts_translations(name, language_code)),
+          exercises_translations(language_code, name, description)
         `);
 
       // Search in name, description, and aliases
       if (filters.search) {
         query = query.or(`
-          translations->>en->>name.ilike.%${filters.search}%,
-          translations->>ro->>name.ilike.%${filters.search}%,
+          exercises_translations.name.ilike.%${filters.search}%,
+          exercises_translations.description.ilike.%${filters.search}%,
           aliases.alias.ilike.%${filters.search}%
         `);
       }
@@ -45,7 +46,7 @@ export function useExerciseSearch(filters: SearchFilters = {}) {
 
       // Filter by movement pattern
       if (filters.movementPattern) {
-        query = query.eq('movement_pattern', filters.movementPattern as any);
+        query = query.eq('movement_pattern_id', filters.movementPattern as any);
       }
 
       // Filter by skill level

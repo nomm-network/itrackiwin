@@ -50,11 +50,19 @@ export const useMovements = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('movements')
-        .select('*')
-        .order('name');
+        .select(`
+          id, slug, created_at,
+          movement_translations(language_code, name, description)
+        `)
+        .order('slug');
 
       if (error) throw error;
-      return data as Movement[];
+      return (data || []).map(item => ({
+        ...item,
+        name: Array.isArray(item.movement_translations) 
+          ? item.movement_translations.find(t => t.language_code === 'en')?.name || item.slug
+          : item.slug
+      })) as Movement[];
     },
   });
 };

@@ -142,8 +142,9 @@ const ExerciseEdit: React.FC = () => {
         if (!data) throw new Error('Exercise not found');
         
         // Extract name and description from translations
-        const name = getExerciseNameFromTranslations(data.translations, data.id);
-        const description = getExerciseDescriptionFromTranslations(data.translations);
+        const translations = Array.isArray(data.exercises_translations) ? data.exercises_translations : [];
+        const name = getExerciseNameFromTranslations(translations, data.id);
+        const description = getExerciseDescriptionFromTranslations(translations);
         
         setExerciseName(name);
         form.setValue('name', name);
