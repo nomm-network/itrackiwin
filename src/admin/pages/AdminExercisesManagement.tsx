@@ -287,10 +287,22 @@ const AdminExercisesManagement: React.FC = () => {
         });
       }
       
-      return results.map((exercise: any) => ({
-        ...exercise,
-        default_grip_ids: exercise.default_grip_ids || []
-      }));
+      return results.map((exercise: any) => {
+        // Transform exercises_translations array to translations object
+        const translations = (exercise.exercises_translations || []).reduce((acc: any, t: any) => {
+          acc[t.language_code] = {
+            name: t.name,
+            description: t.description
+          };
+          return acc;
+        }, {});
+
+        return {
+          ...exercise,
+          default_grip_ids: exercise.default_grip_ids || [],
+          translations: translations
+        };
+      });
     },
   });
 
