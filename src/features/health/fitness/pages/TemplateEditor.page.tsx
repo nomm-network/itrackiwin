@@ -268,16 +268,12 @@ const TemplateEditor: React.FC = () => {
   const { data: exercises = [] } = useQuery<Exercise[]>({
     queryKey: ["exercises_for_template", searchQuery, selectedMuscle, selectedMuscleGroup, selectedBodyPart],
     queryFn: async () => {
-      if (searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedMuscleGroup || selectedMuscleGroup === "all") && (!selectedBodyPart || selectedBodyPart === "all")) {
-        return [];
-      }
-
-      // Use the view instead of direct table query
+      // Always load exercises, no early return
       const { data: exerciseData, error: exerciseError } = await supabase
         .from('v_exercises_with_translations')
         .select('id, primary_muscle_id, body_part_id, popularity_rank, is_public, translations')
         .eq('is_public', true)
-        .limit(100);
+        .limit(200); // Increased limit to show more exercises
 
       if (exerciseError) {
         console.error('Error fetching exercises:', exerciseError);
@@ -405,8 +401,7 @@ const TemplateEditor: React.FC = () => {
       });
       
       return results;
-    },
-    enabled: searchQuery.length >= 2 || (selectedMuscle && selectedMuscle !== "all") || (selectedMuscleGroup && selectedMuscleGroup !== "all") || (selectedBodyPart && selectedBodyPart !== "all")
+    }
   });
 
   // Helper to get translated name from the nested translations object
@@ -878,11 +873,6 @@ const TemplateEditor: React.FC = () => {
               </p>
             )}
 
-            {searchQuery.length < 2 && (!selectedMuscle || selectedMuscle === "all") && (!selectedMuscleGroup || selectedMuscleGroup === "all") && (!selectedBodyPart || selectedBodyPart === "all") && (
-              <p className="text-center text-muted-foreground py-4">
-                Search for exercises or select filters to see available exercises.
-              </p>
-            )}
           </CardContent>
         </Card>
       </main>
