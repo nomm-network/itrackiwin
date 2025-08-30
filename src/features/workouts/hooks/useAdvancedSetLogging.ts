@@ -136,7 +136,8 @@ export const useAdvancedSetLogging = () => {
             rpe: payload.rpe,
             notes: payload.notes,
             is_completed: payload.is_completed ?? true,
-            set_kind: (payload.set_kind as any) || 'normal'
+            set_kind: (payload.set_kind as any) || 'normal',
+            load_meta: {} // Required field with default empty object
           })
           .select('id')
           .single();
