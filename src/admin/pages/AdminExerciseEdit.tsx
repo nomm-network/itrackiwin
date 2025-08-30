@@ -140,7 +140,7 @@ const AdminExerciseEdit: React.FC = () => {
           supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
           supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
           supabase.from("movements").select("id, slug, movements_translations!fk_movements_translations_movement_id(name)").eq('movements_translations.language_code', 'en'),
-          supabase.from("movement_patterns").select("id, slug, movement_pattern_translations!inner(name)").eq('movement_pattern_translations.language_code', 'en'),
+          supabase.from("movement_patterns").select("id, slug, movement_patterns_translations!fk_movement_patterns_translations_movement_pattern_id(name)").eq('movement_patterns_translations.language_code', 'en'),
         ]);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; 
         if (eq.error) throw eq.error; if (mv.error) throw mv.error; if (mp.error) throw mp.error;
@@ -150,7 +150,7 @@ const AdminExerciseEdit: React.FC = () => {
         setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
         setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
         setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movements_translations as any)[0]?.name || '' })) || []);
-        setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_pattern_translations as any)[0]?.name || '' })) || []);
+        setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_patterns_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
         console.error("[ExerciseEdit] load options error", e);
         setLastError(e?.message || String(e));
