@@ -130,11 +130,10 @@ const ExerciseEdit: React.FC = () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('exercises')
+          .from('v_exercises_with_translations')
           .select(`
             id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, 
-            equipment_id, source_url, is_public,
-            exercises_translations(language_code, name, description)
+            equipment_id, source_url, is_public, translations
           `)
           .eq('id', id)
           .maybeSingle();
@@ -142,7 +141,7 @@ const ExerciseEdit: React.FC = () => {
         if (!data) throw new Error('Exercise not found');
         
         // Extract name and description from translations
-        const translations = Array.isArray(data.exercises_translations) ? data.exercises_translations : [];
+        const translations = data.translations || {};
         const name = getExerciseNameFromTranslations(translations, data.id);
         const description = getExerciseDescriptionFromTranslations(translations);
         
