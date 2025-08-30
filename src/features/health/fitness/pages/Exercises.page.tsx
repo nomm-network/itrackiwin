@@ -66,11 +66,8 @@ const Exercises: React.FC = () => {
         setError(null);
         const [{ data, error }, u, bp, mg, m] = await Promise.all([
           supabase
-            .from('exercises')
-            .select(`
-              id, owner_user_id, primary_muscle_id, secondary_muscle_group_ids,
-              exercises_translations(language_code, name, description)
-            `)
+            .from('v_exercises_with_translations')
+            .select('*')
             .order('popularity_rank', { ascending: false, nullsFirst: false })
             .limit(100),
           supabase.auth.getUser(),
@@ -80,9 +77,11 @@ const Exercises: React.FC = () => {
         ]);
         if (!isMounted) return;
         if (error) setError(error.message);
+        
+        // Process data from the view - translations are already included
         setRows((data || []).map(row => ({
           ...row,
-          translations: Array.isArray(row.exercises_translations) ? row.exercises_translations : []
+          translations: row.translations || {}
         })));
         setUserId(u.data.user?.id || null);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error;
@@ -137,7 +136,9 @@ const Exercises: React.FC = () => {
 
   const getExerciseName = (translations: any) => {
     if (!translations) return 'Unknown Exercise';
-    return translations?.en?.name || translations?.ro?.name || 'Unknown Exercise';
+    const en = translations.en || translations['en'];
+    const ro = translations.ro || translations['ro'];
+    return en?.name || ro?.name || 'Unknown Exercise';
   };
 
   const matchesFilters = React.useCallback((r: ExerciseRow) => {
