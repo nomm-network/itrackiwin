@@ -40,7 +40,7 @@ interface BodyPart { id: string; name: string }
 interface MuscleGroup { id: string; name: string; body_part_id: string }
 interface Muscle { id: string; name: string; muscle_group_id: string }
 interface Equipment { id: string; name: string }
-interface Movement { id: string; name: string }
+interface Movement { id: string; name: string; movement_pattern_id: string }
 interface MovementPattern { id: string; name: string }
 
 const schema = z.object({
@@ -119,6 +119,7 @@ const AdminExerciseEdit: React.FC = () => {
 
   const selectedBodyPartId = form.watch("body_part_id") || "";
   const selectedGroupId = form.watch('primary_muscle_group_id') || '';
+  const selectedPatternId = form.watch('movement_pattern_id') || '';
 
   const filteredMuscleGroups = React.useMemo(() => {
     if (!selectedBodyPartId) return muscleGroups;
@@ -130,6 +131,11 @@ const AdminExerciseEdit: React.FC = () => {
     return muscles.filter((mu) => mu.muscle_group_id === selectedGroupId);
   }, [muscles, selectedGroupId]);
 
+  const filteredMovements = React.useMemo(() => {
+    if (!selectedPatternId) return [];
+    return movements.filter((mv) => mv.movement_pattern_id === selectedPatternId);
+  }, [movements, selectedPatternId]);
+
   React.useEffect(() => {
     const loadAll = async () => {
       try {
@@ -139,7 +145,7 @@ const AdminExerciseEdit: React.FC = () => {
           supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
           supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
           supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
-          supabase.from("movements").select("id, slug, movements_translations!fk_movements_translations_movement_id(name)").eq('movements_translations.language_code', 'en'),
+          supabase.from("movements").select("id, slug, movement_pattern_id, movements_translations!fk_movements_translations_movement_id(name)").eq('movements_translations.language_code', 'en'),
           supabase.from("movement_patterns").select("id, slug, movement_patterns_translations!fk_movement_patterns_translations_movement_pattern_id(name)").eq('movement_patterns_translations.language_code', 'en'),
         ]);
         if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; 
@@ -149,7 +155,7 @@ const AdminExerciseEdit: React.FC = () => {
         setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
         setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
         setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
-        setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movements_translations as any)[0]?.name || '' })) || []);
+        setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movements_translations as any)[0]?.name || '', movement_pattern_id: item.movement_pattern_id })) || []);
         setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_patterns_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
         console.error("[ExerciseEdit] load options error", e);
@@ -377,28 +383,28 @@ const AdminExerciseEdit: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label>Movement</Label>
-                  <Select onValueChange={(v) => form.setValue('movement_id', v)} value={form.watch('movement_id') || ''}>
+                  <Label>Movement Pattern</Label>
+                  <Select onValueChange={(v) => { form.setValue('movement_pattern_id', v); form.setValue('movement_id', ''); }} value={form.watch('movement_pattern_id') || ''}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select movement" />
+                      <SelectValue placeholder="Select movement pattern" />
                     </SelectTrigger>
-                    <SelectContent>
-                      {movements.map((mv) => (
-                        <SelectItem key={mv.id} value={mv.id}>{mv.name}</SelectItem>
+                    <SelectContent className="bg-background z-50">
+                      {movementPatterns.map((mp) => (
+                        <SelectItem key={mp.id} value={mp.id}>{mp.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
                 </div>
 
                 <div className="space-y-2">
-                  <Label>Movement Pattern</Label>
-                  <Select onValueChange={(v) => form.setValue('movement_pattern_id', v)} value={form.watch('movement_pattern_id') || ''}>
+                  <Label>Movement</Label>
+                  <Select onValueChange={(v) => form.setValue('movement_id', v)} value={form.watch('movement_id') || ''} disabled={!selectedPatternId}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select movement pattern" />
+                      <SelectValue placeholder={selectedPatternId ? "Select movement" : "Select pattern first"} />
                     </SelectTrigger>
-                    <SelectContent>
-                      {movementPatterns.map((mp) => (
-                        <SelectItem key={mp.id} value={mp.id}>{mp.name}</SelectItem>
+                    <SelectContent className="bg-background z-50">
+                      {filteredMovements.map((mv) => (
+                        <SelectItem key={mv.id} value={mv.id}>{mv.name}</SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
