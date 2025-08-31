@@ -751,7 +751,7 @@ const AdminExerciseEdit: React.FC = () => {
                   <div>
                     <strong>Full Payload ({debugInfo.payloadFieldCount} fields):</strong>
                     <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
-{JSON.stringify(JSON.parse(debugInfo.realSupabaseRequest?.body || '{}'), null, 2)}
+{debugInfo.realSupabaseRequest?.body || 'No payload data'}
                     </pre>
                   </div>
                   
