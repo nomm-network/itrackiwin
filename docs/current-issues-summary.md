@@ -1,9 +1,11 @@
-# Current Issues Summary & Solutions
+# ⚠️ CRITICAL SYSTEM FAILURE - CURRENT ISSUES ⚠️
 
-## ✅ RESOLVED: TypeScript Build Errors
-All TypeScript errors related to property access have been fixed. The code now properly handles translation data structure.
+## 🚨 EMERGENCY: WORKOUT SET LOGGING COMPLETELY BROKEN
 
-## 🔍 MAIN ISSUE: Exercise Data Population
+### Current Crisis:
+- **Set Logging**: FAILS with `duplicate key value violates unique constraint "personal_records_user_ex_kind_unique"`
+- **Impact**: Users cannot complete workouts with multiple sets
+- **Status**: 4 migration attempts FAILED to resolve
 
 ### Current State:
 - **Database Tables**: Well-populated with movements, equipment, muscles, etc.
@@ -43,15 +45,31 @@ SELECT slug FROM muscles WHERE slug LIKE '%erector%' OR slug LIKE '%delt%' OR sl
 SELECT slug FROM equipment WHERE slug IN ('barbell', 'dumbbell', 'cable-machine');
 ```
 
-### Next Steps:
-1. **Fix the muscle slug mismatches** in the exercise seeding script
-2. **Re-run the exercise insertion** to get all 42 exercises
-3. **Populate handle/grip relationships** for exercises
-4. **Test the UI** to ensure exercises display correctly
+## 🔥 CRITICAL DATABASE CONSTRAINT ISSUE
 
-## 📁 Documentation Created:
-- `docs/database-schema.md` - Complete schema documentation
-- `docs/foreign-keys.md` - All relationship mappings  
-- `docs/database-exports.md` - Current data state
+### Root Cause:
+Database has **conflicting constraints** preventing personal record updates:
+- **Old Constraint (Active)**: `personal_records_user_ex_kind_unique (user_id, exercise_id, kind)`
+- **New Constraint (Intended)**: `personal_records_user_exercise_kind_grip_key (user_id, exercise_id, kind, grip_key)`
 
-All build errors are now resolved and the codebase is ready for exercise data population!
+### Why Sets Fail:
+1. First set → Creates PR record → ✅ SUCCESS
+2. Second set → Trigger attempts PR upsert → ❌ Old constraint violation
+3. Transaction fails → Set not logged → User can't continue workout
+
+### Emergency Actions Required:
+1. **MANUAL SQL** via Supabase console to force drop old constraint
+2. **Verify constraint state** with diagnostic queries
+3. **Test multi-set logging** to confirm fix
+4. **Consolidate 5 different set logging implementations**
+
+### Migration Failures:
+- Migration 1: ❌ Constraint drop failed
+- Migration 2: ❌ Grip normalization insufficient  
+- Migration 3: ❌ Idempotent upsert blocked
+- Migration 4: ❌ Force cleanup unsuccessful
+
+## 📁 Crisis Documentation Created:
+- `WORKOUT_SET_LOGGING_CRITICAL_ANALYSIS.md` - Complete technical analysis
+- `WORKOUT_SYSTEM_ANALYSIS_REPORT.md` - Updated crisis status
+- **All other docs below are ACCURATE but describe a BROKEN SYSTEM**

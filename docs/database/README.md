@@ -1,16 +1,21 @@
-# Database Schema Documentation
+# ⚠️ DATABASE SCHEMA - CRITICAL SYSTEM FAILURE ⚠️
 
-This directory contains comprehensive documentation for the fitness application database schema.
+## 🚨 EMERGENCY STATUS
+**WORKOUT SET LOGGING COMPLETELY BROKEN** due to database constraint conflicts
 
-## Overview
+### Crisis Summary:
+- **Error**: `duplicate key value violates unique constraint "personal_records_user_ex_kind_unique"`
+- **Impact**: Multi-set workouts impossible, core functionality unusable
+- **Failed Fixes**: 4 migration attempts unsuccessful
+- **Root Cause**: Old constraint still active, blocks grip-aware personal records
 
-The database is built on PostgreSQL with Supabase and includes the following main functional areas:
+This directory contains comprehensive documentation for the **CURRENTLY BROKEN** fitness application database schema.
 
-- **Exercises & Equipment**: Core exercise library with equipment, handles, grips
-- **Workouts**: User workouts, templates, sets, and tracking
-- **Users & Social**: User profiles, friendships, challenges
-- **Fitness & Health**: Body tracking, cycle events, readiness
-- **Admin & Analytics**: Administrative functions and data quality
+## ⚠️ Critical Issues
+The database currently has **conflicting constraints** that prevent set logging:
+- Old constraint blocks new grip-aware logic
+- Manual database intervention required
+- 5 different set logging implementations cause chaos
 
 ## Documentation Files
 
@@ -30,9 +35,12 @@ The database is built on PostgreSQL with Supabase and includes the following mai
 4. **Audit Trail**: Created/updated timestamps on all major tables
 5. **Soft References**: UUIDs with nullable foreign keys where appropriate
 
-## Getting Started
+## 🚨 EMERGENCY Actions Required
 
-1. Review the [tables overview](./tables-overview.md) for a high-level understanding
-2. Dive into specific functional areas based on your needs
-3. Check [foreign keys](./foreign-keys.md) to understand table relationships
-4. Review [RLS policies](./rls-policies.md) for data access patterns
+1. **Manual database constraint cleanup** via Supabase SQL console
+2. **Force drop** `personal_records_user_ex_kind_unique` constraint  
+3. **Verify** only grip-aware constraint remains active
+4. **Test** multi-set logging functionality
+5. **Consolidate** multiple set logging implementations
+
+**⚠️ WARNING**: Documentation below describes the intended schema, but the system is currently BROKEN due to constraint conflicts.

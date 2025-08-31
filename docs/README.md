@@ -1,8 +1,9 @@
-# Documentation Structure
+# ⚠️ DOCUMENTATION STRUCTURE - SYSTEM CRITICAL FAILURE ⚠️
 
-## Main Documentation Folder: `docs/`
+## 🚨 EMERGENCY STATUS: WORKOUT SYSTEM BROKEN
+**SET LOGGING FAILS** - Database constraint violation blocks multi-set workouts
 
-All documentation is now consolidated into the standardized `docs/` folder.
+## Main Documentation Folder: `docs/` (OUTDATED - SYSTEM BROKEN)
 
 ### Database Documentation
 - **`docs/database/`** - Complete database schema documentation
@@ -28,11 +29,17 @@ All documentation is now consolidated into the standardized `docs/` folder.
 ### Project Structure Documentation
 - **`docs/FILE_STRUCTURE_GUIDELINES.md`** - Complete file structure and naming conventions
 
-## Files Merged and Cleaned Up
+## ⚠️ CRITICAL STATUS UPDATE
 
-✅ **Merged successfully:** All files from `Docs/` → `docs/`
-✅ **Duplicates removed:** Deleted all files from `Docs/` folder
-✅ **No conflicts:** All files had unique names, so no overwrites were needed
-✅ **Consistent structure:** All documentation now follows the standard `docs/` convention
+❌ **SYSTEM BROKEN**: Database constraint `personal_records_user_ex_kind_unique` blocks set logging
+❌ **4 FAILED MIGRATIONS**: Attempted fixes unsuccessful
+❌ **USER IMPACT**: Cannot complete multi-set workouts
+❌ **BUSINESS CRITICAL**: Core functionality completely unusable
 
-The confusing dual-folder structure has been eliminated. All documentation is now properly organized in the single `docs/` folder.
+### Emergency Actions Required
+1. **Manual database intervention** via Supabase SQL console
+2. **Force drop old constraint** that blocks grip-aware logic  
+3. **Consolidate 5 different set logging implementations**
+4. **Immediate testing** of multi-set scenarios
+
+**Documentation below is ACCURATE but describes a BROKEN SYSTEM**

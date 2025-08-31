@@ -1,7 +1,10 @@
-# Documentation & Runbooks - COMPLETED ✅
+# ⚠️ DOCUMENTATION & CRISIS STATUS ⚠️
+
+## ❌ CRITICAL SYSTEM FAILURE 
+**WORKOUT SET LOGGING COMPLETELY BROKEN** - All multi-set workouts fail due to database constraint violation
 
 ## Overview
-Created comprehensive documentation suite to keep the team aligned on system architecture, APIs, integrations, and data models.
+Documentation exists but **SYSTEM IS NON-FUNCTIONAL** due to unresolved database constraint conflicts.
 
 ## Documentation Created
 
@@ -132,10 +135,14 @@ docs/
 └── data-model.md    # Database schema and patterns
 ```
 
-### Quick Links (from README)
-- 🤖 **AI Coach System** - Algorithm insights and coaching logic
-- 🔌 **API Reference** - Complete endpoint documentation
-- 📱 **FlutterFlow Integration** - Mobile development guide
-- 🗄️ **Data Model** - Database architecture and relationships
+### ⚠️ CRITICAL SYSTEM STATUS
+- 🔴 **Set Logging**: BROKEN - constraint violation `personal_records_user_ex_kind_unique`
+- 🔴 **Multi-Set Workouts**: IMPOSSIBLE - second set always fails
+- 🔴 **Database State**: CORRUPTED - old constraints still active
+- 🔴 **Migration Status**: 4 FAILED attempts to fix
+- 🟡 **Single-Set Workouts**: Still work (creates PR, then fails on next)
 
-This comprehensive documentation suite ensures team alignment across all aspects of the fitness platform, from API integration to mobile development to AI coaching algorithms.
+### 🚨 Emergency Action Required
+**MANUAL DATABASE INTERVENTION NEEDED** - Migration tools insufficient
+
+This comprehensive documentation suite exists but **THE CORE SYSTEM IS BROKEN** and requires immediate database constraint cleanup.
