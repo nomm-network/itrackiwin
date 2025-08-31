@@ -1,10 +1,11 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useNavigate } from 'react-router-dom';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export const useFitnessProfileCheck = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const { data: user } = useQuery({
     queryKey: ['current-user'],
