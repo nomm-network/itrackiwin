@@ -67,6 +67,7 @@ export default function ImprovedWorkoutSession({
   const [editingSet, setEditingSet] = useState<number | null>(null);
   const [editSetData, setEditSetData] = useState<SetData | null>(null);
   const [showGripsDialog, setShowGripsDialog] = useState(false);
+  const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
   const [showWarmupDialog, setShowWarmupDialog] = useState(false);
@@ -568,12 +569,39 @@ export default function ImprovedWorkoutSession({
             </p>
             <div className="grid grid-cols-2 gap-2">
               {['Overhand', 'Underhand', 'Neutral', 'Mixed'].map((grip) => (
-                <Button key={grip} variant="outline" size="sm">
+                <Button 
+                  key={grip} 
+                  variant={selectedGrips.includes(grip) ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => {
+                    setSelectedGrips(prev => 
+                      prev.includes(grip) 
+                        ? prev.filter(g => g !== grip)
+                        : [...prev, grip]
+                    );
+                  }}
+                >
                   {grip}
                 </Button>
               ))}
             </div>
-            <Button onClick={() => setShowGripsDialog(false)} className="w-full">
+            <Button 
+              onClick={async () => {
+                try {
+                  // Save grips to workout_exercise
+                  const { error } = await supabase
+                    .from('workout_exercises')
+                    .update({ grip_ids: selectedGrips })
+                    .eq('id', exercise.workout_exercise_id);
+                  
+                  if (error) throw error;
+                  setShowGripsDialog(false);
+                } catch (error) {
+                  console.error('Error saving grips:', error);
+                }
+              }} 
+              className="w-full"
+            >
               Save Grips
             </Button>
           </div>
