@@ -250,8 +250,14 @@ export default function ImprovedWorkoutSession({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 w-8 p-0"
-            onClick={() => setShowGripsDialog(true)}
+            className={cn("h-8 w-8 p-0", exercise.completed_sets.length > 0 && "opacity-50 cursor-not-allowed")}
+            onClick={() => {
+              if (exercise.completed_sets.length === 0) {
+                setShowGripsDialog(true);
+              }
+            }}
+            disabled={exercise.completed_sets.length > 0}
+            title={exercise.completed_sets.length > 0 ? "Grip locked after first set" : "Change grips"}
           >
             <Hand className="h-4 w-4" />
           </Button>
