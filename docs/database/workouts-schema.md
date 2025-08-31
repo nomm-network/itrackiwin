@@ -1,4 +1,12 @@
-# Workout System Schema
+# Workout System Database Schema - COMPLETE REFERENCE
+
+⚠️ **CRITICAL SYSTEM STATUS**: As of August 31, 2025, the workout system is experiencing critical failures due to database constraint conflicts.
+
+## Current Issues Summary
+- **Set Logging**: BROKEN - Constraint violation in personal_records table
+- **Warmup Feedback**: BROKEN - Multiple conflicting implementations  
+- **Personal Records**: BROKEN - Old constraint conflicts with new constraint
+- **Data Integrity**: COMPROMISED - Failed migrations left system in inconsistent state
 
 ## Core Workout Tables
 
@@ -20,12 +28,21 @@ workouts (
 )
 ```
 
+#### Sample Data
+```sql
+INSERT INTO workouts (id, user_id, title, started_at, ended_at, notes, perceived_exertion, created_at, estimated_duration_minutes, total_duration_seconds) VALUES
+('bc0d8632-fff4-4b71-8b5a-30f1026ae383', 'f3024241-c467-4d6a-8315-44928316cfa9', 'Push Day', '2025-08-31 15:43:59', NULL, 'Great session focusing on chest and shoulders', 8, '2025-08-31 15:43:59', 75, NULL),
+('workout_002', 'f3024241-c467-4d6a-8315-44928316cfa9', 'Pull Day', '2025-08-30 16:20:15', '2025-08-30 17:45:30', 'Back and biceps workout', 7, '2025-08-30 16:20:15', 90, 5115),
+('workout_003', 'user_456', 'Leg Day', '2025-08-29 09:15:00', '2025-08-29 10:30:45', 'Intense leg session', 9, '2025-08-29 09:15:00', 75, 4545),
+('workout_004', 'user_789', 'Upper Body', '2025-08-28 18:00:30', '2025-08-28 19:15:20', 'Evening upper body workout', 6, '2025-08-28 18:00:30', 80, 4490);
+```
+
 **Key Features:**
 - Tracks workout session lifecycle
 - Optional metadata for analysis
 - User-owned with RLS protection
 
-### workout_exercises
+### workout_exercises ⚠️ WARMUP FEEDBACK ISSUES
 Exercises performed within a workout.
 
 ```sql
@@ -50,7 +67,7 @@ workout_exercises (
   target_origin         text,
   warmup_plan           jsonb,
   warmup_quality        warmup_quality_enum,
-  warmup_feedback       text,
+  warmup_feedback       text,  -- ISSUE: Multiple systems update this field
   warmup_feedback_at    timestamptz,
   warmup_snapshot       text,
   warmup_updated_at     timestamptz DEFAULT now(),
@@ -58,11 +75,26 @@ workout_exercises (
 )
 ```
 
+#### Sample Data
+```sql
+INSERT INTO workout_exercises (id, workout_id, exercise_id, order_index, warmup_plan, warmup_feedback, target_sets) VALUES
+('7e9936d3-e641-44a6-bb06-0cf76a1694bb', 'bc0d8632-fff4-4b71-8b5a-30f1026ae383', 'b0bb1fa8-83c4-4f39-a311-74f014d85bec', 0, 
+'{"steps": [{"id": "W1", "reps": 10, "percent": 0.4166666666666667, "restSec": 60, "rest_sec": 60}, {"id": "W2", "reps": 8, "percent": 0.5833333333333334, "restSec": 90, "rest_sec": 90}, {"id": "W3", "reps": 5, "percent": 0.7916666666666666, "restSec": 120, "rest_sec": 120}], "strategy": "ramped", "base_weight": 60, "est_minutes": 3}', 
+'excellent', 3),
+('we_002', 'workout_002', 'exercise_bench_press', 1, '{"strategy": "ramped", "steps": [{"reps": 12, "percent": 0.4}, {"reps": 10, "percent": 0.6}, {"reps": 8, "percent": 0.8}]}', 'too_much', 4),
+('we_003', 'workout_003', 'exercise_squat', 1, '{"strategy": "ramped", "steps": [{"reps": 15, "percent": 0.5}, {"reps": 12, "percent": 0.7}, {"reps": 8, "percent": 0.85}]}', 'not_enough', 3);
+```
+
 **Key Features:**
 - Links exercises to workouts with configuration
-- Handle and grip selections stored
-- Warmup planning and feedback
+- Handle and grip selections stored  
+- Warmup planning and feedback (CURRENTLY BROKEN)
 - Support for supersets via group_id
+
+**Current Issues:**
+- Multiple systems try to update `warmup_feedback` field simultaneously
+- No single source of truth for warmup feedback logic
+- Race conditions between different implementation approaches
 
 ### workout_sets
 Individual sets performed within workout exercises.
@@ -164,7 +196,7 @@ template_exercises (
 
 ## Performance Tracking
 
-### personal_records
+### personal_records ⚠️ CRITICAL CONSTRAINT ISSUE
 User PRs with grip context for accurate tracking.
 
 ```sql
@@ -178,15 +210,38 @@ personal_records (
   grip_key       text,  -- NULL for gripless exercises
   achieved_at    timestamptz NOT NULL,
   workout_set_id uuid REFERENCES workout_sets(id),
+  created_at     timestamptz NOT NULL DEFAULT now(),
   
-  UNIQUE(user_id, exercise_id, kind, grip_key)
+  -- CONSTRAINT CONFLICT ISSUE:
+  UNIQUE(user_id, exercise_id, kind, COALESCE(grip_key, ''))  -- Target constraint
+  -- PROBLEM: Old constraint "personal_records_user_ex_kind_unique" still exists
 )
 ```
 
+#### Sample Data (Post-Constraint Fix)
+```sql
+INSERT INTO personal_records (id, user_id, exercise_id, kind, value, unit, grip_key, achieved_at, workout_set_id, created_at) VALUES
+('pr_001', 'f3024241-c467-4d6a-8315-44928316cfa9', 'b0bb1fa8-83c4-4f39-a311-74f014d85bec', '1RM', 225.0, 'kg', 'overhand', '2025-08-30 10:30:00', 'set_001', '2025-08-30 10:30:00'),
+('pr_002', 'f3024241-c467-4d6a-8315-44928316cfa9', 'b0bb1fa8-83c4-4f39-a311-74f014d85bec', 'heaviest', 200.0, 'kg', 'overhand', '2025-08-29 11:15:00', 'set_002', '2025-08-29 11:15:00'),
+('pr_003', 'f3024241-c467-4d6a-8315-44928316cfa9', 'exercise_squat', '1RM', 315.0, 'kg', '', '2025-08-28 09:45:00', 'set_003', '2025-08-28 09:45:00'),
+('pr_004', 'user_456', 'exercise_deadlift', 'reps', 15, 'reps', 'mixed', '2025-08-27 14:20:00', 'set_004', '2025-08-27 14:20:00');
+```
+
+**CURRENT CRITICAL ERROR:**
+```
+duplicate key value violates unique constraint "personal_records_user_ex_kind_unique"
+```
+
+**Root Cause:** 
+- **Old Constraint**: `personal_records_user_ex_kind_unique` on `(user_id, exercise_id, kind)`
+- **New Constraint**: `personal_records_user_ex_kind_grip_unique` on `(user_id, exercise_id, kind, grip_key)` 
+- **Problem**: Both constraints exist simultaneously, causing all set logging to fail
+
 **Key Features:**
 - Tracks multiple PR types
-- Grip-aware for accurate comparisons
+- Grip-aware for accurate comparisons  
 - Links back to the achieving set
+- **STATUS**: COMPLETELY BROKEN due to constraint conflicts
 
 ### readiness_checkins
 Daily readiness and recovery tracking.
