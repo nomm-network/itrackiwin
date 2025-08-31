@@ -8745,6 +8745,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: boolean
       }
+      make_grip_key: {
+        Args: { _grip_ids: string[] }
+        Returns: string
+      }
       migrate_user_gym_to_gym_equipment: {
         Args: { _gym_id: string; _user_gym_id: string }
         Returns: undefined
