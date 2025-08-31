@@ -279,7 +279,7 @@ const AdminExerciseEdit: React.FC = () => {
 
       console.log("🔥 PAYLOAD TO SEND", exercisePayload);
       
-      // Create debug info BEFORE sending request - capture the REAL request details
+      // Create debug info FIRST - show modal and wait for user to close it
       const debugData = {
         timestamp: new Date().toISOString(),
         exerciseId: id,
@@ -299,75 +299,18 @@ const AdminExerciseEdit: React.FC = () => {
             'accept-profile': 'public',
             'content-profile': 'public',
           },
-          body: JSON.stringify(exercisePayload)
+          body: JSON.stringify(exercisePayload, null, 2)
         },
         payloadFieldCount: Object.keys(exercisePayload).length
       };
       
       setDebugInfo(debugData);
       setShowDebugModal(true);
+      setSaving(false); // Stop the saving spinner
+      
+      // STOP HERE - wait for user to close modal before proceeding
+      return;
 
-      // CRITICAL: Await the update and capture response
-      const { error, data } = await supabase
-        .from('exercises')
-        .update(exercisePayload)
-        .eq('id', id)
-        .select('id, movement_id, movement_pattern_id, load_type');
-
-      console.log("🔥 SUPABASE RESPONSE", { error, data });
-      
-      // Update debug info with response
-      const finalDebugData = {
-        ...debugData,
-        supabaseResponse: { error, data },
-        success: !error
-      };
-      setDebugInfo(finalDebugData);
-      
-      // Store debug info for management page
-      localStorage.setItem('exerciseEditDebug', JSON.stringify(finalDebugData));
-      
-      // CRITICAL: Check for errors BEFORE proceeding
-      if (error) {
-        console.error("🔥 SUPABASE ERROR", error);
-        setLastError(`Database error: ${error.message}`);
-        toast({ 
-          title: 'Database Update Failed', 
-          description: error.message,
-          variant: 'destructive'
-        });
-        return; // Don't navigate or continue
-      }
-
-      // Update translation only after successful main update
-      const { error: translationError } = await supabase
-        .from('exercises_translations')
-        .upsert({
-          exercise_id: id,
-          language_code: 'en',
-          name: values.name.trim(),
-          description: values.description || null,
-        }, {
-          onConflict: 'exercise_id,language_code'
-        });
-        
-      if (translationError) {
-        console.error("🔥 TRANSLATION ERROR", translationError);
-        // Don't fail completely on translation error
-        toast({ 
-          title: 'Translation update failed', 
-          description: translationError.message,
-          variant: 'destructive'
-        });
-      }
-
-      toast({ title: 'Exercise updated successfully!' });
-      
-      // Only navigate after successful save
-      setTimeout(() => {
-        navigate('/admin/exercises');
-      }, 1000); // Delay to allow debug modal viewing
-      
     } catch (e: any) {
       const errorMsg = e?.message || String(e);
       console.error('🔥 CATCH ERROR', e);
