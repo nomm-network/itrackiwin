@@ -65,7 +65,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: grips = [] } = useGrips();
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
-  const { logSet: newLogSet, error: setLoggingError } = useAdvancedSetLogging();
+  const { logSet: newLogSet, error: setLoggingError, isLoading: setLoggingLoading } = useAdvancedSetLogging();
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
