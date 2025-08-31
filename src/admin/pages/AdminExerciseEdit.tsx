@@ -256,6 +256,8 @@ const AdminExerciseEdit: React.FC = () => {
         thumbnail_url: values.thumbnail_url || null,
         loading_hint: values.loading_hint || null,
         is_public: values.is_public,
+        // Add any missing columns that might exist in the form but weren't being saved
+        equipment_ref_id: values.equipment_id || null, // ensure equipment reference is also saved
       };
 
       const { error } = await supabase
