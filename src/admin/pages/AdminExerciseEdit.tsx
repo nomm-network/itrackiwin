@@ -292,6 +292,9 @@ const AdminExerciseEdit: React.FC = () => {
       // Update debug info with response
       setDebugInfo(prev => ({ ...prev, supabaseResponse: { error, data } }));
       
+      // Store debug info in localStorage for the management page
+      localStorage.setItem('exerciseEditDebug', JSON.stringify(debugInfo));
+      
       if (error) throw error;
 
       // Update or create translation
@@ -616,6 +619,53 @@ const AdminExerciseEdit: React.FC = () => {
 
               {lastError && (
                 <p role="alert" className="text-destructive text-sm">{lastError}</p>
+              )}
+              
+              {/* 🔥 DEBUG AREA - ALWAYS VISIBLE */}
+              {debugInfo && (
+                <div className="mt-4 p-4 bg-red-900/20 border border-red-500 rounded-lg">
+                  <h3 className="font-bold mb-2 text-red-400">🔥 DEBUG INFORMATION</h3>
+                  <div className="space-y-3 text-xs">
+                    <div className="text-yellow-300">
+                      <strong>Timestamp:</strong> {debugInfo.timestamp}
+                    </div>
+                    <div className="text-yellow-300">
+                      <strong>Exercise ID:</strong> {debugInfo.exerciseId}
+                    </div>
+                    
+                    <div>
+                      <strong className="text-orange-400">Critical Fields:</strong>
+                      <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-green-300">
+{JSON.stringify(debugInfo.criticalFields, null, 2)}
+                      </pre>
+                    </div>
+                    
+                    {debugInfo.sqlQuery && (
+                      <div>
+                        <strong className="text-orange-400">SQL Query:</strong>
+                        <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-blue-300">
+{debugInfo.sqlQuery}
+                        </pre>
+                      </div>
+                    )}
+                    
+                    <div>
+                      <strong className="text-orange-400">Full Payload:</strong>
+                      <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-cyan-300">
+{JSON.stringify(debugInfo.payload, null, 2)}
+                      </pre>
+                    </div>
+                    
+                    {debugInfo.supabaseResponse && (
+                      <div>
+                        <strong className="text-orange-400">Supabase Response:</strong>
+                        <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-purple-300">
+{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </aside>
           </form>

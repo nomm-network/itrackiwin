@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
@@ -86,6 +86,7 @@ const AdminExercisesManagement: React.FC = () => {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
   const [selectedMuscle, setSelectedMuscle] = useState<string>("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [debugInfo, setDebugInfo] = useState<any>(null);
   const [isPublic, setIsPublic] = useState<string>("");
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
@@ -119,6 +120,20 @@ const AdminExercisesManagement: React.FC = () => {
     skill_level: "medium",
   });
   const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
+
+  // Load debug info from localStorage on mount
+  useEffect(() => {
+    const savedDebugInfo = localStorage.getItem('exerciseEditDebug');
+    if (savedDebugInfo) {
+      try {
+        setDebugInfo(JSON.parse(savedDebugInfo));
+        // Clear it after loading
+        localStorage.removeItem('exerciseEditDebug');
+      } catch (e) {
+        console.error('Failed to parse debug info:', e);
+      }
+    }
+  }, []);
 
   // Fetch body parts with translations
   const { data: bodyParts = [] } = useQuery({
@@ -799,6 +814,67 @@ const AdminExercisesManagement: React.FC = () => {
             )}
           </CardContent>
         </Card>
+        
+        {/* 🔥 DEBUG AREA - FROM EXERCISE EDIT */}
+        {debugInfo && (
+          <Card className="border-red-500 bg-red-900/10">
+            <CardHeader>
+              <CardTitle className="text-red-400 flex items-center justify-between">
+                🔥 Exercise Edit Debug Information
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setDebugInfo(null)}
+                  className="text-xs"
+                >
+                  Clear
+                </Button>
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3 text-xs">
+                <div className="text-yellow-300">
+                  <strong>Timestamp:</strong> {debugInfo.timestamp}
+                </div>
+                <div className="text-yellow-300">
+                  <strong>Exercise ID:</strong> {debugInfo.exerciseId}
+                </div>
+                
+                <div>
+                  <strong className="text-orange-400">Critical Fields:</strong>
+                  <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-green-300 max-h-40">
+{JSON.stringify(debugInfo.criticalFields, null, 2)}
+                  </pre>
+                </div>
+                
+                {debugInfo.sqlQuery && (
+                  <div>
+                    <strong className="text-orange-400">SQL Query:</strong>
+                    <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-blue-300">
+{debugInfo.sqlQuery}
+                    </pre>
+                  </div>
+                )}
+                
+                <div>
+                  <strong className="text-orange-400">Full Payload:</strong>
+                  <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-cyan-300">
+{JSON.stringify(debugInfo.payload, null, 2)}
+                  </pre>
+                </div>
+                
+                {debugInfo.supabaseResponse && (
+                  <div>
+                    <strong className="text-orange-400">Supabase Response:</strong>
+                    <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-purple-300">
+{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
     </main>
