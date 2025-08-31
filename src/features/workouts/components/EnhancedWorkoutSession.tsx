@@ -65,7 +65,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: grips = [] } = useGrips();
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
-  const { logSet: newLogSet } = useAdvancedSetLogging();
+  const { logSet: newLogSet, error: setLoggingError } = useAdvancedSetLogging();
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
@@ -592,6 +592,16 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       </div>
 
       <div className="p-4 pb-24 max-w-md mx-auto">
+        {/* Error Banner */}
+        {setLoggingError && (
+          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+            <div className="flex items-center gap-2">
+              <span className="text-destructive font-medium">❌ Set Logging Failed:</span>
+            </div>
+            <p className="text-sm text-destructive/80 mt-1">{setLoggingError}</p>
+          </div>
+        )}
+        
         {!workout?.exercises || workout.exercises.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-muted-foreground">No exercises found in this workout.</p>

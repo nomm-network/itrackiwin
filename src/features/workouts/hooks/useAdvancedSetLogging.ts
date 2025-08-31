@@ -209,7 +209,13 @@ export const useAdvancedSetLogging = () => {
           .single();
         
         if (insertError) {
-          console.error('❌ Failed to insert workout set:', insertError);
+          console.error('❌ SET SAVE FAILED:', insertError);
+          console.error('❌ Full error details:', {
+            code: insertError.code,
+            message: insertError.message,
+            details: insertError.details,
+            hint: insertError.hint
+          });
           throw insertError;
         }
 
