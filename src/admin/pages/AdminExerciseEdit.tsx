@@ -280,6 +280,16 @@ const AdminExerciseEdit: React.FC = () => {
       console.log("🔥 PAYLOAD TO SEND", exercisePayload);
       
       // Create debug info BEFORE sending request
+      // Build REAL SQL query that matches the actual payload
+      const sqlPairs = Object.entries(exercisePayload).map(([key, value]) => {
+        if (value === null) return `${key} = NULL`;
+        if (typeof value === 'string') return `${key} = '${value}'`;
+        if (typeof value === 'boolean') return `${key} = ${value}`;
+        if (typeof value === 'number') return `${key} = ${value}`;
+        return `${key} = '${String(value)}'`;
+      });
+      const fullSqlQuery = `UPDATE exercises SET ${sqlPairs.join(', ')} WHERE id = '${id}' RETURNING id, movement_id, movement_pattern_id, load_type;`;
+      
       const debugData = {
         timestamp: new Date().toISOString(),
         exerciseId: id,
@@ -290,7 +300,8 @@ const AdminExerciseEdit: React.FC = () => {
           movement_pattern_id: cleanMovementPatternId,
           load_type: values.load_type,
         },
-        sqlQuery: `UPDATE exercises SET movement_id = '${cleanMovementId}', movement_pattern_id = '${cleanMovementPatternId}', load_type = '${values.load_type}' WHERE id = '${id}';`
+        sqlQuery: fullSqlQuery,
+        payloadFieldCount: Object.keys(exercisePayload).length
       };
       
       setDebugInfo(debugData);
