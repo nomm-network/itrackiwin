@@ -330,6 +330,91 @@ const AdminExerciseEdit: React.FC = () => {
     }
   };
 
+  // Function to actually perform the save after debug modal is closed
+  const performActualSave = async () => {
+    if (!debugInfo?.cleanedPayload) return;
+    
+    const id = params.id!;
+    setSaving(true);
+    
+    try {
+      console.log("🔥 PERFORMING ACTUAL SAVE", debugInfo.cleanedPayload);
+      
+      // CRITICAL: Await the update and capture response
+      const { error, data } = await supabase
+        .from('exercises')
+        .update(debugInfo.cleanedPayload)
+        .eq('id', id)
+        .select('id, movement_id, movement_pattern_id, load_type');
+
+      console.log("🔥 SUPABASE RESPONSE", { error, data });
+      
+      // Update debug info with response
+      const finalDebugData = {
+        ...debugInfo,
+        supabaseResponse: { error, data },
+        success: !error
+      };
+      setDebugInfo(finalDebugData);
+      
+      // Store debug info for management page
+      localStorage.setItem('exerciseEditDebug', JSON.stringify(finalDebugData));
+      
+      // CRITICAL: Check for errors BEFORE proceeding
+      if (error) {
+        console.error("🔥 SUPABASE ERROR", error);
+        setLastError(`Database error: ${error.message}`);
+        toast({ 
+          title: 'Database Update Failed', 
+          description: error.message,
+          variant: 'destructive'
+        });
+        return; // Don't navigate or continue
+      }
+
+      // Update translation only after successful main update
+      const { error: translationError } = await supabase
+        .from('exercises_translations')
+        .upsert({
+          exercise_id: id,
+          language_code: 'en',
+          name: debugInfo.formValues.name.trim(),
+          description: debugInfo.formValues.description || null,
+        }, {
+          onConflict: 'exercise_id,language_code'
+        });
+        
+      if (translationError) {
+        console.error("🔥 TRANSLATION ERROR", translationError);
+        // Don't fail completely on translation error
+        toast({ 
+          title: 'Translation update failed', 
+          description: translationError.message,
+          variant: 'destructive'
+        });
+      }
+
+      toast({ title: 'Exercise updated successfully!' });
+      
+      // Only navigate after successful save
+      setTimeout(() => {
+        navigate('/admin/exercises');
+      }, 1000);
+      
+    } catch (e: any) {
+      const errorMsg = e?.message || String(e);
+      console.error('🔥 ACTUAL SAVE ERROR', e);
+      setLastError(errorMsg);
+      toast({ 
+        title: 'Failed to update exercise', 
+        description: errorMsg,
+        variant: 'destructive'
+      });
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const addTag = () => {
     if (newTag.trim() && !form.watch('tags')?.includes(newTag.trim())) {
       const currentTags = form.watch('tags') || [];
@@ -707,13 +792,16 @@ const AdminExerciseEdit: React.FC = () => {
                     </div>
                   )}
                   
-                  <div className="flex gap-2 pt-4">
-                    <button 
-                      onClick={() => setShowDebugModal(false)}
-                      className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-                    >
-                      Close
-                    </button>
+                   <div className="flex gap-2 pt-4">
+                     <button 
+                       onClick={() => {
+                         setShowDebugModal(false);
+                         performActualSave();
+                       }}
+                       className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                     >
+                       Close & Save
+                     </button>
                     <button 
                       onClick={() => navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2))}
                       className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
