@@ -13,6 +13,7 @@ import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
+import { useGrips } from '@/hooks/useGrips';
 
 interface SetData {
   weight: number;
@@ -67,7 +68,7 @@ export default function ImprovedWorkoutSession({
   const [editingSet, setEditingSet] = useState<number | null>(null);
   const [editSetData, setEditSetData] = useState<SetData | null>(null);
   const [showGripsDialog, setShowGripsDialog] = useState(false);
-  const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
+  const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
   const [showWarmupDialog, setShowWarmupDialog] = useState(false);
@@ -86,6 +87,28 @@ export default function ImprovedWorkoutSession({
   // Use the new warmup hooks
   const warmupFeedbackMutation = useWarmupFeedback();
   const updateWarmupAfterSetMutation = useUpdateWarmupAfterSet();
+  
+  // Fetch grips data
+  const { data: grips = [], isLoading: gripsLoading } = useGrips();
+
+  // Load current grips when dialog opens
+  React.useEffect(() => {
+    const loadCurrentGrips = async () => {
+      if (showGripsDialog && exercise.workout_exercise_id) {
+        const { data } = await supabase
+          .from('workout_exercises')
+          .select('grip_key')
+          .eq('id', exercise.workout_exercise_id)
+          .maybeSingle();
+        
+        if (data?.grip_key) {
+          // Convert grip_key back to grip IDs
+          setSelectedGripIds(data.grip_key.split(','));
+        }
+      }
+    };
+    loadCurrentGrips();
+  }, [showGripsDialog, exercise.workout_exercise_id]);
 
   // Check warmup feedback from database
   React.useEffect(() => {
@@ -567,31 +590,40 @@ export default function ImprovedWorkoutSession({
             <p className="text-sm text-muted-foreground">
               Choose the grips you want to use for this exercise:
             </p>
-            <div className="grid grid-cols-2 gap-2">
-              {['Overhand', 'Underhand', 'Neutral', 'Mixed'].map((grip) => (
-                <Button 
-                  key={grip} 
-                  variant={selectedGrips.includes(grip) ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => {
-                    setSelectedGrips(prev => 
-                      prev.includes(grip) 
-                        ? prev.filter(g => g !== grip)
-                        : [...prev, grip]
-                    );
-                  }}
-                >
-                  {grip}
-                </Button>
-              ))}
-            </div>
+            {gripsLoading ? (
+              <div className="text-center">Loading grips...</div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                {grips.map((grip) => (
+                  <Button 
+                    key={grip.id} 
+                    variant={selectedGripIds.includes(grip.id) ? "default" : "outline"} 
+                    size="sm"
+                    onClick={() => {
+                      setSelectedGripIds(prev => 
+                        prev.includes(grip.id) 
+                          ? prev.filter(id => id !== grip.id)
+                          : [...prev, grip.id]
+                      );
+                    }}
+                  >
+                    {grip.name}
+                  </Button>
+                ))}
+              </div>
+            )}
             <Button 
               onClick={async () => {
                 try {
+                  // Compute grip_key (sorted comma-separated IDs)
+                  const grip_key = selectedGripIds.length > 0 
+                    ? selectedGripIds.slice().sort().join(',') 
+                    : null;
+                  
                   // Save grips to workout_exercise
                   const { error } = await supabase
                     .from('workout_exercises')
-                    .update({ grip_ids: selectedGrips })
+                    .update({ grip_key })
                     .eq('id', exercise.workout_exercise_id);
                   
                   if (error) throw error;
@@ -601,6 +633,7 @@ export default function ImprovedWorkoutSession({
                 }
               }} 
               className="w-full"
+              disabled={gripsLoading}
             >
               Save Grips
             </Button>
