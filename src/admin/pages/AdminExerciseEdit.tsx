@@ -236,6 +236,17 @@ const AdminExerciseEdit: React.FC = () => {
     setLastError(null);
     try {
       const id = params.id!;
+      
+      // 🔥 DEBUG: Log all form values
+      console.log('🔥 [ExerciseEdit] All form values:', values);
+      console.log('🔥 [ExerciseEdit] Individual critical fields:');
+      console.log('  - load_type:', values.load_type);
+      console.log('  - movement_id:', values.movement_id);
+      console.log('  - movement_pattern_id:', values.movement_pattern_id);
+      console.log('  - equipment_id:', values.equipment_id);
+      console.log('  - exercise_skill_level:', values.exercise_skill_level);
+      console.log('  - complexity_score:', values.complexity_score);
+      
       // Update exercise basics
       const exercisePayload = {
         body_part_id: values.body_part_id || null,
@@ -260,10 +271,20 @@ const AdminExerciseEdit: React.FC = () => {
         equipment_ref_id: values.equipment_id || null, // ensure equipment reference is also saved
       };
 
-      const { error } = await supabase
+      // 🔥 DEBUG: Log the exact payload being sent
+      console.log('🔥 [ExerciseEdit] Final payload being sent to Supabase:', exercisePayload);
+      console.log('🔥 [ExerciseEdit] Exercise ID:', id);
+
+      const { error, data } = await supabase
         .from('exercises')
         .update(exercisePayload)
-        .eq('id', id);
+        .eq('id', id)
+        .select(); // Add select to see what was actually updated
+      
+      // 🔥 DEBUG: Log the response
+      console.log('🔥 [ExerciseEdit] Supabase response - error:', error);
+      console.log('🔥 [ExerciseEdit] Supabase response - data:', data);
+      
       if (error) throw error;
 
       // Update or create translation
