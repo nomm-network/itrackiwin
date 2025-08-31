@@ -79,6 +79,7 @@ const AdminExerciseEdit: React.FC = () => {
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
   const [lastError, setLastError] = React.useState<string | null>(null);
+  const [debugInfo, setDebugInfo] = React.useState<any>(null);
 
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>([]);
   const [muscleGroups, setMuscleGroups] = React.useState<MuscleGroup[]>([]);
@@ -237,15 +238,20 @@ const AdminExerciseEdit: React.FC = () => {
     try {
       const id = params.id!;
       
-      // 🔥 DEBUG: Log all form values
-      console.log('🔥 [ExerciseEdit] All form values:', values);
-      console.log('🔥 [ExerciseEdit] Individual critical fields:');
-      console.log('  - load_type:', values.load_type);
-      console.log('  - movement_id:', values.movement_id);
-      console.log('  - movement_pattern_id:', values.movement_pattern_id);
-      console.log('  - equipment_id:', values.equipment_id);
-      console.log('  - exercise_skill_level:', values.exercise_skill_level);
-      console.log('  - complexity_score:', values.complexity_score);
+      // 🔥 DEBUG: Update debug info for UI display
+      const debugData = {
+        formValues: values,
+        criticalFields: {
+          load_type: values.load_type,
+          movement_id: values.movement_id,
+          movement_pattern_id: values.movement_pattern_id,
+          equipment_id: values.equipment_id,
+          exercise_skill_level: values.exercise_skill_level,
+          complexity_score: values.complexity_score,
+        },
+        timestamp: new Date().toISOString()
+      };
+      setDebugInfo(debugData);
       
       // Update exercise basics
       const exercisePayload = {
@@ -267,13 +273,11 @@ const AdminExerciseEdit: React.FC = () => {
         thumbnail_url: values.thumbnail_url || null,
         loading_hint: values.loading_hint || null,
         is_public: values.is_public,
-        // Add any missing columns that might exist in the form but weren't being saved
-        equipment_ref_id: values.equipment_id || null, // ensure equipment reference is also saved
+        equipment_ref_id: values.equipment_id || null,
       };
 
-      // 🔥 DEBUG: Log the exact payload being sent
-      console.log('🔥 [ExerciseEdit] Final payload being sent to Supabase:', exercisePayload);
-      console.log('🔥 [ExerciseEdit] Exercise ID:', id);
+      // Update debug info with payload
+      setDebugInfo(prev => ({ ...prev, payload: exercisePayload, exerciseId: id }));
 
       const { error, data } = await supabase
         .from('exercises')
@@ -281,9 +285,8 @@ const AdminExerciseEdit: React.FC = () => {
         .eq('id', id)
         .select(); // Add select to see what was actually updated
       
-      // 🔥 DEBUG: Log the response
-      console.log('🔥 [ExerciseEdit] Supabase response - error:', error);
-      console.log('🔥 [ExerciseEdit] Supabase response - data:', data);
+      // Update debug info with response
+      setDebugInfo(prev => ({ ...prev, supabaseResponse: { error, data } }));
       
       if (error) throw error;
 
@@ -609,6 +612,41 @@ const AdminExerciseEdit: React.FC = () => {
 
               {lastError && (
                 <p role="alert" className="text-destructive text-sm">{lastError}</p>
+              )}
+              
+              {/* 🔥 DEBUG AREA - VISIBLE IN UI */}
+              {debugInfo && (
+                <div className="mt-4 p-4 bg-muted rounded-lg">
+                  <h3 className="font-semibold mb-2">🔥 Debug Information</h3>
+                  <div className="space-y-2 text-xs">
+                    <div>
+                      <strong>Timestamp:</strong> {debugInfo.timestamp}
+                    </div>
+                    <div>
+                      <strong>Exercise ID:</strong> {debugInfo.exerciseId}
+                    </div>
+                    <div>
+                      <strong>Critical Fields:</strong>
+                      <pre className="bg-background p-2 rounded mt-1 overflow-auto">
+{JSON.stringify(debugInfo.criticalFields, null, 2)}
+                      </pre>
+                    </div>
+                    <div>
+                      <strong>Full Payload:</strong>
+                      <pre className="bg-background p-2 rounded mt-1 overflow-auto max-h-40">
+{JSON.stringify(debugInfo.payload, null, 2)}
+                      </pre>
+                    </div>
+                    {debugInfo.supabaseResponse && (
+                      <div>
+                        <strong>Supabase Response:</strong>
+                        <pre className="bg-background p-2 rounded mt-1 overflow-auto max-h-40">
+{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
+                        </pre>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </aside>
           </form>
