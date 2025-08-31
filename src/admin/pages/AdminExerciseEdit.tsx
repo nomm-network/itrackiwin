@@ -81,6 +81,7 @@ const AdminExerciseEdit: React.FC = () => {
   const [saving, setSaving] = React.useState(false);
   const [lastError, setLastError] = React.useState<string | null>(null);
   const [debugInfo, setDebugInfo] = React.useState<any>(null);
+  const [showDebugModal, setShowDebugModal] = React.useState(false);
 
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>([]);
   const [muscleGroups, setMuscleGroups] = React.useState<MuscleGroup[]>([]);
@@ -288,6 +289,9 @@ const AdminExerciseEdit: React.FC = () => {
       
       // Update debug info with response
       setDebugInfo(prev => ({ ...prev, supabaseResponse: { error, data } }));
+      
+      // Show debug modal
+      setShowDebugModal(true);
       
       if (error) throw error;
 
@@ -614,43 +618,74 @@ const AdminExerciseEdit: React.FC = () => {
               {lastError && (
                 <p role="alert" className="text-destructive text-sm">{lastError}</p>
               )}
-              
-              {/* 🔥 DEBUG AREA - VISIBLE IN UI */}
-              {debugInfo && (
-                <div className="mt-4 p-4 bg-muted rounded-lg">
-                  <h3 className="font-semibold mb-2">🔥 Debug Information</h3>
-                  <div className="space-y-2 text-xs">
-                    <div>
-                      <strong>Timestamp:</strong> {debugInfo.timestamp}
-                    </div>
-                    <div>
-                      <strong>Exercise ID:</strong> {debugInfo.exerciseId}
-                    </div>
-                    <div>
-                      <strong>Critical Fields:</strong>
-                      <pre className="bg-background p-2 rounded mt-1 overflow-auto">
-{JSON.stringify(debugInfo.criticalFields, null, 2)}
-                      </pre>
-                    </div>
-                    <div>
-                      <strong>Full Payload:</strong>
-                      <pre className="bg-background p-2 rounded mt-1 overflow-auto max-h-40">
-{JSON.stringify(debugInfo.payload, null, 2)}
-                      </pre>
-                    </div>
-                    {debugInfo.supabaseResponse && (
-                      <div>
-                        <strong>Supabase Response:</strong>
-                        <pre className="bg-background p-2 rounded mt-1 overflow-auto max-h-40">
-{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
             </aside>
           </form>
+        )}
+        
+        {/* 🔥 DEBUG MODAL */}
+        {showDebugModal && debugInfo && (
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <div className="bg-background border rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
+              <div className="p-6">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold">🔥 Debug Information</h2>
+                  <button 
+                    onClick={() => setShowDebugModal(false)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    ✕
+                  </button>
+                </div>
+                
+                <div className="space-y-4 text-sm">
+                  <div>
+                    <strong>Timestamp:</strong> {debugInfo.timestamp}
+                  </div>
+                  <div>
+                    <strong>Exercise ID:</strong> {debugInfo.exerciseId}
+                  </div>
+                  
+                  <div>
+                    <strong>Critical Fields:</strong>
+                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs">
+{JSON.stringify(debugInfo.criticalFields, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  <div>
+                    <strong>Full Payload:</strong>
+                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
+{JSON.stringify(debugInfo.payload, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  {debugInfo.supabaseResponse && (
+                    <div>
+                      <strong>Supabase Response:</strong>
+                      <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
+{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
+                      </pre>
+                    </div>
+                  )}
+                  
+                  <div className="flex gap-2 pt-4">
+                    <button 
+                      onClick={() => setShowDebugModal(false)}
+                      className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
+                    >
+                      Close
+                    </button>
+                    <button 
+                      onClick={() => navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2))}
+                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
+                    >
+                      Copy Debug Info
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         )}
       </div>
     );
