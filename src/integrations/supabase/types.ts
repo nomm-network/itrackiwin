@@ -5171,9 +5171,11 @@ export type Database = {
       user_exercise_warmups: {
         Row: {
           adaptation_history: Json | null
+          created_at: string
           exercise_id: string
           id: string
           last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          notes: string | null
           plan_text: string
           preferred_intensity_adjustment: number | null
           preferred_set_count: number | null
@@ -5181,12 +5183,16 @@ export type Database = {
           success_streak: number
           updated_at: string
           user_id: string
+          warmup_sets_done: number | null
+          workout_exercise_id: string | null
         }
         Insert: {
           adaptation_history?: Json | null
+          created_at?: string
           exercise_id: string
           id?: string
           last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
+          notes?: string | null
           plan_text: string
           preferred_intensity_adjustment?: number | null
           preferred_set_count?: number | null
@@ -5194,12 +5200,16 @@ export type Database = {
           success_streak?: number
           updated_at?: string
           user_id: string
+          warmup_sets_done?: number | null
+          workout_exercise_id?: string | null
         }
         Update: {
           adaptation_history?: Json | null
+          created_at?: string
           exercise_id?: string
           id?: string
           last_feedback?: Database["public"]["Enums"]["warmup_feedback"] | null
+          notes?: string | null
           plan_text?: string
           preferred_intensity_adjustment?: number | null
           preferred_set_count?: number | null
@@ -5207,6 +5217,8 @@ export type Database = {
           success_streak?: number
           updated_at?: string
           user_id?: string
+          warmup_sets_done?: number | null
+          workout_exercise_id?: string | null
         }
         Relationships: [
           {
@@ -8720,6 +8732,15 @@ export type Database = {
         }
         Returns: string
       }
+      log_workout_set: {
+        Args: {
+          p_grip_ids?: string[]
+          p_metrics: Json
+          p_set_index: number
+          p_workout_exercise_id: string
+        }
+        Returns: string
+      }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
         Returns: boolean
@@ -10117,9 +10138,11 @@ export type Database = {
           | { p_exercise_id: string; p_pretty_text: string; p_source?: Json }
         Returns: {
           adaptation_history: Json | null
+          created_at: string
           exercise_id: string
           id: string
           last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
+          notes: string | null
           plan_text: string
           preferred_intensity_adjustment: number | null
           preferred_set_count: number | null
@@ -10127,6 +10150,8 @@ export type Database = {
           success_streak: number
           updated_at: string
           user_id: string
+          warmup_sets_done: number | null
+          workout_exercise_id: string | null
         }
       }
       upsert_warmup_bias: {
