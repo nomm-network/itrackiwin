@@ -235,8 +235,9 @@ const AdminExerciseEdit: React.FC = () => {
   }, [params.id, muscles, muscleGroups, toast, form]);
 
   const onSubmit = async (values: FormValues) => {
+    // Close debug modal if open and show new debug info
+    setShowDebugModal(true);
     setSaving(true);
-    setLastError(null);
     try {
       const id = params.id!;
       
@@ -278,8 +279,9 @@ const AdminExerciseEdit: React.FC = () => {
         equipment_ref_id: values.equipment_id || null,
       };
 
-      // Update debug info with payload
-      setDebugInfo(prev => ({ ...prev, payload: exercisePayload, exerciseId: id }));
+      // Update debug info with payload and SQL query
+      const sqlQuery = `UPDATE exercises SET ${Object.keys(exercisePayload).map(key => `${key} = $${key}`).join(', ')} WHERE id = '${id}'`;
+      setDebugInfo(prev => ({ ...prev, payload: exercisePayload, exerciseId: id, sqlQuery }));
 
       const { error, data } = await supabase
         .from('exercises')
@@ -289,9 +291,6 @@ const AdminExerciseEdit: React.FC = () => {
       
       // Update debug info with response
       setDebugInfo(prev => ({ ...prev, supabaseResponse: { error, data } }));
-      
-      // Show debug modal
-      setShowDebugModal(true);
       
       if (error) throw error;
 
@@ -649,6 +648,13 @@ const AdminExerciseEdit: React.FC = () => {
                     <strong>Critical Fields:</strong>
                     <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs">
 {JSON.stringify(debugInfo.criticalFields, null, 2)}
+                    </pre>
+                  </div>
+                  
+                  <div>
+                    <strong>SQL Query:</strong>
+                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs">
+{debugInfo.sqlQuery}
                     </pre>
                   </div>
                   
