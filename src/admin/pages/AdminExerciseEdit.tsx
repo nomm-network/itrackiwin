@@ -279,17 +279,7 @@ const AdminExerciseEdit: React.FC = () => {
 
       console.log("🔥 PAYLOAD TO SEND", exercisePayload);
       
-      // Create debug info BEFORE sending request
-      // Build REAL SQL query that matches the actual payload
-      const sqlPairs = Object.entries(exercisePayload).map(([key, value]) => {
-        if (value === null) return `${key} = NULL`;
-        if (typeof value === 'string') return `${key} = '${value}'`;
-        if (typeof value === 'boolean') return `${key} = ${value}`;
-        if (typeof value === 'number') return `${key} = ${value}`;
-        return `${key} = '${String(value)}'`;
-      });
-      const fullSqlQuery = `UPDATE exercises SET ${sqlPairs.join(', ')} WHERE id = '${id}' RETURNING id, movement_id, movement_pattern_id, load_type;`;
-      
+      // Create debug info BEFORE sending request - capture the REAL request details
       const debugData = {
         timestamp: new Date().toISOString(),
         exerciseId: id,
@@ -300,7 +290,17 @@ const AdminExerciseEdit: React.FC = () => {
           movement_pattern_id: cleanMovementPatternId,
           load_type: values.load_type,
         },
-        sqlQuery: fullSqlQuery,
+        realSupabaseRequest: {
+          method: 'PATCH',
+          url: `https://fsayiuhncisevhipbrak.supabase.co/rest/v1/exercises?id=eq.${id}`,
+          headers: {
+            'Content-Type': 'application/json',
+            'accept': 'application/json',
+            'accept-profile': 'public',
+            'content-profile': 'public',
+          },
+          body: JSON.stringify(exercisePayload)
+        },
         payloadFieldCount: Object.keys(exercisePayload).length
       };
       
