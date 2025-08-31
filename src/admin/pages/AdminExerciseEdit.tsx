@@ -577,7 +577,7 @@ const AdminExerciseEdit: React.FC = () => {
                 <p className="text-xs text-muted-foreground">First image becomes the thumbnail if none is set.</p>
               </div>
 
-                <div className="flex gap-2 pt-2">
+                <div className="flex gap-2 pt-2 pb-[50px]">
                   <Button type="button" variant="secondary" asChild>
                     <Link to="/admin/exercises">Cancel</Link>
                   </Button>
