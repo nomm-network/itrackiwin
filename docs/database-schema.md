@@ -1,371 +1,126 @@
 # Database Schema Documentation
 
-## Core Exercise System Tables
+## Exercise Management Tables
 
 ### exercises
-Main exercise definitions table.
+Primary table for exercise definitions.
 
-```sql
-CREATE TABLE exercises (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  owner_user_id UUID REFERENCES auth.users(id),
-  is_public BOOLEAN NOT NULL DEFAULT true,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  -- Exercise Properties
-  display_name TEXT,
-  custom_display_name TEXT,
-  name_locale TEXT DEFAULT 'en',
-  tags TEXT[] DEFAULT '{}',
-  
-  -- Physical Properties
-  body_part_id UUID REFERENCES body_parts(id),
-  primary_muscle_id UUID REFERENCES muscles(id),
-  equipment_id UUID NOT NULL REFERENCES equipment(id),
-  secondary_muscle_group_ids UUID[],
-  
-  -- Movement & Skill
-  movement_id UUID REFERENCES movements(id),
-  movement_pattern_id UUID REFERENCES movement_patterns(id),
-  equipment_ref_id UUID REFERENCES equipment(id),
-  exercise_skill_level exercise_skill_level DEFAULT 'medium',
-  complexity_score SMALLINT DEFAULT 3,
-  
-  -- Equipment & Loading
-  load_type load_type,
-  is_bar_loaded BOOLEAN NOT NULL DEFAULT false,
-  default_bar_weight NUMERIC,
-  default_bar_type_id UUID REFERENCES bar_types(id),
-  
-  -- Handle & Grip System
-  requires_handle BOOLEAN DEFAULT false,
-  allows_grips BOOLEAN DEFAULT true,
-  default_handle_ids UUID[],
-  default_grip_ids UUID[] DEFAULT '{}',
-  
-  -- Metadata
-  popularity_rank INTEGER,
-  capability_schema JSONB DEFAULT '{}',
-  contraindications JSONB DEFAULT '[]',
-  attribute_values_json JSONB NOT NULL DEFAULT '{}',
-  name_version INTEGER DEFAULT 1,
-  display_name_tsv TSVECTOR,
-  
-  -- Media
-  image_url TEXT,
-  thumbnail_url TEXT,
-  source_url TEXT,
-  loading_hint TEXT,
-  
-  -- Unilateral exercises
-  is_unilateral BOOLEAN DEFAULT false
-);
-```
-
-### exercises_translations
-Localized names and descriptions for exercises.
-
-```sql
-CREATE TABLE exercises_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  exercise_id UUID NOT NULL REFERENCES exercises(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(exercise_id, language_code)
-);
-```
-
-## Movement System Tables
+**Columns:**
+- `id` (uuid, NOT NULL, default: gen_random_uuid())
+- `owner_user_id` (uuid, nullable)
+- `is_public` (boolean, NOT NULL, default: true)
+- `created_at` (timestamp with time zone, NOT NULL, default: now())
+- `image_url` (text, nullable)
+- `thumbnail_url` (text, nullable)
+- `source_url` (text, nullable)
+- `popularity_rank` (integer, nullable)
+- `body_part_id` (uuid, nullable)
+- `primary_muscle_id` (uuid, nullable)
+- `equipment_id` (uuid, NOT NULL)
+- `secondary_muscle_group_ids` (uuid[], nullable)
+- `default_grip_ids` (uuid[], nullable, default: '{}')
+- `capability_schema` (jsonb, nullable, default: '{}')
+- `exercise_skill_level` (exercise_skill_level, nullable, default: 'medium')
+- `complexity_score` (smallint, nullable, default: 3)
+- `contraindications` (jsonb, nullable, default: '[]')
+- `loading_hint` (text, nullable)
+- `default_bar_weight` (numeric, nullable)
+- `default_handle_ids` (uuid[], nullable)
+- `is_bar_loaded` (boolean, NOT NULL, default: false)
+- `slug` (text, NOT NULL)
+- `load_type` (load_type, nullable)
+- `default_bar_type_id` (uuid, nullable)
+- `requires_handle` (boolean, nullable, default: false)
+- `allows_grips` (boolean, nullable, default: true)
+- `is_unilateral` (boolean, nullable, default: false)
+- `attribute_values_json` (jsonb, NOT NULL, default: '{}')
+- **`movement_id` (uuid, nullable)** ⚠️ CRITICAL FIELD
+- **`equipment_ref_id` (uuid, nullable)**
+- `display_name` (text, nullable)
+- `custom_display_name` (text, nullable)
+- `name_locale` (text, nullable, default: 'en')
+- **`movement_pattern_id` (uuid, nullable)** ⚠️ CRITICAL FIELD
+- `name_version` (integer, nullable)
+- `tags` (text[], nullable, default: '{}')
+- `display_name_tsv` (tsvector, nullable)
 
 ### movements
-Core movement patterns/actions.
+Contains specific movement definitions within movement patterns.
 
-```sql
-CREATE TABLE movements (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+**Columns:**
+- `id` (uuid, NOT NULL, default: gen_random_uuid())
+- `slug` (text, NOT NULL)
+- `movement_pattern_id` (uuid, NOT NULL)
+- `created_at` (timestamp with time zone, NOT NULL, default: now())
+
+**Sample Data:**
 ```
-
-### movement_translations
-Localized names for movements.
-
-```sql
-CREATE TABLE movement_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  movement_id UUID NOT NULL REFERENCES movements(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(movement_id, language_code)
-);
+d217303d-0dcb-4a79-a8ad-128573468aa0 | horizontal_push | 02024706-63ca-4f34-a4d6-7df57a6d6899
+0c64f081-5cb8-4682-8395-315d5533362c | vertical_push   | 02024706-63ca-4f34-a4d6-7df57a6d6899
+c13388d5-e568-4166-9081-8b5b4e8ebc53 | dip             | 02024706-63ca-4f34-a4d6-7df57a6d6899
+ca668456-ce04-4627-bb30-73883705a252 | front_raise     | 02024706-63ca-4f34-a4d6-7df57a6d6899
+2e21de7b-1f20-480f-b796-3bc8608ed8d6 | lateral_raise   | 02024706-63ca-4f34-a4d6-7df57a6d6899
 ```
 
 ### movement_patterns
-High-level movement categorization.
+High-level movement pattern categories.
 
-```sql
-CREATE TABLE movement_patterns (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+**Columns:**
+- `id` (uuid, NOT NULL, default: gen_random_uuid())
+- `slug` (text, NOT NULL)
+- `created_at` (timestamp with time zone, NOT NULL, default: now())
+
+**Sample Data:**
 ```
-
-## Equipment System Tables
+02024706-63ca-4f34-a4d6-7df57a6d6899 | push
+ac7157d7-4324-4a40-b98f-5183e47eed32 | pull
+640e7fb0-6cc5-448a-b822-409f05ee68e9 | squat
+5f6e3748-14e6-4537-b76b-4081e7c995f1 | hinge
+e75c9e9a-55ef-4cc1-b0b5-dafbd9704a1b | lunge
+```
 
 ### equipment
-Exercise equipment definitions.
+Equipment definitions and specifications.
 
-```sql
-CREATE TABLE equipment (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT UNIQUE,
-  equipment_type TEXT NOT NULL DEFAULT 'machine',
-  kind TEXT,
-  load_type load_type DEFAULT 'none',
-  load_medium load_medium DEFAULT 'other',
-  weight_kg NUMERIC,
-  default_bar_weight_kg NUMERIC,
-  default_side_min_plate_kg NUMERIC,
-  default_single_min_increment_kg NUMERIC,
-  default_stack JSONB DEFAULT '[]',
-  notes TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+**Columns:**
+- `id` (uuid, NOT NULL, default: gen_random_uuid())
+- `slug` (text, nullable)
+- `created_at` (timestamp with time zone, NOT NULL, default: now())
+- `equipment_type` (text, NOT NULL, default: 'machine')
+- `default_stack` (jsonb, nullable, default: '[]')
+- `weight_kg` (numeric, nullable)
+- `kind` (text, nullable)
+- `load_type` (load_type, nullable, default: 'none')
+- `load_medium` (load_medium, nullable, default: 'other')
+- `default_bar_weight_kg` (numeric, nullable)
+- `default_single_min_increment_kg` (numeric, nullable)
+- `default_side_min_plate_kg` (numeric, nullable)
+- `notes` (text, nullable)
+
+**Sample Data:**
+```
+33a8bf6b-5832-442e-964d-3f32070ea029 | olympic-barbell | free_weight | dual_load
+243fdc06-9c04-4bc1-8773-d9da7f981bc1 | cable-machine   | machine     | stack
+1328932a-54fe-42fc-8846-6ead942c2b98 | dumbbell        | free_weight | single_load
 ```
 
-### equipment_translations
-Localized names for equipment.
+## Relationships
 
-```sql
-CREATE TABLE equipment_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  equipment_id UUID NOT NULL REFERENCES equipment(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(equipment_id, language_code)
-);
-```
+- `exercises.movement_id` → `movements.id`
+- `exercises.movement_pattern_id` → `movement_patterns.id`
+- `exercises.equipment_id` → `equipment.id`
+- `movements.movement_pattern_id` → `movement_patterns.id`
 
-## Muscle System Tables
+## Critical Issue Notes
 
-### muscles
-Individual muscle definitions.
+⚠️ **BUG**: The `movement_id` and `movement_pattern_id` fields in the exercises table are not being saved via the admin edit form.
 
-```sql
-CREATE TABLE muscles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
+**Expected Flow:**
+1. User selects movement pattern (e.g., "push")
+2. User selects specific movement (e.g., "horizontal_push")
+3. Both `movement_pattern_id` and `movement_id` should be saved to exercises table
 
-### muscles_translations
-Localized names for muscles.
-
-```sql
-CREATE TABLE muscles_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  muscle_id UUID NOT NULL REFERENCES muscles(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(muscle_id, language_code)
-);
-```
-
-### body_parts
-Major body regions.
-
-```sql
-CREATE TABLE body_parts (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-### body_parts_translations
-Localized names for body parts.
-
-```sql
-CREATE TABLE body_parts_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  body_part_id UUID NOT NULL REFERENCES body_parts(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(body_part_id, language_code)
-);
-```
-
-## Handle & Grip System Tables
-
-### handles
-Handle/attachment definitions.
-
-```sql
-CREATE TABLE handles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-### handle_translations
-Localized names for handles.
-
-```sql
-CREATE TABLE handle_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  handle_id UUID NOT NULL REFERENCES handles(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(handle_id, language_code)
-);
-```
-
-### grips
-Grip style/position definitions.
-
-```sql
-CREATE TABLE grips (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  slug TEXT NOT NULL UNIQUE,
-  category TEXT,
-  is_compatible_with UUID[],
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-```
-
-### grips_translations
-Localized names for grips.
-
-```sql
-CREATE TABLE grips_translations (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  grip_id UUID NOT NULL REFERENCES grips(id) ON DELETE CASCADE,
-  language_code TEXT NOT NULL DEFAULT 'en',
-  name TEXT NOT NULL,
-  description TEXT,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(grip_id, language_code)
-);
-```
-
-## Relationship Tables
-
-### equipment_handle_grips
-Maps equipment to compatible handle/grip combinations.
-
-```sql
-CREATE TABLE equipment_handle_grips (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  equipment_id UUID NOT NULL REFERENCES equipment(id),
-  handle_id UUID NOT NULL REFERENCES handles(id),
-  grip_id UUID NOT NULL REFERENCES grips(id),
-  is_default BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(equipment_id, handle_id, grip_id)
-);
-```
-
-### exercise_handles
-Maps exercises to their valid handles.
-
-```sql
-CREATE TABLE exercise_handles (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  exercise_id UUID NOT NULL REFERENCES exercises(id),
-  handle_id UUID NOT NULL REFERENCES handles(id),
-  is_default BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(exercise_id, handle_id)
-);
-```
-
-### exercise_grips
-Maps exercises to their valid grips.
-
-```sql
-CREATE TABLE exercise_grips (
-  exercise_id UUID NOT NULL REFERENCES exercises(id),
-  grip_id UUID NOT NULL REFERENCES grips(id),
-  is_default BOOLEAN NOT NULL DEFAULT false,
-  order_index INTEGER NOT NULL DEFAULT 1,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  PRIMARY KEY(exercise_id, grip_id)
-);
-```
-
-### exercise_handle_grips
-Maps exercises to specific handle/grip combinations.
-
-```sql
-CREATE TABLE exercise_handle_grips (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  exercise_id UUID NOT NULL REFERENCES exercises(id),
-  handle_id UUID NOT NULL REFERENCES handles(id),
-  grip_id UUID NOT NULL REFERENCES grips(id),
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
-  
-  UNIQUE(exercise_id, handle_id, grip_id)
-);
-```
-
-## Custom Data Types
-
-### Enums
-```sql
-CREATE TYPE movement_pattern_enum AS ENUM (
-  'push', 'pull', 'squat', 'hinge', 'lunge', 'carry', 'gait', 'rotation'
-);
-
-CREATE TYPE load_type_enum AS ENUM (
-  'dual_load', 'single_load', 'stack', 'none'
-);
-
-CREATE TYPE exercise_skill_level_enum AS ENUM (
-  'beginner', 'intermediate', 'advanced'
-);
-
-CREATE TYPE load_medium AS ENUM (
-  'barbell', 'dumbbell', 'cable', 'machine', 'bodyweight', 'other'
-);
-
-CREATE TYPE weight_unit AS ENUM ('kg', 'lbs');
-
-CREATE TYPE handle_orientation AS ENUM (
-  'horizontal', 'vertical', 'angled_up', 'angled_down'
-);
-```
+**Current Issue:**
+- Form appears to submit but these fields remain NULL in database
+- Save operation may be failing silently
+- Debug information not displaying to troubleshoot
