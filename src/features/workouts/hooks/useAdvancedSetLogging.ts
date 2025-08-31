@@ -57,7 +57,54 @@ export const useAdvancedSetLogging = () => {
     try {
       console.log('🔍 useAdvancedSetLogging: Starting log set with data:', {
         setData,
-        plannedSetIndex
+        plannedSetIndex,
+        'setData.workout_exercise_id': setData.workout_exercise_id,
+        'setData.grip_ids': setData.grip_ids,
+        'grip_ids_length': setData.grip_ids?.length || 0,
+        'grip_ids_type': typeof setData.grip_ids,
+        'grip_ids_array': Array.isArray(setData.grip_ids)
+      });
+
+      // Get workout exercise info for debugging
+      const { data: workoutExerciseInfo, error: weError } = await supabase
+        .from('workout_exercises')
+        .select(`
+          id, 
+          exercise_id, 
+          grip_key,
+          workout_id,
+          workouts!inner(user_id)
+        `)
+        .eq('id', setData.workout_exercise_id)
+        .single();
+
+      if (weError) {
+        console.error('❌ Failed to get workout exercise info:', weError);
+        throw weError;
+      }
+
+      console.log('🔍 Workout Exercise Info:', {
+        workoutExerciseInfo,
+        user_id: workoutExerciseInfo?.workouts?.user_id,
+        exercise_id: workoutExerciseInfo?.exercise_id,
+        current_grip_key: workoutExerciseInfo?.grip_key
+      });
+
+      // Check existing personal records for this user/exercise
+      const { data: existingPRs, error: prError } = await supabase
+        .from('personal_records')
+        .select('*')
+        .eq('user_id', workoutExerciseInfo?.workouts?.user_id)
+        .eq('exercise_id', workoutExerciseInfo?.exercise_id);
+
+      console.log('🔍 Existing Personal Records:', {
+        count: existingPRs?.length || 0,
+        records: existingPRs?.map(pr => ({
+          kind: pr.kind,
+          grip_key: pr.grip_key,
+          value: pr.value,
+          id: pr.id
+        }))
       });
 
       // Resolve the correct set_index and whether to update or insert
@@ -74,7 +121,14 @@ export const useAdvancedSetLogging = () => {
         grip_ids: setData.grip_ids || []
       };
 
-      console.log('🔍 Final payload:', payload);
+      console.log('🔍 Final payload:', {
+        ...payload,
+        'payload.grip_ids': payload.grip_ids,
+        'payload.grip_ids_length': payload.grip_ids?.length,
+        'payload.weight': payload.weight,
+        'payload.reps': payload.reps,
+        'will_trigger_pr_update': payload.weight && payload.reps
+      });
 
       if (exists) {
         // UPDATE the existing planned set
@@ -125,6 +179,18 @@ export const useAdvancedSetLogging = () => {
         }
       } else {
         // INSERT new set (planned or extra)
+        console.log('🔍 About to INSERT new workout set:', {
+          workout_exercise_id: payload.workout_exercise_id,
+          set_index: index,
+          weight: payload.weight,
+          reps: payload.reps,
+          weight_unit: payload.weight_unit || 'kg',
+          rpe: payload.rpe,
+          notes: payload.notes,
+          is_completed: payload.is_completed ?? true,
+          set_kind: (payload.set_kind as any) || 'normal'
+        });
+
         const { data: insertedSet, error: insertError } = await supabase
           .from('workout_sets')
           .insert({
@@ -142,18 +208,38 @@ export const useAdvancedSetLogging = () => {
           .select('id')
           .single();
         
-        if (insertError) throw insertError;
+        if (insertError) {
+          console.error('❌ Failed to insert workout set:', insertError);
+          throw insertError;
+        }
+
+        console.log('✅ Workout set inserted successfully:', {
+          insertedSetId: insertedSet.id,
+          will_add_grips: payload.grip_ids.length > 0
+        });
 
         // Handle grips for new set
         if (payload.grip_ids.length > 0) {
+          console.log('🔍 About to insert grips for set:', {
+            workout_set_id: insertedSet.id,
+            grip_ids: payload.grip_ids
+          });
+
           const gripInserts = payload.grip_ids.map(gripId => ({
             workout_set_id: insertedSet.id,
             grip_id: gripId
           }));
           
-          await supabase
+          const { error: gripError } = await supabase
             .from('workout_set_grips')
             .insert(gripInserts);
+
+          if (gripError) {
+            console.error('❌ Failed to insert workout set grips:', gripError);
+            throw gripError;
+          }
+
+          console.log('✅ Workout set grips inserted successfully');
         }
       }
 

@@ -233,12 +233,31 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Function moved above to avoid hoisting issues
 
   const handleSetComplete = async (workoutExerciseId: string, setData: any) => {
+    console.log('🔍 handleSetComplete called with:', {
+      workoutExerciseId,
+      setData,
+      'selectedGrips[workoutExerciseId]': selectedGrips[workoutExerciseId],
+      'selectedGrips': selectedGrips,
+      'grips.length': grips.length
+    });
+
     const exerciseGrips = selectedGrips[workoutExerciseId] || [];
+    console.log('🔍 exerciseGrips:', exerciseGrips);
     
     // Convert grip names to UUIDs
     const gripIds = exerciseGrips
-      .map(gripName => getGripIdByName(grips, gripName))
-      .filter(id => id !== null) as string[];
+      .map(gripName => {
+        const id = getGripIdByName(grips, gripName);
+        console.log(`🔍 Converting grip "${gripName}" to ID:`, id);
+        return id;
+      })
+      .filter(id => {
+        const isValid = id !== null;
+        if (!isValid) console.warn('⚠️ Filtered out null grip ID');
+        return isValid;
+      }) as string[];
+    
+    console.log('🔍 Final grip IDs after conversion:', gripIds);
     
     // Build notes with feel and pain info
     let notes = setData.notes || '';
@@ -262,6 +281,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       is_completed: true,
       grip_ids: gripIds
     };
+    
+    console.log('🔍 About to call newLogSet with payload:', {
+      payload,
+      plannedSetIndex,
+      'payload.grip_ids': payload.grip_ids,
+      'payload.grip_ids.length': payload.grip_ids.length
+    });
     
     try {
       const result = await newLogSet(payload, plannedSetIndex);
