@@ -742,16 +742,16 @@ const AdminExerciseEdit: React.FC = () => {
                   </div>
                   
                   <div>
-                    <strong>SQL Query:</strong>
-                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs">
-{debugInfo.sqlQuery}
+                    <strong>Real Supabase Request:</strong>
+                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
+{JSON.stringify(debugInfo.realSupabaseRequest, null, 2)}
                     </pre>
                   </div>
                   
                   <div>
-                    <strong>Full Payload:</strong>
+                    <strong>Full Payload ({debugInfo.payloadFieldCount} fields):</strong>
                     <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
-{JSON.stringify(debugInfo.payload, null, 2)}
+{JSON.stringify(JSON.parse(debugInfo.realSupabaseRequest?.body || '{}'), null, 2)}
                     </pre>
                   </div>
                   
