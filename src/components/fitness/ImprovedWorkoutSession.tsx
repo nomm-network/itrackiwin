@@ -567,8 +567,7 @@ export default function ImprovedWorkoutSession({
               Choose the grips you want to use for this exercise:
             </p>
             <div className="grid grid-cols-2 gap-2">
-              {/* Sample grips - you can make this dynamic */}
-              {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close', 'Mixed'].map((grip) => (
+              {['Overhand', 'Underhand', 'Neutral', 'Mixed'].map((grip) => (
                 <Button key={grip} variant="outline" size="sm">
                   {grip}
                 </Button>
