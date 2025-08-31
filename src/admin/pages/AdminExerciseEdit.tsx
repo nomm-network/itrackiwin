@@ -208,8 +208,15 @@ const AdminExerciseEdit: React.FC = () => {
         }
         form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
         form.setValue('equipment_id', data.equipment_id || '');
+        // Ensure UUIDs are set properly, not empty strings
         form.setValue('movement_id', data.movement_id || '');
         form.setValue('movement_pattern_id', data.movement_pattern_id || '');
+        
+        console.log("🔥 LOADED EXERCISE DATA", {
+          movement_id: data.movement_id,
+          movement_pattern_id: data.movement_pattern_id,
+          load_type: data.load_type
+        });
         form.setValue('exercise_skill_level', data.exercise_skill_level || 'medium');
         form.setValue('complexity_score', data.complexity_score || 3);
         form.setValue('load_type', data.load_type);
@@ -235,69 +242,93 @@ const AdminExerciseEdit: React.FC = () => {
   }, [params.id, muscles, muscleGroups, toast, form]);
 
   const onSubmit = async (values: FormValues) => {
-    // Close debug modal if open and show new debug info
-    setShowDebugModal(true);
+    console.log("🔥 FORM SUBMIT STARTED", { values });
+    
+    // Ensure movement fields are UUIDs or null, not empty strings
+    const cleanMovementId = values.movement_id === '' ? null : values.movement_id;
+    const cleanMovementPatternId = values.movement_pattern_id === '' ? null : values.movement_pattern_id;
+    
+    console.log("🔥 CLEANED VALUES", { 
+      original_movement_id: values.movement_id,
+      clean_movement_id: cleanMovementId,
+      original_movement_pattern_id: values.movement_pattern_id, 
+      clean_movement_pattern_id: cleanMovementPatternId 
+    });
+    
     setSaving(true);
+    setLastError(null);
+    
     try {
       const id = params.id!;
       
-      // 🔥 DEBUG: Update debug info for UI display
-      const debugData = {
-        formValues: values,
-        criticalFields: {
-          load_type: values.load_type,
-          movement_id: values.movement_id,
-          movement_pattern_id: values.movement_pattern_id,
-          equipment_id: values.equipment_id,
-          exercise_skill_level: values.exercise_skill_level,
-          complexity_score: values.complexity_score,
-        },
-        timestamp: new Date().toISOString()
-      };
-      setDebugInfo(debugData);
-      
-      // Update exercise basics
+      // Build minimal payload with critical fields
       const exercisePayload = {
+        movement_id: cleanMovementId,
+        movement_pattern_id: cleanMovementPatternId,
+        load_type: values.load_type || null,
         body_part_id: values.body_part_id || null,
         primary_muscle_id: values.primary_muscle_id || null,
-        secondary_muscle_group_ids: values.secondary_muscle_group_ids && values.secondary_muscle_group_ids.length > 0 ? values.secondary_muscle_group_ids : null,
         equipment_id: values.equipment_id || null,
-        movement_id: values.movement_id || null,
-        movement_pattern_id: values.movement_pattern_id || null,
         exercise_skill_level: values.exercise_skill_level || null,
         complexity_score: values.complexity_score || null,
-        load_type: values.load_type || null,
         is_unilateral: values.is_unilateral,
         requires_handle: values.requires_handle,
         allows_grips: values.allows_grips,
-        tags: values.tags && values.tags.length > 0 ? values.tags : null,
-        source_url: values.source_url || null,
-        image_url: values.image_url || null,
-        thumbnail_url: values.thumbnail_url || null,
-        loading_hint: values.loading_hint || null,
         is_public: values.is_public,
-        equipment_ref_id: values.equipment_id || null,
       };
 
-      // Update debug info with payload and SQL query
-      const sqlQuery = `UPDATE exercises SET ${Object.keys(exercisePayload).map(key => `${key} = $${key}`).join(', ')} WHERE id = '${id}'`;
-      setDebugInfo(prev => ({ ...prev, payload: exercisePayload, exerciseId: id, sqlQuery }));
+      console.log("🔥 PAYLOAD TO SEND", exercisePayload);
+      
+      // Create debug info BEFORE sending request
+      const debugData = {
+        timestamp: new Date().toISOString(),
+        exerciseId: id,
+        formValues: values,
+        cleanedPayload: exercisePayload,
+        criticalFields: {
+          movement_id: cleanMovementId,
+          movement_pattern_id: cleanMovementPatternId,
+          load_type: values.load_type,
+        },
+        sqlQuery: `UPDATE exercises SET movement_id = '${cleanMovementId}', movement_pattern_id = '${cleanMovementPatternId}', load_type = '${values.load_type}' WHERE id = '${id}';`
+      };
+      
+      setDebugInfo(debugData);
+      setShowDebugModal(true);
 
+      // CRITICAL: Await the update and capture response
       const { error, data } = await supabase
         .from('exercises')
         .update(exercisePayload)
         .eq('id', id)
-        .select(); // Add select to see what was actually updated
+        .select('id, movement_id, movement_pattern_id, load_type');
+
+      console.log("🔥 SUPABASE RESPONSE", { error, data });
       
       // Update debug info with response
-      setDebugInfo(prev => ({ ...prev, supabaseResponse: { error, data } }));
+      const finalDebugData = {
+        ...debugData,
+        supabaseResponse: { error, data },
+        success: !error
+      };
+      setDebugInfo(finalDebugData);
       
-      // Store debug info in localStorage for the management page
-      localStorage.setItem('exerciseEditDebug', JSON.stringify(debugInfo));
+      // Store debug info for management page
+      localStorage.setItem('exerciseEditDebug', JSON.stringify(finalDebugData));
       
-      if (error) throw error;
+      // CRITICAL: Check for errors BEFORE proceeding
+      if (error) {
+        console.error("🔥 SUPABASE ERROR", error);
+        setLastError(`Database error: ${error.message}`);
+        toast({ 
+          title: 'Database Update Failed', 
+          description: error.message,
+          variant: 'destructive'
+        });
+        return; // Don't navigate or continue
+      }
 
-      // Update or create translation
+      // Update translation only after successful main update
       const { error: translationError } = await supabase
         .from('exercises_translations')
         .upsert({
@@ -308,40 +339,38 @@ const AdminExerciseEdit: React.FC = () => {
         }, {
           onConflict: 'exercise_id,language_code'
         });
-      if (translationError) throw translationError;
-
-      // Upload new images if any
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user && files.length > 0) {
-        const uploads = await Promise.all(files.map(async (file, idx) => {
-          const path = `${user.id}/${id}/${Date.now()}-${idx}-${file.name}`;
-          const { error: upErr } = await supabase.storage.from('exercise-images').upload(path, file, { upsert: false });
-          if (upErr) throw upErr;
-          const { data: pub } = supabase.storage.from('exercise-images').getPublicUrl(path);
-          const publicUrl = pub.publicUrl;
-          const { error: insErr } = await supabase.from('exercise_images').insert({
-            user_id: user.id,
-            exercise_id: id,
-            path,
-            url: publicUrl,
-            order_index: idx + 1,
-            is_primary: false,
-          });
-          if (insErr) throw insErr;
-          return publicUrl;
-        }));
-        // if no thumbnail set yet, set first upload as thumbnail
-        if (uploads[0]) {
-          await supabase.from('exercises').update({ thumbnail_url: uploads[0], image_url: uploads[0] }).eq('id', id);
-        }
+        
+      if (translationError) {
+        console.error("🔥 TRANSLATION ERROR", translationError);
+        // Don't fail completely on translation error
+        toast({ 
+          title: 'Translation update failed', 
+          description: translationError.message,
+          variant: 'destructive'
+        });
       }
 
-      toast({ title: 'Exercise updated' });
-      navigate('/admin/exercises');
+      toast({ title: 'Exercise updated successfully!' });
+      
+      // Only navigate after successful save
+      setTimeout(() => {
+        navigate('/admin/exercises');
+      }, 1000); // Delay to allow debug modal viewing
+      
     } catch (e: any) {
-      console.error('[ExerciseEdit] update error', e);
-      setLastError(e?.message || String(e));
-      toast({ title: 'Failed to update', description: e?.message || 'Unknown error' });
+      const errorMsg = e?.message || String(e);
+      console.error('🔥 CATCH ERROR', e);
+      setLastError(errorMsg);
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        catchError: errorMsg,
+        success: false 
+      }));
+      toast({ 
+        title: 'Failed to update exercise', 
+        description: errorMsg,
+        variant: 'destructive'
+      });
     } finally {
       setSaving(false);
     }
