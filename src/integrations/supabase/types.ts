@@ -3803,7 +3803,7 @@ export type Database = {
           exercise_id: string
           grip_combination: Json | null
           grip_ids: string[] | null
-          grip_key: string | null
+          grip_key: string
           id: string
           kind: string
           unit: string | null
@@ -3817,7 +3817,7 @@ export type Database = {
           exercise_id: string
           grip_combination?: Json | null
           grip_ids?: string[] | null
-          grip_key?: string | null
+          grip_key?: string
           id?: string
           kind: string
           unit?: string | null
@@ -3831,7 +3831,7 @@ export type Database = {
           exercise_id?: string
           grip_combination?: Json | null
           grip_ids?: string[] | null
-          grip_key?: string | null
+          grip_key?: string
           id?: string
           kind?: string
           unit?: string | null
@@ -6836,6 +6836,8 @@ export type Database = {
           duration_seconds: number | null
           effort: Database["public"]["Enums"]["effort_code"] | null
           effort_rating: number | null
+          grip_ids: string[] | null
+          grip_key: string | null
           had_pain: boolean | null
           heart_rate: number | null
           id: string
@@ -6870,6 +6872,8 @@ export type Database = {
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
           effort_rating?: number | null
+          grip_ids?: string[] | null
+          grip_key?: string | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
@@ -6904,6 +6908,8 @@ export type Database = {
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
           effort_rating?: number | null
+          grip_ids?: string[] | null
+          grip_key?: string | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
@@ -8774,6 +8780,10 @@ export type Database = {
           p_single_min_increment_kg: number
         }
         Returns: number
+      }
+      normalize_grip_key: {
+        Args: { p_ids: string[] }
+        Returns: string
       }
       path: {
         Args: { "": unknown }
