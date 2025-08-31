@@ -70,6 +70,7 @@ const schema = z.object({
 type FormValues = z.infer<typeof schema>;
 
 const AdminExerciseEdit: React.FC = () => {
+  console.log("🚀 AdminExerciseEdit component is loading - FILE VERIFICATION");
   const params = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
