@@ -326,7 +326,34 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       // Note: Removed window.location.reload() to maintain exercise navigation state
     } catch (error) {
       console.error('Failed to log set:', error);
-      toast.error(`Failed to log set: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      console.error('Full error object:', JSON.stringify(error, null, 2));
+      
+      // Extract detailed error information
+      let errorDetails = 'Unknown error';
+      if (error instanceof Error) {
+        errorDetails = error.message;
+        if ((error as any).details) {
+          errorDetails += ` | Details: ${(error as any).details}`;
+        }
+        if ((error as any).hint) {
+          errorDetails += ` | Hint: ${(error as any).hint}`;
+        }
+        if ((error as any).code) {
+          errorDetails += ` | Code: ${(error as any).code}`;
+        }
+      } else if (typeof error === 'object' && error !== null) {
+        if ((error as any).message) {
+          errorDetails = (error as any).message;
+        }
+        if ((error as any).error_description) {
+          errorDetails += ` | ${(error as any).error_description}`;
+        }
+        errorDetails += ` | Raw: ${JSON.stringify(error)}`;
+      } else {
+        errorDetails = String(error);
+      }
+      
+      toast.error(`SET SAVE FAILED: ${errorDetails}`);
     }
   };
 
@@ -592,13 +619,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       </div>
 
       <div className="p-4 pb-24 max-w-md mx-auto">
-        {/* Error Banner */}
+        {/* Error Banner - Show detailed error information */}
         {setLoggingError && (
-          <div className="mb-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
-            <div className="flex items-center gap-2">
-              <span className="text-destructive font-medium">❌ Set Logging Failed:</span>
+          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <span className="text-destructive font-bold text-lg">❌ SET LOGGING FAILED</span>
             </div>
-            <p className="text-sm text-destructive/80 mt-1">{setLoggingError}</p>
+            <div className="text-sm text-destructive/90 font-mono bg-destructive/5 p-3 rounded border max-h-40 overflow-y-auto">
+              {setLoggingError}
+            </div>
+            <div className="text-xs text-destructive/70 mt-2">
+              Check console logs for full details. Report this error if it persists.
+            </div>
           </div>
         )}
         

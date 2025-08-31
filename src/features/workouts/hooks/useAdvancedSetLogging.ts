@@ -254,7 +254,40 @@ export const useAdvancedSetLogging = () => {
       return { success: true, set_index: index, action: exists ? 'updated' : 'inserted' };
     } catch (err) {
       console.error('❌ useAdvancedSetLogging: Error in logSet:', err);
-      const errorMessage = err instanceof Error ? err.message : 'Failed to log set';
+      console.error('❌ Full error object:', JSON.stringify(err, null, 2));
+      
+      // Extract and preserve all error details
+      let errorMessage = 'Failed to log set';
+      if (err instanceof Error) {
+        errorMessage = err.message;
+        
+        // Add additional error details if available
+        const errorObj = err as any;
+        if (errorObj.details) {
+          errorMessage += ` | Details: ${errorObj.details}`;
+        }
+        if (errorObj.hint) {
+          errorMessage += ` | Hint: ${errorObj.hint}`;
+        }
+        if (errorObj.code) {
+          errorMessage += ` | Code: ${errorObj.code}`;
+        }
+      } else if (typeof err === 'object' && err !== null) {
+        const errorObj = err as any;
+        if (errorObj.message) {
+          errorMessage = errorObj.message;
+        }
+        if (errorObj.error_description) {
+          errorMessage += ` | ${errorObj.error_description}`;
+        }
+        if (errorObj.code) {
+          errorMessage += ` | Code: ${errorObj.code}`;
+        }
+        errorMessage += ` | Raw: ${JSON.stringify(err)}`;
+      } else {
+        errorMessage = String(err);
+      }
+      
       setError(errorMessage);
       throw err;
     } finally {
