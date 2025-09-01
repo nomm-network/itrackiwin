@@ -170,73 +170,48 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Grip className="h-5 w-5" />
-            Grip Configuration: {handleName}
-          </div>
-          <Button onClick={onClose} variant="ghost" size="sm">
-            <X className="h-4 w-4" />
-          </Button>
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div>
-          <h4 className="font-medium mb-3">Grip Configuration</h4>
-          <div className="space-y-3">
-            {allGrips.map((grip) => {
-              const isAllowed = isGripAllowed(grip.id);
-              const handleGrip = getHandleGrip(grip.id);
-              
-              return (
-                <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
-                  <div className="flex items-center gap-3">
-                    <div>
-                      <div className="font-medium">{getGripName(grip)}</div>
-                      <div className="text-sm text-muted-foreground">
-                        {grip.category} • {grip.slug}
-                      </div>
-                    </div>
-                    {handleGrip?.is_default && (
-                      <Badge variant="default" className="text-xs">Default</Badge>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2">
-                      <label htmlFor={`allowed-${grip.id}`} className="text-sm">
-                        Allowed
-                      </label>
-                      <Switch
-                        id={`allowed-${grip.id}`}
-                        checked={isAllowed}
-                        onCheckedChange={(checked) => 
-                          toggleAllowed.mutate({ gripId: grip.id, allowed: checked })
-                        }
-                      />
-                    </div>
-                    {isAllowed && (
-                      <div className="flex items-center gap-2">
-                        <label htmlFor={`default-${grip.id}`} className="text-sm">
-                          Make Default
-                        </label>
-                        <Switch
-                          id={`default-${grip.id}`}
-                          checked={handleGrip?.is_default || false}
-                          onCheckedChange={(checked) => 
-                            toggleDefault.mutate({ gripId: grip.id, isDefault: checked })
-                          }
-                        />
-                      </div>
-                    )}
-                  </div>
+    <div>
+      <div className="flex items-center justify-between mb-4">
+        <h4 className="font-medium">Grip Configuration: {handleName}</h4>
+        <Button onClick={onClose} variant="ghost" size="sm">
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+      
+      <div className="space-y-2">
+        {allGrips.map((grip) => {
+          const isAllowed = isGripAllowed(grip.id);
+          const handleGrip = getHandleGrip(grip.id);
+          
+          return (
+            <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
+              <div className="font-medium">{getGripName(grip)}</div>
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm">Allowed</label>
+                  <Switch
+                    checked={isAllowed}
+                    onCheckedChange={(checked) => 
+                      toggleAllowed.mutate({ gripId: grip.id, allowed: checked })
+                    }
+                  />
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+                {isAllowed && (
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm">Default</label>
+                    <Switch
+                      checked={handleGrip?.is_default || false}
+                      onCheckedChange={(checked) => 
+                        toggleDefault.mutate({ gripId: grip.id, isDefault: checked })
+                      }
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
