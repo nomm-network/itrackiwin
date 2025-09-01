@@ -65,7 +65,7 @@ export const useEquipmentGripDefaults = () => {
 
       if (error) throw error;
 
-      return data || [];
+      return (data || []) as any;
     },
     staleTime: 5 * 60 * 1000,
   });

@@ -57,7 +57,7 @@ const schema = z.object({
   complexity_score: z.number().min(1).max(10).optional(),
   load_type: z.enum(['single_load', 'dual_load', 'stack', 'fixed', 'barbell', 'bodyweight']).optional(),
   is_unilateral: z.boolean().default(false),
-  requires_handle: z.boolean().default(false),
+  
   allows_grips: z.boolean().default(true),
   tags: z.array(z.string()).optional(),
   source_url: z.string().url().optional().or(z.literal('')),
@@ -109,7 +109,7 @@ const AdminExerciseEdit: React.FC = () => {
       complexity_score: 3,
       load_type: undefined,
       is_unilateral: false,
-      requires_handle: false,
+      
       allows_grips: true,
       tags: [],
       source_url: "",
@@ -176,22 +176,21 @@ const AdminExerciseEdit: React.FC = () => {
       try {
         setLoading(true);
         const { data, error } = await supabase
-          .from('v_exercises_with_translations')
+          .from('exercises')
           .select(`
             id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, 
             equipment_id, movement_id, movement_pattern_id, exercise_skill_level,
-            complexity_score, load_type, is_unilateral, requires_handle, allows_grips,
-            tags, source_url, image_url, thumbnail_url, loading_hint, is_public, translations
+            complexity_score, load_type, is_unilateral, allows_grips,
+            tags, source_url, image_url, thumbnail_url, loading_hint, is_public
           `)
           .eq('id', id)
           .maybeSingle();
         if (error) throw error;
         if (!data) throw new Error('Exercise not found');
         
-        // Extract name and description from translations
-        const translations = data.translations || {};
-        const name = getExerciseNameFromTranslations(translations, data.id);
-        const description = getExerciseDescriptionFromTranslations(translations);
+        // Extract name from existing exercise data or form
+        const name = exerciseName || `Exercise ${id}`;
+        const description = form.watch('description') || '';
         
         setExerciseName(name);
         form.setValue('name', name);
@@ -221,7 +220,7 @@ const AdminExerciseEdit: React.FC = () => {
         form.setValue('complexity_score', data.complexity_score || 3);
         form.setValue('load_type', data.load_type);
         form.setValue('is_unilateral', data.is_unilateral || false);
-        form.setValue('requires_handle', data.requires_handle || false);
+        
         form.setValue('allows_grips', data.allows_grips ?? true);
         form.setValue('tags', data.tags || []);
         form.setValue('source_url', data.source_url || '');
@@ -272,7 +271,7 @@ const AdminExerciseEdit: React.FC = () => {
         exercise_skill_level: values.exercise_skill_level || null,
         complexity_score: values.complexity_score || null,
         is_unilateral: values.is_unilateral,
-        requires_handle: values.requires_handle,
+        
         allows_grips: values.allows_grips,
         is_public: values.is_public,
       };
@@ -600,13 +599,6 @@ const AdminExerciseEdit: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label>Requires Handle</Label>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.watch('requires_handle')} onCheckedChange={(v) => form.setValue('requires_handle', v)} />
-                    <span className="text-sm text-muted-foreground">Needs attachment</span>
-                  </div>
-                </div>
 
                 <div className="space-y-2">
                   <Label>Allows Grips</Label>

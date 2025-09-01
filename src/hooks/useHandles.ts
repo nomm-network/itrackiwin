@@ -43,7 +43,7 @@ export const useEquipmentGrips = (equipmentId?: string) => {
 
       if (error) throw error;
 
-      return data || [];
+      return (data || []) as any;
     },
     enabled: !!equipmentId,
     staleTime: 5 * 60 * 1000, // 5 minutes
@@ -75,7 +75,7 @@ export const useAllEquipmentGrips = () => {
 
       if (error) throw error;
 
-      return data || [];
+      return (data || []) as any;
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });

@@ -5,7 +5,7 @@ const FitnessPage = lazy(() => import("./pages/Fitness.page"));
 const ExercisesPage = lazy(() => import("./pages/Exercises.page"));
 const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page"));
 const TemplatesPage = lazy(() => import("./pages/Templates.page"));
-const TemplateEditorPage = lazy(() => import("./pages/TemplateEditor.page"));
+const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page"));
 const HistoryPage = lazy(() => import("./pages/History.page"));
 const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 const FitnessConfigurePage = lazy(() => import("./pages/FitnessConfigure.page"));
@@ -20,7 +20,7 @@ export const FitnessRoutes = (
     <Route path="exercises" element={<ExercisesPage />} />
     <Route path="session/:id" element={<WorkoutSessionPage />} />
     <Route path="templates" element={<TemplatesPage />} />
-    <Route path="templates/:templateId/edit" element={<TemplateEditorPage />} />
+    
     <Route path="configure" element={<FitnessConfigurePage />} />
     <Route path="my-gym" element={<MyGymPage />} />
     <Route path="programs" element={<TrainingProgramsPage />} />
