@@ -106,39 +106,15 @@ export default function TemplateEdit() {
   const { data: searchExercises, isLoading: searchLoading } = useQuery({
     queryKey: ['exercise-search', exerciseSearch, selectedMuscleGroup, selectedEquipment],
     queryFn: async (): Promise<Exercise[]> => {
-      let query = supabase
+      const { data, error } = await supabase
         .from('exercises')
         .select(`
           id,
-          primary_muscle_id,
-          equipment_id,
-          exercises_translations!inner(name),
-          muscle_groups!primary_muscle_id(
-            muscle_groups_translations!inner(name)
-          ),
-          equipment!equipment_id(
-            equipment_translations!inner(name)
-          )
+          exercises_translations!inner(name)
         `)
         .eq('exercises_translations.language_code', 'en')
-        .eq('muscle_groups.muscle_groups_translations.language_code', 'en')
-        .eq('equipment.equipment_translations.language_code', 'en')
-        .eq('is_public', true);
-        
-      if (exerciseSearch.trim()) {
-        query = query.ilike('exercises_translations.name', `%${exerciseSearch}%`);
-      }
-      
-      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
-        query = query.eq('primary_muscle_id', selectedMuscleGroup);
-      }
-      
-      if (selectedEquipment && selectedEquipment !== "all") {
-        query = query.eq('equipment_id', selectedEquipment);
-      }
-        
-      const { data, error } = await query
-        .limit(50)
+        .eq('is_public', true)
+        .limit(100)
         .order('popularity_rank', { ascending: false, nullsFirst: false });
         
       if (error) {
@@ -149,11 +125,10 @@ export default function TemplateEdit() {
       return (data || []).map(ex => ({
         id: ex.id,
         name: (ex.exercises_translations as any)?.[0]?.name || 'Unknown Exercise',
-        primary_muscle: (ex.muscle_groups as any)?.muscle_groups_translations?.[0]?.name || 'Unknown',
-        equipment: (ex.equipment as any)?.equipment_translations?.[0]?.name || 'Unknown'
+        primary_muscle: 'Muscle',
+        equipment: 'Equipment'
       }));
-    },
-    enabled: true // Always enabled to show exercises by default
+    }
   });
 
   useEffect(() => {
