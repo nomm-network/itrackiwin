@@ -37,7 +37,6 @@ export function AdminRoutes() {
               <Route path="setup/equipment" element={<AdminEquipmentManagement />} />
               <Route path="setup/grips" element={<AdminGripsManagement />} />
               <Route path="setup/equipment-grip-compatibility" element={<AdminEquipmentGripCompatibility />} />
-              <Route path="setup/handle-grip-compatibility" element={<AdminEquipmentGripCompatibility />} />
               <Route path="setup/movement-patterns" element={<AdminMovementsManagement />} />
               <Route path="setup/tags-aliases" element={<AdminTagsAliasesManagement />} />
               
