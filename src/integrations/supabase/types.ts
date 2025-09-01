@@ -3366,6 +3366,7 @@ export type Database = {
           backoff_percent: number | null
           backoff_sets: number | null
           created_at: string | null
+          default_grip_ids: string[] | null
           default_sets: number
           default_warmup_plan: Json | null
           display_name: string | null
@@ -3377,12 +3378,12 @@ export type Database = {
           progression_policy_id: string | null
           rep_range_max: number | null
           rep_range_min: number | null
+          rest_seconds: number | null
           set_scheme: string | null
           target_rep_max: number | null
           target_rep_min: number | null
           target_reps: number | null
           target_settings: Json | null
-          target_weight: number | null
           target_weight_kg: number | null
           template_id: string
           top_set_percent_1rm: number | null
@@ -3393,6 +3394,7 @@ export type Database = {
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
+          default_grip_ids?: string[] | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
@@ -3404,12 +3406,12 @@ export type Database = {
           progression_policy_id?: string | null
           rep_range_max?: number | null
           rep_range_min?: number | null
+          rest_seconds?: number | null
           set_scheme?: string | null
           target_rep_max?: number | null
           target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
-          target_weight?: number | null
           target_weight_kg?: number | null
           template_id: string
           top_set_percent_1rm?: number | null
@@ -3420,6 +3422,7 @@ export type Database = {
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
+          default_grip_ids?: string[] | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
@@ -3431,12 +3434,12 @@ export type Database = {
           progression_policy_id?: string | null
           rep_range_max?: number | null
           rep_range_min?: number | null
+          rest_seconds?: number | null
           set_scheme?: string | null
           target_rep_max?: number | null
           target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
-          target_weight?: number | null
           target_weight_kg?: number | null
           template_id?: string
           top_set_percent_1rm?: number | null
