@@ -15,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Loader2, X, Plus, Info } from 'lucide-react';
 import { Checkbox } from '@/components/ui/checkbox';
 import SecondaryMuscleGroupSelector from '@/components/SecondaryMuscleGroupSelector';
-import { HandleGripSelector } from '@/features/workouts/components/HandleGripSelector';
+// import { HandleGripSelector } from '@/features/workouts/components/HandleGripSelector';
 import { useAuth } from '@/hooks/useAuth';
 
 interface CreateExerciseDialogProps {
@@ -45,8 +45,7 @@ interface CreateExerciseFormData {
   isBarLoaded: boolean;
   isUnilateral: boolean;
   
-  // Handles & Grips
-  defaultHandleIds: string[];
+  // Grips
   defaultGripIds: string[];
   
   // Tags & Aliases

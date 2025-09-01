@@ -9,11 +9,8 @@ const AdminExerciseEdit = lazy(() => import("./pages/AdminExerciseEdit.tsx"));
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
-const AdminHandlesManagement = lazy(() => import("./pages/AdminHandlesManagement"));
 const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManagement"));
-const AdminHandleEquipmentCompatibility = lazy(() => import("./pages/AdminHandleEquipmentCompatibility"));
-const AdminHandleGripCompatibility = lazy(() => import("./pages/AdminHandleGripCompatibility"));
-const AdminCompatibilityManagement = lazy(() => import("./pages/AdminCompatibilityManagement"));
+const AdminEquipmentGripCompatibility = lazy(() => import("./pages/AdminEquipmentGripCompatibility"));
 const AdminTagsAliasesManagement = lazy(() => import("./pages/AdminTagsAliasesManagement"));
 const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
@@ -37,11 +34,8 @@ export function AdminRoutes() {
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
               <Route path="setup/equipment" element={<AdminEquipmentManagement />} />
-              <Route path="setup/handles" element={<AdminHandlesManagement />} />
               <Route path="setup/grips" element={<AdminGripsManagement />} />
-              <Route path="setup/handle-equipment-compatibility" element={<AdminHandleEquipmentCompatibility />} />
-              <Route path="setup/handle-grip-compatibility" element={<AdminHandleGripCompatibility />} />
-              <Route path="setup/compatibility" element={<AdminCompatibilityManagement />} />
+              <Route path="setup/equipment-grip-compatibility" element={<AdminEquipmentGripCompatibility />} />
               <Route path="setup/movement-patterns" element={<AdminMovementsManagement />} />
               <Route path="setup/tags-aliases" element={<AdminTagsAliasesManagement />} />
               

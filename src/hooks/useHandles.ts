@@ -1,57 +1,82 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-interface Handle {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-  translations?: Array<{
-    name: string;
-    description?: string;
-    language_code: string;
-  }>;
+interface EquipmentGrip {
+  equipment_id: string;
+  grip_id: string;
+  is_default: boolean;
+  grip: {
+    id: string;
+    slug: string;
+    category: string;
+    translations?: Array<{
+      name: string;
+      description?: string;
+      language_code: string;
+    }>;
+  };
 }
 
-export const useHandles = () => {
+export const useEquipmentGrips = (equipmentId?: string) => {
   return useQuery({
-    queryKey: ['handles'],
-    queryFn: async () => {
+    queryKey: ['equipment-grips', equipmentId],
+    queryFn: async (): Promise<EquipmentGrip[]> => {
       const { data, error } = await supabase
-        .from('handles')
+        .from('equipment_grip_defaults')
         .select(`
-          id,
-          slug,
-          translations:handles_translations(
-            name,
-            description,
-            language_code
+          equipment_id,
+          grip_id,
+          is_default,
+          grip:grips!grip_id(
+            id,
+            slug,
+            category,
+            translations:grips_translations(
+              name,
+              description,
+              language_code
+            )
           )
         `)
-        .order('slug');
+        .eq('equipment_id', equipmentId)
+        .order('is_default', { ascending: false });
 
       if (error) throw error;
 
-      // Process data to include formatted name if needed
-      const processedData = data?.map(handle => ({
-        ...handle,
-        name: (handle.translations as any)?.[0]?.name || 
-              handle.slug.split('-').map(word => 
-                word.charAt(0).toUpperCase() + word.slice(1)
-              ).join(' ')
-      })) || [];
-
-      return processedData;
+      return data || [];
     },
+    enabled: !!equipmentId,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 };
 
-// Helper function to get handle ID by name
-export const getHandleIdByName = (handles: any[], handleName: string): string | null => {
-  const handle = handles.find(h => 
-    h.name?.toLowerCase() === handleName.toLowerCase() ||
-    h.slug?.toLowerCase() === handleName.toLowerCase()
-  );
-  return handle?.id || null;
+export const useAllEquipmentGrips = () => {
+  return useQuery({
+    queryKey: ['all-equipment-grips'],
+    queryFn: async (): Promise<EquipmentGrip[]> => {
+      const { data, error } = await supabase
+        .from('equipment_grip_defaults')
+        .select(`
+          equipment_id,
+          grip_id,
+          is_default,
+          grip:grips!grip_id(
+            id,
+            slug,
+            category,
+            translations:grips_translations(
+              name,
+              description,
+              language_code
+            )
+          )
+        `)
+        .order('is_default', { ascending: false });
+
+      if (error) throw error;
+
+      return data || [];
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 };

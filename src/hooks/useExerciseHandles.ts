@@ -1,43 +1,65 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export type ExerciseHandleRow = {
-  handle_id: string;
-  is_default: boolean;
-  handle: {
-    id: string;
-    slug: string;
-    translations: { language_code: string; name: string; description?: string }[];
-  };
-};
+interface ExerciseGrip {
+  id: string;
+  slug: string;
+  category: string;
+  name: string;
+  translations?: Array<{
+    name: string;
+    description?: string;
+    language_code: string;
+  }>;
+}
 
-export function useExerciseHandles(exerciseId?: string, lang: 'en' | 'ro' = 'en') {
+export function useExerciseGrips(exerciseId?: string, lang: 'en' | 'ro' = 'en') {
   return useQuery({
-    queryKey: ['exercise-handles', exerciseId, lang],
+    queryKey: ['exercise-grips', exerciseId, lang],
     enabled: !!exerciseId,
-    queryFn: async (): Promise<ExerciseHandleRow[]> => {
+    queryFn: async (): Promise<ExerciseGrip[]> => {
+      // First get the exercise to find its equipment
+      const { data: exercise, error: exerciseError } = await supabase
+        .from('exercises')
+        .select('equipment_id, default_grip_ids')
+        .eq('id', exerciseId)
+        .single();
+
+      if (exerciseError) throw exerciseError;
+
+      // Get grips for this equipment
       const { data, error } = await supabase
-        .from('exercise_handles')
+        .from('equipment_grip_defaults')
         .select(`
-          handle_id, is_default,
-          handle:handles (
-            id, slug,
-            translations:handles_translations (language_code, name, description)
+          grip:grips!grip_id(
+            id,
+            slug,
+            category,
+            translations:grips_translations(
+              name,
+              description,
+              language_code
+            )
           )
         `)
-        .eq('exercise_id', exerciseId);
+        .eq('equipment_id', exercise.equipment_id);
 
       if (error) throw error;
 
-      // Sort by default first
-      const rows = (data || []) as any;
-      return rows.sort((a:any,b:any) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1));
+      // Process and return grips
+      return (data || []).map((item: any) => {
+        const grip = item.grip;
+        const translation = grip.translations?.find((t: any) => t.language_code === lang) || 
+                          grip.translations?.[0];
+        
+        return {
+          id: grip.id,
+          slug: grip.slug,
+          category: grip.category,
+          name: translation?.name || grip.slug,
+          translations: grip.translations
+        };
+      });
     },
   });
-}
-
-export function pickHandleName(row: ExerciseHandleRow, lang: 'en' | 'ro' = 'en') {
-  const t = row.handle?.translations?.find(t => t.language_code === lang)
-        || row.handle?.translations?.[0];
-  return t?.name || row.handle?.slug || 'Handle';
 }
