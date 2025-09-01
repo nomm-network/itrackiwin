@@ -5559,6 +5559,7 @@ export type Database = {
           duration_seconds: number | null
           effort: Database["public"]["Enums"]["effort_code"] | null
           effort_rating: number | null
+          grip_key: string | null
           had_pain: boolean | null
           heart_rate: number | null
           id: string
@@ -5593,6 +5594,7 @@ export type Database = {
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
           effort_rating?: number | null
+          grip_key?: string | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
@@ -5627,6 +5629,7 @@ export type Database = {
           duration_seconds?: number | null
           effort?: Database["public"]["Enums"]["effort_code"] | null
           effort_rating?: number | null
+          grip_key?: string | null
           had_pain?: boolean | null
           heart_rate?: number | null
           id?: string
