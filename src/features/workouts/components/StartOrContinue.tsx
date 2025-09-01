@@ -1,13 +1,13 @@
 import { useNavigate } from 'react-router-dom';
 import { useActiveWorkout } from '../hooks/useActiveWorkout';
-import { useStartQuickWorkout } from '../hooks/useStartQuickWorkout';
+import { useStartWorkout } from '../hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function StartOrContinue() {
   const navigate = useNavigate();
   const { data: activeWorkout } = useActiveWorkout();
-  const { mutate: startWorkout, isPending } = useStartQuickWorkout();
+  const { mutate: startWorkout, isPending } = useStartWorkout();
 
   const handleContinueWorkout = () => {
     if (activeWorkout?.id) {

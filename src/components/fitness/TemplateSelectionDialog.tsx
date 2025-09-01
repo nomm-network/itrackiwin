@@ -5,10 +5,10 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Search, Play, Target, Clock } from 'lucide-react';
-import { useTemplates, useCloneTemplateToWorkout, useStartWorkout } from '@/features/health/fitness/services/fitness.api';
+import { useTemplates } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
+import { useStartWorkout } from '@/features/workouts';
 
 
 interface TemplateSelectionDialogProps {
@@ -31,9 +31,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
   
   const navigate = useNavigate();
   const { data: templates = [], isLoading } = useTemplates();
-  const startFromTemplate = useCloneTemplateToWorkout();
-  const startFreeWorkout = useStartWorkout();
-  const startQuickWorkout = useStartQuickWorkout();
+  const startWorkout = useStartWorkout();
 
   // Filter and limit templates based on search query
   const filteredTemplates = useMemo(() => {
@@ -57,7 +55,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     
     try {
       console.log('Starting workout from template:', templateId);
-      const result = await startQuickWorkout.mutateAsync({ templateId });
+      const result = await startWorkout.mutateAsync({ templateId });
       console.log('Created workout ID:', result.workoutId);
       navigate(`/app/workouts/${result.workoutId}`);
       onOpenChange(false);
@@ -74,7 +72,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     setIsStarting(true);
     
     try {
-      const result = await startQuickWorkout.mutateAsync({});
+      const result = await startWorkout.mutateAsync({});
       navigate(`/app/workouts/${result.workoutId}`);
       onOpenChange(false);
       toast.success('Workout started!');

@@ -4,7 +4,7 @@ import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useNavigate, NavLink } from "react-router-dom";
-import { useCloneTemplateToWorkout, useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/health/fitness/services/fitness.api";
+import { useCreateTemplate, useTemplates, useDeleteTemplate, useCloneTemplate } from "@/features/health/fitness/services/fitness.api";
 import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { useTranslations } from "@/hooks/useTranslations";
 import { useFitnessProfileCheck } from "@/features/health/fitness/hooks/useFitnessProfileCheck.hook";
@@ -14,17 +14,20 @@ const Templates: React.FC = () => {
   const navigate = useNavigate();
   const { data: templates } = useTemplates();
   const create = useCreateTemplate();
-  const startFrom = useCloneTemplateToWorkout();
+  // const startFrom = useStartWorkout(); // If needed later
   const deleteTemplate = useDeleteTemplate();
   const cloneTemplate = useCloneTemplate();
   const { checkAndRedirect } = useFitnessProfileCheck();
 
+  // Template start functionality disabled - use useStartWorkout from workouts if needed
+  /*
   const startTemplate = async (templateId: string) => {
     if (!checkAndRedirect('start a workout from template')) return;
     
     const id = await startFrom.mutateAsync(templateId);
     navigate(`/fitness/session/${id}`);
   };
+  */
 
   const handleDeleteTemplate = async (templateId: string) => {
     if (confirm('Are you sure you want to delete this template?')) {
@@ -113,9 +116,9 @@ const Templates: React.FC = () => {
                     >
                       Delete
                     </Button>
-                    <Button size="sm" onClick={() => startTemplate(t.id)}>
+                    {/* <Button size="sm" onClick={() => startTemplate(t.id)}>
                       Start
-                    </Button>
+                    </Button> */}
                   </div>
                 </div>
               </CardContent>

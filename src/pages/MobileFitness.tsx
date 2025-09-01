@@ -11,7 +11,7 @@ import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNextProgramBlock } from "@/hooks/useTrainingPrograms";
-import { useStartQuickWorkout } from "@/features/workouts/hooks/useStartQuickWorkout";
+import { useStartWorkout } from "@/features/workouts";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
@@ -26,7 +26,7 @@ const MobileFitness: React.FC = () => {
   const { data: defaultGym } = useDefaultGym();
   const { gym: selectedGym } = useMyGym();
   const { data: nextBlock } = useNextProgramBlock();
-  const startQuickWorkout = useStartQuickWorkout();
+  const startWorkout = useStartWorkout();
   const [quickWeight, setQuickWeight] = useState<number | null>(null);
   const [quickReps, setQuickReps] = useState<number | null>(null);
   const [showQuickEntry, setShowQuickEntry] = useState(false);
@@ -51,11 +51,11 @@ const MobileFitness: React.FC = () => {
     try {
       if (nextBlock) {
         // Start from program
-        const result = await startQuickWorkout.mutateAsync({ useProgram: true });
+        const result = await startWorkout.mutateAsync({ useProgram: true });
         navigate(`/app/workouts/${result.workoutId}`);
       } else {
         // Show template selection or start free workout
-        const result = await startQuickWorkout.mutateAsync({});
+        const result = await startWorkout.mutateAsync({});
         navigate(`/app/workouts/${result.workoutId}`);
       }
     } catch (error) {

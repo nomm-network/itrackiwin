@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
+import { useStartWorkout } from '@/features/workouts';
 
 export default function EnhancedPrograms() {
   const [showBuilder, setShowBuilder] = useState(false);
@@ -22,7 +22,7 @@ export default function EnhancedPrograms() {
   const setActiveProgram = useSetActiveProgram();
   const deleteProgram = useDeleteTrainingProgram();
   const updateProgram = useUpdateTrainingProgram();
-  const startQuickWorkout = useStartQuickWorkout();
+  const startWorkout = useStartWorkout();
 
   const handleActivateProgram = async (programId: string) => {
     try {
@@ -77,7 +77,7 @@ export default function EnhancedPrograms() {
     if (!nextBlock) return;
     
     try {
-      const result = await startQuickWorkout.mutateAsync({ 
+      const result = await startWorkout.mutateAsync({ 
         templateId: nextBlock.workout_template_id,
         useProgram: true 
       });
@@ -144,8 +144,8 @@ export default function EnhancedPrograms() {
                 </p>
               </div>
               
-              <Button onClick={handleStartWorkout} disabled={startQuickWorkout.isPending}>
-                {startQuickWorkout.isPending ? 'Starting...' : 'Start Workout'}
+              <Button onClick={handleStartWorkout} disabled={startWorkout.isPending}>
+                {startWorkout.isPending ? 'Starting...' : 'Start Workout'}
               </Button>
             </div>
           </CardContent>

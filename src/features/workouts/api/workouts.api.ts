@@ -136,12 +136,16 @@ export const useGetWorkout = (workoutId?: string) => {
   });
 };
 
-export const useStartQuickWorkout = () => {
+// UNIFIED START WORKOUT FUNCTION - handles all workout starting scenarios
+export const useStartWorkout = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (options: { templateId?: string; useProgram?: boolean } = {}) => {
+    mutationFn: async (options: { 
+      templateId?: string; 
+      useProgram?: boolean;
+    } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { data, error } = await supabase.rpc('start_workout', {
@@ -152,11 +156,14 @@ export const useStartQuickWorkout = () => {
       return { workoutId: data };
     },
     onSuccess: () => {
-      // Optimistically update cache
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: workoutKeys.active(user.id) });
         queryClient.invalidateQueries({ queryKey: workoutKeys.sessions(user.id) });
+        queryClient.invalidateQueries({ queryKey: ["workouts"] });
       }
+    },
+    onError: (error) => {
+      console.error('Failed to start workout:', error);
     }
   });
 };

@@ -9,7 +9,7 @@ import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.ap
 import { useActiveWorkout } from '@/features/workouts/hooks';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
-import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
+import { useStartWorkout } from '@/features/workouts';
 
 const FitnessQuickStart: React.FC = () => {
   const navigate = useNavigate();
@@ -17,7 +17,7 @@ const FitnessQuickStart: React.FC = () => {
   const { data: recentWorkouts } = useRecentWorkouts(5);
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
-  const startQuickWorkout = useStartQuickWorkout();
+  const startWorkout = useStartWorkout();
   
   // Use direct active workout query instead of relying on recentWorkouts list
   const { data: activeWorkout, isLoading: loadingActiveWorkout, error: activeWorkoutError } = useActiveWorkout();
@@ -52,7 +52,7 @@ const FitnessQuickStart: React.FC = () => {
     if (nextBlock) {
       // Start from program
       try {
-        const result = await startQuickWorkout.mutateAsync({ useProgram: true });
+        const result = await startWorkout.mutateAsync({ useProgram: true });
         navigate(`/app/workouts/${result.workoutId}`);
       } catch (error) {
         console.error('Failed to start program workout:', error);
@@ -116,10 +116,10 @@ const FitnessQuickStart: React.FC = () => {
               <Button 
                 onClick={handleStartWorkout}
                 className="w-full bg-primary hover:bg-primary/90"
-                disabled={startQuickWorkout.isPending}
+                disabled={startWorkout.isPending}
               >
                 <Play className="h-4 w-4 mr-2" />
-                {startQuickWorkout.isPending ? 'Starting...' : 'Start Program Workout'}
+                {startWorkout.isPending ? 'Starting...' : 'Start Program Workout'}
               </Button>
             </div>
           ) : (

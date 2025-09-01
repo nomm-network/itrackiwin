@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useStartQuickWorkout } from "../hooks";
+import { useStartWorkout } from "../hooks";
 import { useNavigate } from "react-router-dom";
 
 export default function QuickStart() {
-  const { mutate: startWorkout, isPending } = useStartQuickWorkout();
+  const { mutate: startWorkout, isPending } = useStartWorkout();
   const navigate = useNavigate();
 
   const handleStartWorkout = () => {
