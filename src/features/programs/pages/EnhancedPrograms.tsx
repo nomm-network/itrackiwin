@@ -2,22 +2,91 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Settings, Plus } from 'lucide-react';
+import { Play, Settings, Plus, Trash2, Edit } from 'lucide-react';
 import { EnhancedProgramBuilder } from '../components/EnhancedProgramBuilder';
-import { useTrainingPrograms, useSetActiveProgram, useNextProgramBlock } from '@/hooks/useTrainingPrograms';
+import { useTrainingPrograms, useSetActiveProgram, useNextProgramBlock, useDeleteTrainingProgram, useUpdateTrainingProgram } from '@/hooks/useTrainingPrograms';
 import { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { toast } from 'sonner';
+import { useStartQuickWorkout } from '@/features/workouts/hooks/useStartQuickWorkout';
 
 export default function EnhancedPrograms() {
   const [showBuilder, setShowBuilder] = useState(false);
+  const [editingProgram, setEditingProgram] = useState<any>(null);
+  const [editForm, setEditForm] = useState({ name: '', goal: '' });
   const { data: programs = [], isLoading } = useTrainingPrograms();
   const { data: nextBlock } = useNextProgramBlock();
   const setActiveProgram = useSetActiveProgram();
+  const deleteProgram = useDeleteTrainingProgram();
+  const updateProgram = useUpdateTrainingProgram();
+  const startQuickWorkout = useStartQuickWorkout();
 
   const handleActivateProgram = async (programId: string) => {
     try {
       await setActiveProgram.mutateAsync(programId);
+      toast.success('Program activated successfully');
     } catch (error) {
       console.error('Failed to activate program:', error);
+      toast.error('Failed to activate program');
+    }
+  };
+
+  const handleDeleteProgram = async (programId: string, programName: string) => {
+    if (!confirm(`Are you sure you want to delete "${programName}"?`)) return;
+    
+    try {
+      await deleteProgram.mutateAsync(programId);
+      toast.success('Program deleted successfully');
+    } catch (error) {
+      console.error('Failed to delete program:', error);
+      toast.error('Failed to delete program');
+    }
+  };
+
+  const handleEditProgram = (program: any) => {
+    setEditingProgram(program);
+    setEditForm({ name: program.name, goal: program.goal || '' });
+  };
+
+  const handleUpdateProgram = async () => {
+    if (!editForm.name.trim()) {
+      toast.error('Program name is required');
+      return;
+    }
+
+    try {
+      await updateProgram.mutateAsync({
+        programId: editingProgram.id,
+        updates: {
+          name: editForm.name,
+          goal: editForm.goal || null
+        }
+      });
+      toast.success('Program updated successfully');
+      setEditingProgram(null);
+    } catch (error) {
+      console.error('Failed to update program:', error);
+      toast.error('Failed to update program');
+    }
+  };
+
+  const handleStartWorkout = async () => {
+    if (!nextBlock) return;
+    
+    try {
+      const result = await startQuickWorkout.mutateAsync({ 
+        templateId: nextBlock.workout_template_id,
+        useProgram: true 
+      });
+      
+      // Navigate to workout session
+      window.location.href = `/fitness/session/${result.workoutId}`;
+    } catch (error) {
+      console.error('Failed to start workout:', error);
+      toast.error('Could not start workout. Please try again.');
     }
   };
 
@@ -75,8 +144,8 @@ export default function EnhancedPrograms() {
                 </p>
               </div>
               
-              <Button>
-                Start Workout
+              <Button onClick={handleStartWorkout} disabled={startQuickWorkout.isPending}>
+                {startQuickWorkout.isPending ? 'Starting...' : 'Start Workout'}
               </Button>
             </div>
           </CardContent>
@@ -138,9 +207,23 @@ export default function EnhancedPrograms() {
                     </div>
                     
                     <div className="flex gap-2">
-                      <Button variant="outline" size="sm">
-                        <Settings className="h-4 w-4 mr-2" />
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleEditProgram(program)}
+                      >
+                        <Edit className="h-4 w-4 mr-2" />
                         Edit
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => handleDeleteProgram(program.id, program.name)}
+                        disabled={deleteProgram.isPending}
+                      >
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Delete
                       </Button>
                       
                       {!program.is_active && (
@@ -161,6 +244,54 @@ export default function EnhancedPrograms() {
           </div>
         )}
       </div>
+
+      {/* Edit Program Dialog */}
+      <Dialog open={!!editingProgram} onOpenChange={(open) => !open && setEditingProgram(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Program</DialogTitle>
+            <DialogDescription>
+              Update your training program details
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-name">Program Name</Label>
+              <Input
+                id="edit-name"
+                value={editForm.name}
+                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-goal">Goal</Label>
+              <Select 
+                value={editForm.goal} 
+                onValueChange={(value) => setEditForm(prev => ({ ...prev, goal: value }))}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a goal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No goal</SelectItem>
+                  <SelectItem value="strength">Strength</SelectItem>
+                  <SelectItem value="hypertrophy">Muscle Building</SelectItem>
+                  <SelectItem value="endurance">Endurance</SelectItem>
+                  <SelectItem value="general">General Fitness</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex gap-3">
+              <Button variant="outline" onClick={() => setEditingProgram(null)}>
+                Cancel
+              </Button>
+              <Button onClick={handleUpdateProgram} disabled={updateProgram.isPending}>
+                {updateProgram.isPending ? 'Updating...' : 'Update Program'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

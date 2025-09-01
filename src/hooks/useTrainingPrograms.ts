@@ -185,3 +185,55 @@ export const useSetActiveProgram = () => {
     }
   });
 };
+
+export const useDeleteTrainingProgram = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async (programId: string) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Not authenticated');
+
+      const { error } = await supabase
+        .from('training_programs')
+        .delete()
+        .eq('id', programId)
+        .eq('user_id', user.user.id);
+
+      if (error) throw error;
+      return programId;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-programs'] });
+      queryClient.invalidateQueries({ queryKey: ['next-program-block'] });
+    }
+  });
+};
+
+export const useUpdateTrainingProgram = () => {
+  const queryClient = useQueryClient();
+  
+  return useMutation({
+    mutationFn: async ({ programId, updates }: { 
+      programId: string; 
+      updates: Partial<Pick<TrainingProgram, 'name' | 'goal'>> 
+    }) => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error('Not authenticated');
+
+      const { data, error } = await supabase
+        .from('training_programs')
+        .update(updates)
+        .eq('id', programId)
+        .eq('user_id', user.user.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['training-programs'] });
+    }
+  });
+};
