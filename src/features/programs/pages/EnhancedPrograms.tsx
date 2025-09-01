@@ -78,8 +78,7 @@ export default function EnhancedPrograms() {
     
     try {
       const result = await startWorkout.mutateAsync({ 
-        templateId: nextBlock.workout_template_id,
-        useProgram: true 
+        templateId: nextBlock.workout_template_id
       });
       
       // Navigate to workout session

@@ -51,7 +51,7 @@ const MobileFitness: React.FC = () => {
     try {
       if (nextBlock) {
         // Start from program
-        const result = await startWorkout.mutateAsync({ useProgram: true });
+        const result = await startWorkout.mutateAsync({ templateId: nextBlock?.workout_template_id });
         navigate(`/app/workouts/${result.workoutId}`);
       } else {
         // Show template selection or start free workout

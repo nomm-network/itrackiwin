@@ -350,7 +350,7 @@ export const useRecentWorkouts = (limit = 5) => {
   });
 };
 
-// REMOVED: Legacy useCloneTemplateToWorkout - use useStartWorkout from workouts.api.ts instead
+// CLEANED: All legacy workout start functions removed - use useStartWorkout from workouts.api.ts
 
 export const useEndWorkout = () => {
   const qc = useQueryClient();
@@ -726,7 +726,7 @@ export const useCloneTemplate = () => {
   });
 };
 
-// REMOVED: Deleted conflicting useCloneTemplateToWorkout function
+// CLEANED: All conflicting workout functions removed
 
 export const useTemplateDetail = (templateId?: UUID) => {
   return useQuery({

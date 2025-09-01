@@ -52,7 +52,7 @@ const FitnessQuickStart: React.FC = () => {
     if (nextBlock) {
       // Start from program
       try {
-        const result = await startWorkout.mutateAsync({ useProgram: true });
+        const result = await startWorkout.mutateAsync({ templateId: nextBlock.workout_template_id });
         navigate(`/app/workouts/${result.workoutId}`);
       } catch (error) {
         console.error('Failed to start program workout:', error);

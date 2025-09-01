@@ -142,10 +142,7 @@ export const useStartWorkout = () => {
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (options: { 
-      templateId?: string; 
-      useProgram?: boolean;
-    } = {}) => {
+    mutationFn: async (options: { templateId?: string } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { data, error } = await supabase.rpc('start_workout', {
