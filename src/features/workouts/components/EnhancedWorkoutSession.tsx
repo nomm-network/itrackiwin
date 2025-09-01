@@ -647,7 +647,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     <WarmupBlock
                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                      unit="kg"
-                     suggestedTopWeight={currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight || 60}
+                     suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
                      suggestedTopReps={currentExercise?.target_reps ?? 8}
                      onFeedbackGiven={() => setWarmupCompleted(true)}
                    />
@@ -665,7 +665,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
                 templateTargetReps={currentExercise?.target_reps}
-                templateTargetWeight={currentExercise?.target_weight || currentExerciseEstimate?.estimated_weight}
+                templateTargetWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight}
                 isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
                 onSetComplete={(setData) => {
                   // Hide warmup when first set is completed
