@@ -5,7 +5,7 @@ import AdminLayout from "./layout/AdminLayout";
 
 const AdminHomePage = lazy(() => import("./pages/AdminHome.page"));
 const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManagement"));
-const AdminExerciseEdit = lazy(() => import("./pages/AdminExerciseEdit"));
+const AdminExerciseEdit = lazy(() => import("./pages/AdminExerciseEdit.tsx"));
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
