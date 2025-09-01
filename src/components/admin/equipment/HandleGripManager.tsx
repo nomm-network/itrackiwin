@@ -36,8 +36,24 @@ interface AvailableGrip {
 }
 
 export function HandleGripManager({ equipmentId, handleId, handleName, onClose }: HandleGripManagerProps) {
-  const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
   const queryClient = useQueryClient();
+
+  // Fetch all available grips
+  const { data: allGrips = [], isLoading: allGripsLoading } = useQuery({
+    queryKey: ['all-grips'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('grips')
+        .select(`
+          id, slug, category,
+          translations:grips_translations (language_code, name)
+        `)
+        .order('category, slug');
+      
+      if (error) throw error;
+      return data as any;
+    }
+  });
 
   // Fetch existing grips for this handle
   const { data: handleGrips = [], isLoading: gripsLoading } = useQuery({
@@ -62,56 +78,53 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
     }
   });
 
-  // Fetch all available grips
-  const { data: allGrips = [], isLoading: allGripsLoading } = useQuery({
-    queryKey: ['all-grips'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('grips')
-        .select(`
-          id, slug, category,
-          translations:grips_translations (language_code, name)
-        `)
-        .order('category, slug');
-      
-      if (error) throw error;
-      return data as any;
-    }
-  });
-
-  const existingGripIds = handleGrips.map(hg => hg.grip_id);
-  const availableGrips = allGrips.filter(g => !existingGripIds.includes(g.id));
-
-  const addGrips = useMutation({
-    mutationFn: async (gripIds: string[]) => {
-      const mappings = gripIds.map(gripId => ({
-        equipment_id: equipmentId,
-        handle_id: handleId,
-        grip_id: gripId,
-        is_default: false
-      }));
-
-      const { error } = await supabase
-        .from('equipment_handle_grips')
-        .insert(mappings);
-      
-      if (error) throw error;
+  const toggleAllowed = useMutation({
+    mutationFn: async ({ gripId, allowed }: { gripId: string; allowed: boolean }) => {
+      if (allowed) {
+        // Add grip
+        const { error } = await supabase
+          .from('equipment_handle_grips')
+          .insert({
+            equipment_id: equipmentId,
+            handle_id: handleId,
+            grip_id: gripId,
+            is_default: false
+          });
+        if (error) throw error;
+      } else {
+        // Remove grip
+        const { error } = await supabase
+          .from('equipment_handle_grips')
+          .delete()
+          .eq('equipment_id', equipmentId)
+          .eq('handle_id', handleId)
+          .eq('grip_id', gripId);
+        if (error) throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, handleId] });
-      toast.success(`Added ${selectedGripIds.length} grip(s) to ${handleName}`);
-      setSelectedGripIds([]);
     },
     onError: (error) => {
-      toast.error("Failed to add grips: " + error.message);
+      toast.error("Failed to update grip: " + error.message);
     }
   });
 
-  const removeGrip = useMutation({
-    mutationFn: async (gripId: string) => {
+  const toggleDefault = useMutation({
+    mutationFn: async ({ gripId, isDefault }: { gripId: string; isDefault: boolean }) => {
+      // First, clear all defaults for this handle
+      if (isDefault) {
+        await supabase
+          .from('equipment_handle_grips')
+          .update({ is_default: false })
+          .eq('equipment_id', equipmentId)
+          .eq('handle_id', handleId);
+      }
+
+      // Then set the new default
       const { error } = await supabase
         .from('equipment_handle_grips')
-        .delete()
+        .update({ is_default: isDefault })
         .eq('equipment_id', equipmentId)
         .eq('handle_id', handleId)
         .eq('grip_id', gripId);
@@ -120,25 +133,6 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, handleId] });
-      toast.success("Grip removed");
-    },
-    onError: (error) => {
-      toast.error("Failed to remove grip: " + error.message);
-    }
-  });
-
-  const toggleDefault = useMutation({
-    mutationFn: async ({ id, isDefault }: { id: string; isDefault: boolean }) => {
-      const { error } = await supabase
-        .from('equipment_handle_grips')
-        .update({ is_default: isDefault })
-        .eq('id', id);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, handleId] });
-      toast.success("Default setting updated");
     },
     onError: (error) => {
       toast.error("Failed to update default: " + error.message);
@@ -151,18 +145,12 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
            'Unknown Grip';
   };
 
-  const toggleGripSelection = (gripId: string) => {
-    setSelectedGripIds(prev => 
-      prev.includes(gripId)
-        ? prev.filter(id => id !== gripId)
-        : [...prev, gripId]
-    );
+  const isGripAllowed = (gripId: string) => {
+    return handleGrips.some(hg => hg.grip_id === gripId);
   };
 
-  const handleAddGrips = () => {
-    if (selectedGripIds.length > 0) {
-      addGrips.mutate(selectedGripIds);
-    }
+  const getHandleGrip = (gripId: string) => {
+    return handleGrips.find(hg => hg.grip_id === gripId);
   };
 
   if (gripsLoading || allGripsLoading) {
@@ -194,109 +182,60 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
           </Button>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Current Grips */}
+      <CardContent>
         <div>
-          <h4 className="font-medium mb-3">Current Grips</h4>
-          {handleGrips.length > 0 ? (
-            <div className="space-y-2">
-              {handleGrips.map((handleGrip) => (
-                <div key={handleGrip.id} className="flex items-center justify-between p-3 border rounded-md">
+          <h4 className="font-medium mb-3">Grip Configuration</h4>
+          <div className="space-y-3">
+            {allGrips.map((grip) => {
+              const isAllowed = isGripAllowed(grip.id);
+              const handleGrip = getHandleGrip(grip.id);
+              
+              return (
+                <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
                   <div className="flex items-center gap-3">
                     <div>
-                      <div className="font-medium">{getGripName(handleGrip.grip)}</div>
+                      <div className="font-medium">{getGripName(grip)}</div>
                       <div className="text-sm text-muted-foreground">
-                        {handleGrip.grip.category} • {handleGrip.grip.slug}
+                        {grip.category} • {grip.slug}
                       </div>
                     </div>
-                    {handleGrip.is_default && (
+                    {handleGrip?.is_default && (
                       <Badge variant="default" className="text-xs">Default</Badge>
                     )}
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <div className="flex items-center gap-2">
-                      <label htmlFor={`default-${handleGrip.id}`} className="text-sm">
-                        Default
+                      <label htmlFor={`allowed-${grip.id}`} className="text-sm">
+                        Allowed
                       </label>
                       <Switch
-                        id={`default-${handleGrip.id}`}
-                        checked={handleGrip.is_default}
+                        id={`allowed-${grip.id}`}
+                        checked={isAllowed}
                         onCheckedChange={(checked) => 
-                          toggleDefault.mutate({ id: handleGrip.id, isDefault: checked })
+                          toggleAllowed.mutate({ gripId: grip.id, allowed: checked })
                         }
                       />
                     </div>
-                    <Button
-                      onClick={() => removeGrip.mutate(handleGrip.grip_id)}
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive"
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
+                    {isAllowed && (
+                      <div className="flex items-center gap-2">
+                        <label htmlFor={`default-${grip.id}`} className="text-sm">
+                          Make Default
+                        </label>
+                        <Switch
+                          id={`default-${grip.id}`}
+                          checked={handleGrip?.is_default || false}
+                          onCheckedChange={(checked) => 
+                            toggleDefault.mutate({ gripId: grip.id, isDefault: checked })
+                          }
+                        />
+                      </div>
+                    )}
                   </div>
                 </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-4 text-muted-foreground border rounded-md">
-              No grips configured for this handle
-            </div>
-          )}
-        </div>
-
-        {/* Add New Grips */}
-        {availableGrips.length > 0 && (
-          <div>
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="font-medium">Add Grips</h4>
-              {selectedGripIds.length > 0 && (
-                <Button 
-                  onClick={handleAddGrips}
-                  size="sm"
-                  disabled={addGrips.isPending}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add {selectedGripIds.length} Grip(s)
-                </Button>
-              )}
-            </div>
-            
-            <ScrollArea className="h-64 border rounded-md p-4">
-              <div className="space-y-2">
-                {availableGrips.map((grip) => (
-                  <div
-                    key={grip.id}
-                    className={`p-3 border rounded-md cursor-pointer transition-colors ${
-                      selectedGripIds.includes(grip.id)
-                        ? 'bg-primary/10 border-primary'
-                        : 'hover:bg-muted/50'
-                    }`}
-                    onClick={() => toggleGripSelection(grip.id)}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <div className="font-medium">{getGripName(grip)}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {grip.category} • {grip.slug}
-                        </div>
-                      </div>
-                      {selectedGripIds.includes(grip.id) && (
-                        <Badge variant="default">Selected</Badge>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </ScrollArea>
-            
-            {selectedGripIds.length > 0 && (
-              <div className="text-sm text-muted-foreground mt-2">
-                {selectedGripIds.length} grip(s) selected
-              </div>
-            )}
+              );
+            })}
           </div>
-        )}
+        </div>
       </CardContent>
     </Card>
   );
