@@ -3,16 +3,29 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import PageNav from "@/components/PageNav";
-import { ArrowLeft, Plus, Save, Trash2 } from "lucide-react";
-import { useState, useEffect } from "react";
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, Search } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { 
   useTemplateDetail, 
   useTemplateExercises, 
   useUpdateTemplate,
-  useDeleteTemplate
+  useDeleteTemplate,
+  useAddExerciseToTemplate
 } from "../services/fitness.api";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+
+interface Exercise {
+  id: string;
+  name: string;
+  primary_muscle?: string;
+  equipment?: string;
+}
 
 export default function TemplateEdit() {
   const { templateId } = useParams<{ templateId: string }>();
@@ -21,11 +34,38 @@ export default function TemplateEdit() {
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [isEditing, setIsEditing] = useState(false);
+  const [showExerciseDialog, setShowExerciseDialog] = useState(false);
+  const [exerciseSearch, setExerciseSearch] = useState("");
 
   const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
-  const { data: exercises, isLoading: exercisesLoading } = useTemplateExercises(templateId);
+  const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
+  const addExerciseToTemplate = useAddExerciseToTemplate();
+
+  // Search exercises for adding to template
+  const { data: searchExercises, isLoading: searchLoading } = useQuery({
+    queryKey: ['exercise-search', exerciseSearch],
+    queryFn: async (): Promise<Exercise[]> => {
+      if (!exerciseSearch.trim()) return [];
+      
+      const { data, error } = await supabase
+        .from('v_exercises_with_translations')
+        .select('id, translations, primary_muscle_id, equipment_id')
+        .ilike('translations->>name', `%${exerciseSearch}%`)
+        .limit(20);
+        
+      if (error) throw error;
+      
+      return (data || []).map(ex => ({
+        id: ex.id,
+        name: (ex.translations as any)?.name || 'Unknown Exercise',
+        primary_muscle: ex.primary_muscle_id,
+        equipment: ex.equipment_id
+      }));
+    },
+    enabled: exerciseSearch.length > 2
+  });
 
   useEffect(() => {
     if (template) {
@@ -68,9 +108,74 @@ export default function TemplateEdit() {
     }
   };
 
-  const handleAddExercise = () => {
-    // TODO: Implement add exercise functionality
-    toast.info("Add exercise functionality coming soon");
+  const handleAddExercise = async (exercise: Exercise) => {
+    if (!templateId) return;
+    
+    try {
+      await addExerciseToTemplate.mutateAsync({
+        template_id: templateId,
+        exercise_id: exercise.id,
+        order_index: (exercises?.length || 0) + 1,
+        default_sets: 3,
+        target_reps: 10,
+        weight_unit: 'kg'
+      });
+      
+      toast.success(`Added ${exercise.name} to template`);
+      setShowExerciseDialog(false);
+      setExerciseSearch("");
+      refetchExercises();
+    } catch (error) {
+      toast.error("Failed to add exercise");
+      console.error("Add exercise error:", error);
+    }
+  };
+
+  const handleDragEnd = useCallback(async (result: any) => {
+    if (!result.destination || !exercises || !templateId) return;
+
+    const items = Array.from(exercises);
+    const [reorderedItem] = items.splice(result.source.index, 1);
+    items.splice(result.destination.index, 0, reorderedItem);
+
+    // Update order indices
+    const updates = items.map((item, index) => ({
+      id: item.id,
+      order_index: index + 1
+    }));
+
+    try {
+      // Update each exercise's order_index
+      for (const update of updates) {
+        await supabase
+          .from('template_exercises')
+          .update({ order_index: update.order_index })
+          .eq('id', update.id);
+      }
+      
+      toast.success("Exercise order updated");
+      refetchExercises();
+    } catch (error) {
+      toast.error("Failed to reorder exercises");
+      console.error("Reorder error:", error);
+    }
+  }, [exercises, templateId, refetchExercises]);
+
+  const handleRemoveExercise = async (exerciseId: string) => {
+    if (!confirm("Remove this exercise from the template?")) return;
+    
+    try {
+      await supabase
+        .from('template_exercises')
+        .delete()
+        .eq('id', exerciseId);
+        
+      toast.success("Exercise removed from template");
+      refetchExercises();
+    } catch (error) {
+      toast.error("Failed to remove exercise");
+      console.error("Remove exercise error:", error);
+    }
   };
 
   if (templateLoading) {
@@ -185,10 +290,66 @@ export default function TemplateEdit() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <CardTitle>Exercises</CardTitle>
-              <Button onClick={handleAddExercise}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Exercise
-              </Button>
+              
+              <Dialog open={showExerciseDialog} onOpenChange={setShowExerciseDialog}>
+                <DialogTrigger asChild>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Add Exercise
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-2xl">
+                  <DialogHeader>
+                    <DialogTitle>Add Exercise to Template</DialogTitle>
+                  </DialogHeader>
+                  
+                  <div className="space-y-4">
+                    <div className="relative">
+                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        placeholder="Search exercises..."
+                        value={exerciseSearch}
+                        onChange={(e) => setExerciseSearch(e.target.value)}
+                        className="pl-10"
+                      />
+                    </div>
+                    
+                    <div className="max-h-96 overflow-y-auto">
+                      {searchLoading ? (
+                        <div className="text-center py-4">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                        </div>
+                      ) : searchExercises && searchExercises.length > 0 ? (
+                        <div className="space-y-2">
+                          {searchExercises.map((exercise) => (
+                            <div
+                              key={exercise.id}
+                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer"
+                              onClick={() => handleAddExercise(exercise)}
+                            >
+                              <div>
+                                <div className="font-medium">{exercise.name}</div>
+                                <div className="text-sm text-muted-foreground">
+                                  {exercise.primary_muscle} • {exercise.equipment}
+                                </div>
+                              </div>
+                              <Button size="sm">Add</Button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : exerciseSearch.length > 2 ? (
+                        <div className="text-center py-4 text-muted-foreground">
+                          No exercises found for "{exerciseSearch}"
+                        </div>
+                      ) : (
+                        <div className="text-center py-4 text-muted-foreground">
+                          Type at least 3 characters to search exercises
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
           </CardHeader>
           <CardContent>
@@ -197,40 +358,75 @@ export default function TemplateEdit() {
                 <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
               </div>
             ) : exercises && exercises.length > 0 ? (
-              <div className="space-y-3">
-                {exercises.map((exercise, index) => (
-                  <div 
-                    key={exercise.id} 
-                    className="flex items-center justify-between p-3 border rounded-lg"
-                  >
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <div className="font-medium">
-                          Exercise {exercise.exercise_id.slice(0, 8)}
-                        </div>
-                        <div className="text-sm text-muted-foreground">
-                          {exercise.default_sets} sets × {exercise.target_reps} reps
-                        </div>
-                      </div>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Droppable droppableId="exercises">
+                  {(provided) => (
+                    <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
+                      {exercises.map((exercise, index) => (
+                        <Draggable 
+                          key={exercise.id} 
+                          draggableId={exercise.id} 
+                          index={index}
+                        >
+                          {(provided, snapshot) => (
+                            <div
+                              ref={provided.innerRef}
+                              {...provided.draggableProps}
+                              className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
+                                snapshot.isDragging ? 'bg-muted shadow-lg' : 'hover:bg-muted/50'
+                              }`}
+                            >
+                              <div
+                                {...provided.dragHandleProps}
+                                className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
+                              >
+                                <GripVertical className="h-5 w-5" />
+                              </div>
+                              
+                              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
+                                {index + 1}
+                              </div>
+                              
+                              <div className="flex-1">
+                                <div className="font-medium">
+                                  Exercise {exercise.exercise_id.slice(0, 8)}
+                                </div>
+                                <div className="text-sm text-muted-foreground">
+                                  {exercise.default_sets} sets × {exercise.target_reps} reps
+                                  {exercise.target_weight && ` @ ${exercise.target_weight}${exercise.weight_unit || 'kg'}`}
+                                </div>
+                                {exercise.notes && (
+                                  <div className="text-xs text-muted-foreground mt-1">
+                                    {exercise.notes}
+                                  </div>
+                                )}
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button variant="ghost" size="sm">
+                                  Edit
+                                </Button>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  onClick={() => handleRemoveExercise(exercise.id)}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          )}
+                        </Draggable>
+                      ))}
+                      {provided.placeholder}
                     </div>
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm">
-                        Edit
-                      </Button>
-                      <Button variant="ghost" size="sm">
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  )}
+                </Droppable>
+              </DragDropContext>
             ) : (
               <div className="text-center py-8 text-muted-foreground">
                 <div className="mb-4">No exercises in this template yet.</div>
-                <Button onClick={handleAddExercise}>
+                <Button onClick={() => setShowExerciseDialog(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Your First Exercise
                 </Button>
