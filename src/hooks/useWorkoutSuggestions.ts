@@ -103,16 +103,4 @@ export const useStagnationDetection = (exerciseId: string, lookbackSessions: num
   });
 };
 
-export const useAdvancedWorkoutStart = () => {
-  return {
-    mutateAsync: async (params: { templateId?: string; readinessData?: any }) => {
-      const { data, error } = await supabase.rpc('fn_start_workout_advanced', {
-        p_template_id: params.templateId || null,
-        p_readiness_data: params.readinessData || {}
-      });
-      
-      if (error) throw error;
-      return data;
-    }
-  };
-};
+// REMOVED: Legacy useAdvancedWorkoutStart - use useStartWorkout from workouts.api.ts instead

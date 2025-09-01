@@ -6764,10 +6764,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
-      clone_template_to_workout: {
-        Args: { p_template_id: string }
-        Returns: string
-      }
       closest_machine_weight: {
         Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
@@ -6862,10 +6858,6 @@ export type Database = {
       }
       fn_detect_stagnation: {
         Args: { p_exercise_id: string; p_lookback_sessions?: number }
-        Returns: Json
-      }
-      fn_start_workout_advanced: {
-        Args: { p_readiness_data?: Json; p_template_id?: string }
         Returns: Json
       }
       fn_suggest_rest_seconds: {

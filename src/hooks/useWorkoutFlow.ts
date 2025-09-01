@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useAdvancedWorkoutStart } from "./useWorkoutSuggestions";
+import { useStartWorkout } from "@/features/workouts/hooks";
 import type { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
 import type { EffortLevel } from "@/components/fitness/EffortSelector";
 
@@ -33,7 +33,7 @@ export interface WorkoutFlowActions {
 export const useWorkoutFlow = (initialTemplateId?: string) => {
   const navigate = useNavigate();
   const { toast } = useToast();
-  const startWorkoutMutation = useAdvancedWorkoutStart();
+  const { mutate: startWorkout, isPending } = useStartWorkout();
 
   const [state, setState] = useState<WorkoutFlowState>({
     phase: 'readiness',
@@ -46,38 +46,36 @@ export const useWorkoutFlow = (initialTemplateId?: string) => {
 
   const actions: WorkoutFlowActions = {
     startWorkout: useCallback(async (templateId?: string, readinessData?: ReadinessData) => {
-      try {
-        const result = await startWorkoutMutation.mutateAsync({
-          templateId: templateId || initialTemplateId,
-          readinessData
-        });
+      // Use the unified startWorkout function
+      startWorkout({ templateId: templateId || initialTemplateId }, {
+        onSuccess: (result) => {
+          setState(prev => ({
+            ...prev,
+            phase: 'active',
+            workoutId: result.workoutId,
+            showReadinessCheck: false,
+          }));
 
-        const workoutResult = result as any;
-        setState(prev => ({
-          ...prev,
-          phase: 'active',
-          workoutId: workoutResult.workout_id,
-          showReadinessCheck: false,
-        }));
+          toast({
+            title: "Workout Started",
+            description: readinessData 
+              ? "Your readiness data has been recorded. Let's get started!"
+              : "Ready to crush this workout!",
+          });
 
-        toast({
-          title: "Workout Started",
-          description: readinessData 
-            ? "Your readiness data has been recorded. Let's get started!"
-            : "Ready to crush this workout!",
-        });
-
-        // Navigate to workout session
-        navigate(`/fitness/workout/${workoutResult.workout_id}`);
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to start workout. Please try again.",
-          variant: "destructive",
-        });
-        console.error("Failed to start workout:", error);
-      }
-    }, [initialTemplateId, startWorkoutMutation, navigate, toast]),
+          // Navigate to workout session
+          navigate(`/fitness/workout/${result.workoutId}`);
+        },
+        onError: (error) => {
+          toast({
+            title: "Error",
+            description: "Failed to start workout. Please try again.",
+            variant: "destructive",
+          });
+          console.error("Failed to start workout:", error);
+        }
+      });
+    }, [initialTemplateId, startWorkout, navigate, toast]),
 
     skipReadinessCheck: useCallback(async (templateId?: string) => {
       // Will be properly defined after actions object is complete
@@ -172,7 +170,7 @@ export const useWorkoutFlow = (initialTemplateId?: string) => {
   return {
     state,
     actions,
-    isLoading: false, // startWorkoutMutation doesn't have isPending, using false for now
+    isLoading: isPending,
   };
 };
 

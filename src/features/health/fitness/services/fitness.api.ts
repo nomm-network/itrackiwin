@@ -350,7 +350,7 @@ export const useRecentWorkouts = (limit = 5) => {
   });
 };
 
-// REMOVED: Deleted conflicting useStartWorkout function
+// REMOVED: Legacy useCloneTemplateToWorkout - use useStartWorkout from workouts.api.ts instead
 
 export const useEndWorkout = () => {
   const qc = useQueryClient();
