@@ -56,7 +56,7 @@ const AdminHandlesManagement: React.FC = () => {
       if (handlesError) throw handlesError;
 
       const { data: translationsData, error: translationsError } = await supabase
-        .from("handle_translations")
+        .from("handles_translations")
         .select("*");
       if (translationsError) throw translationsError;
 
@@ -131,7 +131,7 @@ const AdminHandlesManagement: React.FC = () => {
         
         // Update English translation
         await supabase
-          .from("handle_translations")
+          .from("handles_translations")
           .upsert({
             handle_id: editingHandle.id,
             language_code: "en",
@@ -153,7 +153,7 @@ const AdminHandlesManagement: React.FC = () => {
 
         // Create English translation
         await supabase
-          .from("handle_translations")
+          .from("handles_translations")
           .insert({
             handle_id: data.id,
             language_code: "en",

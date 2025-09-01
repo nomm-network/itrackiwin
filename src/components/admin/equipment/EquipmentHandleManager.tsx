@@ -57,7 +57,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
           is_default,
           handle:handles (
             id, slug,
-            translations:handle_translations (language_code, name)
+            translations:handles_translations (language_code, name)
           )
         `)
         .eq('equipment_id', equipmentId);
@@ -87,7 +87,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
           id, handle_id, equipment_type, kind, load_type, load_medium,
           handle:handles (
             id, slug,
-            translations:handle_translations (language_code, name)
+            translations:handles_translations (language_code, name)
           )
         `)
         .or(

@@ -7,7 +7,7 @@ export interface EquipmentHandleRow {
   handles: {
     id: string;
     slug: string;
-    handle_translations: { language_code: string; name: string; description?: string }[];
+    handles_translations: { language_code: string; name: string; description?: string }[];
   };
 }
 
@@ -22,7 +22,7 @@ export function useEquipmentHandles(equipmentId?: string, lang: 'en' | 'ro' = 'e
           handle_id, is_default,
           handles!inner (
             id, slug,
-            handle_translations (language_code, name, description)
+            handles_translations (language_code, name, description)
           )
         `)
         .eq('equipment_id', equipmentId);
@@ -30,7 +30,7 @@ export function useEquipmentHandles(equipmentId?: string, lang: 'en' | 'ro' = 'e
       if (error) throw error;
 
       // Remove duplicates and sort by default first
-      const uniqueHandles = data?.reduce((acc, curr) => {
+      const uniqueHandles = (data as any)?.reduce((acc: any, curr: any) => {
         const existing = acc.find(h => h.handle_id === curr.handle_id);
         if (!existing) {
           acc.push(curr);
@@ -40,13 +40,13 @@ export function useEquipmentHandles(equipmentId?: string, lang: 'en' | 'ro' = 'e
         return acc;
       }, [] as EquipmentHandleRow[]) || [];
 
-      return uniqueHandles.sort((a, b) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1));
+      return uniqueHandles.sort((a, b) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1)) as any;
     },
   });
 }
 
 export function pickEquipmentHandleName(row: EquipmentHandleRow, lang: 'en' | 'ro' = 'en') {
-  const t = row.handles?.handle_translations?.find(t => t.language_code === lang)
-        || row.handles?.handle_translations?.[0];
+  const t = row.handles?.handles_translations?.find(t => t.language_code === lang)
+        || row.handles?.handles_translations?.[0];
   return t?.name || row.handles?.slug || 'Handle';
 }

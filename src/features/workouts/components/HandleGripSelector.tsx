@@ -23,7 +23,7 @@ interface HandleData {
   handles: {
     id: string;
     slug: string;
-    handle_translations?: Array<{
+    handles_translations?: Array<{
       language_code: string;
       name: string;
       description?: string;
@@ -99,7 +99,7 @@ export function HandleGripSelector({
           handle_id: eh.handle_id,
           handles: {
             ...eh.handles,
-            handle_translations: eh.handles.handle_translations
+            handles_translations: eh.handles.handles_translations
           }
         }));
         setHandles(transformedHandles);
@@ -126,9 +126,9 @@ export function HandleGripSelector({
   }, [exerciseId, equipmentGrips]);
 
   const getHandleName = (handle: HandleData['handles']) => {
-    const translation = handle.handle_translations?.find(t => t.language_code === 'en') 
+    const translation = handle.handles_translations?.find(t => t.language_code === 'en') 
                        || handle.translations?.find(t => t.language_code === 'en')
-                       || handle.handle_translations?.[0]
+                       || handle.handles_translations?.[0]
                        || handle.translations?.[0];
     return translation?.name || handle.slug.replace(/-/g, ' ');
   };

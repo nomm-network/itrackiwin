@@ -22,7 +22,7 @@ export const useHandlesByEquipment = (exerciseId?: string) => {
         .select(`
           id,
           slug,
-          translations:handle_translations(
+          translations:handles_translations(
             name,
             description,
             language_code
@@ -67,11 +67,11 @@ export const useHandlesByEquipment = (exerciseId?: string) => {
         handleMap.set(handle.id, {
           id: handle.id,
           slug: handle.slug,
-          name: handle.translations?.[0]?.name || 
+          name: (handle.translations as any)?.[0]?.name || 
                 handle.slug.split('-').map(word => 
                   word.charAt(0).toUpperCase() + word.slice(1)
                 ).join(' '),
-          description: handle.translations?.[0]?.description,
+          description: (handle.translations as any)?.[0]?.description,
           equipment_types: [],
           equipment_kinds: [],
           load_types: [],

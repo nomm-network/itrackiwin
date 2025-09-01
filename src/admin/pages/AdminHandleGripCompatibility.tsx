@@ -39,7 +39,7 @@ const AdminHandleGripCompatibility: React.FC = () => {
       if (handlesError) throw handlesError;
 
       const { data: translationsData, error: translationsError } = await supabase
-        .from("handle_translations")
+        .from("handles_translations")
         .select("*");
       if (translationsError) throw translationsError;
 

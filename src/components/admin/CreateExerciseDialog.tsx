@@ -195,7 +195,7 @@ export default function CreateExerciseDialog({ open, onOpenChange }: CreateExerc
         .select(`
           handle:handles(
             id, slug,
-            translations:handle_translations(language_code, name, description)
+            translations:handles_translations(language_code, name, description)
           )
         `)
         .eq('equipment_id', formData.equipmentId);

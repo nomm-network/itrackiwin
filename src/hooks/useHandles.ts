@@ -22,7 +22,7 @@ export const useHandles = () => {
         .select(`
           id,
           slug,
-          translations:handle_translations(
+          translations:handles_translations(
             name,
             description,
             language_code
@@ -35,7 +35,7 @@ export const useHandles = () => {
       // Process data to include formatted name if needed
       const processedData = data?.map(handle => ({
         ...handle,
-        name: handle.translations?.[0]?.name || 
+        name: (handle.translations as any)?.[0]?.name || 
               handle.slug.split('-').map(word => 
                 word.charAt(0).toUpperCase() + word.slice(1)
               ).join(' ')

@@ -22,7 +22,7 @@ export function useExerciseHandles(exerciseId?: string, lang: 'en' | 'ro' = 'en'
           handle_id, is_default,
           handle:handles (
             id, slug,
-            translations:handle_translations (language_code, name, description)
+            translations:handles_translations (language_code, name, description)
           )
         `)
         .eq('exercise_id', exerciseId);
@@ -30,8 +30,8 @@ export function useExerciseHandles(exerciseId?: string, lang: 'en' | 'ro' = 'en'
       if (error) throw error;
 
       // Sort by default first
-      const rows = (data || []) as ExerciseHandleRow[];
-      return rows.sort((a,b) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1));
+      const rows = (data || []) as any;
+      return rows.sort((a:any,b:any) => (a.is_default === b.is_default ? 0 : a.is_default ? -1 : 1));
     },
   });
 }

@@ -21,7 +21,7 @@ export const useHandleSelector = ({ exerciseId }: HandleSelectorOptions) => {
           handles!inner (
             id,
             slug,
-            handle_translations (
+            handles_translations (
               language_code,
               name,
               description
