@@ -19,12 +19,25 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ExerciseNameDisplay } from "../components/ExerciseNameDisplay";
 
 interface Exercise {
   id: string;
   name: string;
   primary_muscle?: string;
   equipment?: string;
+}
+
+interface MuscleGroup {
+  id: string;
+  name: string;
+}
+
+interface Equipment {
+  id: string;
+  name: string;
 }
 
 export default function TemplateEdit() {
@@ -36,6 +49,8 @@ export default function TemplateEdit() {
   const [isEditing, setIsEditing] = useState(false);
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
+  const [selectedEquipment, setSelectedEquipment] = useState("");
 
   const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
   const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
@@ -43,28 +58,95 @@ export default function TemplateEdit() {
   const deleteTemplate = useDeleteTemplate();
   const addExerciseToTemplate = useAddExerciseToTemplate();
 
+  // Fetch muscle groups
+  const { data: muscleGroups = [] } = useQuery({
+    queryKey: ['muscle-groups'],
+    queryFn: async (): Promise<MuscleGroup[]> => {
+      const { data, error } = await supabase
+        .from('muscle_groups')
+        .select(`
+          id,
+          muscle_groups_translations!inner(name)
+        `)
+        .eq('muscle_groups_translations.language_code', 'en')
+        .order('muscle_groups_translations.name');
+        
+      if (error) throw error;
+      
+      return (data || []).map(mg => ({
+        id: mg.id,
+        name: (mg.muscle_groups_translations as any)[0]?.name || 'Unknown'
+      }));
+    }
+  });
+
+  // Fetch equipment
+  const { data: equipmentList = [] } = useQuery({
+    queryKey: ['equipment-list'],
+    queryFn: async (): Promise<Equipment[]> => {
+      const { data, error } = await supabase
+        .from('equipment')
+        .select(`
+          id,
+          equipment_translations!inner(name)
+        `)
+        .eq('equipment_translations.language_code', 'en')
+        .order('equipment_translations.name');
+        
+      if (error) throw error;
+      
+      return (data || []).map(eq => ({
+        id: eq.id,
+        name: (eq.equipment_translations as any)[0]?.name || 'Unknown'
+      }));
+    }
+  });
+
   // Search exercises for adding to template
   const { data: searchExercises, isLoading: searchLoading } = useQuery({
-    queryKey: ['exercise-search', exerciseSearch],
+    queryKey: ['exercise-search', exerciseSearch, selectedMuscleGroup, selectedEquipment],
     queryFn: async (): Promise<Exercise[]> => {
-      if (!exerciseSearch.trim()) return [];
+      let query = supabase
+        .from('exercises')
+        .select(`
+          id,
+          exercises_translations!inner(name),
+          primary_muscle_id,
+          equipment_id,
+          muscle_groups!inner(muscle_groups_translations!inner(name)),
+          equipment!inner(equipment_translations!inner(name))
+        `)
+        .eq('exercises_translations.language_code', 'en')
+        .eq('muscle_groups.muscle_groups_translations.language_code', 'en')
+        .eq('equipment.equipment_translations.language_code', 'en')
+        .eq('is_public', true);
+        
+      if (exerciseSearch.trim()) {
+        query = query.ilike('exercises_translations.name', `%${exerciseSearch}%`);
+      }
       
-      const { data, error } = await supabase
-        .from('v_exercises_with_translations')
-        .select('id, translations, primary_muscle_id, equipment_id')
-        .ilike('translations->>name', `%${exerciseSearch}%`)
-        .limit(20);
+      if (selectedMuscleGroup) {
+        query = query.eq('muscle_groups.id', selectedMuscleGroup);
+      }
+      
+      if (selectedEquipment) {
+        query = query.eq('equipment_id', selectedEquipment);
+      }
+        
+      const { data, error } = await query
+        .limit(50)
+        .order('popularity_rank', { ascending: false, nullsFirst: false });
         
       if (error) throw error;
       
       return (data || []).map(ex => ({
         id: ex.id,
-        name: (ex.translations as any)?.name || 'Unknown Exercise',
-        primary_muscle: ex.primary_muscle_id,
-        equipment: ex.equipment_id
+        name: (ex.exercises_translations as any)[0]?.name || 'Unknown Exercise',
+        primary_muscle: (ex.muscle_groups as any)?.muscle_groups_translations?.[0]?.name || 'Unknown',
+        equipment: (ex.equipment as any)?.equipment_translations?.[0]?.name || 'Unknown'
       }));
     },
-    enabled: exerciseSearch.length > 2
+    enabled: exerciseSearch.length > 0 || selectedMuscleGroup !== "" || selectedEquipment !== ""
   });
 
   useEffect(() => {
@@ -122,9 +204,11 @@ export default function TemplateEdit() {
       });
       
       toast.success(`Added ${exercise.name} to template`);
-      setShowExerciseDialog(false);
-      setExerciseSearch("");
-      refetchExercises();
+    setShowExerciseDialog(false);
+    setExerciseSearch("");
+    setSelectedMuscleGroup("");
+    setSelectedEquipment("");
+    refetchExercises();
     } catch (error) {
       toast.error("Failed to add exercise");
       console.error("Add exercise error:", error);
@@ -298,57 +382,96 @@ export default function TemplateEdit() {
                     Add Exercise
                   </Button>
                 </DialogTrigger>
-                <DialogContent className="max-w-2xl">
-                  <DialogHeader>
-                    <DialogTitle>Add Exercise to Template</DialogTitle>
-                  </DialogHeader>
-                  
-                  <div className="space-y-4">
-                    <div className="relative">
-                      <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        placeholder="Search exercises..."
-                        value={exerciseSearch}
-                        onChange={(e) => setExerciseSearch(e.target.value)}
-                        className="pl-10"
-                      />
-                    </div>
+                  <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden">
+                    <DialogHeader>
+                      <DialogTitle>Add Exercise to Template</DialogTitle>
+                    </DialogHeader>
                     
-                    <div className="max-h-96 overflow-y-auto">
-                      {searchLoading ? (
-                        <div className="text-center py-4">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                    <div className="space-y-4">
+                      {/* Filters */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="relative">
+                          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                          <Input
+                            placeholder="Search exercises..."
+                            value={exerciseSearch}
+                            onChange={(e) => setExerciseSearch(e.target.value)}
+                            className="pl-10"
+                          />
                         </div>
-                      ) : searchExercises && searchExercises.length > 0 ? (
-                        <div className="space-y-2">
-                          {searchExercises.map((exercise) => (
-                            <div
-                              key={exercise.id}
-                              className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted cursor-pointer"
-                              onClick={() => handleAddExercise(exercise)}
-                            >
-                              <div>
-                                <div className="font-medium">{exercise.name}</div>
-                                <div className="text-sm text-muted-foreground">
-                                  {exercise.primary_muscle} • {exercise.equipment}
+                        
+                        <Select value={selectedMuscleGroup} onValueChange={setSelectedMuscleGroup}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Filter by muscle group" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All muscle groups</SelectItem>
+                            {muscleGroups.map((mg) => (
+                              <SelectItem key={mg.id} value={mg.id}>
+                                {mg.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        
+                        <Select value={selectedEquipment} onValueChange={setSelectedEquipment}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Filter by equipment" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">All equipment</SelectItem>
+                            {equipmentList.map((eq) => (
+                              <SelectItem key={eq.id} value={eq.id}>
+                                {eq.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Results */}
+                      <div className="border rounded-lg max-h-96 overflow-y-auto">
+                        {searchLoading ? (
+                          <div className="text-center py-8">
+                            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary mx-auto"></div>
+                            <p className="mt-2 text-sm text-muted-foreground">Loading exercises...</p>
+                          </div>
+                        ) : searchExercises && Array.isArray(searchExercises) && searchExercises.length > 0 ? (
+                          <div className="divide-y">
+                            {searchExercises.map((exercise) => (
+                              <div
+                                key={exercise.id}
+                                className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors cursor-pointer"
+                                onClick={() => handleAddExercise(exercise)}
+                              >
+                                <div className="flex-1">
+                                  <div className="font-medium text-foreground">{exercise.name}</div>
+                                  <div className="text-sm text-muted-foreground flex items-center gap-2">
+                                    <Badge variant="secondary" className="text-xs">
+                                      {exercise.primary_muscle}
+                                    </Badge>
+                                    <span>•</span>
+                                    <span>{exercise.equipment}</span>
+                                  </div>
                                 </div>
+                                <Button size="sm" variant="outline">Add to Template</Button>
                               </div>
-                              <Button size="sm">Add</Button>
-                            </div>
-                          ))}
-                        </div>
-                      ) : exerciseSearch.length > 2 ? (
-                        <div className="text-center py-4 text-muted-foreground">
-                          No exercises found for "{exerciseSearch}"
-                        </div>
-                      ) : (
-                        <div className="text-center py-4 text-muted-foreground">
-                          Type at least 3 characters to search exercises
-                        </div>
-                      )}
+                            ))}
+                          </div>
+                        ) : (exerciseSearch || selectedMuscleGroup || selectedEquipment) ? (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p>No exercises found matching your filters</p>
+                            <p className="text-sm mt-1">Try adjusting your search criteria</p>
+                          </div>
+                        ) : (
+                          <div className="text-center py-8 text-muted-foreground">
+                            <p>Use the filters above to find exercises</p>
+                            <p className="text-sm mt-1">Search by name, muscle group, or equipment</p>
+                          </div>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </DialogContent>
+                  </DialogContent>
               </Dialog>
             </div>
           </CardHeader>
@@ -388,9 +511,7 @@ export default function TemplateEdit() {
                               </div>
                               
                               <div className="flex-1">
-                                <div className="font-medium">
-                                  Exercise {exercise.exercise_id.slice(0, 8)}
-                                </div>
+                                 <ExerciseNameDisplay exerciseId={exercise.exercise_id} />
                                 <div className="text-sm text-muted-foreground">
                                   {exercise.default_sets} sets × {exercise.target_reps} reps
                                   {exercise.target_weight && ` @ ${exercise.target_weight}${exercise.weight_unit || 'kg'}`}
