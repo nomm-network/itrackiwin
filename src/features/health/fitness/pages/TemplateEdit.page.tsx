@@ -110,11 +110,15 @@ export default function TemplateEdit() {
         .from('exercises')
         .select(`
           id,
-          exercises_translations!inner(name),
           primary_muscle_id,
           equipment_id,
-          muscle_groups!inner(muscle_groups_translations!inner(name)),
-          equipment!inner(equipment_translations!inner(name))
+          exercises_translations!inner(name),
+          muscle_groups!primary_muscle_id(
+            muscle_groups_translations!inner(name)
+          ),
+          equipment!equipment_id(
+            equipment_translations!inner(name)
+          )
         `)
         .eq('exercises_translations.language_code', 'en')
         .eq('muscle_groups.muscle_groups_translations.language_code', 'en')
@@ -126,7 +130,7 @@ export default function TemplateEdit() {
       }
       
       if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
-        query = query.eq('muscle_groups.id', selectedMuscleGroup);
+        query = query.eq('primary_muscle_id', selectedMuscleGroup);
       }
       
       if (selectedEquipment && selectedEquipment !== "all") {
@@ -137,16 +141,19 @@ export default function TemplateEdit() {
         .limit(50)
         .order('popularity_rank', { ascending: false, nullsFirst: false });
         
-      if (error) throw error;
+      if (error) {
+        console.error('Exercise search error:', error);
+        throw error;
+      }
       
       return (data || []).map(ex => ({
         id: ex.id,
-        name: (ex.exercises_translations as any)[0]?.name || 'Unknown Exercise',
+        name: (ex.exercises_translations as any)?.[0]?.name || 'Unknown Exercise',
         primary_muscle: (ex.muscle_groups as any)?.muscle_groups_translations?.[0]?.name || 'Unknown',
         equipment: (ex.equipment as any)?.equipment_translations?.[0]?.name || 'Unknown'
       }));
     },
-    enabled: exerciseSearch.length > 0 || selectedMuscleGroup !== "all" || selectedEquipment !== "all"
+    enabled: true // Always enabled to show exercises by default
   });
 
   useEffect(() => {
@@ -465,8 +472,8 @@ export default function TemplateEdit() {
                           </div>
                         ) : (
                           <div className="text-center py-8 text-muted-foreground">
-                            <p>Use the filters above to find exercises</p>
-                            <p className="text-sm mt-1">Search by name, muscle group, or equipment</p>
+                            <p>Exercises will appear here</p>
+                            <p className="text-sm mt-1">Use filters above or search to find specific exercises</p>
                           </div>
                         )}
                       </div>
