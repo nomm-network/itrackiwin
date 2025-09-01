@@ -1,141 +1,182 @@
-# Foreign Key Relationships
+# Foreign Key Relationships Documentation
 
-## Core Exercise System
+## Overview
 
-### exercises table foreign keys:
-- `exercises.body_part_id` → `body_parts.id`
-- `exercises.primary_muscle_id` → `muscles.id`  
-- `exercises.equipment_id` → `equipment.id`
-- `exercises.movement_id` → `movements.id`
-- `exercises.movement_pattern_id` → `movement_patterns.id`
-- `exercises.equipment_ref_id` → `equipment.id`
-- `exercises.default_bar_type_id` → `bar_types.id`
-- `exercises.owner_user_id` → `auth.users.id`
+This document details all foreign key relationships in the fitness application database. Note that the recent database query indicates no explicit foreign key constraints are currently defined in the `public` schema, but logical relationships exist based on the table structure.
 
-### exercises_translations table foreign keys:
-- `exercises_translations.exercise_id` → `exercises.id` (CASCADE DELETE)
+## Logical Relationships (Application Level)
 
-## Movement System
+While formal foreign key constraints may not be defined at the database level, the application maintains these logical relationships:
 
-### movement_translations table foreign keys:
-- `movement_translations.movement_id` → `movements.id` (CASCADE DELETE)
+### Exercise System Relationships
 
-## Equipment System
+#### exercises table
+- `equipment_id` → `equipment.id`
+- `primary_muscle_id` → `muscle_groups.id`
+- `body_part_id` → `body_parts.id`
+- `movement_id` → `movements.id`
+- `movement_pattern_id` → `movement_patterns.id`
+- `default_bar_type_id` → `bar_types.id`
+- `equipment_ref_id` → `equipment.id`
+- `owner_user_id` → `auth.users.id`
 
-### equipment_translations table foreign keys:
-- `equipment_translations.equipment_id` → `equipment.id` (CASCADE DELETE)
+#### exercises_translations table
+- `exercise_id` → `exercises.id`
 
-## Muscle System
+#### exercise_equipment_variants table
+- `exercise_id` → `exercises.id`
+- `equipment_id` → `equipment.id`
 
-### muscles_translations table foreign keys:
-- `muscles_translations.muscle_id` → `muscles.id` (CASCADE DELETE)
+#### exercise_grips table
+- `exercise_id` → `exercises.id`
+- `grip_id` → `grips.id`
 
-### body_parts_translations table foreign keys:
-- `body_parts_translations.body_part_id` → `body_parts.id` (CASCADE DELETE)
+#### exercise_grip_effects table
+- `exercise_id` → `exercises.id`
+- `grip_id` → `grips.id`
+- `muscle_id` → `muscle_groups.id`
+- `equipment_id` → `equipment.id`
 
-## Handle & Grip System
+### Equipment System Relationships
 
-### handle_translations table foreign keys:
-- `handle_translations.handle_id` → `handles.id` (CASCADE DELETE)
+#### equipment_translations table
+- `equipment_id` → `equipment.id`
 
-### grips_translations table foreign keys:
-- `grips_translations.grip_id` → `grips.id` (CASCADE DELETE)
+#### equipment_grip_defaults table
+- `equipment_id` → `equipment.id`
+- `grip_id` → `grips.id`
 
-## Relationship Tables
+#### gym_equipment table
+- `gym_id` → `gyms.id`
+- `equipment_id` → `equipment.id`
 
-### equipment_handle_grips table foreign keys:
-- `equipment_handle_grips.equipment_id` → `equipment.id`
-- `equipment_handle_grips.handle_id` → `handles.id`
-- `equipment_handle_grips.grip_id` → `grips.id`
+#### gym_equipment_availability table
+- `gym_id` → `gyms.id`
+- `equipment_id` → `equipment.id`
 
-### exercise_handles table foreign keys:
-- `exercise_handles.exercise_id` → `exercises.id`
-- `exercise_handles.handle_id` → `handles.id`
+### Body Part Hierarchy
 
-### exercise_grips table foreign keys:
-- `exercise_grips.exercise_id` → `exercises.id`
-- `exercise_grips.grip_id` → `grips.id`
+#### muscle_groups table
+- `body_part_id` → `body_parts.id`
 
-### exercise_handle_grips table foreign keys:
-- `exercise_handle_grips.exercise_id` → `exercises.id`
-- `exercise_handle_grips.handle_id` → `handles.id`
-- `exercise_handle_grips.grip_id` → `grips.id`
+#### muscle_groups_translations table
+- `muscle_group_id` → `muscle_groups.id`
 
-### exercise_grip_effects table foreign keys:
-- `exercise_grip_effects.exercise_id` → `exercises.id`
-- `exercise_grip_effects.grip_id` → `grips.id`
-- `exercise_grip_effects.muscle_id` → `muscles.id`
-- `exercise_grip_effects.equipment_id` → `equipment.id`
+#### muscles table
+- `muscle_group_id` → `muscle_groups.id`
 
-### exercise_equipment_variants table foreign keys:
-- `exercise_equipment_variants.exercise_id` → `exercises.id`
-- `exercise_equipment_variants.equipment_id` → `equipment.id`
+#### muscles_translations table
+- `muscle_id` → `muscles.id`
 
-### exercise_similars table foreign keys:
-- `exercise_similars.exercise_id` → `exercises.id`
-- `exercise_similars.similar_exercise_id` → `exercises.id`
+#### body_parts_translations table
+- `body_part_id` → `body_parts.id`
 
-### exercise_images table foreign keys:
-- `exercise_images.exercise_id` → `exercises.id`
-- `exercise_images.user_id` → `auth.users.id`
+### Movement System
 
-### exercise_metric_defs table foreign keys:
-- `exercise_metric_defs.exercise_id` → `exercises.id`
-- `exercise_metric_defs.equipment_id` → `equipment.id`
-- `exercise_metric_defs.metric_id` → `metric_defs.id`
+#### movements table
+- `movement_pattern_id` → `movement_patterns.id`
 
-### exercise_aliases table foreign keys:
-- `exercise_aliases.exercise_id` → `exercises.id`
+#### movements_translations table
+- `movement_id` → `movements.id`
 
-### exercise_default_grips table foreign keys:
-- `exercise_default_grips.exercise_id` → `exercises.id`
-- `exercise_default_grips.grip_id` → `grips.id`
+#### movement_patterns_translations table
+- `movement_pattern_id` → `movement_patterns.id`
 
-### exercise_default_handles table foreign keys:
-- `exercise_default_handles.exercise_id` → `exercises.id`
-- `exercise_default_handles.handle_id` → `handles.id`
+### Workout System Relationships
 
-### exercise_handle_orientations table foreign keys:
-- `exercise_handle_orientations.exercise_id` → `exercises.id`
-- `exercise_handle_orientations.handle_id` → `handles.id`
+#### workouts table
+- `user_id` → `auth.users.id`
 
-## Key Constraints and Indexes
+#### workout_exercises table
+- `workout_id` → `workouts.id`
+- `exercise_id` → `exercises.id`
 
-### Unique Constraints:
-- `exercises.slug` (UNIQUE)
-- `movements.slug` (UNIQUE)
-- `movement_patterns.slug` (UNIQUE)
-- `equipment.slug` (UNIQUE)
-- `muscles.slug` (UNIQUE)
-- `handles.slug` (UNIQUE)
-- `grips.slug` (UNIQUE)
-- `exercises_translations(exercise_id, language_code)` (UNIQUE)
-- `movement_translations(movement_id, language_code)` (UNIQUE)
-- `equipment_translations(equipment_id, language_code)` (UNIQUE)
-- `muscles_translations(muscle_id, language_code)` (UNIQUE)
-- `body_parts_translations(body_part_id, language_code)` (UNIQUE)
-- `handle_translations(handle_id, language_code)` (UNIQUE)
-- `grips_translations(grip_id, language_code)` (UNIQUE)
-- `equipment_handle_grips(equipment_id, handle_id, grip_id)` (UNIQUE)
-- `exercise_handles(exercise_id, handle_id)` (UNIQUE)
-- `exercise_grips(exercise_id, grip_id)` (PRIMARY KEY)
-- `exercise_handle_grips(exercise_id, handle_id, grip_id)` (UNIQUE)
+#### workout_sets table
+- `workout_exercise_id` → `workout_exercises.id`
 
-### Important Indexes:
-- `exercises.slug` (btree)
-- `exercises.equipment_id` (btree)
-- `exercises.primary_muscle_id` (btree)
-- `exercises.movement_id` (btree)
-- `exercises.display_name_tsv` (gin) - for full-text search
-- `exercises_translations.exercise_id` (btree)
-- `exercises_translations.language_code` (btree)
+#### workout_set_grips table
+- `workout_set_id` → `workout_sets.id`
+- `grip_id` → `grips.id`
 
-## Cascade Behaviors:
+#### workout_set_metric_values table
+- `workout_set_id` → `workout_sets.id`
+- `metric_def_id` → `metric_defs.id`
 
-### ON DELETE CASCADE:
-- All translation tables cascade delete when parent is deleted
-- This ensures no orphaned translation records
+### User System Relationships
 
-### ON DELETE RESTRICT (default):
-- Most relationship tables restrict deletion if references exist
-- Prevents accidental data loss from broken relationships
+#### users table
+- `id` → `auth.users.id` (Supabase auth)
+
+#### profiles table
+- `user_id` → `auth.users.id`
+
+#### user_roles table
+- `user_id` → `auth.users.id`
+
+#### user_gym_memberships table
+- `user_id` → `auth.users.id`
+- `gym_id` → `gyms.id`
+
+### Gym System Relationships
+
+#### gym_admins table
+- `user_id` → `auth.users.id`
+- `gym_id` → `gyms.id`
+
+#### gym_aliases table
+- `gym_id` → `gyms.id`
+
+### Template System Relationships
+
+#### workout_templates table
+- `user_id` → `auth.users.id`
+
+#### template_exercises table
+- `template_id` → `workout_templates.id`
+- `exercise_id` → `exercises.id`
+
+### Translation System Relationships
+
+#### grips_translations table
+- `grip_id` → `grips.id`
+
+## Constraint Status
+
+### Current State
+- **Formal FK Constraints**: None detected in public schema
+- **RLS Policies**: Enforcing data access security
+- **Application Logic**: Maintaining referential integrity
+- **UUID References**: All relationships use UUID foreign keys
+
+### Advantages of Current Approach
+1. **Flexibility**: Easier schema migrations
+2. **Performance**: Reduced constraint checking overhead
+3. **Supabase Integration**: Works well with RLS policies
+
+### Considerations
+1. **Data Integrity**: Relies on application-level validation
+2. **Cascading**: Manual handling of related record updates/deletes
+3. **Documentation**: Requires clear relationship documentation (this file)
+
+## Recommendations
+
+### For Production
+1. Consider adding formal FK constraints for critical relationships
+2. Implement application-level validation for all relationships
+3. Regular data integrity checks via database functions
+4. Monitor for orphaned records
+
+### Critical Relationships to Formalize
+1. `exercises.equipment_id` → `equipment.id`
+2. `workout_exercises.workout_id` → `workouts.id`
+3. `workout_sets.workout_exercise_id` → `workout_exercises.id`
+4. All translation table relationships
+
+## Migration Notes
+
+The removal of the handle system eliminated several foreign key relationships:
+- Handle-related equipment constraints
+- Exercise handle requirements
+- Handle orientation dependencies
+
+This simplification reduced the complexity of the relationship graph while maintaining core functionality.

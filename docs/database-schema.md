@@ -1,126 +1,126 @@
 # Database Schema Documentation
 
-## Exercise Management Tables
+## Overview
 
-### exercises
-Primary table for exercise definitions.
+The fitness application uses a PostgreSQL database hosted on Supabase with 144 tables supporting a comprehensive fitness tracking and management system.
 
-**Columns:**
-- `id` (uuid, NOT NULL, default: gen_random_uuid())
-- `owner_user_id` (uuid, nullable)
-- `is_public` (boolean, NOT NULL, default: true)
-- `created_at` (timestamp with time zone, NOT NULL, default: now())
-- `image_url` (text, nullable)
-- `thumbnail_url` (text, nullable)
-- `source_url` (text, nullable)
-- `popularity_rank` (integer, nullable)
-- `body_part_id` (uuid, nullable)
-- `primary_muscle_id` (uuid, nullable)
-- `equipment_id` (uuid, NOT NULL)
-- `secondary_muscle_group_ids` (uuid[], nullable)
-- `default_grip_ids` (uuid[], nullable, default: '{}')
-- `capability_schema` (jsonb, nullable, default: '{}')
-- `exercise_skill_level` (exercise_skill_level, nullable, default: 'medium')
-- `complexity_score` (smallint, nullable, default: 3)
-- `contraindications` (jsonb, nullable, default: '[]')
-- `loading_hint` (text, nullable)
-- `default_bar_weight` (numeric, nullable)
-- `default_handle_ids` (uuid[], nullable)
-- `is_bar_loaded` (boolean, NOT NULL, default: false)
-- `slug` (text, NOT NULL)
-- `load_type` (load_type, nullable)
-- `default_bar_type_id` (uuid, nullable)
-- `requires_handle` (boolean, nullable, default: false)
-- `allows_grips` (boolean, nullable, default: true)
-- `is_unilateral` (boolean, nullable, default: false)
-- `attribute_values_json` (jsonb, NOT NULL, default: '{}')
-- **`movement_id` (uuid, nullable)** ⚠️ CRITICAL FIELD
-- **`equipment_ref_id` (uuid, nullable)**
-- `display_name` (text, nullable)
-- `custom_display_name` (text, nullable)
-- `name_locale` (text, nullable, default: 'en')
-- **`movement_pattern_id` (uuid, nullable)** ⚠️ CRITICAL FIELD
-- `name_version` (integer, nullable)
-- `tags` (text[], nullable, default: '{}')
-- `display_name_tsv` (tsvector, nullable)
+## Core Tables Structure
 
-### movements
-Contains specific movement definitions within movement patterns.
+### Exercise Management
+- **exercises** - Core exercise definitions
+- **exercises_translations** - Multi-language exercise names and descriptions
+- **exercise_aliases** - Alternative names for exercises
+- **exercise_equipment_variants** - Equipment variations for exercises
+- **exercise_grip_effects** - Grip impact on muscle activation
+- **exercise_grips** - Available grips for exercises
+- **exercise_images** - Exercise demonstration images
+- **exercise_similars** - Related/similar exercises
 
-**Columns:**
-- `id` (uuid, NOT NULL, default: gen_random_uuid())
-- `slug` (text, NOT NULL)
-- `movement_pattern_id` (uuid, NOT NULL)
-- `created_at` (timestamp with time zone, NOT NULL, default: now())
+### Equipment System
+- **equipment** - Equipment definitions and specifications
+- **equipment_translations** - Multi-language equipment names
+- **equipment_grip_defaults** - Default grips for equipment
+- **equipment_handle_orientations** - Handle orientation options
+- **gym_equipment** - Gym-specific equipment configurations
+- **gym_equipment_availability** - Equipment availability per gym
+- **gym_equipment_overrides** - Custom equipment settings per gym
 
-**Sample Data:**
-```
-d217303d-0dcb-4a79-a8ad-128573468aa0 | horizontal_push | 02024706-63ca-4f34-a4d6-7df57a6d6899
-0c64f081-5cb8-4682-8395-315d5533362c | vertical_push   | 02024706-63ca-4f34-a4d6-7df57a6d6899
-c13388d5-e568-4166-9081-8b5b4e8ebc53 | dip             | 02024706-63ca-4f34-a4d6-7df57a6d6899
-ca668456-ce04-4627-bb30-73883705a252 | front_raise     | 02024706-63ca-4f34-a4d6-7df57a6d6899
-2e21de7b-1f20-480f-b796-3bc8608ed8d6 | lateral_raise   | 02024706-63ca-4f34-a4d6-7df57a6d6899
-```
+### Body Part & Muscle System
+- **body_parts** - Major body regions (arms, back, chest, core, legs)
+- **body_parts_translations** - Multi-language body part names
+- **muscle_groups** - Muscle group classifications
+- **muscle_groups_translations** - Multi-language muscle group names
+- **muscles** - Individual muscle definitions
+- **muscles_translations** - Multi-language muscle names
 
-### movement_patterns
-High-level movement pattern categories.
+### Workout System
+- **workouts** - Workout sessions
+- **workout_exercises** - Exercises within a workout
+- **workout_sets** - Individual sets within exercises
+- **workout_set_grips** - Grips used in specific sets
+- **workout_set_metric_values** - Metric measurements for sets
+- **workout_comments** - Comments on workouts
+- **workout_likes** - Workout social interactions
 
-**Columns:**
-- `id` (uuid, NOT NULL, default: gen_random_uuid())
-- `slug` (text, NOT NULL)
-- `created_at` (timestamp with time zone, NOT NULL, default: now())
+### User Management
+- **users** - Core user information
+- **profiles** - Extended user profiles
+- **user_roles** - Role-based access control
+- **user_achievements** - Achievement tracking
+- **user_settings** - User preferences
+- **user_stats** - User statistics
 
-**Sample Data:**
-```
-02024706-63ca-4f34-a4d6-7df57a6d6899 | push
-ac7157d7-4324-4a40-b98f-5183e47eed32 | pull
-640e7fb0-6cc5-448a-b822-409f05ee68e9 | squat
-5f6e3748-14e6-4537-b76b-4081e7c995f1 | hinge
-e75c9e9a-55ef-4cc1-b0b5-dafbd9704a1b | lunge
-```
+### Gym Management
+- **gyms** - Gym locations and information
+- **gym_admins** - Gym administration roles
+- **gym_aliases** - Alternative gym names
+- **gym_plate_inventory** - Available plates per gym
+- **user_gym_memberships** - User gym relationships
 
-### equipment
-Equipment definitions and specifications.
+### Admin & Audit
+- **admin_audit_log** - Administrative action logging
+- **admin_check_rate_limit** - Rate limiting for admin checks
+- **data_quality_reports** - Data quality monitoring
 
-**Columns:**
-- `id` (uuid, NOT NULL, default: gen_random_uuid())
-- `slug` (text, nullable)
-- `created_at` (timestamp with time zone, NOT NULL, default: now())
-- `equipment_type` (text, NOT NULL, default: 'machine')
-- `default_stack` (jsonb, nullable, default: '[]')
-- `weight_kg` (numeric, nullable)
-- `kind` (text, nullable)
-- `load_type` (load_type, nullable, default: 'none')
-- `load_medium` (load_medium, nullable, default: 'other')
-- `default_bar_weight_kg` (numeric, nullable)
-- `default_single_min_increment_kg` (numeric, nullable)
-- `default_side_min_plate_kg` (numeric, nullable)
-- `notes` (text, nullable)
+### Internationalization
+- **languages** - Supported languages
+- **text_translations** - General text translations
 
-**Sample Data:**
-```
-33a8bf6b-5832-442e-964d-3f32070ea029 | olympic-barbell | free_weight | dual_load
-243fdc06-9c04-4bc1-8773-d9da7f981bc1 | cable-machine   | machine     | stack
-1328932a-54fe-42fc-8846-6ead942c2b98 | dumbbell        | free_weight | single_load
-```
+## Key Relationships
 
-## Relationships
+### Exercise-Equipment Relationships
+- exercises → equipment (many-to-one)
+- exercises → exercise_equipment_variants (one-to-many)
+- equipment → equipment_grip_defaults (one-to-many)
 
-- `exercises.movement_id` → `movements.id`
-- `exercises.movement_pattern_id` → `movement_patterns.id`
-- `exercises.equipment_id` → `equipment.id`
-- `movements.movement_pattern_id` → `movement_patterns.id`
+### Body Part Hierarchy
+- body_parts → muscle_groups (one-to-many)
+- muscle_groups → muscles (one-to-many)
+- exercises → muscle_groups (primary_muscle_id)
 
-## Critical Issue Notes
+### Workout Structure
+- users → workouts (one-to-many)
+- workouts → workout_exercises (one-to-many)
+- workout_exercises → workout_sets (one-to-many)
 
-⚠️ **BUG**: The `movement_id` and `movement_pattern_id` fields in the exercises table are not being saved via the admin edit form.
+### Translation System
+- Most core entities have corresponding translation tables
+- Supports multi-language content delivery
 
-**Expected Flow:**
-1. User selects movement pattern (e.g., "push")
-2. User selects specific movement (e.g., "horizontal_push")
-3. Both `movement_pattern_id` and `movement_id` should be saved to exercises table
+## Data Types & Enums
 
-**Current Issue:**
-- Form appears to submit but these fields remain NULL in database
-- Save operation may be failing silently
-- Debug information not displaying to troubleshoot
+### Custom Types
+- `load_type`: dual_load, single_load, stack, none
+- `load_medium`: bar, plates, band, other
+- `weight_unit`: kg, lbs
+- `exercise_skill_level`: low, medium, high
+- `set_type`: warmup, normal, top_set, drop, amrap
+- `app_role`: admin, superadmin
+
+### Key Constraints
+- Row Level Security (RLS) enabled on all tables
+- UUID primary keys throughout
+- Proper foreign key relationships
+- Unique constraints on critical combinations
+
+## Recent Schema Changes
+
+1. **Handle System Removal** - Removed handle-related tables and columns
+2. **Equipment-Grip Integration** - Enhanced equipment-grip compatibility system
+3. **View Cleanup** - Updated materialized views to remove handle references
+4. **RLS Policy Updates** - Maintained security policies during schema changes
+
+## Security Model
+
+- **Row Level Security** enabled on all tables
+- **Role-based access** with admin and superadmin roles
+- **User ownership** for user-specific data
+- **Public read access** for reference data (exercises, equipment)
+- **Admin-only write access** for core data
+
+## Performance Considerations
+
+- **Indexes** on frequently queried columns
+- **Materialized views** for complex queries
+- **Proper normalization** to reduce data duplication
+- **Efficient RLS policies** to minimize query overhead
