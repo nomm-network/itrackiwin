@@ -188,7 +188,7 @@ export function WarmupBlock({
           <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
         </div>
         <div className="text-xs text-muted-foreground">
-          Strategy: {plan.strategy} • Top: {plan.top_weight}kg
+          Strategy: {plan.strategy} • Top: {actualTopWeight || 0}kg
           <span className="ml-2 text-blue-600">• Auto-adjusts from feedback</span>
         </div>
       </CardHeader>
@@ -198,13 +198,20 @@ export function WarmupBlock({
         <div className="rounded-md border p-3">
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
-            {plan?.steps?.map((s, index) => (
-              <li key={index} className="flex items-center justify-between text-sm">
-                <span className="font-mono">{s.label}</span>
-                <span>{actualTopWeight ? Math.round(actualTopWeight * s.percent * 4) / 4 : 0}{unit} × {s.reps} reps</span>
-                <span className="text-muted-foreground">{s.rest_sec}s rest</span>
-              </li>
-            )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
+            {plan?.steps?.map((s, index) => {
+              const stepWeight = actualTopWeight && actualTopWeight > 0 
+                ? Math.round(actualTopWeight * s.percent * 4) / 4 
+                : 0;
+              return (
+                <li key={index} className="flex items-center justify-between text-sm">
+                  <span className="font-mono">{s.label}</span>
+                  <span>
+                    {stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps
+                  </span>
+                  <span className="text-muted-foreground">{s.rest_sec}s rest</span>
+                </li>
+              );
+            }) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
           </ol>
         </div>
 
