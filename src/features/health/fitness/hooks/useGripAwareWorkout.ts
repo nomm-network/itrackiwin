@@ -1,38 +1,29 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export const useHandleAwareWorkout = () => {
+export const useGripAwareWorkout = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const createWorkoutExerciseWithHandle = useCallback(async (
+  const createWorkoutExerciseWithGrip = useCallback(async (
     workoutExerciseData: {
       workout_id: string;
       exercise_id: string;
       order_index: number;
-      handle_id?: string;
-      grip_ids?: string[];
-      grip_key?: string;
+      grip_id?: string;
     }
   ) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Compute grip_key if grip_ids provided
-      let computed_grip_key = workoutExerciseData.grip_key;
-      if (workoutExerciseData.grip_ids && workoutExerciseData.grip_ids.length > 0) {
-        computed_grip_key = workoutExerciseData.grip_ids.slice().sort().join(',');
-      }
-
       const { data, error: insertError } = await supabase
         .from('workout_exercises')
         .insert({
           workout_id: workoutExerciseData.workout_id,
           exercise_id: workoutExerciseData.exercise_id,
           order_index: workoutExerciseData.order_index,
-          handle_id: workoutExerciseData.handle_id,
-          grip_key: computed_grip_key
+          grip_id: workoutExerciseData.grip_id,
         })
         .select()
         .single();
@@ -41,7 +32,7 @@ export const useHandleAwareWorkout = () => {
 
       return data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to create workout exercise with handle';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create workout exercise with grip';
       setError(errorMessage);
       throw err;
     } finally {
@@ -49,29 +40,17 @@ export const useHandleAwareWorkout = () => {
     }
   }, []);
 
-  const updateWorkoutExerciseHandle = useCallback(async (
+  const updateWorkoutExerciseGrip = useCallback(async (
     workoutExerciseId: string,
-    handleId?: string,
-    gripIds?: string[]
+    gripId?: string
   ) => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Compute grip_key if grip_ids provided
-      let grip_key: string | null = null;
-      if (gripIds && gripIds.length > 0) {
-        grip_key = gripIds.slice().sort().join(',');
-      }
-
-      const updateData: any = { handle_id: handleId };
-      if (grip_key !== null) {
-        updateData.grip_key = grip_key;
-      }
-
       const { data, error: updateError } = await supabase
         .from('workout_exercises')
-        .update(updateData)
+        .update({ grip_id: gripId })
         .eq('id', workoutExerciseId)
         .select()
         .single();
@@ -80,7 +59,7 @@ export const useHandleAwareWorkout = () => {
 
       return data;
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : 'Failed to update workout exercise handle';
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update workout exercise grip';
       setError(errorMessage);
       throw err;
     } finally {
@@ -89,8 +68,8 @@ export const useHandleAwareWorkout = () => {
   }, []);
 
   return {
-    createWorkoutExerciseWithHandle,
-    updateWorkoutExerciseHandle,
+    createWorkoutExerciseWithGrip,
+    updateWorkoutExerciseGrip,
     isLoading,
     error
   };
