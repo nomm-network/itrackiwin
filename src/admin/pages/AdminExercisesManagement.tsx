@@ -260,10 +260,7 @@ const AdminExercisesManagement: React.FC = () => {
       
       let query = supabase
         .from("exercises")
-        .select(`
-          *,
-          exercises_translations!inner(name, description, language_code)
-        `)
+        .select("*")
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
