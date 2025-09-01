@@ -50,7 +50,7 @@ const AdminEquipmentManagement: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [configuredFilter, setConfiguredFilter] = useState<string>("all");
   const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
-  const [showGripSection, setShowGripSection] = useState(false);
+  
 
   // Fetch equipment data with translations
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery({
@@ -145,6 +145,14 @@ const AdminEquipmentManagement: React.FC = () => {
   // Mutations
   const createEquipmentMutation = useMutation({
     mutationFn: async (data: { name: string; slug?: string; configured?: boolean }) => {
+      // If setting this equipment as configured, unset all others first
+      if (data.configured) {
+        const { error: unsetError } = await supabase
+          .from('equipment')
+          .update({ configured: false });
+        if (unsetError) throw unsetError;
+      }
+
       // Create equipment
       const { data: equipment, error: equipmentError } = await supabase
         .from('equipment')
@@ -179,6 +187,15 @@ const AdminEquipmentManagement: React.FC = () => {
 
   const updateEquipmentMutation = useMutation({
     mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string; configured?: boolean } }) => {
+      // If setting this equipment as configured, unset all others first
+      if (data.configured) {
+        const { error: unsetError } = await supabase
+          .from('equipment')
+          .update({ configured: false })
+          .neq('id', id);
+        if (unsetError) throw unsetError;
+      }
+
       // Update equipment
       const { error: equipmentError } = await supabase
         .from('equipment')
@@ -295,7 +312,6 @@ const AdminEquipmentManagement: React.FC = () => {
     setEditingItem(item);
     const name = getTranslatedName(item);
     equipmentForm.reset({ name, slug: item.slug || '', configured: item.configured || false });
-    setShowGripSection(false);
     setSelectedGripIds([]);
     setIsDialogOpen(true);
   };
@@ -316,7 +332,6 @@ const AdminEquipmentManagement: React.FC = () => {
 
   const openCreateDialog = () => {
     setEditingItem(null);
-    setShowGripSection(false);
     setSelectedGripIds([]);
     setIsDialogOpen(true);
   };
@@ -417,106 +432,94 @@ const AdminEquipmentManagement: React.FC = () => {
                       
                       {editingItem && (
                         <div className="space-y-4">
-                          <div className="flex items-center justify-between">
-                            <h4 className="font-medium">Grip Configuration</h4>
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              onClick={() => setShowGripSection(!showGripSection)}
-                            >
-                              {showGripSection ? 'Hide' : 'Configure'} Grips
-                            </Button>
-                          </div>
+                          <h4 className="font-medium">Grip Configuration</h4>
                           
-                          {showGripSection && (
-                            <div className="space-y-4 border rounded-lg p-4">
-                              {/* Current Grips */}
-                              <div>
-                                <h5 className="font-medium mb-2">Current Grips</h5>
-                                {equipmentGrips.length > 0 ? (
-                                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                                    {equipmentGrips.map((equipmentGrip) => (
-                                      <div key={equipmentGrip.id} className="flex items-center justify-between p-2 border rounded">
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-sm">{equipmentGrip.grip.name}</span>
-                                          {equipmentGrip.is_default && (
-                                            <Badge variant="default" className="text-xs">Default</Badge>
-                                          )}
+                          <div className="space-y-4 border rounded-lg p-4">
+                            {/* Current Grips */}
+                            <div>
+                              <h5 className="font-medium mb-2">Current Grips</h5>
+                              {equipmentGrips.length > 0 ? (
+                                <div className="space-y-2 max-h-32 overflow-y-auto">
+                                  {equipmentGrips.map((equipmentGrip) => (
+                                    <div key={equipmentGrip.id} className="flex items-center justify-between p-2 border rounded">
+                                      <div className="flex items-center gap-2">
+                                        <span className="text-sm">{equipmentGrip.grip.name}</span>
+                                        {equipmentGrip.is_default && (
+                                          <Badge variant="default" className="text-xs">Default</Badge>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1">
+                                          <span className="text-xs">Default</span>
+                                          <Switch
+                                            checked={equipmentGrip.is_default}
+                                            onCheckedChange={(checked) => 
+                                              toggleDefaultGripMutation.mutate({ 
+                                                id: equipmentGrip.id, 
+                                                isDefault: checked 
+                                              })
+                                            }
+                                          />
                                         </div>
-                                        <div className="flex items-center gap-2">
-                                          <div className="flex items-center gap-1">
-                                            <span className="text-xs">Default</span>
-                                            <Switch
-                                              checked={equipmentGrip.is_default}
-                                              onCheckedChange={(checked) => 
-                                                toggleDefaultGripMutation.mutate({ 
-                                                  id: equipmentGrip.id, 
-                                                  isDefault: checked 
-                                                })
-                                              }
-                                            />
-                                          </div>
-                                          <Button
-                                            onClick={() => removeGripMutation.mutate(equipmentGrip.id)}
-                                            size="sm"
-                                            variant="ghost"
-                                            className="h-6 w-6 p-0"
-                                          >
-                                            <Trash2 className="h-3 w-3" />
-                                          </Button>
+                                        <Button
+                                          onClick={() => removeGripMutation.mutate(equipmentGrip.id)}
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 w-6 p-0"
+                                        >
+                                          <Trash2 className="h-3 w-3" />
+                                        </Button>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : (
+                                <div className="text-sm text-muted-foreground">No grips configured</div>
+                              )}
+                            </div>
+                            
+                            {/* Add New Grips */}
+                            {availableGrips.length > 0 && (
+                              <div>
+                                <div className="flex items-center justify-between mb-2">
+                                  <h5 className="font-medium">Add Grips</h5>
+                                  {selectedGripIds.length > 0 && (
+                                    <Button 
+                                      onClick={handleAddGrips}
+                                      size="sm"
+                                      disabled={addGripMutation.isPending}
+                                    >
+                                      <Plus className="h-3 w-3 mr-1" />
+                                      Add {selectedGripIds.length}
+                                    </Button>
+                                  )}
+                                </div>
+                                
+                                <ScrollArea className="h-32 border rounded p-2">
+                                  <div className="space-y-1">
+                                    {availableGrips.map((grip) => (
+                                      <div
+                                        key={grip.id}
+                                        className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                                          selectedGripIds.includes(grip.id)
+                                            ? 'bg-primary/10 border border-primary'
+                                            : 'hover:bg-muted/50'
+                                        }`}
+                                        onClick={() => toggleGripSelection(grip.id)}
+                                      >
+                                        <div className="flex items-center justify-between">
+                                          <span>{grip.name}</span>
+                                          {selectedGripIds.includes(grip.id) && (
+                                            <Badge variant="default" className="text-xs">Selected</Badge>
+                                          )}
                                         </div>
                                       </div>
                                     ))}
                                   </div>
-                                ) : (
-                                  <div className="text-sm text-muted-foreground">No grips configured</div>
-                                )}
+                                </ScrollArea>
                               </div>
-                              
-                              {/* Add New Grips */}
-                              {availableGrips.length > 0 && (
-                                <div>
-                                  <div className="flex items-center justify-between mb-2">
-                                    <h5 className="font-medium">Add Grips</h5>
-                                    {selectedGripIds.length > 0 && (
-                                      <Button 
-                                        onClick={handleAddGrips}
-                                        size="sm"
-                                        disabled={addGripMutation.isPending}
-                                      >
-                                        <Plus className="h-3 w-3 mr-1" />
-                                        Add {selectedGripIds.length}
-                                      </Button>
-                                    )}
-                                  </div>
-                                  
-                                  <ScrollArea className="h-32 border rounded p-2">
-                                    <div className="space-y-1">
-                                      {availableGrips.map((grip) => (
-                                        <div
-                                          key={grip.id}
-                                          className={`p-2 rounded cursor-pointer text-sm transition-colors ${
-                                            selectedGripIds.includes(grip.id)
-                                              ? 'bg-primary/10 border border-primary'
-                                              : 'hover:bg-muted/50'
-                                          }`}
-                                          onClick={() => toggleGripSelection(grip.id)}
-                                        >
-                                          <div className="flex items-center justify-between">
-                                            <span>{grip.name}</span>
-                                            {selectedGripIds.includes(grip.id) && (
-                                              <Badge variant="default" className="text-xs">Selected</Badge>
-                                            )}
-                                          </div>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </ScrollArea>
-                                </div>
-                              )}
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       )}
                       
