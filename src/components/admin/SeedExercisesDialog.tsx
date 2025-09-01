@@ -224,7 +224,7 @@ export default function SeedExercisesDialog({ open, onOpenChange }: SeedExercise
             exercise_skill_level: seed.skillLevel,
             load_type: seed.loadType as 'fixed' | 'barbell' | 'single_load' | 'dual_load' | 'stack' | 'bodyweight',
             is_unilateral: false,
-            requires_handle: seed.equipment === 'cable-machine',
+            // requires_handle removed - using equipment-grip compatibility instead
             allows_grips: true,
             is_bar_loaded: seed.equipment === 'barbell',
             tags: seed.tags,
