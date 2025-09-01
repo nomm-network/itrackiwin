@@ -3,11 +3,29 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
-import { WarmupPlan, WarmupFeedback } from '@/features/workouts/types/warmup-unified';
 import { useWarmupManager } from '@/features/workouts/hooks/useWarmupManager';
 import { suggestTarget, parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
 import { ensureWarmupInitialized } from '@/features/workouts/utils/warmupInitializer';
 import { useAuth } from '@/hooks/useAuth';
+
+// Database warmup plan structure (actual data from DB)
+interface DBWarmupStep {
+  id: string;
+  pct: number;
+  reps: number;
+  restSec: number;
+  targetWeight: number;
+}
+
+interface DBWarmupPlan {
+  strategy: string;
+  baseWeight: number;
+  steps: DBWarmupStep[];
+  updated_from: string;
+  updatedAt: string;
+}
+
+type DBWarmupFeedback = 'not_enough' | 'excellent' | 'too_much';
 
 type WarmupProps = {
   workoutExerciseId: string;
@@ -24,9 +42,8 @@ export function WarmupBlock({
   suggestedTopReps = 8,
   onFeedbackGiven,
 }: WarmupProps) {
-  const [open, setOpen] = useState(true);
-  const [plan, setPlan] = useState<WarmupPlan | null>(null);
-  const [localFeedback, setLocalFeedback] = useState<WarmupFeedback | null>(null);
+  const [plan, setPlan] = useState<DBWarmupPlan | null>(null);
+  const [localFeedback, setLocalFeedback] = useState<DBWarmupFeedback | null>(null);
   const [actualTopWeight, setActualTopWeight] = useState<number>(suggestedTopWeight);
   
   const { user } = useAuth();
@@ -151,17 +168,16 @@ export function WarmupBlock({
       setActualTopWeight(targetWeight);
 
       if (data?.warmup_plan) {
-        setPlan(data.warmup_plan as unknown as WarmupPlan);
-        setLocalFeedback(data.warmup_feedback as WarmupFeedback || null);
+        setPlan(data.warmup_plan as unknown as DBWarmupPlan);
+        setLocalFeedback(data.warmup_feedback as DBWarmupFeedback || null);
       } else {
-        // Generate default plan if nothing saved - this will now automatically
-        // create the warmup_top_weight in the feedback table via the new trigger
+        // Generate default plan if nothing saved
         try {
           const updatedPlan = await recomputeWarmup({
             workoutExerciseId
           });
           
-          setPlan(updatedPlan);
+          setPlan(updatedPlan as any);
         } catch (error) {
           console.error('Failed to generate initial warmup plan:', error);
         }
@@ -171,15 +187,15 @@ export function WarmupBlock({
 
   const totalWarmupTime = useMemo(() => {
     if (!plan?.steps?.length) return 0;
-    const rests = plan.steps.reduce((acc, s) => acc + (s.rest_sec ?? 60), 0);
+    const rests = plan.steps.reduce((acc, s) => acc + (s.restSec ?? 60), 0);
     return rests; // seconds
   }, [plan]);
 
-  const save = async (value: WarmupFeedback) => {
+  const save = async (value: DBWarmupFeedback) => {
     try {
       await saveFeedback({
         workoutExerciseId,
-        feedback: value
+        feedback: value as any // Cast to make the types work temporarily
       });
       
       setLocalFeedback(value);
@@ -195,7 +211,7 @@ export function WarmupBlock({
         .single();
       
       if (data?.warmup_plan) {
-        setPlan(data.warmup_plan as unknown as WarmupPlan);
+        setPlan(data.warmup_plan as unknown as DBWarmupPlan);
       }
     } catch (error) {
       toast.error('Failed to save warmup feedback');
@@ -223,16 +239,15 @@ export function WarmupBlock({
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
             {plan?.steps?.map((s, index) => {
-              const stepWeight = actualTopWeight && actualTopWeight > 0 
-                ? Math.round(actualTopWeight * s.percent * 4) / 4 
-                : 0;
+              // Use the already calculated targetWeight from the database
+              const stepWeight = s.targetWeight || 0;
               return (
                 <li key={index} className="flex items-center justify-between text-sm">
-                  <span className="font-mono">{s.label}</span>
+                  <span className="font-mono">{s.id}</span>
                   <span>
                     {stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps
                   </span>
-                  <span className="text-muted-foreground">{s.rest_sec}s rest</span>
+                  <span className="text-muted-foreground">{s.restSec}s rest</span>
                 </li>
               );
             }) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
@@ -245,8 +260,8 @@ export function WarmupBlock({
           <div className="flex gap-2">
             <Button
               size="sm"
-              variant={localFeedback === 'too_little' ? 'default' : 'outline'}
-              onClick={() => save('too_little')}
+              variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
+              onClick={() => save('not_enough')}
               disabled={isLoading}
             >
               🥶 Too little
