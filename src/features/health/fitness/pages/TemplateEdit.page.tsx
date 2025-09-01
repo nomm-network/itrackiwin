@@ -22,6 +22,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExerciseNameDisplay } from "../components/ExerciseNameDisplay";
+import { useTranslation } from 'react-i18next';
 
 interface Exercise {
   id: string;
@@ -43,6 +44,7 @@ interface Equipment {
 export default function TemplateEdit() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const { i18n } = useTranslation();
   
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
@@ -104,13 +106,28 @@ export default function TemplateEdit() {
   const { data: searchExercises, isLoading: searchLoading } = useQuery({
     queryKey: ['exercise-search', exerciseSearch, selectedMuscleGroup, selectedEquipment],
     queryFn: async (): Promise<Exercise[]> => {
-      const { data, error } = await supabase
+      let query = supabase
         .from('v_exercises_with_translations')
         .select(`
           id,
-          translations
-        `)
-        .limit(100);
+          display_name,
+          translations,
+          primary_muscle_id,
+          equipment_id
+        `);
+
+      // Apply filters
+      if (exerciseSearch) {
+        query = query.or(`display_name.ilike.%${exerciseSearch}%`);
+      }
+      if (selectedMuscleGroup && selectedMuscleGroup !== 'all') {
+        query = query.eq('primary_muscle_id', selectedMuscleGroup);
+      }
+      if (selectedEquipment && selectedEquipment !== 'all') {
+        query = query.eq('equipment_id', selectedEquipment);
+      }
+
+      const { data, error } = await query.limit(100);
         
       if (error) {
         console.error('Exercise search error:', error);
@@ -119,11 +136,14 @@ export default function TemplateEdit() {
       
       return (data || []).map(ex => {
         const translations = ex.translations as any;
+        const currentLang = i18n.language || 'en';
+        const translation = translations?.[currentLang] || translations?.['en'] || {};
+        
         return {
           id: ex.id,
-          name: translations?.name || `Exercise ${ex.id.slice(0, 8)}`,
-          primary_muscle: translations?.primary_muscle || 'Unknown',
-          equipment: translations?.equipment || 'Unknown'
+          name: translation.name || ex.display_name || `Exercise ${ex.id.slice(0, 8)}`,
+          primary_muscle: 'Muscle',
+          equipment: 'Equipment'
         };
       });
     }
