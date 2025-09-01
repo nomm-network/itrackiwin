@@ -1,19 +1,16 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useEffect } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Switch } from "@/components/ui/switch";
-import { Plus, X, Grip } from "lucide-react";
-import { toast } from "sonner";
+import { Checkbox } from "@/components/ui/checkbox";
+import { X } from "lucide-react";
 
 interface HandleGripManagerProps {
   equipmentId: string;
   handleId: string;
   handleName: string;
   onClose: () => void;
+  onSave: (grips: { gripId: string; isAllowed: boolean; isDefault: boolean }[]) => void;
 }
 
 interface HandleGrip {
@@ -35,8 +32,8 @@ interface AvailableGrip {
   translations: { language_code: string; name: string }[];
 }
 
-export function HandleGripManager({ equipmentId, handleId, handleName, onClose }: HandleGripManagerProps) {
-  const queryClient = useQueryClient();
+export function HandleGripManager({ equipmentId, handleId, handleName, onClose, onSave }: HandleGripManagerProps) {
+  const [gripStates, setGripStates] = useState<{ gripId: string; isAllowed: boolean; isDefault: boolean }[]>([]);
 
   // Fetch all available grips
   const { data: allGrips = [], isLoading: allGripsLoading } = useQuery({
@@ -78,66 +75,20 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
     }
   });
 
-  const toggleAllowed = useMutation({
-    mutationFn: async ({ gripId, allowed }: { gripId: string; allowed: boolean }) => {
-      if (allowed) {
-        // Add grip
-        const { error } = await supabase
-          .from('equipment_handle_grips')
-          .insert({
-            equipment_id: equipmentId,
-            handle_id: handleId,
-            grip_id: gripId,
-            is_default: false
-          });
-        if (error) throw error;
-      } else {
-        // Remove grip
-        const { error } = await supabase
-          .from('equipment_handle_grips')
-          .delete()
-          .eq('equipment_id', equipmentId)
-          .eq('handle_id', handleId)
-          .eq('grip_id', gripId);
-        if (error) throw error;
-      }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, handleId] });
-    },
-    onError: (error) => {
-      toast.error("Failed to update grip: " + error.message);
+  // Initialize grip states when data loads
+  useEffect(() => {
+    if (allGrips.length > 0) {
+      const initialStates = allGrips.map((grip: any) => {
+        const handleGrip = handleGrips.find((hg: any) => hg.grip_id === grip.id);
+        return {
+          gripId: grip.id,
+          isAllowed: !!handleGrip,
+          isDefault: handleGrip?.is_default || false
+        };
+      });
+      setGripStates(initialStates);
     }
-  });
-
-  const toggleDefault = useMutation({
-    mutationFn: async ({ gripId, isDefault }: { gripId: string; isDefault: boolean }) => {
-      // First, clear all defaults for this handle
-      if (isDefault) {
-        await supabase
-          .from('equipment_handle_grips')
-          .update({ is_default: false })
-          .eq('equipment_id', equipmentId)
-          .eq('handle_id', handleId);
-      }
-
-      // Then set the new default
-      const { error } = await supabase
-        .from('equipment_handle_grips')
-        .update({ is_default: isDefault })
-        .eq('equipment_id', equipmentId)
-        .eq('handle_id', handleId)
-        .eq('grip_id', gripId);
-      
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, handleId] });
-    },
-    onError: (error) => {
-      toast.error("Failed to update default: " + error.message);
-    }
-  });
+  }, [allGrips, handleGrips]);
 
   const getGripName = (grip: any) => {
     return grip?.translations?.find((t: any) => t.language_code === 'en')?.name || 
@@ -145,27 +96,33 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
            'Unknown Grip';
   };
 
-  const isGripAllowed = (gripId: string) => {
-    return handleGrips.some(hg => hg.grip_id === gripId);
+  const updateGripState = (gripId: string, field: 'isAllowed' | 'isDefault', value: boolean) => {
+    setGripStates(prev => prev.map(grip => {
+      if (grip.gripId === gripId) {
+        if (field === 'isAllowed' && !value) {
+          // If unchecking allowed, also uncheck default
+          return { ...grip, isAllowed: false, isDefault: false };
+        } else if (field === 'isDefault' && value) {
+          // If setting as default, uncheck all other defaults
+          const updated = prev.map(g => ({ ...g, isDefault: g.gripId === gripId }));
+          return updated.find(g => g.gripId === gripId)!;
+        }
+        return { ...grip, [field]: value };
+      } else if (field === 'isDefault' && value) {
+        // Uncheck default for other grips
+        return { ...grip, isDefault: false };
+      }
+      return grip;
+    }));
   };
 
-  const getHandleGrip = (gripId: string) => {
-    return handleGrips.find(hg => hg.grip_id === gripId);
+  const handleSave = () => {
+    onSave(gripStates);
   };
 
   if (gripsLoading || allGripsLoading) {
     return (
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Grip className="h-5 w-5" />
-            Grip Configuration: {handleName}
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="text-center py-4 text-muted-foreground">Loading...</div>
-        </CardContent>
-      </Card>
+      <div className="text-center py-4 text-muted-foreground">Loading...</div>
     );
   }
 
@@ -178,39 +135,44 @@ export function HandleGripManager({ equipmentId, handleId, handleName, onClose }
         </Button>
       </div>
       
-      <div className="space-y-2">
-        {allGrips.map((grip) => {
-          const isAllowed = isGripAllowed(grip.id);
-          const handleGrip = getHandleGrip(grip.id);
+      <div className="space-y-3">
+        {allGrips.map((grip: any) => {
+          const gripState = gripStates.find(gs => gs.gripId === grip.id);
+          const isAllowed = gripState?.isAllowed || false;
+          const isDefault = gripState?.isDefault || false;
           
           return (
             <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
               <div className="font-medium">{getGripName(grip)}</div>
-              <div className="flex items-center gap-4">
+              <div className="flex items-center gap-6">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm">Allowed</label>
-                  <Switch
+                  <Checkbox
                     checked={isAllowed}
                     onCheckedChange={(checked) => 
-                      toggleAllowed.mutate({ gripId: grip.id, allowed: checked })
+                      updateGripState(grip.id, 'isAllowed', checked as boolean)
                     }
                   />
+                  <label className="text-sm">Allowed</label>
                 </div>
-                {isAllowed && (
-                  <div className="flex items-center gap-2">
-                    <label className="text-sm">Default</label>
-                    <Switch
-                      checked={handleGrip?.is_default || false}
-                      onCheckedChange={(checked) => 
-                        toggleDefault.mutate({ gripId: grip.id, isDefault: checked })
-                      }
-                    />
-                  </div>
-                )}
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    checked={isDefault}
+                    disabled={!isAllowed}
+                    onCheckedChange={(checked) => 
+                      updateGripState(grip.id, 'isDefault', checked as boolean)
+                    }
+                  />
+                  <label className="text-sm">Default</label>
+                </div>
               </div>
             </div>
           );
         })}
+      </div>
+      
+      <div className="flex justify-end gap-2 mt-4">
+        <Button onClick={onClose} variant="outline">Cancel</Button>
+        <Button onClick={handleSave}>Save Grips</Button>
       </div>
     </div>
   );

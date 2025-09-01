@@ -168,6 +168,38 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
     );
   }
 
+  const handleSaveGrips = async (grips: { gripId: string; isAllowed: boolean; isDefault: boolean }[]) => {
+    try {
+      // Remove all existing grips for this handle
+      await supabase
+        .from('equipment_handle_grips')
+        .delete()
+        .eq('equipment_id', equipmentId)
+        .eq('handle_id', selectedHandle!.id);
+
+      // Add back only the allowed grips
+      const allowedGrips = grips.filter(g => g.isAllowed);
+      if (allowedGrips.length > 0) {
+        const { error } = await supabase
+          .from('equipment_handle_grips')
+          .insert(
+            allowedGrips.map(g => ({
+              equipment_id: equipmentId,
+              handle_id: selectedHandle!.id,
+              grip_id: g.gripId,
+              is_default: g.isDefault
+            }))
+          );
+        if (error) throw error;
+      }
+
+      queryClient.invalidateQueries({ queryKey: ['equipment-handle-grips', equipmentId, selectedHandle!.id] });
+      setSelectedHandle(null);
+    } catch (error) {
+      console.error('Error saving grips:', error);
+    }
+  };
+
   if (selectedHandle) {
     return (
       <HandleGripManager
@@ -175,6 +207,7 @@ export function EquipmentHandleManager({ equipmentId }: EquipmentHandleManagerPr
         handleId={selectedHandle.id}
         handleName={selectedHandle.name}
         onClose={() => setSelectedHandle(null)}
+        onSave={handleSaveGrips}
       />
     );
   }
