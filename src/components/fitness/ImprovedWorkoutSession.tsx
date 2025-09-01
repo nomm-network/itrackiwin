@@ -91,10 +91,10 @@ export default function ImprovedWorkoutSession({
   // Fetch grips data
   const { data: grips = [], isLoading: gripsLoading } = useGrips();
 
-  // Load current grips when dialog opens
+  // Load current grips when component mounts and when dialog opens
   React.useEffect(() => {
     const loadCurrentGrips = async () => {
-      if (showGripsDialog && exercise.workout_exercise_id) {
+      if (exercise.workout_exercise_id) {
         const { data } = await supabase
           .from('workout_exercises')
           .select('grip_key')
@@ -108,7 +108,7 @@ export default function ImprovedWorkoutSession({
       }
     };
     loadCurrentGrips();
-  }, [showGripsDialog, exercise.workout_exercise_id]);
+  }, [exercise.workout_exercise_id]);
 
   // Check warmup feedback from database
   React.useEffect(() => {
@@ -246,7 +246,14 @@ export default function ImprovedWorkoutSession({
       {/* Exercise Header with Grips and Sets Icons */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <h3 className="text-lg font-semibold text-foreground">{exercise.name}</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            {exercise.name}
+            {exercise.completed_sets.length > 0 && selectedGripIds.length > 0 && (
+              <span className="text-muted-foreground">
+                {' - '}{grips.filter(g => selectedGripIds.includes(g.id)).map(g => g.name).join(', ')}
+              </span>
+            )}
+          </h3>
           <Button 
             variant="ghost" 
             size="sm" 
