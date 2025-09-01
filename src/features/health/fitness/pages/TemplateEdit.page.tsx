@@ -107,15 +107,12 @@ export default function TemplateEdit() {
     queryKey: ['exercise-search', exerciseSearch, selectedMuscleGroup, selectedEquipment],
     queryFn: async (): Promise<Exercise[]> => {
       const { data, error } = await supabase
-        .from('exercises')
+        .from('v_exercises_with_translations')
         .select(`
           id,
-          exercises_translations!inner(name)
+          translations
         `)
-        .eq('exercises_translations.language_code', 'en')
-        .eq('is_public', true)
-        .limit(100)
-        .order('popularity_rank', { ascending: false, nullsFirst: false });
+        .limit(100);
         
       if (error) {
         console.error('Exercise search error:', error);
@@ -124,7 +121,7 @@ export default function TemplateEdit() {
       
       return (data || []).map(ex => ({
         id: ex.id,
-        name: (ex.exercises_translations as any)?.[0]?.name || 'Unknown Exercise',
+        name: (ex.translations as any)?.name || 'Unknown Exercise',
         primary_muscle: 'Muscle',
         equipment: 'Equipment'
       }));
