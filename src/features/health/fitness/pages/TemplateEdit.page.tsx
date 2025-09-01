@@ -49,8 +49,8 @@ export default function TemplateEdit() {
   const [isEditing, setIsEditing] = useState(false);
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
-  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("");
-  const [selectedEquipment, setSelectedEquipment] = useState("");
+  const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("all");
+  const [selectedEquipment, setSelectedEquipment] = useState("all");
 
   const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
   const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
@@ -125,11 +125,11 @@ export default function TemplateEdit() {
         query = query.ilike('exercises_translations.name', `%${exerciseSearch}%`);
       }
       
-      if (selectedMuscleGroup) {
+      if (selectedMuscleGroup && selectedMuscleGroup !== "all") {
         query = query.eq('muscle_groups.id', selectedMuscleGroup);
       }
       
-      if (selectedEquipment) {
+      if (selectedEquipment && selectedEquipment !== "all") {
         query = query.eq('equipment_id', selectedEquipment);
       }
         
@@ -146,7 +146,7 @@ export default function TemplateEdit() {
         equipment: (ex.equipment as any)?.equipment_translations?.[0]?.name || 'Unknown'
       }));
     },
-    enabled: exerciseSearch.length > 0 || selectedMuscleGroup !== "" || selectedEquipment !== ""
+    enabled: exerciseSearch.length > 0 || selectedMuscleGroup !== "all" || selectedEquipment !== "all"
   });
 
   useEffect(() => {
@@ -206,8 +206,8 @@ export default function TemplateEdit() {
       toast.success(`Added ${exercise.name} to template`);
     setShowExerciseDialog(false);
     setExerciseSearch("");
-    setSelectedMuscleGroup("");
-    setSelectedEquipment("");
+    setSelectedMuscleGroup("all");
+    setSelectedEquipment("all");
     refetchExercises();
     } catch (error) {
       toast.error("Failed to add exercise");
@@ -405,7 +405,7 @@ export default function TemplateEdit() {
                             <SelectValue placeholder="Filter by muscle group" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All muscle groups</SelectItem>
+                            <SelectItem value="all">All muscle groups</SelectItem>
                             {muscleGroups.map((mg) => (
                               <SelectItem key={mg.id} value={mg.id}>
                                 {mg.name}
@@ -419,7 +419,7 @@ export default function TemplateEdit() {
                             <SelectValue placeholder="Filter by equipment" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">All equipment</SelectItem>
+                            <SelectItem value="all">All equipment</SelectItem>
                             {equipmentList.map((eq) => (
                               <SelectItem key={eq.id} value={eq.id}>
                                 {eq.name}
@@ -458,7 +458,7 @@ export default function TemplateEdit() {
                               </div>
                             ))}
                           </div>
-                        ) : (exerciseSearch || selectedMuscleGroup || selectedEquipment) ? (
+                        ) : (exerciseSearch || selectedMuscleGroup !== "all" || selectedEquipment !== "all") ? (
                           <div className="text-center py-8 text-muted-foreground">
                             <p>No exercises found matching your filters</p>
                             <p className="text-sm mt-1">Try adjusting your search criteria</p>
