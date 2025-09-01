@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -11,10 +11,14 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Pencil, Plus, Trash2, Search } from "lucide-react";
 import AdminMenu from "../components/AdminMenu";
 import PageNav from "@/components/PageNav";
 import { useTranslations } from "@/hooks/useTranslations";
+import { useGrips } from "@/hooks/useGrips";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface Equipment {
   id: string;
@@ -23,12 +27,27 @@ interface Equipment {
   translations: Record<string, { name: string; description?: string }> | null;
 }
 
+interface EquipmentGrip {
+  id: string;
+  grip_id: string;
+  is_default: boolean;
+  grip: {
+    id: string;
+    slug: string;
+    category: string;
+    name?: string;
+  };
+}
+
 const AdminEquipmentManagement: React.FC = () => {
   const { t } = useTranslation();
   const { getTranslatedName } = useTranslations();
   const queryClient = useQueryClient();
   const [editingItem, setEditingItem] = useState<Equipment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
+  const [showGripSection, setShowGripSection] = useState(false);
 
   // Fetch equipment data with translations
   const { data: equipment = [], isLoading: equipmentLoading } = useQuery({
@@ -57,6 +76,52 @@ const AdminEquipmentManagement: React.FC = () => {
       });
     },
   });
+
+  // Fetch grips data
+  const { data: grips = [] } = useGrips();
+
+  // Fetch equipment grips for editing item
+  const { data: equipmentGrips = [] } = useQuery({
+    queryKey: ['equipment-grips', editingItem?.id],
+    queryFn: async () => {
+      if (!editingItem?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('equipment_grip_defaults')
+        .select(`
+          id,
+          grip_id,
+          is_default,
+          grip:grips (id, slug, category)
+        `)
+        .eq('equipment_id', editingItem.id);
+      
+      if (error) throw error;
+      
+      // Add names to grips
+      return data.map(eg => ({
+        ...eg,
+        grip: {
+          ...eg.grip,
+          name: grips.find(g => g.id === eg.grip.id)?.name || eg.grip.slug
+        }
+      }));
+    },
+    enabled: !!editingItem?.id
+  });
+
+  // Filter equipment based on search term
+  const filteredEquipment = useMemo(() => {
+    if (!searchTerm) return equipment;
+    
+    return equipment.filter(item => {
+      const name = getTranslatedName(item).toLowerCase();
+      const slug = (item.slug || '').toLowerCase();
+      const search = searchTerm.toLowerCase();
+      
+      return name.includes(search) || slug.includes(search);
+    });
+  }, [equipment, searchTerm, getTranslatedName]);
 
   // Form
   const equipmentForm = useForm({
@@ -147,10 +212,73 @@ const AdminEquipmentManagement: React.FC = () => {
     }
   });
 
+  // Grip management mutations
+  const addGripMutation = useMutation({
+    mutationFn: async ({ equipmentId, gripIds }: { equipmentId: string; gripIds: string[] }) => {
+      const mappings = gripIds.map(gripId => ({
+        equipment_id: equipmentId,
+        grip_id: gripId,
+        is_default: false
+      }));
+
+      const { error } = await supabase
+        .from('equipment_grip_defaults')
+        .insert(mappings);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipment-grips', editingItem?.id] });
+      toast.success('Grips added successfully');
+      setSelectedGripIds([]);
+    },
+    onError: (error) => {
+      toast.error('Failed to add grips: ' + error.message);
+    }
+  });
+
+  const removeGripMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from('equipment_grip_defaults')
+        .delete()
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipment-grips', editingItem?.id] });
+      toast.success('Grip removed successfully');
+    },
+    onError: (error) => {
+      toast.error('Failed to remove grip: ' + error.message);
+    }
+  });
+
+  const toggleDefaultGripMutation = useMutation({
+    mutationFn: async ({ id, isDefault }: { id: string; isDefault: boolean }) => {
+      const { error } = await supabase
+        .from('equipment_grip_defaults')
+        .update({ is_default: isDefault })
+        .eq('id', id);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['equipment-grips', editingItem?.id] });
+      toast.success('Default grip updated');
+    },
+    onError: (error) => {
+      toast.error('Failed to update default grip: ' + error.message);
+    }
+  });
+
   const handleEdit = (item: Equipment) => {
     setEditingItem(item);
     const name = getTranslatedName(item);
     equipmentForm.reset({ name, slug: item.slug || '' });
+    setShowGripSection(false);
+    setSelectedGripIds([]);
     setIsDialogOpen(true);
   };
 
@@ -170,8 +298,28 @@ const AdminEquipmentManagement: React.FC = () => {
 
   const openCreateDialog = () => {
     setEditingItem(null);
+    setShowGripSection(false);
+    setSelectedGripIds([]);
     setIsDialogOpen(true);
   };
+
+  const toggleGripSelection = (gripId: string) => {
+    setSelectedGripIds(prev => 
+      prev.includes(gripId)
+        ? prev.filter(id => id !== gripId)
+        : [...prev, gripId]
+    );
+  };
+
+  const handleAddGrips = () => {
+    if (editingItem && selectedGripIds.length > 0) {
+      addGripMutation.mutate({ equipmentId: editingItem.id, gripIds: selectedGripIds });
+    }
+  };
+
+  const availableGrips = grips.filter(g => 
+    !equipmentGrips.some(eg => eg.grip_id === g.id)
+  );
 
   return (
     <main className="container py-8">
@@ -228,6 +376,112 @@ const AdminEquipmentManagement: React.FC = () => {
                           </FormItem>
                         )}
                       />
+                      
+                      {editingItem && (
+                        <div className="space-y-4">
+                          <div className="flex items-center justify-between">
+                            <h4 className="font-medium">Grip Configuration</h4>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setShowGripSection(!showGripSection)}
+                            >
+                              {showGripSection ? 'Hide' : 'Configure'} Grips
+                            </Button>
+                          </div>
+                          
+                          {showGripSection && (
+                            <div className="space-y-4 border rounded-lg p-4">
+                              {/* Current Grips */}
+                              <div>
+                                <h5 className="font-medium mb-2">Current Grips</h5>
+                                {equipmentGrips.length > 0 ? (
+                                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                                    {equipmentGrips.map((equipmentGrip) => (
+                                      <div key={equipmentGrip.id} className="flex items-center justify-between p-2 border rounded">
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-sm">{equipmentGrip.grip.name}</span>
+                                          {equipmentGrip.is_default && (
+                                            <Badge variant="default" className="text-xs">Default</Badge>
+                                          )}
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <div className="flex items-center gap-1">
+                                            <span className="text-xs">Default</span>
+                                            <Switch
+                                              checked={equipmentGrip.is_default}
+                                              onCheckedChange={(checked) => 
+                                                toggleDefaultGripMutation.mutate({ 
+                                                  id: equipmentGrip.id, 
+                                                  isDefault: checked 
+                                                })
+                                              }
+                                            />
+                                          </div>
+                                          <Button
+                                            onClick={() => removeGripMutation.mutate(equipmentGrip.id)}
+                                            size="sm"
+                                            variant="ghost"
+                                            className="h-6 w-6 p-0"
+                                          >
+                                            <Trash2 className="h-3 w-3" />
+                                          </Button>
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                ) : (
+                                  <div className="text-sm text-muted-foreground">No grips configured</div>
+                                )}
+                              </div>
+                              
+                              {/* Add New Grips */}
+                              {availableGrips.length > 0 && (
+                                <div>
+                                  <div className="flex items-center justify-between mb-2">
+                                    <h5 className="font-medium">Add Grips</h5>
+                                    {selectedGripIds.length > 0 && (
+                                      <Button 
+                                        onClick={handleAddGrips}
+                                        size="sm"
+                                        disabled={addGripMutation.isPending}
+                                      >
+                                        <Plus className="h-3 w-3 mr-1" />
+                                        Add {selectedGripIds.length}
+                                      </Button>
+                                    )}
+                                  </div>
+                                  
+                                  <ScrollArea className="h-32 border rounded p-2">
+                                    <div className="space-y-1">
+                                      {availableGrips.map((grip) => (
+                                        <div
+                                          key={grip.id}
+                                          className={`p-2 rounded cursor-pointer text-sm transition-colors ${
+                                            selectedGripIds.includes(grip.id)
+                                              ? 'bg-primary/10 border border-primary'
+                                              : 'hover:bg-muted/50'
+                                          }`}
+                                          onClick={() => toggleGripSelection(grip.id)}
+                                        >
+                                          <div className="flex items-center justify-between">
+                                            <span>{grip.name}</span>
+                                            {selectedGripIds.includes(grip.id) && (
+                                              <Badge variant="default" className="text-xs">Selected</Badge>
+                                            )}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </ScrollArea>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      )}
+                      
                       <div className="flex gap-2">
                         <Button type="submit" disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}>
                           {createEquipmentMutation.isPending || updateEquipmentMutation.isPending ? 'Saving...' : 'Save'}
@@ -243,6 +497,18 @@ const AdminEquipmentManagement: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
+            <div className="mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search equipment..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+            
             {equipmentLoading ? (
               <div>Loading...</div>
             ) : (
@@ -256,7 +522,7 @@ const AdminEquipmentManagement: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {equipment.map((item) => (
+                  {filteredEquipment.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         {getTranslatedName(item)}
