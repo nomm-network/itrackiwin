@@ -278,8 +278,8 @@ export default function ImprovedWorkoutSession({
           <h3 className="text-lg font-semibold text-foreground">
             {exercise.name}
             {exercise.completed_sets.length > 0 && currentGripName && (
-              <span className="text-muted-foreground">
-                {' - '}{currentGripName}
+              <span className="text-muted-foreground flex items-center gap-1">
+                {' - '}{currentGripName} <Hand className="h-3 w-3" />
               </span>
             )}
           </h3>
@@ -290,10 +290,17 @@ export default function ImprovedWorkoutSession({
             onClick={() => {
               if (exercise.completed_sets.length === 0) {
                 setShowGripsDialog(true);
+              } else {
+                // Show tooltip message on click when disabled
+                const tooltip = document.createElement('div');
+                tooltip.textContent = 'Grips can be changed only before the first set';
+                tooltip.style.cssText = 'position: fixed; z-index: 9999; background: black; color: white; padding: 8px 12px; border-radius: 6px; font-size: 12px; pointer-events: none; top: 50%; left: 50%; transform: translate(-50%, -50%);';
+                document.body.appendChild(tooltip);
+                setTimeout(() => document.body.removeChild(tooltip), 2000);
               }
             }}
             disabled={exercise.completed_sets.length > 0}
-            title={exercise.completed_sets.length > 0 ? "Grip locked after first set" : "Change grips"}
+            title={exercise.completed_sets.length > 0 ? "Grips can be changed only before the first set" : "Change grips"}
           >
             <Hand className="h-4 w-4" />
           </Button>

@@ -201,7 +201,7 @@ export function WarmupBlock({
             {plan?.steps?.map((s, index) => (
               <li key={index} className="flex items-center justify-between text-sm">
                 <span className="font-mono">{s.label}</span>
-                <span>{Math.round(plan.top_weight * s.percent * 4) / 4}{unit} × {s.reps} reps</span>
+                <span>{actualTopWeight ? Math.round(actualTopWeight * s.percent * 4) / 4 : 0}{unit} × {s.reps} reps</span>
                 <span className="text-muted-foreground">{s.rest_sec}s rest</span>
               </li>
             )) || <li className="text-sm text-muted-foreground">No warmup steps available</li>}
