@@ -11,6 +11,7 @@ const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManage
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
 const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManagement"));
 const AdminEquipmentGripCompatibility = lazy(() => import("./pages/AdminEquipmentGripCompatibility"));
+const AdminTemporaryDisabled = lazy(() => import("./pages/AdminTemporaryDisabled"));
 const AdminTagsAliasesManagement = lazy(() => import("./pages/AdminTagsAliasesManagement"));
 const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
@@ -28,8 +29,8 @@ export function AdminRoutes() {
           <AdminLayout>
             <Routes>
               <Route index element={<AdminHomePage />} />
-              <Route path="exercises" element={<AdminExercisesManagement />} />
-              <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
+              <Route path="exercises" element={<AdminTemporaryDisabled pageName="Exercise Management" />} />
+              <Route path="exercises/:id/edit" element={<AdminTemporaryDisabled pageName="Exercise Edit" />} />
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
