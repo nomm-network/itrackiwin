@@ -1010,6 +1010,7 @@ export type Database = {
       }
       equipment: {
         Row: {
+          configured: boolean
           created_at: string
           default_bar_weight_kg: number | null
           default_side_min_plate_kg: number | null
@@ -1025,6 +1026,7 @@ export type Database = {
           weight_kg: number | null
         }
         Insert: {
+          configured?: boolean
           created_at?: string
           default_bar_weight_kg?: number | null
           default_side_min_plate_kg?: number | null
@@ -1040,6 +1042,7 @@ export type Database = {
           weight_kg?: number | null
         }
         Update: {
+          configured?: boolean
           created_at?: string
           default_bar_weight_kg?: number | null
           default_side_min_plate_kg?: number | null
@@ -2099,6 +2102,7 @@ export type Database = {
           body_part_id: string | null
           capability_schema: Json | null
           complexity_score: number | null
+          configured: boolean
           contraindications: Json | null
           created_at: string
           custom_display_name: string | null
@@ -2140,6 +2144,7 @@ export type Database = {
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
+          configured?: boolean
           contraindications?: Json | null
           created_at?: string
           custom_display_name?: string | null
@@ -2181,6 +2186,7 @@ export type Database = {
           body_part_id?: string | null
           capability_schema?: Json | null
           complexity_score?: number | null
+          configured?: boolean
           contraindications?: Json | null
           created_at?: string
           custom_display_name?: string | null
@@ -2989,16 +2995,19 @@ export type Database = {
       }
       handles: {
         Row: {
+          configured: boolean
           created_at: string
           id: string
           slug: string
         }
         Insert: {
+          configured?: boolean
           created_at?: string
           id?: string
           slug: string
         }
         Update: {
+          configured?: boolean
           created_at?: string
           id?: string
           slug?: string

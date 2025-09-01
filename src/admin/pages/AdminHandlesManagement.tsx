@@ -14,11 +14,15 @@ import { toast } from "@/hooks/use-toast";
 import { useTranslations } from '@/hooks/useTranslations';
 import { Search, Plus, Edit, Trash2 } from "lucide-react";
 import AdminMenu from "@/admin/components/AdminMenu";
+import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Handle {
   id: string;
   slug: string;
   created_at: string;
+  configured: boolean;
   translations: Record<string, { name: string; description?: string }> | null;
 }
 
@@ -27,10 +31,12 @@ const AdminHandlesManagement: React.FC = () => {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingHandle, setEditingHandle] = useState<Handle | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+  const [configuredFilter, setConfiguredFilter] = useState<string>("all");
   const [formData, setFormData] = useState({
     name: "",
     slug: "",
     description: "",
+    configured: false,
   });
 
   const queryClient = useQueryClient();
@@ -75,7 +81,7 @@ const AdminHandlesManagement: React.FC = () => {
   });
 
   const resetForm = () => {
-    setFormData({ name: "", slug: "", description: "" });
+    setFormData({ name: "", slug: "", description: "", configured: false });
     setEditingHandle(null);
   };
 
@@ -90,6 +96,7 @@ const AdminHandlesManagement: React.FC = () => {
       name: englishTranslation?.name || "",
       slug: handle.slug,
       description: englishTranslation?.description || "",
+      configured: handle.configured || false,
     });
     setEditingHandle(handle);
     setIsCreateDialogOpen(true);
@@ -109,11 +116,14 @@ const AdminHandlesManagement: React.FC = () => {
 
   // Create/Update handle mutation
   const upsertMutation = useMutation({
-    mutationFn: async (handle: Partial<Handle> & { name: string; description?: string }) => {
+    mutationFn: async (handle: Partial<Handle> & { name: string; description?: string; configured?: boolean }) => {
       if (editingHandle) {
         const { data, error } = await supabase
           .from("handles")
-          .update({ slug: handle.slug })
+          .update({ 
+            slug: handle.slug,
+            configured: handle.configured || false
+          })
           .eq("id", editingHandle.id)
           .select()
           .single();
@@ -133,7 +143,10 @@ const AdminHandlesManagement: React.FC = () => {
       } else {
         const { data, error } = await supabase
           .from("handles")
-          .insert({ slug: handle.slug })
+          .insert({ 
+            slug: handle.slug,
+            configured: handle.configured || false
+          })
           .select()
           .single();
         if (error) throw error;
@@ -215,6 +228,13 @@ const AdminHandlesManagement: React.FC = () => {
   };
 
   const filteredHandles = handles.filter(handle => {
+    // Filter by configured status
+    if (configuredFilter !== "all") {
+      const isConfigured = configuredFilter === "configured";
+      if (handle.configured !== isConfigured) return false;
+    }
+    
+    // Filter by search term
     const name = getTranslatedName(handle) || "";
     return name.toLowerCase().includes(searchTerm.toLowerCase()) ||
            handle.slug.toLowerCase().includes(searchTerm.toLowerCase());
@@ -285,6 +305,18 @@ const AdminHandlesManagement: React.FC = () => {
                       rows={3}
                     />
                   </div>
+                  <div className="flex flex-row items-center justify-between rounded-lg border p-4">
+                    <div className="space-y-0.5">
+                      <Label className="text-base">Configured</Label>
+                      <div className="text-sm text-muted-foreground">
+                        Mark as configured when all settings are complete
+                      </div>
+                    </div>
+                    <Switch
+                      checked={formData.configured}
+                      onCheckedChange={(checked) => setFormData(prev => ({ ...prev, configured: checked }))}
+                    />
+                  </div>
                   <div className="flex justify-end gap-2">
                     <Button
                       type="button"
@@ -303,8 +335,8 @@ const AdminHandlesManagement: React.FC = () => {
           </div>
         </CardHeader>
         <CardContent>
-          <div className="mb-4">
-            <div className="relative">
+          <div className="flex gap-4 mb-4">
+            <div className="relative flex-1">
               <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
               <Input
                 placeholder="Search handles..."
@@ -313,6 +345,16 @@ const AdminHandlesManagement: React.FC = () => {
                 className="pl-10"
               />
             </div>
+            <Select value={configuredFilter} onValueChange={setConfiguredFilter}>
+              <SelectTrigger className="w-[200px]">
+                <SelectValue placeholder="Filter by configured" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Handles</SelectItem>
+                <SelectItem value="configured">Configured</SelectItem>
+                <SelectItem value="not-configured">Not Configured</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <Table>
@@ -321,6 +363,7 @@ const AdminHandlesManagement: React.FC = () => {
                 <TableHead>Name</TableHead>
                 <TableHead>Slug</TableHead>
                 <TableHead>Description</TableHead>
+                <TableHead>Configured</TableHead>
                 <TableHead>Created</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
               </TableRow>
@@ -336,6 +379,11 @@ const AdminHandlesManagement: React.FC = () => {
                   </TableCell>
                   <TableCell>
                     {getTranslatedDescription(handle) || "—"}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={handle.configured ? "default" : "secondary"}>
+                      {handle.configured ? "Yes" : "No"}
+                    </Badge>
                   </TableCell>
                   <TableCell>{new Date(handle.created_at).toLocaleDateString()}</TableCell>
                   <TableCell className="text-right">

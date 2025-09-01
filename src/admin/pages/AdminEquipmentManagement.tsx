@@ -19,11 +19,13 @@ import { useGrips } from "@/hooks/useGrips";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 interface Equipment {
   id: string;
   slug?: string;
   created_at: string;
+  configured: boolean;
   translations: Record<string, { name: string; description?: string }> | null;
 }
 
@@ -46,6 +48,7 @@ const AdminEquipmentManagement: React.FC = () => {
   const [editingItem, setEditingItem] = useState<Equipment | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  const [configuredFilter, setConfiguredFilter] = useState<string>("all");
   const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
   const [showGripSection, setShowGripSection] = useState(false);
 
@@ -110,32 +113,44 @@ const AdminEquipmentManagement: React.FC = () => {
     enabled: !!editingItem?.id
   });
 
-  // Filter equipment based on search term
+  // Filter equipment based on search term and configured status
   const filteredEquipment = useMemo(() => {
-    if (!searchTerm) return equipment;
+    let filtered = equipment;
     
-    return equipment.filter(item => {
-      const name = getTranslatedName(item).toLowerCase();
-      const slug = (item.slug || '').toLowerCase();
-      const search = searchTerm.toLowerCase();
-      
-      return name.includes(search) || slug.includes(search);
-    });
-  }, [equipment, searchTerm, getTranslatedName]);
+    // Filter by configured status
+    if (configuredFilter !== "all") {
+      const isConfigured = configuredFilter === "configured";
+      filtered = filtered.filter(item => item.configured === isConfigured);
+    }
+    
+    // Filter by search term
+    if (searchTerm) {
+      filtered = filtered.filter(item => {
+        const name = getTranslatedName(item).toLowerCase();
+        const slug = (item.slug || '').toLowerCase();
+        const search = searchTerm.toLowerCase();
+        
+        return name.includes(search) || slug.includes(search);
+      });
+    }
+    
+    return filtered;
+  }, [equipment, searchTerm, configuredFilter, getTranslatedName]);
 
   // Form
   const equipmentForm = useForm({
-    defaultValues: { name: '', slug: '' }
+    defaultValues: { name: '', slug: '', configured: false }
   });
 
   // Mutations
   const createEquipmentMutation = useMutation({
-    mutationFn: async (data: { name: string; slug?: string }) => {
+    mutationFn: async (data: { name: string; slug?: string; configured?: boolean }) => {
       // Create equipment
       const { data: equipment, error: equipmentError } = await supabase
         .from('equipment')
         .insert([{ 
-          slug: data.slug 
+          slug: data.slug,
+          configured: data.configured || false
         }])
         .select()
         .single();
@@ -163,12 +178,13 @@ const AdminEquipmentManagement: React.FC = () => {
   });
 
   const updateEquipmentMutation = useMutation({
-    mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string } }) => {
+    mutationFn: async ({ id, data }: { id: string; data: { name: string; slug?: string; configured?: boolean } }) => {
       // Update equipment
       const { error: equipmentError } = await supabase
         .from('equipment')
         .update({ 
-          slug: data.slug 
+          slug: data.slug,
+          configured: data.configured || false
         })
         .eq('id', id);
       if (equipmentError) throw equipmentError;
@@ -276,7 +292,7 @@ const AdminEquipmentManagement: React.FC = () => {
   const handleEdit = (item: Equipment) => {
     setEditingItem(item);
     const name = getTranslatedName(item);
-    equipmentForm.reset({ name, slug: item.slug || '' });
+    equipmentForm.reset({ name, slug: item.slug || '', configured: item.configured || false });
     setShowGripSection(false);
     setSelectedGripIds([]);
     setIsDialogOpen(true);
@@ -372,6 +388,26 @@ const AdminEquipmentManagement: React.FC = () => {
                             <FormLabel>Slug (optional)</FormLabel>
                             <FormControl>
                               <Input placeholder="equipment-slug" {...field} />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={equipmentForm.control}
+                        name="configured"
+                        render={({ field }) => (
+                          <FormItem className="flex flex-row items-center justify-between rounded-lg border p-4">
+                            <div className="space-y-0.5">
+                              <FormLabel className="text-base">Configured</FormLabel>
+                              <div className="text-sm text-muted-foreground">
+                                Mark as configured when all settings are complete
+                              </div>
+                            </div>
+                            <FormControl>
+                              <Switch
+                                checked={field.value}
+                                onCheckedChange={field.onChange}
+                              />
                             </FormControl>
                           </FormItem>
                         )}
@@ -497,9 +533,9 @@ const AdminEquipmentManagement: React.FC = () => {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="mb-4">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <div className="flex gap-4 mb-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                 <Input
                   placeholder="Search equipment..."
                   value={searchTerm}
@@ -507,27 +543,45 @@ const AdminEquipmentManagement: React.FC = () => {
                   className="pl-10"
                 />
               </div>
+              <Select value={configuredFilter} onValueChange={setConfiguredFilter}>
+                <SelectTrigger className="w-[200px]">
+                  <SelectValue placeholder="Filter by configured" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Equipment</SelectItem>
+                  <SelectItem value="configured">Configured</SelectItem>
+                  <SelectItem value="not-configured">Not Configured</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             {equipmentLoading ? (
               <div>Loading...</div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Slug</TableHead>
-                    <TableHead>Created</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Name</TableHead>
+                  <TableHead>Slug</TableHead>
+                  <TableHead>Configured</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
                 <TableBody>
                   {filteredEquipment.map((item) => (
                     <TableRow key={item.id}>
                       <TableCell className="font-medium">
                         {getTranslatedName(item)}
                       </TableCell>
-                      <TableCell>{item.slug || '-'}</TableCell>
+                      <TableCell>
+                        <code className="bg-muted px-2 py-1 rounded text-sm">{item.slug}</code>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={item.configured ? "default" : "secondary"}>
+                          {item.configured ? "Yes" : "No"}
+                        </Badge>
+                      </TableCell>
                       <TableCell>{new Date(item.created_at).toLocaleDateString()}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex gap-2 justify-end">

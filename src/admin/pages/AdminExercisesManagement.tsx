@@ -37,6 +37,7 @@ interface Exercise {
   source_url: string | null;
   popularity_rank: number | null;
   default_grip_ids?: string[] | null;
+  configured: boolean;
   created_at: string;
 }
 
@@ -86,6 +87,7 @@ const AdminExercisesManagement: React.FC = () => {
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState<string>("");
   const [selectedMuscle, setSelectedMuscle] = useState<string>("");
   const [selectedEquipment, setSelectedEquipment] = useState<string>("");
+  const [configuredFilter, setConfiguredFilter] = useState<string>("all");
   const [debugInfo, setDebugInfo] = useState<any>(null);
   const [isPublic, setIsPublic] = useState<string>("");
   const [editingExercise, setEditingExercise] = useState<Exercise | null>(null);
@@ -104,6 +106,7 @@ const AdminExercisesManagement: React.FC = () => {
     requires_handle?: boolean;
     movement_pattern?: string;
     skill_level?: string;
+    configured?: boolean;
   }>({
     name: "",
     description: "",
@@ -118,6 +121,7 @@ const AdminExercisesManagement: React.FC = () => {
     requires_handle: false,
     movement_pattern: "",
     skill_level: "medium",
+    configured: false,
   });
   const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
 
@@ -248,11 +252,11 @@ const AdminExercisesManagement: React.FC = () => {
 
   // Fetch exercises with filters
   const { data: exercises = [], isLoading, error: exercisesError } = useQuery({
-    queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic],
+    queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter],
     queryFn: async () => {
       const debugLog = [];
       debugLog.push(`[Admin] Fetching exercises with filters: ${JSON.stringify({
-        searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic
+        searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter
       })}`);
       
       let query = supabase
@@ -272,6 +276,7 @@ const AdminExercisesManagement: React.FC = () => {
       if (isPublic && isPublic !== "all") {
         query = query.eq("is_public", isPublic === "true");
       }
+      // Note: configured filter handled client-side since view might not have this column yet
 
       const { data, error } = await query;
       debugLog.push(`[Admin] Exercises query result: data=${data?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
@@ -329,6 +334,7 @@ const AdminExercisesManagement: React.FC = () => {
         return {
           ...exercise,
           default_grip_ids: exercise.default_grip_ids || [],
+          configured: exercise.configured || false,
           translations: translationsObj
         };
       });
@@ -361,6 +367,7 @@ const AdminExercisesManagement: React.FC = () => {
             is_bar_loaded: exerciseData.is_bar_loaded || false,
             is_unilateral: exerciseData.is_unilateral || false,
             requires_handle: exerciseData.requires_handle || false,
+            configured: exerciseData.configured || false,
           })
           .eq("id", editingExercise.id);
         
@@ -398,6 +405,7 @@ const AdminExercisesManagement: React.FC = () => {
             is_bar_loaded: exerciseData.is_bar_loaded || false,
             is_unilateral: exerciseData.is_unilateral || false,
             requires_handle: exerciseData.requires_handle || false,
+            configured: exerciseData.configured || false,
             owner_user_id: null, // Admin-created exercises don't have an owner
             slug: exerciseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
           })
@@ -442,6 +450,7 @@ const AdminExercisesManagement: React.FC = () => {
         requires_handle: false,
         movement_pattern: "",
         skill_level: "medium",
+        configured: false,
       });
       setSelectedGrips([]);
     },
@@ -500,6 +509,7 @@ const AdminExercisesManagement: React.FC = () => {
       equipment_id: exercise.equipment_id || "",
       is_public: exercise.is_public ?? true,
       default_grip_ids: exercise.default_grip_ids || [],
+      configured: exercise.configured || false,
     });
     setSelectedGrips(exercise.default_grip_ids || []);
     setIsCreateDialogOpen(true);
@@ -511,6 +521,7 @@ const AdminExercisesManagement: React.FC = () => {
     setSelectedMuscleGroup("");
     setSelectedMuscle("");
     setSelectedEquipment("");
+    setConfiguredFilter("all");
     setIsPublic("");
   };
 
@@ -636,7 +647,7 @@ const AdminExercisesManagement: React.FC = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-7 gap-4">
               <div className="relative">
                 <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -703,21 +714,31 @@ const AdminExercisesManagement: React.FC = () => {
                 </SelectContent>
               </Select>
 
-              <div className="flex gap-2">
-                <Select value={isPublic} onValueChange={setIsPublic}>
-                  <SelectTrigger className="bg-background border z-50">
-                    <SelectValue placeholder="Visibility" />
-                  </SelectTrigger>
-                  <SelectContent className="bg-background border z-50">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="true">Public</SelectItem>
-                    <SelectItem value="false">Private</SelectItem>
-                  </SelectContent>
-                </Select>
-                <Button variant="outline" onClick={clearFilters}>
-                  Clear
-                </Button>
-              </div>
+              <Select value={isPublic} onValueChange={setIsPublic}>
+                <SelectTrigger className="bg-background border z-50">
+                  <SelectValue placeholder="Visibility" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="true">Public</SelectItem>
+                  <SelectItem value="false">Private</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={configuredFilter} onValueChange={setConfiguredFilter}>
+                <SelectTrigger className="bg-background border z-50">
+                  <SelectValue placeholder="Configured" />
+                </SelectTrigger>
+                <SelectContent className="bg-background border z-50">
+                  <SelectItem value="all">All Exercises</SelectItem>
+                  <SelectItem value="configured">Configured</SelectItem>
+                  <SelectItem value="not-configured">Not Configured</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button variant="outline" onClick={clearFilters}>
+                Clear
+              </Button>
             </div>
           </CardContent>
         </Card>
@@ -738,6 +759,7 @@ const AdminExercisesManagement: React.FC = () => {
                 <TableHead>Equipment</TableHead>
                 <TableHead>Default Grips</TableHead>
                 <TableHead>Visibility</TableHead>
+                <TableHead>Configured</TableHead>
                 <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
@@ -761,6 +783,11 @@ const AdminExercisesManagement: React.FC = () => {
                   <TableCell>
                     <Badge variant={exercise.is_public ? "default" : "secondary"}>
                       {exercise.is_public ? "Public" : "Private"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={exercise.configured ? "default" : "secondary"}>
+                      {exercise.configured ? "Yes" : "No"}
                     </Badge>
                   </TableCell>
                       <TableCell>
