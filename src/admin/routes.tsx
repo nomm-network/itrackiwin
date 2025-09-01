@@ -29,8 +29,8 @@ export function AdminRoutes() {
           <AdminLayout>
             <Routes>
               <Route index element={<AdminHomePage />} />
-              <Route path="exercises" element={<AdminTemporaryDisabled pageName="Exercise Management" />} />
-              <Route path="exercises/:id/edit" element={<AdminTemporaryDisabled pageName="Exercise Edit" />} />
+              <Route path="exercises" element={<AdminExercisesManagement />} />
+              <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />

@@ -103,7 +103,7 @@ const AdminExercisesManagement: React.FC = () => {
     default_grip_ids?: string[];
     is_bar_loaded?: boolean;
     is_unilateral?: boolean;
-    requires_handle?: boolean;
+    
     movement_pattern?: string;
     skill_level?: string;
     configured?: boolean;
@@ -118,7 +118,6 @@ const AdminExercisesManagement: React.FC = () => {
     default_grip_ids: [],
     is_bar_loaded: false,
     is_unilateral: false,
-    requires_handle: false,
     movement_pattern: "",
     skill_level: "medium",
     configured: false,
@@ -260,8 +259,11 @@ const AdminExercisesManagement: React.FC = () => {
       })}`);
       
       let query = supabase
-        .from("v_exercises_with_translations")
-        .select("*")
+        .from("exercises")
+        .select(`
+          *,
+          exercises_translations!inner(name, description, language_code)
+        `)
         .order("popularity_rank", { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
@@ -366,7 +368,6 @@ const AdminExercisesManagement: React.FC = () => {
             exercise_skill_level: exerciseData.skill_level || 'medium',
             is_bar_loaded: exerciseData.is_bar_loaded || false,
             is_unilateral: exerciseData.is_unilateral || false,
-            requires_handle: exerciseData.requires_handle || false,
             configured: exerciseData.configured || false,
           })
           .eq("id", editingExercise.id);
@@ -404,7 +405,7 @@ const AdminExercisesManagement: React.FC = () => {
             exercise_skill_level: exerciseData.skill_level || 'medium',
             is_bar_loaded: exerciseData.is_bar_loaded || false,
             is_unilateral: exerciseData.is_unilateral || false,
-            requires_handle: exerciseData.requires_handle || false,
+            
             configured: exerciseData.configured || false,
             owner_user_id: null, // Admin-created exercises don't have an owner
             slug: exerciseData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') + '-' + Math.random().toString(36).substring(2, 8),
@@ -447,7 +448,7 @@ const AdminExercisesManagement: React.FC = () => {
         default_grip_ids: [],
         is_bar_loaded: false,
         is_unilateral: false,
-        requires_handle: false,
+        
         movement_pattern: "",
         skill_level: "medium",
         configured: false,
