@@ -4,23 +4,21 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Search, Play, Target, Clock } from 'lucide-react';
+import { Search, Dumbbell, Target, Clock, Settings } from 'lucide-react';
 import { useTemplates } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStartWorkout } from '@/features/workouts';
 
-
-interface TemplateSelectionDialogProps {
+interface WorkoutSelectionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open, onOpenChange }) => {
+const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onOpenChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isStarting, setIsStarting] = useState(false);
 
-  // Reset state when dialog is closed
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
     if (!newOpen) {
@@ -33,20 +31,18 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
   const { data: templates = [], isLoading } = useTemplates();
   const startWorkout = useStartWorkout();
 
-  // Filter and limit templates based on search query
   const filteredTemplates = useMemo(() => {
     let filtered = templates.filter(template => 
       template.name?.toLowerCase().includes(searchQuery.toLowerCase()) || ''
     );
     
-    // Sort user's own templates first, then by creation date
     filtered.sort((a, b) => {
       const dateA = new Date(a.created_at);
       const dateB = new Date(b.created_at);
       return dateB.getTime() - dateA.getTime();
     });
     
-    return filtered.slice(0, 10); // Limit to 10 templates
+    return filtered.slice(0, 12);
   }, [templates, searchQuery]);
 
   const handleTemplateSelect = async (templateId: string) => {
@@ -54,35 +50,26 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
     setIsStarting(true);
     
     try {
-      console.log('Starting workout from template:', templateId);
       const result = await startWorkout.mutateAsync({ templateId });
-      console.log('Created workout ID:', result.workoutId);
       navigate(`/app/workouts/${result.workoutId}`);
       onOpenChange(false);
-      toast.success('Workout started!');
+      toast.success('Training session started!');
     } catch (error) {
       console.error('Failed to start workout:', error);
-      toast.error('Failed to start workout');
+      toast.error('Failed to start training session');
       setIsStarting(false);
     }
   };
 
-  const handleStartWithoutTemplate = async () => {
-    if (isStarting) return;
-    setIsStarting(true);
-    
-    try {
-      const result = await startWorkout.mutateAsync({});
-      navigate(`/app/workouts/${result.workoutId}`);
-      onOpenChange(false);
-      toast.success('Workout started!');
-    } catch (error) {
-      console.error('Failed to start workout:', error);
-      toast.error('Failed to start workout');
-      setIsStarting(false);
-    }
+  const handleCreateProgram = () => {
+    handleOpenChange(false);
+    navigate('/app/programs');
   };
 
+  const handleCreateTemplate = () => {
+    handleOpenChange(false);
+    navigate('/fitness/templates');
+  };
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -90,7 +77,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Target className="h-5 w-5" />
-            Select a Template
+            Choose Training Method
           </DialogTitle>
         </DialogHeader>
         
@@ -99,30 +86,30 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search templates by name..."
+              placeholder="Search templates..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
           </div>
 
-          {/* Quick Start Option */}
+          {/* Program Option */}
           <Card 
             className={`cursor-pointer hover:bg-accent/50 transition-colors ${isStarting ? 'pointer-events-none opacity-50' : ''}`} 
-            onClick={handleStartWithoutTemplate}
+            onClick={handleCreateProgram}
           >
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2 rounded-lg bg-primary/10">
-                    <Play className="h-5 w-5 text-primary" />
+                    <Settings className="h-5 w-5 text-primary" />
                   </div>
                   <div>
-                    <h3 className="font-medium">Quick Start</h3>
-                    <p className="text-sm text-muted-foreground">Start a free workout without template</p>
+                    <h3 className="font-medium">Training Programs</h3>
+                    <p className="text-sm text-muted-foreground">Follow structured progression plans</p>
                   </div>
                 </div>
-                <Badge variant="outline">Free</Badge>
+                <Badge variant="default">Programs</Badge>
               </div>
             </CardContent>
           </Card>
@@ -141,6 +128,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
             </div>
           ) : filteredTemplates.length > 0 ? (
             <div className="space-y-2">
+              <h4 className="text-sm font-medium text-muted-foreground">Custom Templates</h4>
               {filteredTemplates.map((template) => (
                 <Card 
                   key={template.id} 
@@ -151,7 +139,7 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className="p-2 rounded-lg bg-secondary/10">
-                          <Target className="h-5 w-5 text-secondary-foreground" />
+                          <Dumbbell className="h-5 w-5 text-secondary-foreground" />
                         </div>
                         <div>
                           <h3 className="font-medium">{template.name || 'Unnamed Template'}</h3>
@@ -174,17 +162,14 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
             </div>
           ) : (
             <div className="text-center py-8">
-              <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="font-medium mb-2">No templates found</h3>
               <p className="text-sm text-muted-foreground mb-4">
-                {searchQuery ? 'Try a different search term or' : 'Create your first template to get started'}
+                {searchQuery ? 'Try a different search term or create your first template' : 'Create your first template to get started'}
               </p>
               <Button 
                 variant="outline" 
-                onClick={() => {
-                  handleOpenChange(false);
-                  navigate('/fitness/templates');
-                }}
+                onClick={handleCreateTemplate}
               >
                 Create Template
               </Button>
@@ -196,4 +181,4 @@ const TemplateSelectionDialog: React.FC<TemplateSelectionDialogProps> = ({ open,
   );
 };
 
-export default TemplateSelectionDialog;
+export default WorkoutSelectionModal;

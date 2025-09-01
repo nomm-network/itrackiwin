@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useTemplateRotation } from '../hooks/useTemplateRotation.hook';
-import { useQuickStart } from '../hooks/useQuickStart.hook';
+import { useStartWorkout } from '@/features/workouts';
 import { useNavigate } from 'react-router-dom';
 import { Paths } from '@/app/router/paths';
 
@@ -20,7 +20,7 @@ const TemplateRotationPage = () => {
     toggleTemplateActive,
     markAsNextTemplate 
   } = useTemplateRotation();
-  const { generateWorkout, isGenerating } = useQuickStart();
+  const { mutateAsync: startWorkout, isPending: isGenerating } = useStartWorkout();
 
   const handleDragEnd = async (result: any) => {
     if (!result.destination) return;
@@ -43,7 +43,7 @@ const TemplateRotationPage = () => {
 
   const handleQuickStart = async () => {
     try {
-      const workout = await generateWorkout({});
+      const workout = await startWorkout({});
       toast({ title: 'Workout generated successfully!' });
       navigate(Paths.health.fitness.session(workout.workoutId));
     } catch (error) {

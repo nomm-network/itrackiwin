@@ -1,6 +1,6 @@
 import { useStartWorkout } from '@/features/workouts';
-import QuickStart from '@/features/workouts/components/QuickStart';
+import TrainingLauncher from '@/features/workouts/components/TrainingLauncher';
 
 export default function StartQuickWorkoutPage() {
-  return <QuickStart />;
+  return <TrainingLauncher />;
 }

@@ -2,7 +2,7 @@
 // Clean API boundaries for components
 
 export { default as EnhancedWorkoutSession } from './EnhancedWorkoutSession';
-export { default as QuickStart } from './QuickStart';
+export { default as TrainingLauncher } from './TrainingLauncher';
 export { default as SetRow } from './SetRow';
 export { default as ExerciseCard } from './ExerciseCard';
 export { default as StartOrContinue } from './StartOrContinue';

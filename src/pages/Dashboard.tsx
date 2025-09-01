@@ -10,7 +10,7 @@ import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/re
 import { useUserRole } from '@/hooks/useUserRole';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
-import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
+import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { ProStatusToggle } from '@/components/admin/ProStatusToggle';
 
@@ -232,7 +232,7 @@ const Dashboard: React.FC = () => {
         ))}
       </Tabs>
       
-      <TemplateSelectionDialog 
+      <WorkoutSelectionModal 
         open={showTemplateDialog}
         onOpenChange={setShowTemplateDialog}
       />

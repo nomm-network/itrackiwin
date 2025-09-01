@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useQuickStart } from '@/features/health/fitness/hooks/useQuickStart.hook';
+import { useStartWorkout } from '@/features/workouts';
 import { useRecalibration } from '@/features/health/fitness/hooks/useRecalibration.hook';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -15,7 +15,7 @@ export const SafeguardTestingPanel: React.FC = () => {
     timestamp: Date;
   }>>([]);
 
-  const { generateWorkout, isGenerating } = useQuickStart();
+  const { mutateAsync: startWorkout, isPending: isGenerating } = useStartWorkout();
   const recalibration = useRecalibration('test-exercise-id');
 
   const addTestResult = (test: string, result: 'success' | 'blocked' | 'error', message: string) => {
@@ -32,7 +32,7 @@ export const SafeguardTestingPanel: React.FC = () => {
       toast.info('Testing workout generation safeguards...');
       
       // Test 1: Rapid multiple clicks
-      const promises = Array.from({ length: 5 }, () => generateWorkout({}));
+      const promises = Array.from({ length: 5 }, () => startWorkout({}));
       const results = await Promise.allSettled(promises);
       
       const successful = results.filter(r => r.status === 'fulfilled').length;
@@ -61,7 +61,7 @@ export const SafeguardTestingPanel: React.FC = () => {
       
       for (let i = 0; i < 12; i++) {
         try {
-          await generateWorkout({});
+          await startWorkout({});
           successCount++;
         } catch (error: any) {
           if (error.message.includes('Rate limit exceeded')) {

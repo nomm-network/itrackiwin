@@ -2,51 +2,33 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Clock, Target, Zap } from 'lucide-react';
+import { Play, Clock, Target, Zap, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import TemplateSelectionDialog from '@/components/fitness/TemplateSelectionDialog';
+import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
 import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
 import { useActiveWorkout } from '@/features/workouts/hooks';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
 import { useStartWorkout } from '@/features/workouts';
 
-const FitnessQuickStart: React.FC = () => {
+const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
-  const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
   const { data: recentWorkouts } = useRecentWorkouts(5);
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
   const startWorkout = useStartWorkout();
   
-  // Use direct active workout query instead of relying on recentWorkouts list
-  const { data: activeWorkout, isLoading: loadingActiveWorkout, error: activeWorkoutError } = useActiveWorkout();
-  
-  // Debug logging
-  console.log('🔍 [FitnessQuickStart] Hook states:', {
-    activeWorkout,
-    loadingActiveWorkout,
-    activeWorkoutError,
-    recentWorkoutsLength: recentWorkouts?.length
-  });
+  const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
 
-  const handleStartWorkout = async () => {
-    console.log('🚀 [FitnessQuickStart] handleStartWorkout called');
-    console.log('🔍 [FitnessQuickStart] Current state:', { 
-      activeWorkout, 
-      activeWorkoutId: activeWorkout?.id,
-      loadingActiveWorkout 
-    });
-    
-    // If there's an active workout, continue it WITHOUT profile check
+  const handleStartTraining = async () => {
+    // If there's an active workout, continue it
     if (activeWorkout?.id) {
-      const targetPath = `/app/workouts/${activeWorkout.id}`;
-      console.log('🎯 [FitnessQuickStart] Navigating to existing workout:', targetPath);
-      navigate(targetPath);
+      navigate(`/app/workouts/${activeWorkout.id}`);
       return;
     }
     
-    // Only check profile for NEW workouts
+    // Check profile for new workouts
     if (!checkAndRedirect('start a workout')) return;
 
     if (nextBlock) {
@@ -56,10 +38,10 @@ const FitnessQuickStart: React.FC = () => {
         navigate(`/app/workouts/${result.workoutId}`);
       } catch (error) {
         console.error('Failed to start program workout:', error);
-        setShowTemplateDialog(true);
+        setShowWorkoutModal(true);
       }
     } else {
-      setShowTemplateDialog(true);
+      setShowWorkoutModal(true);
     }
   };
 
@@ -82,21 +64,21 @@ const FitnessQuickStart: React.FC = () => {
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Play className="h-5 w-5 text-primary" />
-            Quick Start
+            Training Center
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           {activeWorkout ? (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                You have an active workout in progress
+                Continue your active training session
               </p>
               <Button 
-                onClick={handleStartWorkout}
+                onClick={handleStartTraining}
                 className="w-full bg-primary hover:bg-primary/90"
               >
                 <Clock className="h-4 w-4 mr-2" />
-                Continue Workout
+                Continue Training
               </Button>
             </div>
           ) : nextBlock ? (
@@ -114,22 +96,22 @@ const FitnessQuickStart: React.FC = () => {
                 </p>
               </div>
               <Button 
-                onClick={handleStartWorkout}
+                onClick={handleStartTraining}
                 className="w-full bg-primary hover:bg-primary/90"
                 disabled={startWorkout.isPending}
               >
                 <Play className="h-4 w-4 mr-2" />
-                {startWorkout.isPending ? 'Starting...' : 'Start Program Workout'}
+                {startWorkout.isPending ? 'Starting...' : 'Start Program Session'}
               </Button>
             </div>
           ) : (
             <div className="space-y-2">
               <p className="text-sm text-muted-foreground">
-                Ready to start training?
+                Ready to begin your training?
               </p>
               <div className="flex gap-2">
                 <Button 
-                  onClick={handleStartWorkout}
+                  onClick={handleStartTraining}
                   className="flex-1 bg-primary hover:bg-primary/90"
                 >
                   <Play className="h-4 w-4 mr-2" />
@@ -140,7 +122,7 @@ const FitnessQuickStart: React.FC = () => {
                   onClick={() => navigate('/app/programs')}
                   className="px-3"
                 >
-                  <Target className="h-4 w-4" />
+                  <Settings className="h-4 w-4" />
                 </Button>
               </div>
             </div>
@@ -148,12 +130,12 @@ const FitnessQuickStart: React.FC = () => {
         </CardContent>
       </Card>
       
-      <TemplateSelectionDialog 
-        open={showTemplateDialog}
-        onOpenChange={setShowTemplateDialog}
+      <WorkoutSelectionModal 
+        open={showWorkoutModal}
+        onOpenChange={setShowWorkoutModal}
       />
     </>
   );
 };
 
-export default FitnessQuickStart;
+export default TrainingDashboard;

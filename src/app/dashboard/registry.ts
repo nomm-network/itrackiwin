@@ -4,7 +4,7 @@ import { Play, Target, Calendar, Settings, Repeat } from 'lucide-react';
 import { useActiveWorkout } from '@/features/workouts/hooks';
 
 // Fitness widgets - lazy loaded for performance
-const FitnessQuickStart = React.lazy(() => import('@/features/health/fitness/ui/widgets/FitnessQuickStart'));
+const TrainingDashboard = React.lazy(() => import('@/features/health/fitness/ui/widgets/TrainingDashboard'));
 const FitnessStats = React.lazy(() => import('@/features/health/fitness/ui/widgets/FitnessStats'));
 const FitnessReadiness = React.lazy(() => import('@/features/health/fitness/ui/widgets/FitnessReadiness'));
 
@@ -15,7 +15,7 @@ export const widgets: DashboardWidget[] = [
     size: 'md',
     category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
-    Component: FitnessQuickStart,
+    Component: TrainingDashboard,
     order: 1
   },
   {
