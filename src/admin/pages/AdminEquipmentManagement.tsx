@@ -196,6 +196,8 @@ const AdminEquipmentManagement: React.FC = () => {
           equipment_id: id,
           language_code: 'en',
           name: data.name 
+        }, {
+          onConflict: 'equipment_id,language_code'
         });
       if (translationError) throw translationError;
     },
