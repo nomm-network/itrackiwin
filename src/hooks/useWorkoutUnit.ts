@@ -79,7 +79,7 @@ export const useUpdateUserDefaultUnit = () => {
         .update({ default_unit: defaultUnit })
         .eq('id', (await supabase.auth.getUser()).data.user?.id)
         .select()
-        .single();
+        .maybeSingle();
       
       if (error) throw error;
       return data;

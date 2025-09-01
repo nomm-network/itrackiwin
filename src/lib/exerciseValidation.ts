@@ -12,7 +12,7 @@ export const validateExerciseForUser = async (exerciseData: any, userId?: string
     .from('users')
     .select('is_pro')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   const { data: userRole } = await supabase
     .from('user_roles')
@@ -57,7 +57,7 @@ export const canUseAngleFeatures = async (userId?: string): Promise<boolean> => 
     .from('users')
     .select('is_pro')
     .eq('id', userId)
-    .single();
+    .maybeSingle();
 
   const { data: userRole } = await supabase
     .from('user_roles')

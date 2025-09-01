@@ -22,10 +22,10 @@ export const useUserProfile = () => {
         .from('users')
         .select('*')
         .eq('id', user.id)
-        .single();
+        .maybeSingle();
 
-      if (error) throw error;
-      return data as UserProfile;
+      if (error && error.code !== 'PGRST116') throw error;
+      return data as UserProfile | null;
     },
     enabled: !!user?.id,
     staleTime: 300000, // 5 minutes
