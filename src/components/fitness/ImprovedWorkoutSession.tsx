@@ -68,7 +68,6 @@ export default function ImprovedWorkoutSession({
   const [editingSet, setEditingSet] = useState<number | null>(null);
   const [editSetData, setEditSetData] = useState<SetData | null>(null);
   const [showGripsDialog, setShowGripsDialog] = useState(false);
-  const [selectedGripIds, setSelectedGripIds] = useState<string[]>([]);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
   const [showWarmupDialog, setShowWarmupDialog] = useState(false);
@@ -91,23 +90,53 @@ export default function ImprovedWorkoutSession({
   // Fetch grips data
   const { data: grips = [], isLoading: gripsLoading } = useGrips();
 
-  // Load current grips when component mounts and when dialog opens
+  // Load current grip when component mounts
+  const [currentGripId, setCurrentGripId] = useState<string | null>(null);
+  const [currentGripName, setCurrentGripName] = useState<string | null>(null);
+  
   React.useEffect(() => {
-    const loadCurrentGrips = async () => {
+    const loadCurrentGrip = async () => {
       if (exercise.workout_exercise_id) {
         const { data } = await supabase
           .from('workout_exercises')
-          .select('grip_key')
+          .select('grip_id')
           .eq('id', exercise.workout_exercise_id)
           .maybeSingle();
         
-        if (data?.grip_key) {
-          // Convert grip_key back to grip IDs
-          setSelectedGripIds(data.grip_key.split(','));
+        if (data?.grip_id) {
+          setCurrentGripId(data.grip_id);
+          
+          // Fetch grip name with translation
+          const { data: gripData } = await supabase
+            .from('grips')
+            .select(`
+              id, slug,
+              grips_translations(name, language_code)
+            `)
+            .eq('id', data.grip_id)
+            .eq('grips_translations.language_code', 'en')
+            .maybeSingle();
+          
+          if (gripData?.grips_translations && Array.isArray(gripData.grips_translations) && gripData.grips_translations.length > 0) {
+            setCurrentGripName((gripData.grips_translations[0] as any).name);
+          } else {
+            // Fallback to slug if no translation
+            const { data: fallbackGrip } = await supabase
+              .from('grips')
+              .select('slug')
+              .eq('id', data.grip_id)
+              .maybeSingle();
+            
+            if (fallbackGrip?.slug) {
+              setCurrentGripName(fallbackGrip.slug.split('-').map(word => 
+                word.charAt(0).toUpperCase() + word.slice(1)
+              ).join(' '));
+            }
+          }
         }
       }
     };
-    loadCurrentGrips();
+    loadCurrentGrip();
   }, [exercise.workout_exercise_id]);
 
   // Check warmup feedback from database
@@ -248,9 +277,9 @@ export default function ImprovedWorkoutSession({
         <div className="flex items-center gap-2">
           <h3 className="text-lg font-semibold text-foreground">
             {exercise.name}
-            {exercise.completed_sets.length > 0 && selectedGripIds.length > 0 && (
+            {exercise.completed_sets.length > 0 && currentGripName && (
               <span className="text-muted-foreground">
-                {' - '}{grips.filter(g => selectedGripIds.includes(g.id)).map(g => g.name).join(', ')}
+                {' - '}{currentGripName}
               </span>
             )}
           </h3>
@@ -606,50 +635,42 @@ export default function ImprovedWorkoutSession({
             {gripsLoading ? (
               <div className="text-center">Loading grips...</div>
             ) : (
-              <div className="grid grid-cols-2 gap-2">
-                {grips.map((grip) => (
-                  <Button 
-                    key={grip.id} 
-                    variant={selectedGripIds.includes(grip.id) ? "default" : "outline"} 
-                    size="sm"
-                    onClick={() => {
-                      setSelectedGripIds(prev => 
-                        prev.includes(grip.id) 
-                          ? prev.filter(id => id !== grip.id)
-                          : [...prev, grip.id]
-                      );
-                    }}
-                  >
-                    {grip.name}
-                  </Button>
-                ))}
-              </div>
-            )}
-            <Button 
-              onClick={async () => {
-                try {
-                  // Compute grip_key (sorted comma-separated IDs)
-                  const grip_key = selectedGripIds.length > 0 
-                    ? selectedGripIds.slice().sort().join(',') 
-                    : null;
-                  
-                  // Save grips to workout_exercise
-                  const { error } = await supabase
-                    .from('workout_exercises')
-                    .update({ grip_key })
-                    .eq('id', exercise.workout_exercise_id);
-                  
-                  if (error) throw error;
-                  setShowGripsDialog(false);
-                } catch (error) {
-                  console.error('Error saving grips:', error);
-                }
-              }} 
-              className="w-full"
-              disabled={gripsLoading}
-            >
-              Save Grips
-            </Button>
+               <div className="grid grid-cols-2 gap-2">
+                 {grips.map((grip) => (
+                   <Button 
+                     key={grip.id} 
+                     variant={currentGripId === grip.id ? "default" : "outline"} 
+                     size="sm"
+                     onClick={() => {
+                       setCurrentGripId(grip.id);
+                       setCurrentGripName(grip.name);
+                     }}
+                   >
+                     {grip.name}
+                   </Button>
+                 ))}
+               </div>
+             )}
+             <Button 
+               onClick={async () => {
+                 try {
+                   // Save single grip_id to workout_exercise
+                   const { error } = await supabase
+                     .from('workout_exercises')
+                     .update({ grip_id: currentGripId })
+                     .eq('id', exercise.workout_exercise_id);
+                   
+                   if (error) throw error;
+                   setShowGripsDialog(false);
+                 } catch (error) {
+                   console.error('Error saving grip:', error);
+                 }
+               }} 
+               className="w-full"
+               disabled={gripsLoading}
+             >
+               Save Grip
+             </Button>
           </div>
         </DialogContent>
       </Dialog>
