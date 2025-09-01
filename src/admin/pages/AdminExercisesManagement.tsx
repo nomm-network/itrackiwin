@@ -19,7 +19,7 @@ import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import SecondaryMuscleGroupSelector from "@/components/SecondaryMuscleGroupSelector";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
-import CreateExerciseDialog from "@/components/admin/CreateExerciseDialog";
+// import CreateExerciseDialog from "@/components/admin/CreateExerciseDialog";
 import { Link } from "react-router-dom";
 
 interface Exercise {
@@ -633,10 +633,11 @@ const AdminExercisesManagement: React.FC = () => {
           </div>
         </div>
 
-        <CreateExerciseDialog 
+        {/* CreateExerciseDialog temporarily disabled - handle system removed */}
+        {/* <CreateExerciseDialog 
           open={isCreateDialogOpen} 
           onOpenChange={setIsCreateDialogOpen} 
-        />
+        /> */}
 
         {/* Filters */}
         <Card>

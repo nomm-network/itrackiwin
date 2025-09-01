@@ -12,8 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { Loader2, Plus, Trash2 } from 'lucide-react';
 import { Separator } from '@/components/ui/separator';
-import { PageNav } from '@/components/ui/page-nav';
-import { AdminMenu } from '@/components/AdminMenu';
+import PageNav from '@/components/PageNav';
+import AdminMenu from '@/admin/components/AdminMenu';
 import { 
   useEquipmentGripDefaults, 
   useCreateEquipmentGripDefault, 
@@ -116,12 +116,7 @@ const AdminEquipmentGripCompatibility = () => {
 
   return (
     <div className="container mx-auto py-6">
-      <PageNav 
-        items={[
-          { label: 'Admin', href: '/admin' },
-          { label: 'Equipment-Grip Compatibility', href: '/admin/setup/equipment-grip-compatibility' }
-        ]} 
-      />
+      <PageNav current="Admin / Equipment-Grip Compatibility" />
       
       <div className="flex gap-6">
         <AdminMenu />

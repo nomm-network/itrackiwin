@@ -21,7 +21,7 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { EquipmentHandleManager } from "./EquipmentHandleManager";
+// import { EquipmentHandleManager } from "./EquipmentHandleManager";
 
 interface EquipmentEditDialogProps {
   equipmentId: string | null;
@@ -302,7 +302,9 @@ export function EquipmentEditDialog({
 
           <TabsContent value="handles">
             <ScrollArea className="h-96">
-              <EquipmentHandleManager equipmentId={equipmentId} />
+              <div className="p-4 text-center text-muted-foreground">
+                Handle management has been removed. Use Equipment-Grip Compatibility instead.
+              </div>
             </ScrollArea>
           </TabsContent>
         </Tabs>
