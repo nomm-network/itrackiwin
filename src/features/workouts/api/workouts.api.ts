@@ -136,7 +136,7 @@ export const useGetWorkout = (workoutId?: string) => {
   });
 };
 
-// UNIFIED START WORKOUT FUNCTION - handles all workout starting scenarios
+// ✅ UNIFIED START WORKOUT - One clean function that calls the simplified RPC
 export const useStartWorkout = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
@@ -156,11 +156,7 @@ export const useStartWorkout = () => {
       if (user?.id) {
         queryClient.invalidateQueries({ queryKey: workoutKeys.active(user.id) });
         queryClient.invalidateQueries({ queryKey: workoutKeys.sessions(user.id) });
-        queryClient.invalidateQueries({ queryKey: ["workouts"] });
       }
-    },
-    onError: (error) => {
-      console.error('Failed to start workout:', error);
     }
   });
 };
