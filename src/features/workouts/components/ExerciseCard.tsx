@@ -5,8 +5,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useEffectiveMuscles } from "@/hooks/useEffectiveMuscles";
 import { SetFeelSelector } from "@/features/health/fitness/components/SetFeelSelector";
 import GripChips from "@/features/exercises/components/GripChips";
-import { Plus, ArrowRight, Settings } from "lucide-react";
+import { Plus, ArrowRight, Settings, Dumbbell } from "lucide-react";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
+import { WarmupBlock } from "@/components/fitness/WarmupBlock";
 
 interface ExerciseCardProps {
   exercise: {
@@ -20,6 +21,8 @@ interface ExerciseCardProps {
   isActive?: boolean;
   currentSetId?: string;
   selectedGripIds?: string[];
+  workoutExerciseId?: string;
+  showWarmup?: boolean;
   onSelect?: (exerciseId: string) => void;
   onAddSet?: () => void;
   onNextExercise?: () => void;
@@ -33,6 +36,8 @@ export default function ExerciseCard({
   isActive = false,
   currentSetId,
   selectedGripIds = exercise.default_grip_ids || [],
+  workoutExerciseId,
+  showWarmup = false,
   onSelect,
   onAddSet,
   onNextExercise,
@@ -117,6 +122,14 @@ export default function ExerciseCard({
           <SetFeelSelector 
             setId={currentSetId}
             onFeelChange={(feel) => console.log('Feel updated:', feel)}
+          />
+        )}
+
+        {/* Warmup section for active exercise */}
+        {isActive && showWarmup && workoutExerciseId && (
+          <WarmupBlock 
+            workoutExerciseId={workoutExerciseId}
+            onFeedbackGiven={() => console.log('Warmup feedback given')}
           />
         )}
       </CardContent>

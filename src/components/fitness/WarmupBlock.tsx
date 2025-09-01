@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { WarmupPlan, WarmupFeedback } from '@/features/workouts/types/warmup-unified';
 import { useWarmupManager } from '@/features/workouts/hooks/useWarmupManager';
 import { suggestTarget, parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
+import { ensureWarmupInitialized } from '@/features/workouts/utils/warmupInitializer';
 import { useAuth } from '@/hooks/useAuth';
 
 type WarmupProps = {
@@ -111,7 +112,10 @@ export function WarmupBlock({
     (async () => {
       if (!user?.id) return;
 
-      // Get warmup plan
+      // Ensure warmup is initialized first
+      await ensureWarmupInitialized(workoutExerciseId);
+
+      // Get warmup plan and feedback 
       const { data, error } = await supabase
         .from('workout_exercises')
         .select('warmup_plan, warmup_feedback')
@@ -123,15 +127,35 @@ export function WarmupBlock({
         return;
       }
 
-      // Get intelligent target weight using progressive overload system
-      const targetWeight = await getIntelligentTargetWeight(workoutExerciseId, user.id);
+      // Get stored warmup_top_weight from feedback table
+      const { data: feedbackData } = await supabase
+        .from('workout_exercise_feedback')
+        .select('warmup_top_weight')
+        .eq('workout_exercise_id', workoutExerciseId)
+        .maybeSingle();
+
+      // Get target weight with proper fallbacks
+      let targetWeight = suggestedTopWeight;
+      
+      // Priority order: stored warmup_top_weight > calculated intelligent target > suggested
+      if (feedbackData?.warmup_top_weight && feedbackData.warmup_top_weight > 0) {
+        targetWeight = feedbackData.warmup_top_weight;
+        console.log('🎯 WarmupBlock: Using stored warmup_top_weight:', targetWeight, 'kg');
+      } else {
+        // Calculate intelligent target weight using progressive overload system
+        const intelligentWeight = await getIntelligentTargetWeight(workoutExerciseId, user.id);
+        targetWeight = intelligentWeight;
+        console.log('🎯 WarmupBlock: Using calculated target weight:', targetWeight, 'kg');
+      }
+
       setActualTopWeight(targetWeight);
 
       if (data?.warmup_plan) {
         setPlan(data.warmup_plan as unknown as WarmupPlan);
         setLocalFeedback(data.warmup_feedback as WarmupFeedback || null);
       } else {
-        // Generate default plan if nothing saved
+        // Generate default plan if nothing saved - this will now automatically
+        // create the warmup_top_weight in the feedback table via the new trigger
         try {
           const updatedPlan = await recomputeWarmup({
             workoutExerciseId
