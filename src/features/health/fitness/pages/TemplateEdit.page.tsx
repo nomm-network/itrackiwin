@@ -68,8 +68,7 @@ export default function TemplateEdit() {
           id,
           muscle_groups_translations!inner(name)
         `)
-        .eq('muscle_groups_translations.language_code', 'en')
-        .order('muscle_groups_translations.name');
+        .eq('muscle_groups_translations.language_code', 'en');
         
       if (error) throw error;
       
@@ -90,8 +89,7 @@ export default function TemplateEdit() {
           id,
           equipment_translations!inner(name)
         `)
-        .eq('equipment_translations.language_code', 'en')
-        .order('equipment_translations.name');
+        .eq('equipment_translations.language_code', 'en');
         
       if (error) throw error;
       
