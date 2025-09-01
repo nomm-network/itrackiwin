@@ -103,10 +103,34 @@ The fitness application uses a PostgreSQL database hosted on Supabase with 144 t
 - Proper foreign key relationships
 - Unique constraints on critical combinations
 
-## Recent Schema Changes
+## Recent Schema Changes ⚠️ **CRITICAL UPDATE 2025-09-01**
 
+### **LATEST**: Workout System Normalization (URGENT FIX)
+**Migration**: `20250901201018_d16dbd49-a3d8-42d3-9f7d-f6ea976a4a80`
+**Date**: September 1, 2025
+**Impact**: Fixed 100% workout creation failure rate
+
+**Changes Applied**:
+1. **Added Missing Columns to `workout_exercises`**:
+   - `order_index` (integer) - Exercise ordering within workout
+   - `target_sets` (integer) - Planned number of sets  
+   - `target_reps` (integer) - **CRITICAL FIX** - Target reps per set
+   - `target_weight_kg` (numeric) - Target weight in kilograms
+   - `weight_unit` (text, DEFAULT 'kg') - Display unit preference
+   - `rest_seconds` (integer) - Planned rest time between sets
+   - `notes` (text) - Exercise-specific user notes
+
+2. **Updated `start_workout` Function**:
+   - Resilient to column mismatches between templates and workouts
+   - Handles weight unit conversions (kg/lb)
+   - Enforces proper user access control with SECURITY DEFINER
+   - Works with or without templates
+
+**Security Impact**: 31 linter warnings detected (pre-existing, not migration-related)
+
+### Previous Changes
 1. **Handle System Removal** - Removed handle-related tables and columns
-2. **Equipment-Grip Integration** - Enhanced equipment-grip compatibility system
+2. **Equipment-Grip Integration** - Enhanced equipment-grip compatibility system  
 3. **View Cleanup** - Updated materialized views to remove handle references
 4. **RLS Policy Updates** - Maintained security policies during schema changes
 

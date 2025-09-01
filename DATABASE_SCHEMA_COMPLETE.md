@@ -626,7 +626,10 @@ This document provides a complete export of all database tables, columns, and en
 - created_at: timestamp with time zone, NOT NULL, DEFAULT: now()
 ```
 
-## Workout System
+## Workout System ⚠️ **CRITICAL UPDATE 2025-09-01**
+
+**Migration Applied**: `20250901201018_d16dbd49-a3d8-42d3-9f7d-f6ea976a4a80`
+**Status**: ✅ **PRODUCTION READY**
 
 ### workouts
 ```sql

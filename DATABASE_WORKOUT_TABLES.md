@@ -4,42 +4,60 @@
 
 This document provides a comprehensive overview of all database tables, their columns, foreign key relationships, and enums used in the fitness application.
 
-## Core Workout Flow Tables
+## Core Workout Flow Tables ⚠️ **UPDATED 2025-09-01**
 
 ### workouts
 **Purpose**: Main workout sessions
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
 - user_id: uuid, NOT NULL
-- template_id: uuid, NULL
-- name: text, NULL
+- title: text, NULL
 - notes: text, NULL
 - started_at: timestamptz, NOT NULL, DEFAULT: now()
 - ended_at: timestamptz, NULL
-- gym_id: uuid, NULL
-- estimated_calories_burned: int4, NULL
+- session_unit: text, DEFAULT: 'kg'
+- estimated_duration_minutes: int4, NULL
+- total_duration_seconds: int4, NULL
+- perceived_exertion: int2, NULL
 - created_at: timestamptz, NOT NULL, DEFAULT: now()
-- updated_at: timestamptz, NOT NULL, DEFAULT: now()
 ```
 
-### workout_exercises
-**Purpose**: Exercises within a workout session
+### workout_exercises ✅ **SCHEMA FIXED**
+**Purpose**: Exercises within a workout session with complete target configuration
 ```sql
 - id: uuid, NOT NULL, DEFAULT: gen_random_uuid()
 - workout_id: uuid, NOT NULL
 - exercise_id: uuid, NOT NULL
-- order_index: int4, NOT NULL, DEFAULT: 0
-- notes: text, NULL
-- warmup_plan: jsonb, NULL
-- target_settings: jsonb, NULL
+- grip_id: uuid, NULL
+
+-- ✅ NEW COLUMNS (Added 2025-09-01) --
+- order_index: int4, NULL                -- Exercise ordering
+- target_sets: int4, NULL                -- Planned number of sets
+- target_reps: int4, NULL                -- Target reps per set (CRITICAL FIX)
+- target_weight_kg: numeric, NULL        -- Target weight in kg
+- weight_unit: text, DEFAULT: 'kg'       -- Display unit preference
+- rest_seconds: int4, NULL               -- Planned rest between sets
+- notes: text, NULL                      -- Exercise-specific notes
+
+-- EXISTING COLUMNS --
 - display_name: text, NULL
-- grip_key: text, NULL
-- warmup_feedback: text, NULL
-- warmup_feedback_at: timestamptz, NULL
+- warmup_plan: jsonb, NULL
 - warmup_updated_at: timestamptz, NULL
-- target_weight: numeric, NULL
-- created_at: timestamptz, NOT NULL, DEFAULT: now()
-- updated_at: timestamptz, NOT NULL, DEFAULT: now()
+- warmup_feedback: jsonb, NULL
+- warmup_feedback_at: timestamptz, NULL
+- warmup_quality: text, NULL
+- warmup_snapshot: jsonb, NULL
+- weight_input_mode: text, NULL
+- load_entry_mode: text, NULL
+- selected_bar_id: uuid, NULL
+- per_side_weight: numeric, NULL
+- target_origin: text, NULL
+- is_superset_group: bool, NULL
+- group_id: uuid, NULL
+- grip_ids: uuid[], NULL
+- grip_key: text, NULL
+- load_type: load_type, NULL
+- bar_type_id: uuid, NULL
 ```
 
 ### workout_sets

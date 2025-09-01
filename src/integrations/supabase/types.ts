@@ -5172,8 +5172,10 @@ export type Database = {
           notes: string | null
           order_index: number
           per_side_weight: number | null
+          rest_seconds: number | null
           selected_bar_id: string | null
           target_origin: string | null
+          target_reps: number | null
           target_sets: number | null
           target_weight_kg: number | null
           warmup_feedback: string | null
@@ -5183,6 +5185,7 @@ export type Database = {
           warmup_snapshot: string | null
           warmup_updated_at: string | null
           weight_input_mode: string | null
+          weight_unit: string | null
           workout_id: string
         }
         Insert: {
@@ -5200,8 +5203,10 @@ export type Database = {
           notes?: string | null
           order_index: number
           per_side_weight?: number | null
+          rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
+          target_reps?: number | null
           target_sets?: number | null
           target_weight_kg?: number | null
           warmup_feedback?: string | null
@@ -5211,6 +5216,7 @@ export type Database = {
           warmup_snapshot?: string | null
           warmup_updated_at?: string | null
           weight_input_mode?: string | null
+          weight_unit?: string | null
           workout_id: string
         }
         Update: {
@@ -5228,8 +5234,10 @@ export type Database = {
           notes?: string | null
           order_index?: number
           per_side_weight?: number | null
+          rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
+          target_reps?: number | null
           target_sets?: number | null
           target_weight_kg?: number | null
           warmup_feedback?: string | null
@@ -5239,6 +5247,7 @@ export type Database = {
           warmup_snapshot?: string | null
           warmup_updated_at?: string | null
           weight_input_mode?: string | null
+          weight_unit?: string | null
           workout_id?: string
         }
         Relationships: [
