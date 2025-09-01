@@ -13,13 +13,10 @@ const AdminMenu: React.FC = () => {
       submenu: [
         { label: '1. Body Taxonomy', href: '/admin/setup/body-taxonomy' },
         { label: '2. Equipment', href: '/admin/setup/equipment' },
-        { label: '3. Handles', href: '/admin/setup/handles' },
-        { label: '4. Grips', href: '/admin/setup/grips' },
-        { label: '5.1 Handle-Equipment', href: '/admin/setup/handle-equipment-compatibility' },
-        { label: '5.2 Handle-Grip', href: '/admin/setup/handle-grip-compatibility' },
-        { label: '5.3 Equipment Defaults', href: '/admin/setup/compatibility' },
-        { label: '6. Movement Patterns', href: '/admin/setup/movement-patterns' },
-        { label: '7. Tags & Aliases', href: '/admin/setup/tags-aliases' },
+        { label: '3. Grips', href: '/admin/setup/grips' },
+        { label: '4. Equipment-Grip Compatibility', href: '/admin/setup/equipment-grip-compatibility' },
+        { label: '5. Movement Patterns', href: '/admin/setup/movement-patterns' },
+        { label: '6. Tags & Aliases', href: '/admin/setup/tags-aliases' },
       ]
     },
     { label: 'Exercise Management', href: '/admin/exercises' },
