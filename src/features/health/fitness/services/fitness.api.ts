@@ -89,7 +89,7 @@ export interface TemplateExercise {
   order_index: number;
   default_sets: number;
   target_reps?: number | null;
-  target_weight?: number | null;
+  target_weight_kg?: number | null;
   weight_unit: string;
   notes?: string | null;
   grip_ids?: string[] | null;
@@ -709,7 +709,7 @@ export const useCloneTemplate = () => {
           order_index: exercise.order_index,
           default_sets: exercise.default_sets,
           target_reps: exercise.target_reps,
-          target_weight: exercise.target_weight,
+          target_weight_kg: exercise.target_weight_kg,
           weight_unit: exercise.weight_unit,
           notes: exercise.notes
         }));

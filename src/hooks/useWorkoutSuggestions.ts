@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 export interface WarmupSuggestion {
   exercise_id: string;
-  target_weight: number;
+  target_weight_kg: number;
   warmup_sets: Array<{
     set_index: number;
     weight: number;

@@ -532,10 +532,10 @@ export default function TemplateEdit() {
                               
                               <div className="flex-1">
                                  <ExerciseNameDisplay exerciseId={exercise.exercise_id} />
-                                <div className="text-sm text-muted-foreground">
-                                  {exercise.default_sets} sets × {exercise.target_reps} reps
-                                  {exercise.target_weight && ` @ ${exercise.target_weight}${exercise.weight_unit || 'kg'}`}
-                                </div>
+                                 <div className="text-sm text-muted-foreground">
+                                   {exercise.default_sets} sets × {exercise.target_reps} reps
+                                   {exercise.target_weight_kg && ` @ ${exercise.target_weight_kg}${exercise.weight_unit || 'kg'}`}
+                                 </div>
                                 {exercise.notes && (
                                   <div className="text-xs text-muted-foreground mt-1">
                                     {exercise.notes}
