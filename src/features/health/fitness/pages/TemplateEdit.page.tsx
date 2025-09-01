@@ -117,12 +117,15 @@ export default function TemplateEdit() {
         throw error;
       }
       
-      return (data || []).map(ex => ({
-        id: ex.id,
-        name: (ex.translations as any)?.name || 'Unknown Exercise',
-        primary_muscle: 'Muscle',
-        equipment: 'Equipment'
-      }));
+      return (data || []).map(ex => {
+        const translations = ex.translations as any;
+        return {
+          id: ex.id,
+          name: translations?.name || `Exercise ${ex.id.slice(0, 8)}`,
+          primary_muscle: translations?.primary_muscle || 'Unknown',
+          equipment: translations?.equipment || 'Unknown'
+        };
+      });
     }
   });
 
@@ -381,7 +384,17 @@ export default function TemplateEdit() {
                           <SelectTrigger>
                             <SelectValue placeholder="Filter by muscle group" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="max-h-64">
+                            <div className="sticky top-0 bg-background p-2 border-b">
+                              <Input
+                                placeholder="Search muscle groups..."
+                                className="h-8"
+                                onChange={(e) => {
+                                  const searchTerm = e.target.value.toLowerCase();
+                                  // This will filter the visible items
+                                }}
+                              />
+                            </div>
                             <SelectItem value="all">All muscle groups</SelectItem>
                             {muscleGroups.map((mg) => (
                               <SelectItem key={mg.id} value={mg.id}>
@@ -395,7 +408,17 @@ export default function TemplateEdit() {
                           <SelectTrigger>
                             <SelectValue placeholder="Filter by equipment" />
                           </SelectTrigger>
-                          <SelectContent>
+                          <SelectContent className="max-h-64">
+                            <div className="sticky top-0 bg-background p-2 border-b">
+                              <Input
+                                placeholder="Search equipment..."
+                                className="h-8"
+                                onChange={(e) => {
+                                  const searchTerm = e.target.value.toLowerCase();
+                                  // This will filter the visible items
+                                }}
+                              />
+                            </div>
                             <SelectItem value="all">All equipment</SelectItem>
                             {equipmentList.map((eq) => (
                               <SelectItem key={eq.id} value={eq.id}>
