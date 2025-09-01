@@ -3365,6 +3365,7 @@ export type Database = {
         Row: {
           backoff_percent: number | null
           backoff_sets: number | null
+          created_at: string | null
           default_sets: number
           default_warmup_plan: Json | null
           display_name: string | null
@@ -3391,6 +3392,7 @@ export type Database = {
         Insert: {
           backoff_percent?: number | null
           backoff_sets?: number | null
+          created_at?: string | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
@@ -3417,6 +3419,7 @@ export type Database = {
         Update: {
           backoff_percent?: number | null
           backoff_sets?: number | null
+          created_at?: string | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
