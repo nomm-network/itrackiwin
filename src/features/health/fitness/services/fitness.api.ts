@@ -350,7 +350,9 @@ export const useRecentWorkouts = (limit = 5) => {
   });
 };
 
+// DEPRECATED: Use useStartQuickWorkout from workouts.api.ts instead
 export const useStartWorkout = () => {
+  console.warn('useStartWorkout is deprecated. Use useStartQuickWorkout from workouts.api.ts');
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (templateId?: UUID | null): Promise<UUID> => {
@@ -737,11 +739,13 @@ export const useCloneTemplate = () => {
   });
 };
 
+// DEPRECATED: Use useStartQuickWorkout from workouts.api.ts instead
 export const useCloneTemplateToWorkout = () => {
+  console.warn('useCloneTemplateToWorkout is deprecated. Use useStartQuickWorkout from workouts.api.ts');
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (templateId: UUID) => {
-      const { data, error } = await supabase.rpc("clone_template_to_workout", { p_template_id: templateId });
+      const { data, error } = await supabase.rpc("start_workout", { p_template_id: templateId });
       if (error) throw error;
       return data;
     },
