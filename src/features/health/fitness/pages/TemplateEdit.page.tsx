@@ -381,16 +381,31 @@ export default function TemplateEdit() {
                   Allow other users to view and use this template
                 </p>
               </div>
-              {isEditing ? (
+              <div className="flex items-center gap-3">
                 <Switch
                   checked={isPublic}
-                  onCheckedChange={setIsPublic}
+                  onCheckedChange={async (checked) => {
+                    setIsPublic(checked);
+                    if (templateId) {
+                      try {
+                        await updateTemplate.mutateAsync({
+                          templateId,
+                          updates: {
+                            is_public: checked
+                          }
+                        });
+                        toast.success(checked ? "Template made public" : "Template made private");
+                      } catch (error) {
+                        toast.error("Failed to update template visibility");
+                        setIsPublic(!checked); // Revert on error
+                      }
+                    }
+                  }}
                 />
-              ) : (
                 <Badge variant={isPublic ? "default" : "secondary"}>
                   {isPublic ? "Public" : "Private"}
                 </Badge>
-              )}
+              </div>
             </div>
           </CardContent>
         </Card>
