@@ -796,9 +796,13 @@ const AdminExercisesManagement: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {exercises.map((exercise) => (
+                  {exercises.map((exercise) => {
+                    const translations = (exercise as any).translations || {};
+                    const exerciseName = getExerciseNameFromTranslations(translations, exercise.id);
+                    
+                    return (
                     <TableRow key={exercise.id}>
-                  <TableCell className="font-medium">{getExerciseNameFromTranslations(exercise.translations, exercise.id)}</TableCell>
+                  <TableCell className="font-medium">{exerciseName}</TableCell>
                   <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
                   <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
                   <TableCell>
@@ -861,7 +865,8 @@ const AdminExercisesManagement: React.FC = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                  ))}
+                    );
+                  })}
                 </TableBody>
               </Table>
             )}

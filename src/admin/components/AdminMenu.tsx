@@ -21,6 +21,12 @@ const AdminMenu: React.FC = () => {
     },
     { label: 'Exercise Management', href: '/admin/exercises' },
     { label: t('navigation.translations'), href: '/admin/translations' },
+    { label: 'Tools', href: '/admin/tools', submenu: [
+        { label: 'Attribute Schemas', href: '/admin/attribute-schemas' },
+        { label: 'Naming Templates', href: '/admin/naming-templates' },
+        { label: 'Coach Logs', href: '/admin/coach-logs' },
+      ]
+    },
   ];
 
   return (
