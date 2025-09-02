@@ -6533,6 +6533,10 @@ export type Database = {
       }
     }
     Functions: {
+      _get_estimate_weight_kg: {
+        Args: { p_exercise_id: string; p_user_id: string }
+        Returns: number
+      }
       _pascalize: {
         Args: { key: string }
         Returns: string
