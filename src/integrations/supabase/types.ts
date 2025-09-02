@@ -2284,6 +2284,7 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          mentor_type: Database["public"]["Enums"]["mentor_type"]
           updated_at: string
           user_id: string
         }
@@ -2291,6 +2292,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id: string
         }
@@ -2298,6 +2300,7 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id?: string
         }
@@ -5028,6 +5031,8 @@ export type Database = {
       }
       users: {
         Row: {
+          city: string | null
+          country: string | null
           created_at: string | null
           default_unit: string
           id: string
@@ -5035,6 +5040,8 @@ export type Database = {
           updated_at: string | null
         }
         Insert: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           default_unit?: string
           id: string
@@ -5042,6 +5049,8 @@ export type Database = {
           updated_at?: string | null
         }
         Update: {
+          city?: string | null
+          country?: string | null
           created_at?: string | null
           default_unit?: string
           id?: string
@@ -9097,6 +9106,7 @@ export type Database = {
         | "stack"
         | "bodyweight"
         | "fixed"
+      mentor_type: "mentor" | "coach"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
       progression_algo:
@@ -9312,6 +9322,7 @@ export const Constants = {
         "bodyweight",
         "fixed",
       ],
+      mentor_type: ["mentor", "coach"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
       progression_algo: [

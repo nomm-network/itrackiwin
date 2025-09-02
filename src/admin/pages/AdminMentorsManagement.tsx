@@ -50,8 +50,6 @@ const AdminMentorsManagement: React.FC = () => {
           avatar_url, 
           created_at, 
           updated_at,
-          country,
-          city,
           gym_id
         `)
         .order('created_at', { ascending: false });
@@ -62,18 +60,29 @@ const AdminMentorsManagement: React.FC = () => {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
+      // Get users data for country/city
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, country, city');
+      if (usersError) throw usersError;
+
       // Get gyms data for coaches
       const { data: gyms, error: gymsError } = await supabase
         .from('gyms')
         .select('id, name, city, country');
       if (gymsError) throw gymsError;
 
-      return (data || []).map((mentor: any) => ({
-        ...mentor,
-        email: authUsers?.users?.find((au: any) => au.id === mentor.user_id)?.email || 'Unknown',
-        gym: mentor.gym_id ? gyms?.find((g: any) => g.id === mentor.gym_id) : null,
-        categories: []
-      }));
+      return (data || []).map((mentor: any) => {
+        const userData = usersData?.find((u: any) => u.id === mentor.user_id);
+        return {
+          ...mentor,
+          email: authUsers?.users?.find((au: any) => au.id === mentor.user_id)?.email || 'Unknown',
+          country: userData?.country,
+          city: userData?.city,
+          gym: mentor.gym_id ? gyms?.find((g: any) => g.id === mentor.gym_id) : null,
+          categories: []
+        };
+      });
     }
   });
 
@@ -245,8 +254,10 @@ const AdminMentorsManagement: React.FC = () => {
     const matchesSearch = mentor.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
                          mentor.bio?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterType === 'all' || mentor.mentor_type === filterType;
+    const matchesCountry = !filterCountry || mentor.country?.toLowerCase().includes(filterCountry.toLowerCase());
+    const matchesCity = !filterCity || mentor.city?.toLowerCase().includes(filterCity.toLowerCase());
     
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesCountry && matchesCity;
   });
 
   return (
@@ -261,8 +272,8 @@ const AdminMentorsManagement: React.FC = () => {
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="flex gap-4">
-            <div className="flex-1">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
               <Label htmlFor="search">Search mentors</Label>
               <Input
                 id="search"
@@ -274,7 +285,7 @@ const AdminMentorsManagement: React.FC = () => {
             <div>
               <Label htmlFor="filter">Filter by type</Label>
               <Select value={filterType} onValueChange={(value: any) => setFilterType(value)}>
-                <SelectTrigger className="w-40">
+                <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -283,6 +294,24 @@ const AdminMentorsManagement: React.FC = () => {
                   <SelectItem value="coach">Coaches</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <Label htmlFor="filter-country">Filter by country</Label>
+              <Input
+                id="filter-country"
+                placeholder="Filter by country..."
+                value={filterCountry}
+                onChange={(e) => setFilterCountry(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label htmlFor="filter-city">Filter by city</Label>
+              <Input
+                id="filter-city"
+                placeholder="Filter by city..."
+                value={filterCity}
+                onChange={(e) => setFilterCity(e.target.value)}
+              />
             </div>
           </div>
         </CardContent>
@@ -297,8 +326,9 @@ const AdminMentorsManagement: React.FC = () => {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Mentor</TableHead>
+                <TableHead>Mentor</TableHead>
                   <TableHead>Type</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Categories</TableHead>
                   <TableHead>Bio</TableHead>
                   <TableHead>Actions</TableHead>
@@ -327,6 +357,18 @@ const AdminMentorsManagement: React.FC = () => {
                       <Badge variant="default" className="capitalize">
                         {mentor.mentor_type}
                       </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="text-sm">
+                        {mentor.city && mentor.country ? `${mentor.city}, ${mentor.country}` : 
+                         mentor.country ? mentor.country : 
+                         mentor.city ? mentor.city : 'Not specified'}
+                        {mentor.mentor_type === 'coach' && mentor.gym && (
+                          <div className="text-xs text-muted-foreground mt-1">
+                            Gym: {mentor.gym.name}
+                          </div>
+                        )}
+                      </div>
                     </TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">

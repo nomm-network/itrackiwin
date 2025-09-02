@@ -39,18 +39,29 @@ const AdminUsersManagement: React.FC = () => {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
+      // Get users data for country/city
+      const { data: usersData, error: usersError } = await supabase
+        .from('users')
+        .select('id, country, city, created_at');
+      if (usersError) throw usersError;
+
       // Get mentors data separately
       const { data: mentors, error: mentorsError } = await supabase
         .from('mentors')
         .select('user_id, mentor_type, bio, avatar_url');
       if (mentorsError) throw mentorsError;
 
-      return (authUsers?.users || []).map((user: any) => ({
-        id: user.id,
-        email: user.email || 'Unknown',
-        created_at: user.created_at,
-        mentor: (mentors || []).find((m: any) => m.user_id === user.id) || null
-      }));
+      return (authUsers?.users || []).map((user: any) => {
+        const userData = usersData?.find((u: any) => u.id === user.id);
+        return {
+          id: user.id,
+          email: user.email || 'Unknown',
+          created_at: user.created_at,
+          country: userData?.country,
+          city: userData?.city,
+          mentor: (mentors || []).find((m: any) => m.user_id === user.id) || null
+        };
+      });
     }
   });
 
@@ -149,7 +160,7 @@ const AdminUsersManagement: React.FC = () => {
     const matchesFilter = 
       filterMentorType === 'all' ||
       (filterMentorType === 'none' && !user.mentor) ||
-      (filterMentorType !== 'none' && user.mentor?.mentor_type === filterMentorType);
+      (filterMentorType !== 'none' && user.mentor && user.mentor.mentor_type === filterMentorType);
     
     return matchesSearch && matchesFilter;
   });
@@ -218,6 +229,7 @@ const AdminUsersManagement: React.FC = () => {
               <TableHeader>
                 <TableRow>
                   <TableHead>Email</TableHead>
+                  <TableHead>Location</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Actions</TableHead>
@@ -227,6 +239,11 @@ const AdminUsersManagement: React.FC = () => {
                 {filteredUsers?.map(user => (
                   <TableRow key={user.id}>
                     <TableCell>{user.email}</TableCell>
+                    <TableCell>
+                      {user.city && user.country ? `${user.city}, ${user.country}` : 
+                       user.country ? user.country : 
+                       user.city ? user.city : 'Not specified'}
+                    </TableCell>
                     <TableCell>{new Date(user.created_at).toLocaleDateString()}</TableCell>
                     <TableCell>
                       {user.mentor ? (
@@ -243,7 +260,7 @@ const AdminUsersManagement: React.FC = () => {
                           <Label htmlFor={`mentor-${user.id}`} className="text-sm">Mentor</Label>
                           <Switch
                             id={`mentor-${user.id}`}
-                            checked={user.mentor?.mentor_type === 'mentor'}
+                            checked={user.mentor && user.mentor.mentor_type === 'mentor'}
                             onCheckedChange={(checked) => 
                               toggleMentorMutation.mutate({ 
                                 userId: user.id, 
@@ -257,7 +274,7 @@ const AdminUsersManagement: React.FC = () => {
                           <Label htmlFor={`coach-${user.id}`} className="text-sm">Coach</Label>
                           <Switch
                             id={`coach-${user.id}`}
-                            checked={user.mentor?.mentor_type === 'coach'}
+                            checked={user.mentor && user.mentor.mentor_type === 'coach'}
                             onCheckedChange={(checked) => 
                               toggleMentorMutation.mutate({ 
                                 userId: user.id, 
