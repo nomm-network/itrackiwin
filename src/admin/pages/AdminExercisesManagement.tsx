@@ -258,6 +258,7 @@ const AdminExercisesManagement: React.FC = () => {
         searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter
       })}`);
       
+      // First, fetch exercises with basic filtering
       let query = supabase
         .from("exercises")
         .select("*")
@@ -277,8 +278,8 @@ const AdminExercisesManagement: React.FC = () => {
       }
       // Note: configured filter handled client-side since view might not have this column yet
 
-      const { data, error } = await query;
-      debugLog.push(`[Admin] Exercises query result: data=${data?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
+      const { data: exercisesData, error } = await query;
+      debugLog.push(`[Admin] Exercises query result: data=${exercisesData?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
       
       if (error) {
         debugLog.push(`[Admin] Exercises query error: ${JSON.stringify(error)}`);
@@ -286,10 +287,42 @@ const AdminExercisesManagement: React.FC = () => {
         throw error;
       }
       
-      let results = data || [];
-      debugLog.push(`[Admin] Raw results from view: ${results.length}`);
+      if (!exercisesData || exercisesData.length === 0) {
+        return [];
+      }
+
+      // Fetch translations for all exercises
+      const exerciseIds = exercisesData.map(ex => ex.id);
+      const { data: translationsData, error: translationsError } = await supabase
+        .from("exercises_translations")
+        .select("exercise_id, language_code, name, description")
+        .in("exercise_id", exerciseIds);
+
+      if (translationsError) {
+        debugLog.push(`[Admin] Translations query error: ${JSON.stringify(translationsError)}`);
+        (window as any).adminDebugLogs = debugLog;
+        throw translationsError;
+      }
+
+      // Combine exercises with their translations
+      let results = exercisesData.map(exercise => {
+        const exerciseTranslations = translationsData
+          ?.filter(t => t.exercise_id === exercise.id)
+          .reduce((acc, t) => {
+            acc[t.language_code] = {
+              name: t.name,
+              description: t.description
+            };
+            return acc;
+          }, {} as Record<string, { name: string; description?: string }>) || {};
+
+        return {
+          ...exercise,
+          translations: exerciseTranslations
+        };
+      });
       
-      // The view already includes translations, so no need to fetch separately
+      debugLog.push(`[Admin] After adding translations: ${results.length}`);
       
       // Client-side filtering for search
       if (searchTerm) {
