@@ -228,7 +228,7 @@ export function WarmupBlock({
           <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
         </div>
         <div className="text-xs text-muted-foreground">
-          Strategy: {plan.strategy} • Top: {actualTopWeight || 0}kg
+          Strategy: {plan.strategy} • <strong>Top: {actualTopWeight || 0}kg</strong>
           <span className="ml-2 text-blue-600">• Auto-adjusts from feedback</span>
         </div>
       </CardHeader>
@@ -239,13 +239,17 @@ export function WarmupBlock({
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
             {plan?.steps?.map((s, index) => {
-              // Use the already calculated targetWeight from the database
-              const stepWeight = s.targetWeight || 0;
+              // Calculate warmup step weights as percentage of the actual top weight
+              const stepPercentage = s.pct || 0;
+              const stepWeight = actualTopWeight > 0 
+                ? Math.round((actualTopWeight * stepPercentage / 100) * 4) / 4 // Round to nearest 0.25kg
+                : s.targetWeight || 0;
+              
               return (
                 <li key={index} className="flex items-center justify-between text-sm">
                   <span className="font-mono">{s.id}</span>
-                   <span>
-                    <strong>{stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps</strong>
+                  <span>
+                    <strong className="text-blue-600">{stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps</strong>
                   </span>
                   <span className="text-muted-foreground">{s.restSec}s rest</span>
                 </li>
