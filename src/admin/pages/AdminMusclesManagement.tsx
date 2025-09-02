@@ -14,7 +14,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2 } from "lucide-react";
-import AdminMenu from "../components/AdminMenu";
+
 
 interface BodyPart {
   id: string;
@@ -471,7 +471,7 @@ const AdminMusclesManagement: React.FC = () => {
         <p className="text-muted-foreground">Manage body parts, muscle groups, and muscles</p>
       </div>
 
-      <AdminMenu />
+      
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
