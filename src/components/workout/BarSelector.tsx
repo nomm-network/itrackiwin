@@ -18,29 +18,30 @@ export function BarSelector({ workoutExerciseId, selectedBarId, onChange }: Prop
   }, [selectedBarId]);
 
   const handleSelect = async (barId: string) => {
-    const bar = bars.find(b => b.id === barId) || null;
-    setCurrent(barId);
+    const actualBarId = barId === 'none' ? null : barId;
+    const bar = bars.find(b => b.id === actualBarId) || null;
+    setCurrent(actualBarId);
 
     // persist on the workout_exercises row (default for this exercise instance)
     await supabase.from('workout_exercises')
-      .update({ selected_bar_id: barId })
+      .update({ selected_bar_id: actualBarId })
       .eq('id', workoutExerciseId);
 
-    onChange(barId, bar?.weight_kg ?? 0);
+    onChange(actualBarId, bar?.weight_kg ?? 0);
   };
 
   return (
     <div className="flex items-center gap-2">
       <label className="text-sm text-muted-foreground">Bar</label>
       <Select
-        value={current ?? ''}
+        value={current ?? 'none'}
         onValueChange={handleSelect}
       >
         <SelectTrigger className="w-48">
           <SelectValue placeholder="Select a bar" />
         </SelectTrigger>
         <SelectContent>
-          <SelectItem value="">None</SelectItem>
+          <SelectItem value="none">None</SelectItem>
           {bars.map(bar => (
             <SelectItem key={bar.id} value={bar.id}>
               {bar.name} ({bar.weight_kg} kg)

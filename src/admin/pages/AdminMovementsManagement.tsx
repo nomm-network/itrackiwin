@@ -101,7 +101,7 @@ const AdminMovementsManagement: React.FC = () => {
         .select("*")
         .order("slug");
       
-      if (selectedPatternId) {
+      if (selectedPatternId && selectedPatternId !== 'all') {
         query = query.eq("movement_pattern_id", selectedPatternId);
       }
       
@@ -609,7 +609,7 @@ const AdminMovementsManagement: React.FC = () => {
                         <SelectValue placeholder="All patterns" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">All patterns</SelectItem>
+                        <SelectItem value="all">All patterns</SelectItem>
                         {patterns.map((pattern) => (
                           <SelectItem key={pattern.id} value={pattern.id}>
                             {getTranslatedName(pattern) || pattern.slug}

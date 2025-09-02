@@ -62,7 +62,7 @@ export default function EnhancedPrograms() {
         programId: editingProgram.id,
         updates: {
           name: editForm.name,
-          goal: editForm.goal || null
+          goal: editForm.goal === 'none' ? null : editForm.goal
         }
       });
       toast.success('Program updated successfully');
@@ -272,7 +272,7 @@ export default function EnhancedPrograms() {
                   <SelectValue placeholder="Select a goal" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No goal</SelectItem>
+                  <SelectItem value="none">No goal</SelectItem>
                   <SelectItem value="strength">Strength</SelectItem>
                   <SelectItem value="hypertrophy">Muscle Building</SelectItem>
                   <SelectItem value="endurance">Endurance</SelectItem>
