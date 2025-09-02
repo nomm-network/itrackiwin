@@ -244,8 +244,8 @@ export function WarmupBlock({
               return (
                 <li key={index} className="flex items-center justify-between text-sm">
                   <span className="font-mono">{s.id}</span>
-                  <span>
-                    {stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps
+                   <span>
+                    <strong>{stepWeight > 0 ? `${stepWeight}${unit}` : '–'} × {s.reps} reps</strong>
                   </span>
                   <span className="text-muted-foreground">{s.restSec}s rest</span>
                 </li>

@@ -163,10 +163,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   };
 
   
-  // Get exercise translation
-  const { data: exerciseTranslation } = useExerciseTranslation(
-    currentExercise?.exercise_id || currentExercise?.id || ''
-  );
+  // Get exercise translation - use the main exercise_id
+  const exerciseId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
+  const { data: exerciseTranslation } = useExerciseTranslation(exerciseId);
   
   const getExerciseName = () => {
     // First try the dedicated exercise translation hook
@@ -205,7 +204,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       return currentExercise.name;
     }
     
-    return 'Exercise';
+    return `Exercise ${exerciseId?.slice(0, 8) || 'Unknown'}`;
   };
   
   const sets = currentExercise?.sets || [];
