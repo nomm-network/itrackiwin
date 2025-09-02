@@ -33,6 +33,8 @@ const AdminMentorsManagement: React.FC = () => {
   const [editingMentor, setEditingMentor] = useState<Mentor | null>(null);
   const [filterType, setFilterType] = useState<'all' | 'mentor' | 'coach'>('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCountry, setFilterCountry] = useState('');
+  const [filterCity, setFilterCity] = useState('');
   const queryClient = useQueryClient();
 
   // Fetch mentors with categories and user data
@@ -41,7 +43,17 @@ const AdminMentorsManagement: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('mentors')
-        .select('user_id, mentor_type, bio, avatar_url, created_at, updated_at')
+        .select(`
+          user_id, 
+          mentor_type, 
+          bio, 
+          avatar_url, 
+          created_at, 
+          updated_at,
+          country,
+          city,
+          gym_id
+        `)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -50,9 +62,16 @@ const AdminMentorsManagement: React.FC = () => {
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
+      // Get gyms data for coaches
+      const { data: gyms, error: gymsError } = await supabase
+        .from('gyms')
+        .select('id, name, city, country');
+      if (gymsError) throw gymsError;
+
       return (data || []).map((mentor: any) => ({
         ...mentor,
         email: authUsers?.users?.find((au: any) => au.id === mentor.user_id)?.email || 'Unknown',
+        gym: mentor.gym_id ? gyms?.find((g: any) => g.id === mentor.gym_id) : null,
         categories: []
       }));
     }

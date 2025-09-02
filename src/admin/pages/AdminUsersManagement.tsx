@@ -35,13 +35,7 @@ const AdminUsersManagement: React.FC = () => {
   const { data: users, isLoading } = useQuery({
     queryKey: ['admin-users'],
     queryFn: async () => {
-      const { data: users, error } = await supabase
-        .from('users')
-        .select('id, created_at');
-      
-      if (error) throw error;
-      
-      // Also get auth users for email
+      // Get auth users for email
       const { data: authUsers, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
@@ -51,9 +45,10 @@ const AdminUsersManagement: React.FC = () => {
         .select('user_id, mentor_type, bio, avatar_url');
       if (mentorsError) throw mentorsError;
 
-      return (users || []).map((user: any) => ({
-        ...user,
-        email: authUsers?.users?.find((au: any) => au.id === user.id)?.email || 'Unknown',
+      return (authUsers?.users || []).map((user: any) => ({
+        id: user.id,
+        email: user.email || 'Unknown',
+        created_at: user.created_at,
         mentor: (mentors || []).find((m: any) => m.user_id === user.id) || null
       }));
     }
