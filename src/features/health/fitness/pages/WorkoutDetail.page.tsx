@@ -13,6 +13,16 @@ import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import type { WarmupPlan } from "@/features/workouts/types/warmup";
 import { getStepWeight } from "@/features/workouts/warmup/calcWarmup";
 import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
+import { parseFeelFromNotes } from "@/features/workouts/utils/feel";
+import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
+
+// Component to properly display exercise name with translation
+const ExerciseNameDisplay: React.FC<{ exerciseId: string; orderIndex: number }> = ({ exerciseId, orderIndex }) => {
+  const { data: translation } = useExerciseTranslation(exerciseId);
+  return (
+    <span>{orderIndex + 1}: {translation?.name || `Exercise ${exerciseId.slice(0, 8)}`}</span>
+  );
+};
 
 const WorkoutDetail: React.FC = () => {
   const { id } = useParams();
@@ -118,18 +128,40 @@ const WorkoutDetail: React.FC = () => {
         </div>
 
         {(data?.exercises || []).map(ex => {
-          const exerciseTranslations = Array.isArray(ex.exercises?.translations) ? ex.exercises.translations : [];
-          const exerciseName = getExerciseNameFromTranslations(exerciseTranslations);
+          const exerciseId = ex.exercise_id;
           const workoutSets = data?.setsByWe[ex.id] || [];
           
           // Show warmup suggestions since there are no actual sets
           const warmupSuggestion = (ex as any).warmup_suggestion;
           const warmupSets = warmupSuggestion?.warmup_sets || [];
           
+          // Helper function to get actual feel value
+          const getActualFeel = (set: any) => {
+            // First try to get from effort field (enum value)
+            if (set.effort) {
+              return set.effort;
+            }
+            
+            // Fallback to parsing from notes
+            const feelFromNotes = parseFeelFromNotes(set.notes);
+            if (feelFromNotes) {
+              return feelFromNotes;
+            }
+            
+            // Last resort: convert RPE to feel if available
+            if (set.rpe) {
+              return rpeToFeel(set.rpe);
+            }
+            
+            return '';
+          };
+          
           return (
             <Card key={ex.id}>
               <CardHeader className="pb-2">
-                <CardTitle className="text-base">{ex.order_index + 1}: {exerciseName}</CardTitle>
+                <CardTitle className="text-base">
+                  <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index} />
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-1 text-sm">
@@ -157,7 +189,7 @@ const WorkoutDetail: React.FC = () => {
                       <div key={s.id} className="flex gap-4">
                         <span>Set {s.set_index}</span>
                         <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
-                        <span>x {s.reps ?? '-'} {s.rpe ? rpeToFeel(s.rpe) : ''}</span>
+                        <span>x {s.reps ?? '-'} {getActualFeel(s)}</span>
                       </div>
                     ))
                   ) : (
