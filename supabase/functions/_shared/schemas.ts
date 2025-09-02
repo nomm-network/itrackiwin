@@ -60,6 +60,7 @@ export interface WorkoutTemplate {
   exercises: TemplateExercise[];
   estimated_duration?: number;
   difficulty_level?: 'beginner' | 'intermediate' | 'advanced';
+  is_public?: boolean;
   created_at?: string;
   updated_at?: string;
 }

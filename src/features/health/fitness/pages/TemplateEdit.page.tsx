@@ -4,8 +4,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { Switch } from "@/components/ui/switch";
 import PageNav from "@/components/PageNav";
-import { ArrowLeft, Plus, Save, Trash2, GripVertical, Search } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, Search, Globe } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -48,6 +49,7 @@ export default function TemplateEdit() {
   
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
+  const [isPublic, setIsPublic] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
@@ -153,6 +155,7 @@ export default function TemplateEdit() {
     if (template) {
       setName(template.name || "");
       setNotes(template.notes || "");
+      setIsPublic(template.is_public || false);
     }
   }, [template]);
 
@@ -164,7 +167,8 @@ export default function TemplateEdit() {
         templateId,
         updates: {
           name: name.trim() || "Untitled Template",
-          notes: notes.trim()
+          notes: notes.trim(),
+          is_public: isPublic
         }
       });
       setIsEditing(false);
@@ -364,6 +368,28 @@ export default function TemplateEdit() {
                 <div className="text-muted-foreground">
                   {notes || "No description"}
                 </div>
+              )}
+            </div>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <Globe className="h-4 w-4" />
+                  <label className="text-sm font-medium">Make Public</label>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Allow other users to view and use this template
+                </p>
+              </div>
+              {isEditing ? (
+                <Switch
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
+              ) : (
+                <Badge variant={isPublic ? "default" : "secondary"}>
+                  {isPublic ? "Public" : "Private"}
+                </Badge>
               )}
             </div>
           </CardContent>
