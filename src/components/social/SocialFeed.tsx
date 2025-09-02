@@ -57,8 +57,8 @@ export const SocialFeed: React.FC = () => {
         .from('workout_shares')
         .select(`
           *,
-          profiles!workout_shares_user_id_fkey(display_name, username, avatar_url),
-          workouts!workout_shares_workout_id_fkey(started_at, ended_at)
+          profiles(display_name, username, avatar_url),
+          workouts(started_at, ended_at)
         `)
         .eq('is_public', true)
         .order('created_at', { ascending: false })
