@@ -109,7 +109,8 @@ export const quickActions: QuickAction[] = [
     id: 'mentors.browse',
     label: 'Mentors',
     icon: React.createElement(Users, { className: 'h-4 w-4' }),
-    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID (can be used for any category)
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/mentors',
     order: 6
   }

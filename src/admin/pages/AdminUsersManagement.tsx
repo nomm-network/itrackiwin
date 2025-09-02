@@ -68,12 +68,25 @@ const AdminUsersManagement: React.FC = () => {
   // Create user mutation
   const createUserMutation = useMutation({
     mutationFn: async ({ email, password }: { email: string; password: string }) => {
+      // First create the auth user
       const { data, error } = await supabase.auth.admin.createUser({
         email,
         password,
         email_confirm: true
       });
       if (error) throw error;
+
+      // Then create the users table entry
+      if (data.user) {
+        const { error: usersError } = await supabase
+          .from('users')
+          .insert({ 
+            id: data.user.id,
+            is_pro: false
+          });
+        if (usersError) throw usersError;
+      }
+
       return data;
     },
     onSuccess: () => {
