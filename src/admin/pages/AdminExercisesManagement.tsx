@@ -258,11 +258,11 @@ const AdminExercisesManagement: React.FC = () => {
         searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter
       })}`);
       
-      // First, fetch exercises with basic filtering
+      // Use the working view like other pages
       let query = supabase
-        .from("exercises")
+        .from("v_exercises_with_translations")
         .select("*")
-        .order("popularity_rank", { ascending: false, nullsFirst: false });
+        .order('popularity_rank', { ascending: false, nullsFirst: false });
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq("body_part_id", selectedBodyPart);
@@ -276,10 +276,9 @@ const AdminExercisesManagement: React.FC = () => {
       if (isPublic && isPublic !== "all") {
         query = query.eq("is_public", isPublic === "true");
       }
-      // Note: configured filter handled client-side since view might not have this column yet
 
-      const { data: exercisesData, error } = await query;
-      debugLog.push(`[Admin] Exercises query result: data=${exercisesData?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
+      const { data, error } = await query;
+      debugLog.push(`[Admin] Exercises query result: data=${data?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
       
       if (error) {
         debugLog.push(`[Admin] Exercises query error: ${JSON.stringify(error)}`);
@@ -287,42 +286,8 @@ const AdminExercisesManagement: React.FC = () => {
         throw error;
       }
       
-      if (!exercisesData || exercisesData.length === 0) {
-        return [];
-      }
-
-      // Fetch translations for all exercises
-      const exerciseIds = exercisesData.map(ex => ex.id);
-      const { data: translationsData, error: translationsError } = await supabase
-        .from("exercises_translations")
-        .select("exercise_id, language_code, name, description")
-        .in("exercise_id", exerciseIds);
-
-      if (translationsError) {
-        debugLog.push(`[Admin] Translations query error: ${JSON.stringify(translationsError)}`);
-        (window as any).adminDebugLogs = debugLog;
-        throw translationsError;
-      }
-
-      // Combine exercises with their translations
-      let results = exercisesData.map(exercise => {
-        const exerciseTranslations = translationsData
-          ?.filter(t => t.exercise_id === exercise.id)
-          .reduce((acc, t) => {
-            acc[t.language_code] = {
-              name: t.name,
-              description: t.description
-            };
-            return acc;
-          }, {} as Record<string, { name: string; description?: string }>) || {};
-
-        return {
-          ...exercise,
-          translations: exerciseTranslations
-        };
-      });
-      
-      debugLog.push(`[Admin] After adding translations: ${results.length}`);
+      let results = data || [];
+      debugLog.push(`[Admin] Results from view: ${results.length}`);
       
       // Client-side filtering for search
       if (searchTerm) {
@@ -802,7 +767,7 @@ const AdminExercisesManagement: React.FC = () => {
                     
                     return (
                     <TableRow key={exercise.id}>
-                  <TableCell className="font-medium">{exerciseName}</TableCell>
+                  <TableCell className="font-medium">{getExerciseNameFromTranslations(exercise.translations, exercise.id)}</TableCell>
                   <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
                   <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
                   <TableCell>
