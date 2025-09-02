@@ -57,7 +57,6 @@ export const SocialFeed: React.FC = () => {
         .from('workout_shares')
         .select(`
           *,
-          profiles(display_name, username, avatar_url),
           workouts(started_at, ended_at)
         `)
         .eq('is_public', true)

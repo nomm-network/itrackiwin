@@ -5865,8 +5865,9 @@ export type Database = {
           id: string
           is_public: boolean | null
           likes_count: number | null
+          share_type: string | null
           user_id: string
-          workout_id: string
+          workout_id: string | null
         }
         Insert: {
           caption?: string | null
@@ -5875,8 +5876,9 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           likes_count?: number | null
+          share_type?: string | null
           user_id: string
-          workout_id: string
+          workout_id?: string | null
         }
         Update: {
           caption?: string | null
@@ -5885,8 +5887,9 @@ export type Database = {
           id?: string
           is_public?: boolean | null
           likes_count?: number | null
+          share_type?: string | null
           user_id?: string
-          workout_id?: string
+          workout_id?: string | null
         }
         Relationships: [
           {
