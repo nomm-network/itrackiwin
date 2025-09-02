@@ -5848,6 +5848,7 @@ export type Database = {
           perceived_exertion: number | null
           session_unit: string
           started_at: string
+          template_id: string | null
           title: string | null
           total_duration_seconds: number | null
           user_id: string
@@ -5861,6 +5862,7 @@ export type Database = {
           perceived_exertion?: number | null
           session_unit?: string
           started_at?: string
+          template_id?: string | null
           title?: string | null
           total_duration_seconds?: number | null
           user_id: string
@@ -5874,11 +5876,27 @@ export type Database = {
           perceived_exertion?: number | null
           session_unit?: string
           started_at?: string
+          template_id?: string | null
           title?: string | null
           total_duration_seconds?: number | null
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "workouts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
