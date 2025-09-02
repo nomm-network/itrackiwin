@@ -12,7 +12,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { Pencil, Plus, Trash2, Search } from "lucide-react";
-import AdminMenu from "../components/AdminMenu";
+
 import PageNav from "@/components/PageNav";
 import { useTranslations } from "@/hooks/useTranslations";
 import { useGrips } from "@/hooks/useGrips";
@@ -371,7 +371,7 @@ const AdminEquipmentManagement: React.FC = () => {
         <p className="text-muted-foreground">Manage exercise equipment</p>
       </div>
 
-      <AdminMenu />
+      
 
       <div className="space-y-6">
         <Card>

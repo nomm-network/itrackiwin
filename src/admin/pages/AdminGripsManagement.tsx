@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { toast } from "@/hooks/use-toast";
 import { useTranslations } from '@/hooks/useTranslations';
 import { Search, Plus, Edit, Trash2, Filter } from "lucide-react";
-import AdminMenu from "@/admin/components/AdminMenu";
+
 
 interface Grip {
   id: string;
@@ -261,7 +261,7 @@ const AdminGripsManagement: React.FC = () => {
     <>
       <PageNav current="Admin / Others / Grips" />
       <main className="container py-8 space-y-6">
-        <AdminMenu />
+        
         
         <div className="flex justify-between items-center">
           <h1 className="text-3xl font-bold">Grips Management</h1>

@@ -5,7 +5,7 @@ import { useTranslation } from "react-i18next";
 import { useTranslations } from '@/hooks/useTranslations';
 import { useToast } from "@/hooks/use-toast";
 import PageNav from "@/components/PageNav";
-import AdminMenu from "@/admin/components/AdminMenu";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,21 +24,25 @@ import { Link } from "react-router-dom";
 
 interface Exercise {
   id: string;
-  translations: any;
+  name: string;
+  slug: string;
   body_part_slug: string | null;
   body_part_id: string | null;
+  body_part_name: string | null;
   primary_muscle_id: string | null;
-  secondary_muscle_group_ids: string[] | null;
+  muscle_group_slug: string | null;
+  muscle_group_name: string | null;
   equipment_id: string | null;
-  image_url: string | null;
-  thumbnail_url: string | null;
+  equipment_slug: string | null;
+  equipment_name: string | null;
+  movement_pattern_slug: string | null;
+  movement_pattern_name: string | null;
   is_public: boolean;
   owner_user_id: string | null;
-  source_url: string | null;
   popularity_rank: number | null;
-  default_grip_ids?: string[] | null;
   configured: boolean;
   created_at: string;
+  load_type: string | null;
 }
 
 interface BodyPart {
@@ -249,20 +253,13 @@ const AdminExercisesManagement: React.FC = () => {
     },
   });
 
-  // Fetch exercises with filters
+  // Fetch exercises with simplified view
   const { data: exercises = [], isLoading, error: exercisesError } = useQuery({
     queryKey: ["admin_exercises", searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter],
     queryFn: async () => {
-      const debugLog = [];
-      debugLog.push(`[Admin] Fetching exercises with filters: ${JSON.stringify({
-        searchTerm, selectedBodyPart, selectedMuscleGroup, selectedMuscle, selectedEquipment, isPublic, configuredFilter
-      })}`);
-      
-      // Use the working view like other pages
       let query = supabase
-        .from("v_exercises_with_translations")
-        .select("*")
-        .order('popularity_rank', { ascending: false, nullsFirst: false });
+        .from("v_admin_exercises")
+        .select("*");
 
       if (selectedBodyPart && selectedBodyPart !== "all") {
         query = query.eq("body_part_id", selectedBodyPart);
@@ -276,71 +273,24 @@ const AdminExercisesManagement: React.FC = () => {
       if (isPublic && isPublic !== "all") {
         query = query.eq("is_public", isPublic === "true");
       }
+      if (configuredFilter && configuredFilter !== "all") {
+        query = query.eq("configured", configuredFilter === "true");
+      }
+
+      // Client-side search filtering
+      if (searchTerm) {
+        const searchLower = searchTerm.toLowerCase();
+        query = query.or(`name.ilike.%${searchTerm}%,equipment_name.ilike.%${searchTerm}%,body_part_name.ilike.%${searchTerm}%,muscle_group_name.ilike.%${searchTerm}%`);
+      }
 
       const { data, error } = await query;
-      debugLog.push(`[Admin] Exercises query result: data=${data?.length || 0}, error=${error ? JSON.stringify(error) : 'None'}`);
       
       if (error) {
-        debugLog.push(`[Admin] Exercises query error: ${JSON.stringify(error)}`);
-        (window as any).adminDebugLogs = debugLog;
+        console.error('[Admin] Exercises query error:', error);
         throw error;
       }
       
-      let results = data || [];
-      debugLog.push(`[Admin] Results from view: ${results.length}`);
-      
-      // Client-side filtering for search
-      if (searchTerm) {
-        const searchLower = searchTerm.toLowerCase();
-        results = results.filter(exercise => {
-          const translations = (exercise as any).translations || [];
-          const name = getExerciseNameFromTranslations(translations, exercise.id);
-          
-          // Get muscle and muscle group names for this exercise
-          const muscle = muscles.find(m => m.id === exercise.primary_muscle_id);
-          const muscleGroup = muscle ? muscleGroups.find(mg => mg.id === muscle.muscle_group_id) : null;
-          const bodyPart = bodyParts.find(bp => bp.id === exercise.body_part_id);
-          
-          // Create searchable text that includes exercise name, muscle, muscle group, and body part
-          const searchableText = [
-            name,
-            muscle?.name,
-            muscleGroup?.name,
-            bodyPart?.name
-          ].filter(Boolean).join(' ').toLowerCase();
-          
-          return searchableText.includes(searchLower);
-        });
-      }
-      
-      debugLog.push(`[Admin] After filtering: ${results.length}`);
-      
-      const finalResults = results.map((exercise: any) => {
-        // The view already has translations in the correct format
-        const translations = exercise.translations || [];
-        
-        // Convert translations array to the expected object format
-        const translationsObj = translations.reduce((acc: any, t: any) => {
-          acc[t.language_code] = {
-            name: t.name,
-            description: t.description
-          };
-          return acc;
-        }, {});
-
-        return {
-          ...exercise,
-          default_grip_ids: exercise.default_grip_ids || [],
-          configured: exercise.configured || false,
-          translations: translationsObj
-        };
-      });
-      
-      debugLog.push(`[Admin] Final results: ${finalResults.length}`);
-      // Store debug logs in window for debug box access
-      (window as any).adminDebugLogs = debugLog;
-      
-      return finalResults;
+      return data || [];
     },
   });
 
@@ -487,27 +437,20 @@ const AdminExercisesManagement: React.FC = () => {
     upsertMutation.mutate(dataToSave);
   };
 
-  const handleDelete = (exercise: Exercise) => {
-    const exerciseName = getExerciseNameFromTranslations(exercise.translations, exercise.id);
-    console.log('[AdminExercise] Deleting exercise:', exerciseName);
-    deleteMutation.mutate(exercise.id);
-  };
-
   const handleEdit = (exercise: Exercise) => {
     setEditingExercise(exercise);
-    const exerciseName = getExerciseNameFromTranslations(exercise.translations, exercise.id);
     setFormData({
-      name: exerciseName,
+      name: exercise.name,
       description: "", // Exercise descriptions are managed through translations separately
       body_part_id: exercise.body_part_id || "",
       primary_muscle_id: exercise.primary_muscle_id || "",
-      secondary_muscle_group_ids: exercise.secondary_muscle_group_ids || [],
+      secondary_muscle_group_ids: [],
       equipment_id: exercise.equipment_id || "",
       is_public: exercise.is_public ?? true,
-      default_grip_ids: exercise.default_grip_ids || [],
+      default_grip_ids: [],
       configured: exercise.configured || false,
     });
-    setSelectedGrips(exercise.default_grip_ids || []);
+    setSelectedGrips([]);
     setIsCreateDialogOpen(true);
   };
 
@@ -614,7 +557,7 @@ const AdminExercisesManagement: React.FC = () => {
   return (
     <main className="container py-6">
       <PageNav current="Admin / Exercise Management" />
-      <AdminMenu />
+      
       
       
       <div className="space-y-6">
@@ -761,36 +704,32 @@ const AdminExercisesManagement: React.FC = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {exercises.map((exercise) => {
-                    const translations = (exercise as any).translations || {};
-                    const exerciseName = getExerciseNameFromTranslations(translations, exercise.id);
-                    
-                    return (
+                  {exercises.map((exercise) => (
                     <TableRow key={exercise.id}>
-                  <TableCell className="font-medium">{getExerciseNameFromTranslations(exercise.translations, exercise.id)}</TableCell>
-                  <TableCell>{getBodyPartName(exercise.body_part_id)}</TableCell>
-                  <TableCell>{getMuscleName(exercise.primary_muscle_id)}</TableCell>
-                  <TableCell>
-                    <div className="max-w-48 truncate text-sm text-muted-foreground">
-                      {getSecondaryMuscleGroupNames(exercise.secondary_muscle_group_ids)}
-                    </div>
-                  </TableCell>
-                  <TableCell>{getEquipmentName(exercise.equipment_id)}</TableCell>
-                  <TableCell>
-                    <div className="max-w-48 truncate text-sm text-muted-foreground">
-                      {getGripNames(exercise.default_grip_ids)}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={exercise.is_public ? "default" : "secondary"}>
-                      {exercise.is_public ? "Public" : "Private"}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={exercise.configured ? "default" : "secondary"}>
-                      {exercise.configured ? "Yes" : "No"}
-                    </Badge>
-                  </TableCell>
+                      <TableCell className="font-medium">{exercise.name}</TableCell>
+                      <TableCell>{exercise.body_part_name || "N/A"}</TableCell>
+                      <TableCell>{exercise.muscle_group_name || "N/A"}</TableCell>
+                      <TableCell>
+                        <div className="max-w-48 truncate text-sm text-muted-foreground">
+                          N/A
+                        </div>
+                      </TableCell>
+                      <TableCell>{exercise.equipment_name || "N/A"}</TableCell>
+                      <TableCell>
+                        <div className="max-w-48 truncate text-sm text-muted-foreground">
+                          None
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={exercise.is_public ? "default" : "secondary"}>
+                          {exercise.is_public ? "Public" : "Private"}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant={exercise.configured ? "default" : "secondary"}>
+                          {exercise.configured ? "Yes" : "No"}
+                        </Badge>
+                      </TableCell>
                       <TableCell>
                         <div className="flex gap-2">
                           <Button
@@ -816,12 +755,12 @@ const AdminExercisesManagement: React.FC = () => {
                               <AlertDialogHeader>
                                 <AlertDialogTitle>Delete Exercise</AlertDialogTitle>
                                 <AlertDialogDescription>
-                                  Are you sure you want to delete "{getExerciseNameFromTranslations(exercise.translations, exercise.id)}"? This action cannot be undone.
+                                  Are you sure you want to delete "{exercise.name}"? This action cannot be undone.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                <AlertDialogAction onClick={() => handleDelete(exercise)}>
+                                <AlertDialogAction onClick={() => deleteMutation.mutate(exercise.id)}>
                                   Delete
                                 </AlertDialogAction>
                               </AlertDialogFooter>
@@ -830,8 +769,7 @@ const AdminExercisesManagement: React.FC = () => {
                         </div>
                       </TableCell>
                     </TableRow>
-                    );
-                  })}
+                  ))}
                 </TableBody>
               </Table>
             )}
