@@ -239,11 +239,33 @@ export function WarmupBlock({
           <div className="text-xs font-medium mb-2">Steps</div>
           <ol className="space-y-2">
             {plan?.steps?.map((s, index) => {
+              // Debug logging
+              console.log('🔍 WarmupBlock step debug:', {
+                stepIndex: index,
+                stepId: s.id,
+                stepPct: s.pct,
+                stepTargetWeight: s.targetWeight,
+                actualTopWeight,
+                step: s
+              });
+
               // Calculate warmup step weights as percentage of the actual top weight
               const stepPercentage = s.pct || 0;
-              const stepWeight = actualTopWeight > 0 
-                ? Math.round((actualTopWeight * stepPercentage / 100) * 4) / 4 // Round to nearest 0.25kg
-                : s.targetWeight || 0;
+              let stepWeight = 0;
+              
+              if (actualTopWeight > 0 && stepPercentage > 0) {
+                stepWeight = Math.round((actualTopWeight * stepPercentage / 100) * 4) / 4; // Round to nearest 0.25kg
+              } else if (s.targetWeight && s.targetWeight > 0) {
+                stepWeight = s.targetWeight;
+              } else {
+                // Fallback: use common warmup percentages
+                const fallbackPercentages = [40, 60, 80]; // 40%, 60%, 80% for typical 3-step warmup
+                if (actualTopWeight > 0 && index < fallbackPercentages.length) {
+                  stepWeight = Math.round((actualTopWeight * fallbackPercentages[index] / 100) * 4) / 4;
+                }
+              }
+
+              console.log('🎯 Calculated stepWeight:', stepWeight);
               
               return (
                 <li key={index} className="flex items-center justify-between text-sm">
