@@ -97,7 +97,7 @@ export const useGetWorkout = (workoutId?: string) => {
         `)
         .eq('id', workoutId)
         .eq('user_id', user.id)
-        .single();
+        .maybeSingle();
 
       if (workoutError) throw workoutError;
       if (!workoutData) return null;
