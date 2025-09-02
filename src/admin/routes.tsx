@@ -20,6 +20,8 @@ const AdminSubcategoryPage = lazy(() => import("./pages/AdminSubcategoryPage"));
 const AdminCoachLogs = lazy(() => import("./pages/AdminCoachLogs"));
 const AdminAttributeSchemas = lazy(() => import("./pages/AdminAttributeSchemas"));
 const AdminNamingTemplates = lazy(() => import("./pages/AdminNamingTemplates"));
+const AdminUsersManagement = lazy(() => import("./pages/AdminUsersManagement"));
+const AdminMentorsManagement = lazy(() => import("./pages/AdminMentorsManagement"));
 
 export function AdminRoutes() {
   return (
@@ -31,6 +33,8 @@ export function AdminRoutes() {
               <Route index element={<AdminHomePage />} />
               <Route path="exercises" element={<AdminExercisesManagement />} />
               <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
+              <Route path="users" element={<AdminUsersManagement />} />
+              <Route path="mentors" element={<AdminMentorsManagement />} />
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />

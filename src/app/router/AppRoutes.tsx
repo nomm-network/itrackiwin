@@ -40,6 +40,7 @@ const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const Orbits = lazy(() => import('@/pages/Orbits'));
+const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
@@ -125,6 +126,11 @@ export function AppRoutes() {
           <Route path={Paths.area()} element={
             <ProtectedMobileLayout>
               <AreaDetail />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/mentors" element={
+            <ProtectedMobileLayout>
+              <MentorsPage />
             </ProtectedMobileLayout>
           } />
 

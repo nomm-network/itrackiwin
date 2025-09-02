@@ -20,6 +20,8 @@ const AdminMenu: React.FC = () => {
       ]
     },
     { label: 'Exercise Management', href: '/admin/exercises' },
+    { label: 'User Management', href: '/admin/users' },
+    { label: 'Mentors Management', href: '/admin/mentors' },
     { label: t('navigation.translations'), href: '/admin/translations' },
     { label: 'Tools', href: '/admin/tools', submenu: [
         { label: 'Attribute Schemas', href: '/admin/attribute-schemas' },
