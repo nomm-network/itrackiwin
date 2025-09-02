@@ -3384,6 +3384,7 @@ export type Database = {
           target_rep_min: number | null
           target_reps: number | null
           target_settings: Json | null
+          target_weight: number | null
           target_weight_kg: number | null
           template_id: string
           top_set_percent_1rm: number | null
@@ -3412,6 +3413,7 @@ export type Database = {
           target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
+          target_weight?: number | null
           target_weight_kg?: number | null
           template_id: string
           top_set_percent_1rm?: number | null
@@ -3440,6 +3442,7 @@ export type Database = {
           target_rep_min?: number | null
           target_reps?: number | null
           target_settings?: Json | null
+          target_weight?: number | null
           target_weight_kg?: number | null
           template_id?: string
           top_set_percent_1rm?: number | null
@@ -5180,6 +5183,7 @@ export type Database = {
           target_origin: string | null
           target_reps: number | null
           target_sets: number | null
+          target_weight: number | null
           target_weight_kg: number | null
           warmup_feedback: string | null
           warmup_feedback_at: string | null
@@ -5211,6 +5215,7 @@ export type Database = {
           target_origin?: string | null
           target_reps?: number | null
           target_sets?: number | null
+          target_weight?: number | null
           target_weight_kg?: number | null
           warmup_feedback?: string | null
           warmup_feedback_at?: string | null
@@ -5242,6 +5247,7 @@ export type Database = {
           target_origin?: string | null
           target_reps?: number | null
           target_sets?: number | null
+          target_weight?: number | null
           target_weight_kg?: number | null
           warmup_feedback?: string | null
           warmup_feedback_at?: string | null
@@ -6677,6 +6683,10 @@ export type Database = {
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
         Returns: boolean
+      }
+      apply_initial_targets: {
+        Args: { p_workout_id: string }
+        Returns: undefined
       }
       audit_security_definer_functions: {
         Args: Record<PropertyKey, never>
