@@ -1,16 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import PageNav from "@/components/PageNav";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { MapPin, Edit3, Trash2, Search, Plus, User, Target, Calendar, Clock } from 'lucide-react';
+import { MapPin, Edit3, Trash2, Search, Plus, User, Target, Calendar, Clock, ArrowLeft } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useExperienceLevels } from '../hooks/useExperienceLevels.hook';
 
 interface UserGym {
@@ -491,7 +489,16 @@ export default function FitnessConfigure() {
   if (isLoading) {
     return (
       <>
-        <PageNav current="Fitness" />
+        <div className="container pt-4 pb-2">
+          <Button 
+            variant="ghost" 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-sm"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Dashboard
+          </Button>
+        </div>
         <div className="container py-8">
           <div className="text-center">Loading...</div>
         </div>
@@ -501,35 +508,19 @@ export default function FitnessConfigure() {
 
   return (
     <>
-      <PageNav current="Fitness" />
-      <nav className="container pt-4" aria-label="Fitness navigation">
-        <NavigationMenu>
-          <NavigationMenuList>
-            <NavigationMenuItem>
-              <NavLink to="/fitness" end className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Workouts
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/exercises" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Exercises
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/templates" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Templates
-              </NavLink>
-            </NavigationMenuItem>
-            <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
-                Configure
-              </NavLink>
-            </NavigationMenuItem>
-          </NavigationMenuList>
-        </NavigationMenu>
-      </nav>
+      {/* Back Button Header */}
+      <div className="container pt-4 pb-2">
+        <Button 
+          variant="ghost" 
+          onClick={() => navigate('/dashboard')}
+          className="flex items-center gap-2 text-sm"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Back to Dashboard
+        </Button>
+      </div>
 
-      <main className="container py-8 space-y-8">
+      <main className="container py-4 space-y-8">
         <div>
           <h1 className="text-3xl font-bold">Fitness Configuration</h1>
           <p className="text-muted-foreground">Manage your gym settings and preferences</p>
