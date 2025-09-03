@@ -291,6 +291,45 @@ export type Database = {
           },
         ]
       }
+      carousel_images: {
+        Row: {
+          alt_text: string
+          created_at: string
+          created_by: string | null
+          file_path: string
+          file_url: string
+          id: string
+          is_active: boolean
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          alt_text: string
+          created_at?: string
+          created_by?: string | null
+          file_path: string
+          file_url: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          alt_text?: string
+          created_at?: string
+          created_by?: string | null
+          file_path?: string
+          file_url?: string
+          id?: string
+          is_active?: boolean
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       challenge_participants: {
         Row: {
           challenge_id: string

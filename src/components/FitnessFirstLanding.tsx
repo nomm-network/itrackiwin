@@ -1,22 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
-import fitnessImage1 from '@/assets/fitness-carousel-1.png';
-import fitnessImage2 from '@/assets/fitness-carousel-2.png';
-import fitnessImage3 from '@/assets/fitness-carousel-3.png';
+import { supabase } from '@/integrations/supabase/client';
 import Orbits from '@/pages/Orbits';
 
 const FitnessFirstLanding: React.FC = () => {
   const navigate = useNavigate();
   const [showOrbits, setShowOrbits] = useState(false);
+  const [carouselImages, setCarouselImages] = useState<Array<{ src: string; alt: string }>>([]);
 
-  const carouselImages = [
-    { src: fitnessImage1, alt: "Pre-workout check interface" },
-    { src: fitnessImage2, alt: "Warm-up exercise tracking" },
-    { src: fitnessImage3, alt: "Workout progress tracking" }
-  ];
+  useEffect(() => {
+    const fetchCarouselImages = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('carousel_images')
+          .select('file_url, alt_text')
+          .eq('is_active', true)
+          .order('order_index');
+
+        if (error) throw error;
+
+        if (data && data.length > 0) {
+          setCarouselImages(data.map(img => ({
+            src: img.file_url,
+            alt: img.alt_text
+          })));
+        } else {
+          // Fallback to default images if no database images
+          setCarouselImages([
+            { src: '/assets/fitness-carousel-1.png', alt: "Pre-workout check interface" },
+            { src: '/assets/fitness-carousel-2.png', alt: "Warm-up exercise tracking" },
+            { src: '/assets/fitness-carousel-3.png', alt: "Workout progress tracking" }
+          ]);
+        }
+      } catch (error) {
+        console.error('Error fetching carousel images:', error);
+        // Fallback to default images
+        setCarouselImages([
+          { src: '/assets/fitness-carousel-1.png', alt: "Pre-workout check interface" },
+          { src: '/assets/fitness-carousel-2.png', alt: "Warm-up exercise tracking" },
+          { src: '/assets/fitness-carousel-3.png', alt: "Workout progress tracking" }
+        ]);
+      }
+    };
+
+    fetchCarouselImages();
+  }, []);
 
   if (showOrbits) {
     return <Orbits />;
