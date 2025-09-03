@@ -14,17 +14,20 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Mentor {
+  id: string;
   user_id: string;
-  mentor_type: 'mentor' | 'coach';
-  bio?: string;
-  avatar_url?: string;
-  created_at: string;
-  email?: string;
-  categories?: Array<{
-    id: string;
-    name: string;
-    icon: string;
-  }>;
+  role_key: 'mentor' | 'coach';
+  role_label: string;
+  category_slug: string;
+  category_name: string;
+  headline?: string;
+  bio: string;
+  hourly_rate_cents?: number;
+  currency: string;
+  accepts_clients: boolean;
+  avatar_url: string;
+  active_clients: number;
+  specialties: string[];
   followed?: boolean;
 }
 
@@ -36,21 +39,19 @@ const MentorsPage: React.FC = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch mentors with categories
+  // Fetch mentors from new schema
   const { data: mentors, isLoading } = useQuery({
     queryKey: ['mentors'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('mentors')
-        .select('user_id, mentor_type, bio, avatar_url, created_at, updated_at')
+        .from('v_public_mentors')
+        .select('*')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       
       return (data || []).map((mentor: any) => ({
         ...mentor,
-        email: 'anonymous@example.com',
-        categories: [],
         followed: false
       }));
     }
@@ -62,11 +63,11 @@ const MentorsPage: React.FC = () => {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('life_categories')
-        .select('id, slug, icon, display_order')
+        .select('id, slug, name, icon, display_order')
         .order('display_order');
       
       if (error) throw error;
-      return data.map(cat => ({ ...cat, name: cat.slug }));
+      return data || [];
     }
   });
 
@@ -100,16 +101,19 @@ const MentorsPage: React.FC = () => {
           <Avatar className="h-16 w-16">
             <AvatarImage src={mentor.avatar_url} />
             <AvatarFallback className="text-lg">
-              {mentor.email?.charAt(0).toUpperCase() || 'M'}
+              {mentor.role_label?.charAt(0).toUpperCase() || 'M'}
             </AvatarFallback>
           </Avatar>
           
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between">
               <div>
-                <h3 className="font-semibold text-lg">{mentor.email?.split('@')[0] || 'Anonymous'}</h3>
+                <h3 className="font-semibold text-lg">{mentor.role_label}</h3>
+                {mentor.headline && (
+                  <p className="text-sm font-medium text-primary mb-1">{mentor.headline}</p>
+                )}
                 <Badge variant="default" className="capitalize mb-2">
-                  {mentor.mentor_type}
+                  {mentor.category_name}
                 </Badge>
               </div>
               <div className="flex items-center gap-1 text-muted-foreground">
@@ -118,22 +122,33 @@ const MentorsPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="flex flex-wrap gap-1 mb-3">
-              {mentor.categories?.slice(0, 3).map(category => (
-                <Badge key={category.id} variant="outline" className="text-xs">
-                  {category.icon} {category.name}
-                </Badge>
-              ))}
-              {mentor.categories && mentor.categories.length > 3 && (
-                <Badge variant="outline" className="text-xs">
-                  +{mentor.categories.length - 3} more
-                </Badge>
-              )}
-            </div>
+            {mentor.specialties.length > 0 && (
+              <div className="flex flex-wrap gap-1 mb-3">
+                {mentor.specialties.slice(0, 3).map(specialty => (
+                  <Badge key={specialty} variant="outline" className="text-xs">
+                    {specialty}
+                  </Badge>
+                ))}
+                {mentor.specialties.length > 3 && (
+                  <Badge variant="outline" className="text-xs">
+                    +{mentor.specialties.length - 3} more
+                  </Badge>
+                )}
+              </div>
+            )}
 
             <p className="text-sm text-muted-foreground mb-4 line-clamp-2">
               {mentor.bio || 'No bio available. This mentor has not yet added a description of their services.'}
             </p>
+            
+            <div className="flex items-center justify-between mb-4 text-sm text-muted-foreground">
+              <span>{mentor.active_clients} active clients</span>
+              {mentor.hourly_rate_cents && (
+                <span className="font-medium">
+                  ${(mentor.hourly_rate_cents / 100).toFixed(0)}/{mentor.currency}
+                </span>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               <Button
@@ -148,10 +163,10 @@ const MentorsPage: React.FC = () => {
               <Button
                 size="sm"
                 onClick={() => hireMentorMutation.mutate(mentor.user_id)}
-                disabled={!user}
+                disabled={!user || !mentor.accepts_clients}
               >
                 <MessageCircle className="w-4 h-4 mr-1" />
-                Hire
+                {mentor.accepts_clients ? 'Connect' : 'Unavailable'}
               </Button>
               <Dialog>
                 <DialogTrigger asChild>
@@ -179,13 +194,16 @@ const MentorsPage: React.FC = () => {
         <Avatar className="h-20 w-20">
           <AvatarImage src={mentor.avatar_url} />
           <AvatarFallback className="text-xl">
-            {mentor.email?.charAt(0).toUpperCase() || 'M'}
+            {mentor.role_label?.charAt(0).toUpperCase() || 'M'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
-          <h2 className="text-2xl font-bold">{mentor.email?.split('@')[0] || 'Anonymous'}</h2>
+          <h2 className="text-2xl font-bold">{mentor.role_label}</h2>
+          {mentor.headline && (
+            <p className="text-lg font-medium text-primary mb-2">{mentor.headline}</p>
+          )}
           <Badge variant="default" className="capitalize mb-2">
-            {mentor.mentor_type}
+            {mentor.category_name}
           </Badge>
           <div className="flex items-center gap-4 text-sm text-muted-foreground">
             <div className="flex items-center gap-1">
@@ -194,7 +212,7 @@ const MentorsPage: React.FC = () => {
             </div>
             <div className="flex items-center gap-1">
               <Users className="w-4 h-4" />
-              <span>89 clients</span>
+              <span>{mentor.active_clients} active clients</span>
             </div>
             <div className="flex items-center gap-1">
               <MapPin className="w-4 h-4" />
@@ -204,16 +222,27 @@ const MentorsPage: React.FC = () => {
         </div>
       </div>
 
-      <div>
-        <h3 className="font-semibold mb-2">Specializations</h3>
-        <div className="flex flex-wrap gap-2">
-          {mentor.categories?.map(category => (
-            <Badge key={category.id} variant="outline">
-              {category.icon} {category.name}
-            </Badge>
-          ))}
+      {mentor.specialties.length > 0 && (
+        <div>
+          <h3 className="font-semibold mb-2">Specializations</h3>
+          <div className="flex flex-wrap gap-2">
+            {mentor.specialties.map(specialty => (
+              <Badge key={specialty} variant="outline">
+                {specialty}
+              </Badge>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
+      
+      {mentor.hourly_rate_cents && (
+        <div>
+          <h3 className="font-semibold mb-2">Rate</h3>
+          <p className="text-lg font-semibold">
+            ${(mentor.hourly_rate_cents / 100).toFixed(0)} {mentor.currency}/hour
+          </p>
+        </div>
+      )}
 
       <div>
         <h3 className="font-semibold mb-2">About</h3>
@@ -243,11 +272,11 @@ const MentorsPage: React.FC = () => {
   );
 
   const filteredMentors = mentors?.filter(mentor => {
-    const matchesSearch = mentor.email?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         mentor.bio?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesType = filterType === 'all' || mentor.mentor_type === filterType;
-    const matchesCategory = filterCategory === 'all' || 
-                           mentor.categories?.some(cat => cat.id === filterCategory);
+    const matchesSearch = mentor.bio?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mentor.headline?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         mentor.specialties.some(spec => spec.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = filterType === 'all' || mentor.role_key === filterType;
+    const matchesCategory = filterCategory === 'all' || mentor.category_slug === filterCategory;
     
     return matchesSearch && matchesType && matchesCategory;
   });
@@ -301,8 +330,8 @@ const MentorsPage: React.FC = () => {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="mentor">Mentors</SelectItem>
-                  <SelectItem value="coach">Coaches</SelectItem>
+                  <SelectItem value="mentor">Online Mentors</SelectItem>
+                  <SelectItem value="coach">In-Person Coaches</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -315,8 +344,8 @@ const MentorsPage: React.FC = () => {
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
                   {lifeCategories?.map(category => (
-                    <SelectItem key={category.id} value={category.id}>
-                      {category.icon} {category.name}
+                    <SelectItem key={category.id} value={category.slug}>
+                      {category.icon} {category.name || category.slug}
                     </SelectItem>
                   ))}
                 </SelectContent>

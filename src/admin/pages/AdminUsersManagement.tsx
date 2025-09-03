@@ -18,7 +18,7 @@ interface User {
   email: string;
   created_at: string;
   mentor?: {
-    mentor_type: 'mentor' | 'coach';
+    role_key: 'mentor' | 'coach';
     bio?: string;
     avatar_url?: string;
   };
@@ -47,8 +47,8 @@ const AdminUsersManagement: React.FC = () => {
 
       // Get mentors data separately
       const { data: mentors, error: mentorsError } = await supabase
-        .from('mentors')
-        .select('user_id, mentor_type, bio, avatar_url');
+        .from('mentor_profiles')
+        .select('user_id, role_key, bio, avatar_url');
       if (mentorsError) throw mentorsError;
 
       return (authUsers?.users || []).map((user: any) => {
@@ -103,20 +103,32 @@ const AdminUsersManagement: React.FC = () => {
   const toggleMentorMutation = useMutation({
     mutationFn: async ({ userId, mentorType, enable }: { userId: string; mentorType: 'mentor' | 'coach'; enable: boolean }) => {
       if (enable) {
+        // Get fitness category as default
+        const { data: fitnessCategory } = await supabase
+          .from('life_categories')
+          .select('id')
+          .eq('slug', 'fitness')
+          .single();
+        
         const { error } = await supabase
-          .from('mentors')
+          .from('mentor_profiles')
           .upsert({ 
             user_id: userId, 
-            mentor_type: mentorType,
+            role_key: mentorType,
+            life_category_id: fitnessCategory?.id,
             bio: '',
-            avatar_url: null
+            avatar_url: null,
+            is_approved: false,
+            is_public: true,
+            accepts_clients: true
           });
         if (error) throw error;
       } else {
         const { error } = await supabase
-          .from('mentors')
+          .from('mentor_profiles')
           .delete()
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .eq('role_key', mentorType);
         if (error) throw error;
       }
     },
@@ -173,7 +185,7 @@ const AdminUsersManagement: React.FC = () => {
     const matchesFilter = 
       filterMentorType === 'all' ||
       (filterMentorType === 'none' && !user.mentor) ||
-      (filterMentorType !== 'none' && user.mentor && user.mentor.mentor_type === filterMentorType);
+      (filterMentorType !== 'none' && user.mentor && user.mentor.role_key === filterMentorType);
     
     return matchesSearch && matchesFilter;
   });
@@ -261,7 +273,7 @@ const AdminUsersManagement: React.FC = () => {
                     <TableCell>
                       {user.mentor ? (
                         <Badge variant="default" className="capitalize">
-                          {user.mentor.mentor_type}
+                          {user.mentor.role_key}
                         </Badge>
                       ) : (
                         <Badge variant="outline">Regular User</Badge>
@@ -273,7 +285,7 @@ const AdminUsersManagement: React.FC = () => {
                           <Label htmlFor={`mentor-${user.id}`} className="text-sm">Mentor</Label>
                           <Switch
                             id={`mentor-${user.id}`}
-                            checked={user.mentor && user.mentor.mentor_type === 'mentor'}
+                            checked={user.mentor && user.mentor.role_key === 'mentor'}
                             onCheckedChange={(checked) => 
                               toggleMentorMutation.mutate({ 
                                 userId: user.id, 
@@ -287,7 +299,7 @@ const AdminUsersManagement: React.FC = () => {
                           <Label htmlFor={`coach-${user.id}`} className="text-sm">Coach</Label>
                           <Switch
                             id={`coach-${user.id}`}
-                            checked={user.mentor && user.mentor.mentor_type === 'coach'}
+                            checked={user.mentor && user.mentor.role_key === 'coach'}
                             onCheckedChange={(checked) => 
                               toggleMentorMutation.mutate({ 
                                 userId: user.id, 

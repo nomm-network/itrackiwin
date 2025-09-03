@@ -368,6 +368,52 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_assigned_templates: {
+        Row: {
+          assigned_at: string
+          id: string
+          is_linked: boolean
+          mentorship_id: string
+          template_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          id?: string
+          is_linked?: boolean
+          mentorship_id: string
+          template_id: string
+        }
+        Update: {
+          assigned_at?: string
+          id?: string
+          is_linked?: boolean
+          mentorship_id?: string
+          template_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_assigned_templates_mentorship_id_fkey"
+            columns: ["mentorship_id"]
+            isOneToOne: false
+            referencedRelation: "mentorships"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_assigned_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_assigned_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_logs: {
         Row: {
           created_at: string
@@ -2067,7 +2113,9 @@ export type Database = {
           display_order: number
           icon: string | null
           id: string
+          name: string
           slug: string
+          updated_at: string
         }
         Insert: {
           color?: string | null
@@ -2075,7 +2123,9 @@ export type Database = {
           display_order?: number
           icon?: string | null
           id?: string
+          name: string
           slug: string
+          updated_at?: string
         }
         Update: {
           color?: string | null
@@ -2083,7 +2133,9 @@ export type Database = {
           display_order?: number
           icon?: string | null
           id?: string
+          name?: string
           slug?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -2239,72 +2291,190 @@ export type Database = {
           },
         ]
       }
-      mentor_categories: {
+      mentor_profiles: {
         Row: {
-          category_id: string
+          accepts_clients: boolean
+          avatar_url: string | null
+          bio: string | null
           created_at: string
-          mentor_id: string
+          currency: string | null
+          headline: string | null
+          hourly_rate_cents: number | null
+          id: string
+          is_approved: boolean
+          is_public: boolean
+          life_category_id: string
+          role_key: string
+          updated_at: string
+          user_id: string
         }
         Insert: {
-          category_id: string
+          accepts_clients?: boolean
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
-          mentor_id: string
+          currency?: string | null
+          headline?: string | null
+          hourly_rate_cents?: number | null
+          id?: string
+          is_approved?: boolean
+          is_public?: boolean
+          life_category_id: string
+          role_key: string
+          updated_at?: string
+          user_id: string
         }
         Update: {
-          category_id?: string
+          accepts_clients?: boolean
+          avatar_url?: string | null
+          bio?: string | null
           created_at?: string
-          mentor_id?: string
+          currency?: string | null
+          headline?: string | null
+          hourly_rate_cents?: number | null
+          id?: string
+          is_approved?: boolean
+          is_public?: boolean
+          life_category_id?: string
+          role_key?: string
+          updated_at?: string
+          user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "mentor_categories_category_id_fkey"
-            columns: ["category_id"]
+            foreignKeyName: "mentor_profiles_life_category_id_fkey"
+            columns: ["life_category_id"]
             isOneToOne: false
             referencedRelation: "life_categories"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mentor_categories_category_id_fkey"
-            columns: ["category_id"]
+            foreignKeyName: "mentor_profiles_life_category_id_fkey"
+            columns: ["life_category_id"]
             isOneToOne: false
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mentor_categories_mentor_id_fkey"
-            columns: ["mentor_id"]
+            foreignKeyName: "mentor_profiles_role_key_fkey"
+            columns: ["role_key"]
             isOneToOne: false
-            referencedRelation: "mentors"
-            referencedColumns: ["user_id"]
+            referencedRelation: "mentor_roles"
+            referencedColumns: ["key"]
+          },
+          {
+            foreignKeyName: "mentor_profiles_role_key_fkey"
+            columns: ["role_key"]
+            isOneToOne: false
+            referencedRelation: "v_public_mentors"
+            referencedColumns: ["role_key"]
           },
         ]
       }
-      mentors: {
+      mentor_roles: {
         Row: {
-          avatar_url: string | null
-          bio: string | null
-          created_at: string
-          mentor_type: Database["public"]["Enums"]["mentor_type"]
-          updated_at: string
-          user_id: string
+          key: string
+          label: string
         }
         Insert: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          mentor_type?: Database["public"]["Enums"]["mentor_type"]
-          updated_at?: string
-          user_id: string
+          key: string
+          label: string
         }
         Update: {
-          avatar_url?: string | null
-          bio?: string | null
-          created_at?: string
-          mentor_type?: Database["public"]["Enums"]["mentor_type"]
-          updated_at?: string
-          user_id?: string
+          key?: string
+          label?: string
         }
         Relationships: []
+      }
+      mentor_specialties: {
+        Row: {
+          created_at: string
+          id: string
+          mentor_id: string
+          tag: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          mentor_id: string
+          tag: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          tag?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentor_specialties_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentor_specialties_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_mentors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentorships: {
+        Row: {
+          client_user_id: string
+          created_at: string
+          ended_at: string | null
+          id: string
+          is_linked: boolean
+          mentor_id: string
+          notes: string | null
+          started_at: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          client_user_id: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_linked?: boolean
+          mentor_id: string
+          notes?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          client_user_id?: string
+          created_at?: string
+          ended_at?: string | null
+          id?: string
+          is_linked?: boolean
+          mentor_id?: string
+          notes?: string | null
+          started_at?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentorships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_mentors"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       metric_defs: {
         Row: {
@@ -6598,6 +6768,26 @@ export type Database = {
           has_checkin?: never
           user_id?: string | null
           workout_id?: string | null
+        }
+        Relationships: []
+      }
+      v_public_mentors: {
+        Row: {
+          accepts_clients: boolean | null
+          active_clients: number | null
+          avatar_url: string | null
+          bio: string | null
+          category_name: string | null
+          category_slug: string | null
+          created_at: string | null
+          currency: string | null
+          headline: string | null
+          hourly_rate_cents: number | null
+          id: string | null
+          role_key: string | null
+          role_label: string | null
+          specialties: string[] | null
+          user_id: string | null
         }
         Relationships: []
       }
