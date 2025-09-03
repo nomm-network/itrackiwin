@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showOnlyMyTemplates, setShowOnlyMyTemplates] = useState(false);
   
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -20,8 +23,9 @@ const TemplatesPage = () => {
     }
   });
 
-  const { data: templates, isLoading } = useQuery({
-    queryKey: ['workout-templates'],
+  // Fetch all templates (user's own + public)
+  const { data: allTemplates, isLoading } = useQuery({
+    queryKey: ['all-workout-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_templates')
@@ -31,33 +35,9 @@ const TemplatesPage = () => {
           notes,
           is_public,
           created_at,
-          updated_at
-        `)
-        .eq('user_id', user?.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
-    },
-    enabled: !!user?.id
-  });
-
-  const { data: publicTemplates, isLoading: publicLoading } = useQuery({
-    queryKey: ['public-workout-templates'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workout_templates')
-        .select(`
-          id,
-          name,
-          notes,
-          is_public,
-          created_at,
-          updated_at,
           user_id
         `)
-        .eq('is_public', true)
-        .neq('user_id', user?.id || '')
+        .or(`user_id.eq.${user?.id},is_public.eq.true`)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
@@ -84,17 +64,42 @@ const TemplatesPage = () => {
     }
   };
 
-  const renderTemplateCard = (template: any, isPublic = false) => (
-    <Card key={template.id} className="hover:shadow-md transition-shadow">
-      <CardHeader>
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <div className="flex items-center gap-2 mb-1">
-              <CardTitle className="text-lg">{template.name}</CardTitle>
-              {isPublic && <Globe className="h-4 w-4 text-muted-foreground" />}
-              {!isPublic && (
-                <Badge variant={template.is_public ? "default" : "secondary"} className="text-xs">
-                  {template.is_public ? (
+  // Filter and search templates
+  const filteredTemplates = useMemo(() => {
+    if (!allTemplates || !user) return [];
+    
+    let filtered = allTemplates;
+    
+    // Filter by ownership if toggle is on
+    if (showOnlyMyTemplates) {
+      filtered = filtered.filter(template => template.user_id === user.id);
+    }
+    
+    // Filter by search query
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(template => 
+        template.name.toLowerCase().includes(query) ||
+        (template.notes && template.notes.toLowerCase().includes(query))
+      );
+    }
+    
+    return filtered;
+  }, [allTemplates, user, showOnlyMyTemplates, searchQuery]);
+
+  const renderTemplateCard = (template: any) => {
+    const isOwner = template.user_id === user?.id;
+    const isPublic = template.is_public;
+    
+    return (
+      <Card key={template.id} className="hover:shadow-md transition-shadow">
+        <CardHeader>
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <div className="flex items-center gap-2 mb-1">
+                <CardTitle className="text-lg">{template.name}</CardTitle>
+                <Badge variant={isPublic ? "default" : "secondary"} className="text-xs">
+                  {isPublic ? (
                     <>
                       <Globe className="h-3 w-3 mr-1" />
                       Public
@@ -106,50 +111,55 @@ const TemplatesPage = () => {
                     </>
                   )}
                 </Badge>
+                {!isOwner && (
+                  <Badge variant="outline" className="text-xs">
+                    Community
+                  </Badge>
+                )}
+              </div>
+              {template.notes && (
+                <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
+                  {template.notes}
+                </p>
               )}
             </div>
-            {template.notes && (
-              <p className="text-sm text-muted-foreground mt-1 line-clamp-2">
-                {template.notes}
-              </p>
+            {isOwner && (
+              <div className="flex gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteTemplate(template.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
             )}
           </div>
-          {!isPublic && (
-            <div className="flex gap-1 ml-2">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
-              >
-                <Edit className="h-4 w-4" />
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleDeleteTemplate(template.id)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div className="text-sm text-muted-foreground">
+              Created {new Date(template.created_at).toLocaleDateString()}
             </div>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="flex items-center justify-between">
-          <div className="text-sm text-muted-foreground">
-            Created {new Date(template.created_at).toLocaleDateString()}
+            <Button
+              onClick={() => navigate(`/fitness/workout/start?template=${template.id}`)}
+              size="sm"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Start Workout
+            </Button>
           </div>
-          <Button
-            onClick={() => navigate(`/fitness/workout/start?template=${template.id}`)}
-            size="sm"
-          >
-            <Play className="h-4 w-4 mr-2" />
-            Start Workout
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
+        </CardContent>
+      </Card>
+    );
+  };
 
   return (
     <div className="container py-6">
@@ -164,74 +174,78 @@ const TemplatesPage = () => {
         </Button>
       </div>
 
-      <Tabs defaultValue="my-templates" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="my-templates">My Templates</TabsTrigger>
-          <TabsTrigger value="public-templates">Public Templates</TabsTrigger>
-        </TabsList>
+      {/* Search and Filter Controls */}
+      <div className="mb-6 space-y-4">
+        <div className="relative">
+          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Search templates by name or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-10"
+          />
+        </div>
         
-        <TabsContent value="my-templates" className="mt-6">
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-3 bg-muted rounded w-3/4"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : templates && templates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {templates.map((template) => renderTemplateCard(template, false))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No templates yet</h3>
-                <p className="text-muted-foreground mb-4">
-                  Create your first workout template to get started
-                </p>
-                <Button onClick={() => navigate('/fitness/templates/new')}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Create Your First Template
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="show-only-mine"
+              checked={showOnlyMyTemplates}
+              onCheckedChange={setShowOnlyMyTemplates}
+            />
+            <label
+              htmlFor="show-only-mine"
+              className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+            >
+              Show only my templates
+            </label>
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} found
+          </div>
+        </div>
+      </div>
 
-        <TabsContent value="public-templates" className="mt-6">
-          {publicLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Card key={i} className="animate-pulse">
-                  <CardContent className="p-6">
-                    <div className="h-4 bg-muted rounded mb-2"></div>
-                    <div className="h-3 bg-muted rounded w-3/4"></div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : publicTemplates && publicTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {publicTemplates.map((template) => renderTemplateCard(template, true))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <Globe className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-semibold mb-2">No public templates available</h3>
-                <p className="text-muted-foreground mb-4">
-                  Check back later as more users share their templates publicly
-                </p>
+      {/* Templates Grid */}
+      {isLoading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[...Array(6)].map((_, i) => (
+            <Card key={i} className="animate-pulse">
+              <CardContent className="p-6">
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-3 bg-muted rounded w-3/4"></div>
               </CardContent>
             </Card>
-          )}
-        </TabsContent>
-      </Tabs>
+          ))}
+        </div>
+      ) : filteredTemplates.length > 0 ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredTemplates.map((template) => renderTemplateCard(template))}
+        </div>
+      ) : (
+        <Card>
+          <CardContent className="py-12 text-center">
+            <Dumbbell className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            <h3 className="text-lg font-semibold mb-2">
+              {searchQuery.trim() ? 'No templates found' : showOnlyMyTemplates ? 'No templates yet' : 'No templates available'}
+            </h3>
+            <p className="text-muted-foreground mb-4">
+              {searchQuery.trim() 
+                ? 'Try adjusting your search terms or filters'
+                : showOnlyMyTemplates 
+                  ? 'Create your first workout template to get started'
+                  : 'Check back later as more templates become available'
+              }
+            </p>
+            {(!searchQuery.trim() && showOnlyMyTemplates) && (
+              <Button onClick={() => navigate('/fitness/templates/new')}>
+                <Plus className="h-4 w-4 mr-2" />
+                Create Your First Template
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 };
