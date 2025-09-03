@@ -1,1 +1,1 @@
-export { default } from '../../../pages/Templates';
+export { default } from '../../health/fitness/pages/Templates.page';
