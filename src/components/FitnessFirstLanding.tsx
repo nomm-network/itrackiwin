@@ -34,17 +34,12 @@ const FitnessFirstLanding: React.FC = () => {
           </p>
         </div>
 
-        {/* Fitness Dashboard Preview */}
-        <Card className="bg-gradient-to-br from-primary/10 to-primary/5 border-primary/20">
-          <CardContent className="p-6">
-            <div className="aspect-[4/3] bg-primary/20 rounded-lg flex items-center justify-center">
-              <span className="text-primary font-medium">📱 Fitness Dashboard Preview</span>
-            </div>
-          </CardContent>
-        </Card>
-
         {/* Carousel */}
-        <div className="w-full">
+        <div className="w-full space-y-4">
+          <div className="text-center">
+            <h2 className="text-xl font-semibold text-foreground">Sneak peek 👀</h2>
+            <p className="text-muted-foreground text-sm">See what's coming to your fitness journey</p>
+          </div>
           <Carousel className="w-full">
             <CarouselContent>
               {carouselImages.map((image, index) => (
