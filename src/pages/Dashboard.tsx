@@ -21,25 +21,22 @@ const Dashboard: React.FC = () => {
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { isSuperAdmin } = useUserRole();
   
-  // Use real database data instead of static config
+  // Use real database data for Health subcategories
   const { data: categories, isLoading } = useLifeCategoriesWithSubcategories('en');
   
-  const currentCategory = searchParams.get('cat') || 'b54c368d-cd4f-4276-aa82-668da614e50d'; // health category ID
+  // Fixed to Health category with subcategory navigation
+  const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d'; // health category ID
   const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247'; // fitness subcategory ID
   
   const category = getCategoryBySlug(categories || [], currentCategory);
   const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
   const actions = useDynamicQuickActions(currentCategory, currentSubcategory);
 
-  const handleCategoryChange = (newCategory: string) => {
-    const cat = getCategoryBySlug(categories || [], newCategory);
-    const defaultSub = cat?.subcategories?.[0]?.id || '';
-    setSearchParams({ cat: newCategory, sub: defaultSub });
+  // Handle subcategory changes in the Health context
+  const handleSubcategoryChange = (newSubcategory: string) => {
+    setSearchParams({ sub: newSubcategory });
   };
 
-  const handleSubcategoryChange = (newSubcategory: string) => {
-    setSearchParams({ cat: currentCategory, sub: newSubcategory });
-  };
 
   const handleActionClick = (action: any) => {
     // Check fitness profile for fitness-related actions
@@ -106,130 +103,111 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Category Navigation */}
-      <Tabs value={currentCategory} onValueChange={handleCategoryChange}>
-        <TabsList className="grid w-full grid-cols-3 h-auto p-1 gap-1">
-          {categories.slice(0, 6).map((cat) => (
-            <TabsTrigger
-              key={cat.id}
-              value={cat.id}
-              className="flex flex-col items-center gap-0.5 text-xs p-1.5 h-auto min-h-[50px]"
+      {/* Health Subcategories Navigation - 2 Line Grid */}
+      {(() => {
+        const healthCategory = getCategoryBySlug(categories || [], currentCategory);
+        const subcategories = healthCategory?.subcategories || [];
+        
+        return (
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            {subcategories.slice(0, 6).map((sub) => (
+              <Button
+                key={sub.id}
+                variant={currentSubcategory === sub.id ? "default" : "outline"}
+                onClick={() => handleSubcategoryChange(sub.id)}
+                className={`h-16 flex flex-col items-center gap-1 p-2 ${
+                  (sub as any).isPlaceholder 
+                    ? 'opacity-50 cursor-not-allowed' 
+                    : ''
+                }`}
+                disabled={(sub as any).isPlaceholder}
+              >
+                <span className="text-lg">{sub.icon || '📋'}</span>
+                <span className="text-xs leading-tight text-center">
+                  {sub.name}
+                </span>
+              </Button>
+            ))}
+          </div>
+        );
+      })()}
+
+      {/* Widgets Grid - separate Quick Start from other widgets */}
+      <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
+        {visibleWidgets
+          .filter(widget => widget.id === 'fitness.quickstart')
+          .map((widget) => (
+          <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
+            <React.Suspense
+              fallback={
+                widget.loadingFallback || 
+                <WidgetSkeleton className="h-full" />
+              }
             >
-              <span className="text-lg">{cat.icon}</span>
-              <span className="text-xs leading-tight text-center">
-                {cat.name.split(' ')[0]}
-              </span>
-            </TabsTrigger>
-          ))}
-        </TabsList>
-
-        {categories.map((cat) => (
-          <TabsContent key={cat.id} value={cat.id} className="space-y-2 sm:space-y-4">
-            {/* Subcategory Navigation */}
-            {cat.subcategories && cat.subcategories.length > 0 && (
-              <div className="overflow-x-auto pb-1">
-                <div className="flex gap-1.5 min-w-max px-1">
-                  {cat.subcategories.map((sub) => (
-                    <Badge
-                      key={sub.id}
-                      variant={currentSubcategory === sub.id ? "default" : "outline"}
-                      className={`cursor-pointer whitespace-nowrap flex-shrink-0 px-3 py-2 text-sm ${
-                        (sub as any).isPlaceholder 
-                          ? 'opacity-50 cursor-not-allowed' 
-                          : ''
-                      }`}
-                      onClick={() => {
-                        if (!(sub as any).isPlaceholder) {
-                          handleSubcategoryChange(sub.id);
-                        }
-                      }}
-                    >
-                      <span className="mr-1">{sub.icon || '📋'}</span>
-                      {sub.name}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Widgets Grid - separate Quick Start from other widgets */}
-            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
-              {visibleWidgets
-                .filter(widget => widget.id === 'fitness.quickstart')
-                .map((widget) => (
-                <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
-                  <React.Suspense
-                    fallback={
-                      widget.loadingFallback || 
-                      <WidgetSkeleton className="h-full" />
-                    }
-                  >
-                    <widget.Component />
-                  </React.Suspense>
-                </div>
-              ))}
-            </div>
-
-            {/* Quick Actions - immediately after Quick Start */}
-            {actions.length > 0 && (
-              <Card>
-                <CardContent className="pt-3 sm:pt-6">
-                  <h3 className="text-lg font-semibold mb-2 sm:mb-4">Quick Actions</h3>
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-                    {actions.map((action) => (
-                      <Button
-                        key={action.id}
-                        variant="outline"
-                        onClick={() => handleActionClick(action)}
-                        className="h-12 flex items-center gap-2"
-                      >
-                        {action.icon}
-                        <span className="text-xs">{action.label}</span>
-                      </Button>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Other Widgets - Readiness and stats */}
-            <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
-              {visibleWidgets
-                .filter(widget => widget.id !== 'fitness.quickstart')
-                .map((widget) => (
-                <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
-                  <React.Suspense
-                    fallback={
-                      widget.loadingFallback || 
-                      <WidgetSkeleton className="h-full" />
-                    }
-                  >
-                    <widget.Component />
-                  </React.Suspense>
-                </div>
-              ))}
-            </div>
-
-            {/* Empty State */}
-            {visibleWidgets.length === 0 && (
-              <EmptyCategory
-                category={cat.name}
-                subcategory={
-                  currentSubcategory 
-                    ? getCategoryBySlug(categories, currentCategory)?.subcategories?.find(s => s.id === currentSubcategory)?.name
-                    : undefined
-                }
-                icon={cat.icon}
-                onGetStarted={
-                  cat.id === 'health' && currentSubcategory === 'fitness' 
-                    ? () => navigate('/fitness')
-                    : undefined
-                }
-              />
-            )}
-          </TabsContent>
+              <widget.Component />
+            </React.Suspense>
+          </div>
         ))}
-      </Tabs>
+      </div>
+
+      {/* Quick Actions - immediately after Quick Start */}
+      {actions.length > 0 && (
+        <Card>
+          <CardContent className="pt-3 sm:pt-6">
+            <h3 className="text-lg font-semibold mb-2 sm:mb-4">Quick Actions</h3>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+              {actions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  onClick={() => handleActionClick(action)}
+                  className="h-12 flex items-center gap-2"
+                >
+                  {action.icon}
+                  <span className="text-xs">{action.label}</span>
+                </Button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Other Widgets - Readiness and stats */}
+      <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
+        {visibleWidgets
+          .filter(widget => widget.id !== 'fitness.quickstart')
+          .map((widget) => (
+          <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
+            <React.Suspense
+              fallback={
+                widget.loadingFallback || 
+                <WidgetSkeleton className="h-full" />
+              }
+            >
+              <widget.Component />
+            </React.Suspense>
+          </div>
+        ))}
+      </div>
+
+      {/* Empty State */}
+      {(() => {
+        const healthCategory = getCategoryBySlug(categories || [], currentCategory);
+        const currentSub = healthCategory?.subcategories?.find(s => s.id === currentSubcategory);
+        
+        return visibleWidgets.length === 0 && (
+          <EmptyCategory
+            category={healthCategory?.name || 'Health'}
+            subcategory={currentSub?.name}
+            icon={healthCategory?.icon || '🏥'}
+            onGetStarted={
+              currentSubcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247' // fitness subcategory
+                ? () => navigate('/fitness')
+                : undefined
+            }
+          />
+        );
+      })()}
       
       <WorkoutSelectionModal 
         open={showTemplateDialog}
