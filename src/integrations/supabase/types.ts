@@ -3065,6 +3065,7 @@ export type Database = {
         Row: {
           answers: Json
           created_at: string
+          energisers_taken: boolean | null
           id: string
           readiness_score: number | null
           user_id: string
@@ -3073,6 +3074,7 @@ export type Database = {
         Insert: {
           answers?: Json
           created_at?: string
+          energisers_taken?: boolean | null
           id?: string
           readiness_score?: number | null
           user_id: string
@@ -3081,6 +3083,7 @@ export type Database = {
         Update: {
           answers?: Json
           created_at?: string
+          energisers_taken?: boolean | null
           id?: string
           readiness_score?: number | null
           user_id?: string

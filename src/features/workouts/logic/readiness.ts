@@ -11,6 +11,7 @@ export interface ReadinessInput {
   stress: number; // 1-5 scale (1 = very stressed, 5 = no stress)
   illness: boolean;
   alcohol: boolean;
+  energisers_taken: boolean; // Creatine/PreWorkout
   supplements?: string[];
   notes?: string;
 }

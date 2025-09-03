@@ -31,7 +31,8 @@ export function usePreWorkoutCheckin(workoutId?: string) {
           workout_id: workoutId, 
           user_id: user.id,
           answers: payload.answers, 
-          readiness_score: payload.readiness_score 
+          readiness_score: payload.readiness_score,
+          energisers_taken: payload.answers?.energisers_taken || false
         }])
         .select('id')
         .single();

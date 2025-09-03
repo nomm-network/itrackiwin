@@ -16,6 +16,7 @@ export interface ReadinessData {
   stress: number;
   illness: boolean;
   alcohol: boolean;
+  energisers_taken: boolean;
   supplements: string[];
   notes: string;
 }
@@ -35,6 +36,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
       stress: 3,
       illness: false,
       alcohol: false,
+      energisers_taken: false,
       supplements: [],
       notes: ""
     }
@@ -157,6 +159,16 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 onCheckedChange={(checked) => setValue("alcohol", checked)}
               />
               <Label htmlFor="alcohol">Had alcohol in last 24h</Label>
+            </div>
+
+            {/* Energisers */}
+            <div className="flex items-center space-x-2">
+              <Switch
+                id="energisers_taken"
+                checked={watchedValues.energisers_taken}
+                onCheckedChange={(checked) => setValue("energisers_taken", checked)}
+              />
+              <Label htmlFor="energisers_taken">Creatine/PreWorkout taken</Label>
             </div>
           </div>
 
