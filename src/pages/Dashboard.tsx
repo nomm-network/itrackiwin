@@ -103,14 +103,14 @@ const Dashboard: React.FC = () => {
         </p>
       </div>
 
-      {/* Health Subcategories Navigation - 2 Line Grid */}
+      {/* Health Subcategories Navigation - 3 Column Grid */}
       {(() => {
         const healthCategory = getCategoryBySlug(categories || [], currentCategory);
         const subcategories = healthCategory?.subcategories || [];
         
         return (
-          <div className="grid grid-cols-2 gap-2 sm:gap-3">
-            {subcategories.slice(0, 6).map((sub) => (
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            {subcategories.slice(0, 5).map((sub) => (
               <Button
                 key={sub.id}
                 variant={currentSubcategory === sub.id ? "default" : "outline"}
@@ -124,10 +124,21 @@ const Dashboard: React.FC = () => {
               >
                 <span className="text-lg">{sub.icon || '📋'}</span>
                 <span className="text-xs leading-tight text-center">
-                  {sub.name}
+                  {sub.name.split(' ')[0]}
                 </span>
               </Button>
             ))}
+            {/* Configure button as 6th item */}
+            <Button
+              variant="outline"
+              onClick={() => navigate('/fitness/configure')}
+              className="h-16 flex flex-col items-center gap-1 p-2"
+            >
+              <span className="text-lg">⚙️</span>
+              <span className="text-xs leading-tight text-center">
+                Configure
+              </span>
+            </Button>
           </div>
         );
       })()}
