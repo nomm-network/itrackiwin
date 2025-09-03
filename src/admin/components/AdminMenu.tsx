@@ -27,6 +27,7 @@ const AdminMenu: React.FC = () => {
         { label: 'Attribute Schemas', href: '/admin/attribute-schemas' },
         { label: 'Naming Templates', href: '/admin/naming-templates' },
         { label: 'Coach Logs', href: '/admin/coach-logs' },
+        { label: 'Settings', href: '/admin/settings' },
       ]
     },
   ];
