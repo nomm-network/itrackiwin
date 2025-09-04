@@ -28,8 +28,7 @@ export const useWorkoutSession = (workoutId: string) => {
           id, started_at, template_id,
           workout_exercises (
             id, exercise_id, display_name, order_index,
-            target_sets, target_reps, target_weight_kg, weight_unit, grip_key,
-            attribute_values_json
+            target_sets, target_reps, target_weight_kg, weight_unit, grip_key
           )
         `)
         .eq('id', workoutId)
