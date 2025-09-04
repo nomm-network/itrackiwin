@@ -18,30 +18,9 @@ export function DebugPanel({
 }) {
   // Always show debug panel
   
-  const sx: React.CSSProperties = {
-    position: 'fixed',
-    top: 8,
-    left: 8,
-    zIndex: 99999,
-    maxWidth: '92vw',
-    pointerEvents: 'none',
-  };
-  
-  const box: React.CSSProperties = {
-    background: 'rgba(0,0,0,.85)',
-    color: '#0f0',
-    padding: 10,
-    borderRadius: 10,
-    fontFamily: 'ui-monospace, SFMono-Regular, Menlo, monospace',
-    fontSize: 12,
-    pointerEvents: 'auto',
-    maxHeight: '70vh',
-    overflow: 'auto',
-  };
-  
   return (
-    <div style={sx}>
-      <div style={box}>
+    <div className="w-full max-w-4xl mx-auto">
+      <div className="bg-black/85 text-green-400 p-3 rounded-lg font-mono text-xs max-h-96 overflow-auto">
         <div>🐞 <b>DEBUG</b></div>
         <div>workoutId: {workoutId || '—'}</div>
         <div>title: {workout?.title || (workout as any)?.workout_templates?.name || firstExercise?.exercise?.display_name || '—'}</div>

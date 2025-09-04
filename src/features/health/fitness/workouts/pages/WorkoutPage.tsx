@@ -101,13 +101,13 @@ const WorkoutPage: React.FC = () => {
           target_reps, target_weight_kg, weight_unit, grip_key,
           attribute_values_json, readiness_adjusted_from,
           exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
-          workout_sets(
-            id, workout_exercise_id, set_index, set_kind, 
-            reps, weight_kg, is_completed, rest_seconds
+          workout_sets:workout_sets(
+            id, set_index, set_kind, reps, weight_kg, is_completed, rest_seconds
           )
         `)
         .eq('workout_id', workoutId)
-        .order('order_index', { ascending: true });
+        .order('order_index', { ascending: true })
+        .order('set_index', { ascending: true, foreignTable: 'workout_sets' });
 
       if (weErr) {
         if (!isCancelled) {
@@ -269,15 +269,17 @@ const WorkoutPage: React.FC = () => {
         })}
       </div>
 
-      {/* Debug Panel */}
-      <DebugPanel
-        workoutId={workoutId}
-        workout={workout}
-        exercises={exercises}
-        firstExercise={exercises?.[0]}
-        setsByExercise={setsByExercise}
-        lastError={err}
-      />
+      {/* Debug Panel - moved to bottom with margin */}
+      <div className="mt-8 pt-4 border-t border-border">
+        <DebugPanel
+          workoutId={workoutId}
+          workout={workout}
+          exercises={exercises}
+          firstExercise={exercises?.[0]}
+          setsByExercise={setsByExercise}
+          lastError={err}
+        />
+      </div>
     </div>
   );
 };
