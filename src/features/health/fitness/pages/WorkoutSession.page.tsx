@@ -41,7 +41,7 @@ import { useRestTimer } from "@/hooks/useRestTimer";
 
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
-import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
+import AdaptiveSetForm from "../workouts/ui/components/AdaptiveSetForm";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ViewportTestSuite from "@/components/mobile/ViewportTestSuite";
 // import MobileRestTimer from "@/components/fitness/MobileRestTimer"; // TODO: Migrate this component
 import SwipeToCompleteSet from "@/components/mobile/SwipeToCompleteSet";
-import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
+import TouchOptimizedSetInput from "@/features/health/fitness/workouts/ui/components/TouchOptimizedSetInput";
 import { Dumbbell, Timer, Smartphone, Target, Check } from "lucide-react";
 import { toast } from "sonner";
 

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
+import TouchOptimizedSetInput from "../workouts/ui/components/TouchOptimizedSetInput";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { EntryStyle, LoadingMode } from "../lib/weightLoading";

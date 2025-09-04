@@ -1,2 +1,2 @@
 // Exercise hooks
-export * from '../../../../../features/exercises/hooks';
+export * from './exercises.hooks';

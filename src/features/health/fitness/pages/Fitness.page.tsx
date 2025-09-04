@@ -1,1 +1,1 @@
-export { default } from '@/pages/MobileFitness';
+export { default } from './MobileFitness';
