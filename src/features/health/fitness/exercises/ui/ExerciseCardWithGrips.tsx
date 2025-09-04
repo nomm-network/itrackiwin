@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { GripSelector } from "./GripSelector";
+import { GripSelector } from "./ExerciseGripSelector";
 import { EffectiveMuscles } from "./EffectiveMuscles";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
