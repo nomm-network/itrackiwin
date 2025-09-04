@@ -1,6 +1,6 @@
 import { useParams, useSearchParams } from 'react-router-dom';
 import { useWorkout } from './api/useWorkout';
-import { WorkoutExerciseCard } from './components/WorkoutExerciseCard';
+import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 
 export default function WorkoutPage() {
   const { workoutId } = useParams<{ workoutId: string }>();
@@ -38,10 +38,15 @@ export default function WorkoutPage() {
       <div className="p-4 space-y-4">
         {workout.exercises
           .sort((a, b) => a.order_index - b.order_index)
-          .map((workoutExercise) => (
+          .map((we) => (
             <WorkoutExerciseCard
-              key={workoutExercise.id}
-              workoutExercise={workoutExercise}
+              key={we.id}
+              id={we.id}
+              name={we.exercise?.display_name ?? 'Exercise'}
+              completedSets={we.sets}
+              warmup={we.attribute_values_json?.warmup ?? null}
+              targetReps={we.target_reps}
+              targetWeightKg={we.target_weight_kg}
             />
           ))}
       </div>
