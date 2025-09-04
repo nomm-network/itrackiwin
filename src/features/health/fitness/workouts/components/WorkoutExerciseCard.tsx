@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Plus } from 'lucide-react';
 import WarmupCard from './WarmupCard';
+import WarmupBlock from './WarmupBlock';
 import SetCard from './SetCard';
 
 interface Exercise {
@@ -65,8 +66,15 @@ const WorkoutExerciseCard: React.FC<Props> = ({ exercise, onAddSet, onCompleteSe
               isTarget={true}
             />
 
-            {/* Warmup Section */}
-            <WarmupCard exercise={exercise} />
+            {/* Warmup Block */}
+            <WarmupBlock 
+              topWeight={exercise.target_weight_kg || 60}
+              warmupSteps={[
+                { weight: Math.round((exercise.target_weight_kg || 60) * 0.4 * 2) / 2, reps: 10, rest_seconds: 60 },
+                { weight: Math.round((exercise.target_weight_kg || 60) * 0.6 * 2) / 2, reps: 8, rest_seconds: 90 },
+                { weight: Math.round((exercise.target_weight_kg || 60) * 0.8 * 2) / 2, reps: 5, rest_seconds: 120 },
+              ]}
+            />
 
             {/* Working Sets */}
             <div className="space-y-2">
