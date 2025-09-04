@@ -1,31 +1,26 @@
-// src/features/health/fitness/workouts/components/WorkoutSetsBlock.tsx
 import React from 'react';
-import { Separator } from "@/components/ui/separator";
 import WorkoutSetCard from './WorkoutSetCard';
+import { WorkoutSet } from '@/types/workout';
 
 interface WorkoutSetsBlockProps {
-  exerciseId: string;
-  sets: any[];
-  onUpdateSet?: (setId: string, data: any) => void;
+  sets: WorkoutSet[];
+  onComplete: (setId: string) => void;
+  onEdit: (setId: string) => void;
 }
 
-const WorkoutSetsBlock: React.FC<WorkoutSetsBlockProps> = ({ exerciseId, sets, onUpdateSet }) => {
+const WorkoutSetsBlock: React.FC<WorkoutSetsBlockProps> = ({ sets, onComplete, onEdit }) => {
   if (!sets || sets.length === 0) {
-    return null;
+    return <div className="text-sm text-muted-foreground">No sets logged yet</div>;
   }
 
   return (
-    <div className="mt-4">
-      <Separator className="mb-2" />
-      <h3 className="text-sm font-medium text-muted-foreground mb-2">
-        Sets
-      </h3>
-      {sets.map((set, idx) => (
+    <div className="space-y-2">
+      {sets.map((set) => (
         <WorkoutSetCard
-          key={set.id || idx}
+          key={set.id}
           set={set}
-          onComplete={(setId) => console.log('Complete set:', setId)}
-          onEdit={(setId) => console.log('Edit set:', setId)}
+          onComplete={onComplete}
+          onEdit={onEdit}
         />
       ))}
     </div>

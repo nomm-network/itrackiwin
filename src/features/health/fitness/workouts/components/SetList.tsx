@@ -19,9 +19,9 @@ const SetList: React.FC<SetListProps> = ({ exercises, onUpdateSet, sets, workout
     return (
       <div>
         <WorkoutSetsBlock
-          exerciseId={workoutExerciseId}
           sets={sets}
-          onUpdateSet={onUpdateSet}
+          onComplete={(setId) => onUpdateSet?.(setId, {})}
+          onEdit={(setId) => onUpdateSet?.(setId, {})}
         />
       </div>
     );
@@ -37,9 +37,9 @@ const SetList: React.FC<SetListProps> = ({ exercises, onUpdateSet, sets, workout
       {exercises.map((exercise) => (
         <WorkoutSetsBlock
           key={exercise.id}
-          exerciseId={exercise.id}
           sets={exercise.sets}
-          onUpdateSet={onUpdateSet}
+          onComplete={(setId) => onUpdateSet(setId, {})}
+          onEdit={(setId) => onUpdateSet(setId, {})}
         />
       ))}
     </div>

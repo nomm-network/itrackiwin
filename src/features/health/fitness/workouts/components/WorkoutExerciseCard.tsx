@@ -30,7 +30,7 @@ const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({ exercise, onA
       )}
 
       {/* Sets area */}
-      <WorkoutSetsBlock exerciseId={exercise.id} sets={exercise.sets || []} />
+      <WorkoutSetsBlock sets={exercise.sets || []} onComplete={(setId) => onCompleteSet?.(setId, {})} onEdit={(setId) => console.log('Edit set:', setId)} />
     </div>
   );
 };
