@@ -7,7 +7,7 @@ export default function WorkoutPage() {
   const [searchParams] = useSearchParams();
   const showDebug = searchParams.get('debug') === '1';
   
-  const { data: workout, isLoading, error } = useWorkout(workoutId!);
+  const { data: workout, isLoading, error, refetch } = useWorkout(workoutId!);
 
   if (isLoading) {
     return (
@@ -30,13 +30,13 @@ export default function WorkoutPage() {
       {/* Header */}
       <div className="p-4 border-b border-[#133a2f]">
         <h1 className="text-2xl font-bold text-white">
-          {workout.title || 'Workout Session'}
+          {workout.name || 'Workout Session'}
         </h1>
       </div>
 
       {/* Exercise Cards */}
       <div className="p-4 space-y-4">
-        {workout.workout_exercises
+        {workout.exercises
           .sort((a, b) => a.order_index - b.order_index)
           .map((workoutExercise) => (
             <WorkoutExerciseCard
@@ -52,14 +52,14 @@ export default function WorkoutPage() {
           <h3 className="text-sm font-medium text-emerald-300 mb-2">Debug Info</h3>
           <div className="text-xs text-gray-400 space-y-1">
             <div>Workout ID: {workout.id}</div>
-            <div>Title: {workout.title}</div>
-            <div>Exercises: {workout.workout_exercises.length}</div>
-            {workout.workout_exercises[0] && (
+            <div>Title: {workout.name}</div>
+            <div>Exercises: {workout.exercises.length}</div>
+            {workout.exercises[0] && (
               <>
-                <div>First Exercise: {workout.workout_exercises[0].exercise.display_name}</div>
-                <div>Target: {workout.workout_exercises[0].target_weight_kg}kg × {workout.workout_exercises[0].target_reps}</div>
-                {workout.workout_exercises[0].attribute_values_json?.warmup && (
-                  <div>Warmup Steps: {workout.workout_exercises[0].attribute_values_json.warmup.length}</div>
+                <div>First Exercise: {workout.exercises[0].exercise.display_name}</div>
+                <div>Target: {workout.exercises[0].target_weight_kg}kg × {workout.exercises[0].target_reps}</div>
+                {workout.exercises[0].attribute_values_json?.warmup && (
+                  <div>Warmup Steps: {workout.exercises[0].attribute_values_json.warmup.length}</div>
                 )}
               </>
             )}
