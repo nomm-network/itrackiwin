@@ -7,7 +7,7 @@ const WorkoutPage: React.FC = () => {
 
   // DEBUG PANEL - ALWAYS VISIBLE
   const DebugPanel = () => (
-    <div className="fixed top-4 right-4 bg-black/90 text-white p-4 rounded-lg max-w-md w-full z-50 text-xs font-mono">
+    <div className="fixed top-4 left-4 bg-black/90 text-white p-2 rounded-lg max-w-xs z-50 text-xs font-mono">
       <div className="text-yellow-400 font-bold mb-2">🐛 DEBUG PANEL - WorkoutPage.tsx</div>
       <div className="space-y-1">
         <div><span className="text-green-400">WorkoutId from URL:</span> {workoutId || 'NO WORKOUT ID'}</div>
