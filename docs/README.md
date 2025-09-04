@@ -1,13 +1,31 @@
-# Fitness Application Audit Documentation
+# Fitness Application Documentation
 
-This documentation provides a comprehensive overview of the fitness application database structure, data, and recent changes for audit purposes.
+This directory contains comprehensive documentation for the fitness tracking application.
 
-## Documentation Structure
+## Current Documentation (Updated 2025-09-04)
 
-- [`database-schema.md`](./database-schema.md) - Complete database schema with tables, columns, and relationships
-- [`database-export.md`](./database-export.md) - Full export of all database entries and data
-- [`recent-changes.md`](./recent-changes.md) - Summary of recent changes and current project state
-- [`foreign-keys.md`](./foreign-keys.md) - Complete foreign key relationships documentation
+### Core Documentation
+- [`db-schema-complete.md`](./db-schema-complete.md) - **Complete database schema** with all 118 tables, relationships, and RLS policies
+- [`database-full-export.sql`](./database-full-export.sql) - **Full database export** with sample data and real workout sessions
+- [`FILE_STRUCTURE_GUIDELINES.md`](./FILE_STRUCTURE_GUIDELINES.md) - **Project architecture** and coding standards
+- [`EDGE_FUNCTIONS_DOCUMENTATION.md`](./EDGE_FUNCTIONS_DOCUMENTATION.md) - **Supabase Edge Functions** catalog and documentation
+
+### API & System Documentation
+- [`api.md`](./api.md) - API endpoints and usage examples
+- [`coach.md`](./coach.md) - AI coaching system documentation
+- [`data-model.md`](./data-model.md) - Data modeling patterns and relationships
+- [`fflow.md`](./fflow.md) - FlutterFlow integration guide
+
+### Database Details
+- [`database/`](./database/) - Detailed database schema files
+  - `foreign-keys.md` - Foreign key relationships
+  - `rls-policies.md` - Row-Level Security policies
+  - `enums-types.md` - Custom PostgreSQL types
+  - `FUNCTIONS_CATALOG.md` - Database functions reference
+
+### Architecture & Guidelines
+- [`architecture/FEATURE_FIRST_MIGRATION_COMPLETE.md`](./architecture/FEATURE_FIRST_MIGRATION_COMPLETE.md) - Feature-first architecture migration
+- [`UNIFIED_WORKOUT_SYSTEM_IMPLEMENTATION.md`](./UNIFIED_WORKOUT_SYSTEM_IMPLEMENTATION.md) - Workout system implementation guide
 
 ## Project Overview
 
