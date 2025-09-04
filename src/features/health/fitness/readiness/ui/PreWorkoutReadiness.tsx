@@ -26,6 +26,7 @@ interface ReadinessData {
 interface PreWorkoutReadinessProps {
   onSubmit: (data: ReadinessData) => void;
   onSkip?: () => void;
+  onAbort?: () => void; // Add abort callback
   isLoading?: boolean;
 }
 
@@ -36,7 +37,7 @@ const stressLabels = ['Zen', 'Calm', 'Relaxed', 'Normal', 'Mild', 'Moderate', 'E
 
 const commonSupplements = ['Caffeine', 'Creatine', 'Pre-workout', 'Protein', 'BCAA', 'Beta-alanine', 'Citrulline', 'Vitamin D'];
 
-export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: PreWorkoutReadinessProps) {
+export function PreWorkoutReadiness({ onSubmit, onSkip, onAbort, isLoading = false }: PreWorkoutReadinessProps) {
   const [data, setData] = useState<ReadinessData>({
     energy: 7,
     sleep_quality: 7,
@@ -274,13 +275,32 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between pt-4">
+        <div className="flex gap-3 pt-4">
+          {onAbort && (
+            <Button 
+              variant="outline" 
+              onClick={onAbort}
+              disabled={isLoading}
+              className="flex-1"
+            >
+              Abort
+            </Button>
+          )}
           {onSkip && (
-            <Button variant="ghost" onClick={onSkip}>
+            <Button 
+              variant="ghost" 
+              onClick={onSkip}
+              disabled={isLoading}
+              className={onAbort ? "flex-1" : ""}
+            >
               Skip for now
             </Button>
           )}
-          <Button onClick={handleSubmit} disabled={isLoading} className="ml-auto">
+          <Button 
+            onClick={handleSubmit} 
+            disabled={isLoading} 
+            className="flex-1"
+          >
             {isLoading ? 'Starting Workout...' : 'Start Workout'}
           </Button>
         </div>
