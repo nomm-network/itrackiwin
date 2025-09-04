@@ -71,10 +71,13 @@ const WorkoutPage: React.FC = () => {
       setLoading(true);
       setErr(null);
 
-      // 1) workout
+      // 1) workout with template name fallback
       const { data: w, error: wErr } = await supabase
         .from('workouts')
-        .select('id,user_id,template_id,started_at,ended_at,readiness_score,title')
+        .select(`
+          id,user_id,template_id,started_at,ended_at,readiness_score,title,
+          workout_templates!inner(name)
+        `)
         .eq('id', workoutId)
         .single();
 
@@ -86,14 +89,18 @@ const WorkoutPage: React.FC = () => {
         return;
       }
 
-      // 2) workout_exercises + exercise info
+      // 2) workout_exercises + exercise info + grip_key + sets
       const { data: wes, error: weErr } = await supabase
         .from('workout_exercises')
         .select(`
           id, workout_id, exercise_id, order_index,
-          target_reps, target_weight_kg, weight_unit,
+          target_reps, target_weight_kg, weight_unit, grip_key,
           attribute_values_json, readiness_adjusted_from,
-          exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags)
+          exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
+          workout_sets(
+            id, workout_exercise_id, set_index, set_kind, 
+            reps, weight_kg, is_completed, rest_seconds
+          )
         `)
         .eq('workout_id', workoutId)
         .order('order_index', { ascending: true });
@@ -106,30 +113,13 @@ const WorkoutPage: React.FC = () => {
         return;
       }
 
-      // 3) sets for those workout_exercises
-      const allWeIds = (wes ?? []).map((x) => x.id);
+      // 3) extract sets from nested workout_exercises data
       let setsMap: Record<string, WorkoutSet[]> = {};
-      if (allWeIds.length > 0) {
-        const { data: sets, error: sErr } = await supabase
-          .from('workout_sets')
-          .select('id,workout_exercise_id,set_index,set_kind,reps,weight_kg,is_completed,rest_seconds')
-          .in('workout_exercise_id', allWeIds)
-          .order('set_index', { ascending: true });
-
-        if (sErr) {
-          if (!isCancelled) {
-            setErr(`Failed to load sets: ${sErr.message}`);
-            setLoading(false);
-          }
-          return;
+      (wes ?? []).forEach((we: any) => {
+        if (we.workout_sets && Array.isArray(we.workout_sets)) {
+          setsMap[we.id] = we.workout_sets.sort((a: any, b: any) => a.set_index - b.set_index);
         }
-
-        // group by workout_exercise_id
-        (sets ?? []).forEach((s) => {
-          if (!setsMap[s.workout_exercise_id]) setsMap[s.workout_exercise_id] = [];
-          setsMap[s.workout_exercise_id].push(s);
-        });
-      }
+      });
 
       if (!isCancelled) {
         setWorkout(w as Workout);
@@ -146,8 +136,9 @@ const WorkoutPage: React.FC = () => {
   }, [workoutId]);
 
   const headerTitle = useMemo(() => {
-    // Prefer template title if stored on workout, else first exercise name, else fallback
+    // Prefer workout title, then template name, then first exercise name
     if (workout?.title && workout.title.trim().length > 0) return workout.title;
+    if ((workout as any)?.workout_templates?.name) return (workout as any).workout_templates.name;
     if (exercises.length > 0) {
       const first = exercises[0];
       return first?.exercise?.display_name || 'Workout Session';
@@ -166,15 +157,26 @@ const WorkoutPage: React.FC = () => {
       .from('workout_exercises')
       .select(`
         id, workout_id, exercise_id, order_index,
-        target_reps, target_weight_kg, weight_unit,
+        target_reps, target_weight_kg, weight_unit, grip_key,
         attribute_values_json, readiness_adjusted_from,
-        exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags)
+        exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
+        workout_sets(
+          id, workout_exercise_id, set_index, set_kind, 
+          reps, weight_kg, is_completed, rest_seconds
+        )
       `)
       .eq('id', weId)
       .single();
 
     if (!error && data) {
       setExercises((prev) => prev.map((e) => (e.id === weId ? (data as unknown as WorkoutExercise) : e)));
+      // Also update sets
+      if ((data as any).workout_sets) {
+        setSetsByExercise((prev) => ({ 
+          ...prev, 
+          [weId]: (data as any).workout_sets.sort((a: any, b: any) => a.set_index - b.set_index)
+        }));
+      }
     }
   };
 
