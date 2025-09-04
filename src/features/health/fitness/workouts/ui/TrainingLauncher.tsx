@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useStartWorkout } from '../api/workouts.api';
+import { useStartWorkout } from '../hooks';
 
 const TrainingLauncher: React.FC = () => {
   const [searchParams] = useSearchParams();
