@@ -219,26 +219,31 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, onAbort, isLoading = fal
             </Button>
           </div>
           
-          <div className="flex items-center gap-4">
-            <Label className="flex items-center gap-2">
-              <Zap className="h-4 w-4" />
-              <span>Took energisers</span>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Energiser can be creatine or any energy enhancing pre workout</p>
-                </TooltipContent>
-              </Tooltip>
-            </Label>
-            <Button
-              variant={data.energisers_taken ? 'default' : 'outline'}
-              size="sm"
-              onClick={() => setData(prev => ({ ...prev, energisers_taken: !prev.energisers_taken }))}
-            >
-              {data.energisers_taken ? 'Yes - Took energisers' : 'No - None'}
-            </Button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-4">
+              <Label className="flex items-center gap-2">
+                <Zap className="h-4 w-4" />
+                <span>Took energisers</span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Energiser can be creatine or any energy enhancing pre workout</p>
+                  </TooltipContent>
+                </Tooltip>
+              </Label>
+              <Button
+                variant={data.energisers_taken ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setData(prev => ({ ...prev, energisers_taken: !prev.energisers_taken }))}
+              >
+                {data.energisers_taken ? 'Yes - Took energisers' : 'No - None'}
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground ml-6">
+              Energiser can be creatine or any energy enhancing pre workout
+            </p>
           </div>
         </div>
 
@@ -275,7 +280,7 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, onAbort, isLoading = fal
         </div>
 
         {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
+        <div className="flex gap-3 pt-4 pb-[50px]">
           {onAbort && (
             <Button 
               variant="outline" 

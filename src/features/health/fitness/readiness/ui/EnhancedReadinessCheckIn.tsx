@@ -265,23 +265,28 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 </div>
 
                 {/* Energisers */}
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="energisers_taken"
-                    checked={watchedValues.energisers_taken}
-                    onCheckedChange={(checked) => setValue("energisers_taken", checked)}
-                  />
-                  <Label htmlFor="energisers_taken" className="flex items-center gap-1">
-                    Took energisers
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Energiser can be creatine or any energy enhancing pre workout</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Switch
+                      id="energisers_taken"
+                      checked={watchedValues.energisers_taken}
+                      onCheckedChange={(checked) => setValue("energisers_taken", checked)}
+                    />
+                    <Label htmlFor="energisers_taken" className="flex items-center gap-1">
+                      Took energisers
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Energiser can be creatine or any energy enhancing pre workout</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </Label>
+                  </div>
+                  <p className="text-xs text-muted-foreground ml-6">
+                    Energiser can be creatine or any energy enhancing pre workout
+                  </p>
                 </div>
               </div>
 
@@ -334,7 +339,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
             </Card>
           )}
 
-          <div className="flex gap-3 pt-4">
+          <div className="flex gap-3 pt-4 pb-[50px]">
             {onAbort && (
               <Button
                 type="button"
