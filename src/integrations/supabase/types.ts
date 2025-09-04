@@ -6659,43 +6659,16 @@ export type Database = {
       }
       v_latest_readiness: {
         Row: {
-          alcohol: number | null
+          alcohol: boolean | null
           created_at: string | null
           energy: number | null
-          illness: number | null
-          readiness_score: number | null
+          illness: boolean | null
           sleep_hours: number | null
           sleep_quality: number | null
           soreness: number | null
           stress: number | null
-          supplements: number | null
+          supplements: Json | null
           user_id: string | null
-        }
-        Insert: {
-          alcohol?: never
-          created_at?: string | null
-          energy?: never
-          illness?: never
-          readiness_score?: number | null
-          sleep_hours?: never
-          sleep_quality?: never
-          soreness?: never
-          stress?: never
-          supplements?: never
-          user_id?: string | null
-        }
-        Update: {
-          alcohol?: never
-          created_at?: string | null
-          energy?: never
-          illness?: never
-          readiness_score?: number | null
-          sleep_hours?: never
-          sleep_quality?: never
-          soreness?: never
-          stress?: never
-          supplements?: never
-          user_id?: string | null
         }
         Relationships: []
       }
@@ -7274,7 +7247,9 @@ export type Database = {
         Returns: number
       }
       compute_readiness_for_user: {
-        Args: { p_user_id: string; p_workout_started_at?: string }
+        Args:
+          | { p_user_id: string }
+          | { p_user_id: string; p_workout_started_at?: string }
         Returns: number
       }
       compute_readiness_score: {
@@ -7971,10 +7946,7 @@ export type Database = {
       }
       pick_base_load: {
         Args: { p_exercise: string; p_user: string }
-        Returns: {
-          base_weight: number
-          source_workout_exercise_id: string
-        }[]
+        Returns: number
       }
       plan_next_prescription: {
         Args: {
