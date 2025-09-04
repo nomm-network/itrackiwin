@@ -24,7 +24,8 @@ const WorkoutSetsBlock: React.FC<WorkoutSetsBlockProps> = ({ exerciseId, sets, o
         <WorkoutSetCard
           key={set.id || idx}
           set={set}
-          onUpdate={(data) => onUpdateSet?.(set.id, data)}
+          onComplete={(setId) => console.log('Complete set:', setId)}
+          onEdit={(setId) => console.log('Edit set:', setId)}
         />
       ))}
     </div>
