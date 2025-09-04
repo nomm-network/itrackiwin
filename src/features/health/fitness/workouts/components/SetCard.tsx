@@ -1,9 +1,7 @@
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { CheckCircle, Circle, Timer } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { CheckCircle, Timer } from 'lucide-react';
 
 interface WorkoutSet {
   id?: string;
@@ -15,6 +13,8 @@ interface WorkoutSet {
   is_completed?: boolean;
   set_kind?: 'warmup' | 'normal' | 'drop' | 'amrap';
   rest_seconds?: number;
+  prev_weight_kg?: number;
+  prev_reps?: number;
 }
 
 interface Props {
@@ -27,14 +27,13 @@ interface Props {
 const SetCard: React.FC<Props> = ({ set, isTarget = false, onComplete, onUpdate }) => {
   const [weight, setWeight] = useState(set.weight_kg?.toString() || set.target_weight_kg?.toString() || '');
   const [reps, setReps] = useState(set.reps?.toString() || set.target_reps?.toString() || '');
-  const [isEditing, setIsEditing] = useState(!set.is_completed && !isTarget);
+  const [selectedFeeling, setSelectedFeeling] = useState<string>('=');
 
   const handleComplete = () => {
     const weightNum = parseFloat(weight) || 0;
     const repsNum = parseInt(reps) || 0;
     
     onComplete?.({ weight_kg: weightNum, reps: repsNum });
-    setIsEditing(false);
   };
 
   const getSetTypeLabel = (kind?: string) => {
@@ -46,95 +45,124 @@ const SetCard: React.FC<Props> = ({ set, isTarget = false, onComplete, onUpdate 
     }
   };
 
-  const getSetTypeColor = (kind?: string) => {
-    switch (kind) {
-      case 'warmup': return 'bg-blue-100 text-blue-800';
-      case 'drop': return 'bg-orange-100 text-orange-800';
-      case 'amrap': return 'bg-purple-100 text-purple-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
+  const feelingButtons = ['--', '-', '=', '+', '++'];
 
-  return (
-    <Card className={`mb-2 ${set.is_completed ? 'bg-green-50 border-green-200' : ''}`}>
-      <CardContent className="p-4">
+  if (isTarget) {
+    return (
+      <div className="p-3 bg-gray-50 dark:bg-gray-900 rounded-lg border">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className={`px-2 py-1 rounded text-xs font-medium ${getSetTypeColor(set.set_kind)}`}>
-                {getSetTypeLabel(set.set_kind)} {set.set_index}
-              </span>
-              {set.is_completed && (
-                <CheckCircle className="h-4 w-4 text-green-600" />
-              )}
-            </div>
-
-            <div className="flex items-center gap-4">
-              {isEditing ? (
-                <>
-                  <div className="flex items-center gap-1">
-                    <Input
-                      type="number"
-                      value={weight}
-                      onChange={(e) => setWeight(e.target.value)}
-                      placeholder="Weight"
-                      className="w-20 h-8"
-                      step="0.5"
-                    />
-                    <span className="text-sm text-muted-foreground">kg</span>
-                  </div>
-                  <span className="text-muted-foreground">×</span>
-                  <div className="flex items-center gap-1">
-                    <Input
-                      type="number"
-                      value={reps}
-                      onChange={(e) => setReps(e.target.value)}
-                      placeholder="Reps"
-                      className="w-16 h-8"
-                    />
-                    <span className="text-sm text-muted-foreground">reps</span>
-                  </div>
-                </>
-              ) : (
-                <div className="font-medium">
-                  {isTarget ? 'Target: ' : ''}
-                  {weight || set.target_weight_kg || '-'}kg × {reps || set.target_reps || '-'} reps
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2">
-            {set.rest_seconds && (
-              <Badge variant="outline" className="text-xs">
-                <Timer className="h-3 w-3 mr-1" />
-                {set.rest_seconds}s
-              </Badge>
-            )}
-            
-            {isEditing && !isTarget && (
-              <Button 
-                onClick={handleComplete}
-                size="sm"
-                disabled={!weight || !reps}
-              >
-                Complete
-              </Button>
-            )}
-            
-            {set.is_completed && !isTarget && (
-              <Button 
-                variant="outline"
-                size="sm"
-                onClick={() => setIsEditing(true)}
-              >
-                Edit
-              </Button>
-            )}
+          <Badge variant="outline" className="text-xs">
+            Target
+          </Badge>
+          <div className="text-sm font-medium">
+            🎯 {set.target_weight_kg || '-'}kg × {set.target_reps || '-'} reps
           </div>
         </div>
-      </CardContent>
-    </Card>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`p-3 rounded-lg border ${set.is_completed ? 'bg-green-50 dark:bg-green-900/20 border-green-200' : 'bg-card'}`}>
+      <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center gap-2">
+          <Badge variant="secondary" className="text-xs">
+            {getSetTypeLabel(set.set_kind)} {set.set_index}
+          </Badge>
+          {set.is_completed && (
+            <CheckCircle className="h-4 w-4 text-green-600" />
+          )}
+        </div>
+        
+        {set.rest_seconds && (
+          <Badge variant="outline" className="text-xs">
+            <Timer className="h-3 w-3 mr-1" />
+            {set.rest_seconds}s
+          </Badge>
+        )}
+      </div>
+
+      {/* Previous + Target Display */}
+      <div className="flex flex-col gap-1 text-sm text-muted-foreground mb-2">
+        {set.prev_weight_kg && set.prev_reps && (
+          <div>Prev: {set.prev_weight_kg}kg × {set.prev_reps}</div>
+        )}
+        <div className="text-foreground font-medium">
+          🎯 Target: {set.target_weight_kg || '-'}kg × {set.target_reps || '-'}
+        </div>
+      </div>
+
+      {!set.is_completed ? (
+        <>
+          {/* Inline Weight/Reps Inputs */}
+          <div className="flex items-center gap-2 mb-2">
+            <input 
+              type="number" 
+              value={weight}
+              onChange={(e) => setWeight(e.target.value)}
+              className="w-20 text-center px-2 py-1 rounded border bg-background text-sm"
+              placeholder="0"
+              step="0.5"
+            />
+            <span className="text-sm text-muted-foreground">kg</span>
+            
+            <input 
+              type="number" 
+              value={reps}
+              onChange={(e) => setReps(e.target.value)}
+              className="w-16 text-center px-2 py-1 rounded border bg-background text-sm"
+              placeholder="0"
+            />
+            <span className="text-sm text-muted-foreground">reps</span>
+          </div>
+
+          {/* Feeling Buttons Row */}
+          <div className="flex justify-between gap-1 mb-3">
+            {feelingButtons.map((feeling) => (
+              <button
+                key={feeling}
+                onClick={() => setSelectedFeeling(feeling)}
+                className={`flex-1 rounded px-2 py-1 text-xs transition-colors ${
+                  selectedFeeling === feeling 
+                    ? 'bg-primary text-primary-foreground' 
+                    : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700'
+                }`}
+              >
+                {feeling}
+              </button>
+            ))}
+          </div>
+
+          {/* Complete Button */}
+          <Button 
+            onClick={handleComplete}
+            size="sm"
+            className="w-full"
+            disabled={!weight || !reps}
+          >
+            Complete Set
+          </Button>
+        </>
+      ) : (
+        /* Completed Set Display */
+        <div className="flex items-center justify-between">
+          <div className="font-medium">
+            {set.weight_kg}kg × {set.reps} reps
+          </div>
+          <Button 
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              setWeight(set.weight_kg?.toString() || '');
+              setReps(set.reps?.toString() || '');
+              onUpdate?.({ is_completed: false });
+            }}
+          >
+            Edit
+          </Button>
+        </div>
+      )}
+    </div>
   );
 };
 
