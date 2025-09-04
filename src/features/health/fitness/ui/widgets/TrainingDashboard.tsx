@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Clock, Target, Zap, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-// import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal'; // TODO: Migrate this component
+import WorkoutSelectionModal from '../../components/WorkoutSelectionModal';
 import { useRecentWorkouts } from '../../services/fitness.api';
 import { useActiveWorkout } from '../../workouts/hooks';
 import { useFitnessProfileCheck } from '../../hooks/useFitnessProfileCheck.hook';
@@ -31,13 +31,8 @@ const TrainingDashboard: React.FC = () => {
     // Check profile for new workouts
     if (!checkAndRedirect('start a workout')) return;
 
-    if (nextBlock) {
-      // Start from program - navigate to readiness check first
-      navigate(`/app/workouts/start-quick?templateId=${nextBlock.workout_template_id}`);
-    } else {
-      // No program - navigate to templates page to select workout
-      navigate('/fitness/templates');
-    }
+    // Show the workout selection modal
+    setShowWorkoutModal(true);
   };
 
   if (isLoadingProgram) {
@@ -125,10 +120,10 @@ const TrainingDashboard: React.FC = () => {
         </CardContent>
       </Card>
       
-      {/* <WorkoutSelectionModal 
+      <WorkoutSelectionModal 
         open={showWorkoutModal}
         onOpenChange={setShowWorkoutModal}
-      /> */}
+      />
     </>
   );
 };
