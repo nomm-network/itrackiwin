@@ -7,6 +7,8 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HelpCircle } from "lucide-react";
 
 export interface ReadinessData {
   energy: number;
@@ -50,7 +52,8 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <TooltipProvider>
+      <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="text-center">How are you feeling today?</CardTitle>
         <p className="text-sm text-muted-foreground text-center">
@@ -168,7 +171,19 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 checked={watchedValues.energisers_taken}
                 onCheckedChange={(checked) => setValue("energisers_taken", checked)}
               />
-              <Label htmlFor="energisers_taken">Creatine/PreWorkout taken</Label>
+              <Label htmlFor="energisers_taken" className="flex items-center gap-1">
+                Took energisers
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Energiser can be creatine or any energy enhancing pre workout</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Label>
             </div>
           </div>
 
@@ -194,6 +209,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
         </form>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 };
 

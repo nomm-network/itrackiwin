@@ -8,7 +8,8 @@ import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Dumbbell } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Dumbbell, HelpCircle } from "lucide-react";
 import { useMissingEstimates, type MissingEstimate } from "@/features/workouts/hooks/useMissingEstimates";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -22,6 +23,7 @@ export interface ReadinessData {
   stress: number;
   illness: boolean;
   alcohol: boolean;
+  energisers_taken: boolean;
   supplements: string[];
   notes: string;
 }
@@ -59,6 +61,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       stress: 3,
       illness: false,
       alcohol: false,
+      energisers_taken: false,
       supplements: [],
       notes: ""
     }
@@ -141,7 +144,8 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <TooltipProvider>
+      <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="text-center">Pre-Workout Check</CardTitle>
         <p className="text-sm text-muted-foreground text-center">
@@ -257,6 +261,26 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                   />
                   <Label htmlFor="alcohol">Had alcohol in last 24h</Label>
                 </div>
+
+                {/* Energisers */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="energisers_taken"
+                    checked={watchedValues.energisers_taken}
+                    onCheckedChange={(checked) => setValue("energisers_taken", checked)}
+                  />
+                  <Label htmlFor="energisers_taken" className="flex items-center gap-1">
+                    Took energisers
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Energiser can be creatine or any energy enhancing pre workout</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </Label>
+                </div>
               </div>
 
               {/* Notes */}
@@ -326,6 +350,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         </form>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 };
 

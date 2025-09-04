@@ -7,7 +7,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
-import { Battery, Moon, Zap, AlertTriangle, Wine, Pill } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { Battery, Moon, Zap, AlertTriangle, Wine, Pill, HelpCircle } from 'lucide-react';
 
 interface ReadinessData {
   energy: number; // 1-10 scale
@@ -17,6 +18,7 @@ interface ReadinessData {
   stress: number; // 1-10 scale
   illness: boolean;
   alcohol: boolean;
+  energisers_taken: boolean;
   supplements: string[];
   notes?: string;
 }
@@ -43,6 +45,7 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
     stress: 4,
     illness: false,
     alcohol: false,
+    energisers_taken: false,
     supplements: [],
     notes: ''
   });
@@ -77,7 +80,8 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
   };
 
   return (
-    <Card className="w-full max-w-2xl mx-auto">
+    <TooltipProvider>
+      <Card className="w-full max-w-2xl mx-auto">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <Zap className="h-5 w-5" />
@@ -213,6 +217,28 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
               {data.alcohol ? 'Yes - Had alcohol' : 'No - None'}
             </Button>
           </div>
+          
+          <div className="flex items-center gap-4">
+            <Label className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              <span>Took energisers</span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="h-3 w-3 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Energiser can be creatine or any energy enhancing pre workout</p>
+                </TooltipContent>
+              </Tooltip>
+            </Label>
+            <Button
+              variant={data.energisers_taken ? 'default' : 'outline'}
+              size="sm"
+              onClick={() => setData(prev => ({ ...prev, energisers_taken: !prev.energisers_taken }))}
+            >
+              {data.energisers_taken ? 'Yes - Took energisers' : 'No - None'}
+            </Button>
+          </div>
         </div>
 
         {/* Supplements */}
@@ -260,5 +286,6 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
         </div>
       </CardContent>
     </Card>
+    </TooltipProvider>
   );
 }
