@@ -21,7 +21,7 @@ export function StartFromTemplateButton({ templateId }: { templateId: string }) 
   };
 
   return (
-    <button className="btn btn-primary" onClick={handle}>
+    <button className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={handle}>
       Start
     </button>
   );

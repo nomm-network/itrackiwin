@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { BarSelector } from './BarSelector';
 import { useEquipmentEffective } from '@/hooks/useEquipmentEffective';
-import { useSetLogging } from '@/hooks/useSetLogging';
+import { logSet } from '@/features/health/fitness/workouts/api/workouts.api';
 import { toast } from '@/hooks/use-toast';
 
 type Exercise = {
@@ -27,7 +27,7 @@ type Props = {
 };
 
 export function LoadTypeSetInput({ exercise, setIndex, onLogged }: Props) {
-  const { logSet, isLoading } = useSetLogging();
+  const [isLoading, setIsLoading] = useState(false);
   const { data: effective } = useEquipmentEffective(
     exercise?.exercise?.equipment_id,
     undefined // TODO: Add gym_id when gym selection is implemented
@@ -87,7 +87,13 @@ export function LoadTypeSetInput({ exercise, setIndex, onLogged }: Props) {
     };
 
     try {
-      await logSet(payload);
+      setIsLoading(true);
+      await logSet({
+        workout_exercise_id: exercise.id,
+        set_index: setIndex,
+        weight_kg: total,
+        reps,
+      });
       toast({
         title: "Set Logged",
         description: `Set ${setIndex + 1} logged: ${total.toFixed(1)} kg × ${reps} reps`,
@@ -100,6 +106,13 @@ export function LoadTypeSetInput({ exercise, setIndex, onLogged }: Props) {
       onLogged();
     } catch (error) {
       console.error('Error logging set:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log set",
+        variant: "destructive"
+      });
+    } finally {
+      setIsLoading(false);
     }
   };
 

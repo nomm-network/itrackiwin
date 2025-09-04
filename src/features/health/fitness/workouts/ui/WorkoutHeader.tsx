@@ -29,8 +29,8 @@ export function WorkoutHeader({
         Started {new Date(workout.started_at).toLocaleString()}
       </div>
       <div className="flex gap-2">
-        <button className="btn btn-secondary" onClick={onExit}>Back</button>
-        <button className="btn btn-primary" onClick={end}>Finish</button>
+        <button className="px-4 py-2 rounded-md border border-border bg-secondary text-secondary-foreground hover:bg-secondary/80" onClick={onExit}>Back</button>
+        <button className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90" onClick={end}>Finish</button>
       </div>
     </header>
   );

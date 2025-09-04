@@ -52,9 +52,9 @@ export function WorkoutExerciseCard({
           m.mutate({ weight_kg, reps, set_index: nextIndex });
         }}
       >
-        <input name="weight" inputMode="decimal" placeholder="kg" className="input" required />
-        <input name="reps" inputMode="numeric" placeholder="reps" className="input" required />
-        <button className="btn btn-primary" disabled={m.isPending}>
+        <input name="weight" inputMode="decimal" placeholder="kg" className="px-3 py-2 border border-border rounded-md bg-background text-foreground" required />
+        <input name="reps" inputMode="numeric" placeholder="reps" className="px-3 py-2 border border-border rounded-md bg-background text-foreground" required />
+        <button className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50" disabled={m.isPending}>
           {m.isPending ? 'Saving…' : `Save Set ${nextIndex}`}
         </button>
       </form>
