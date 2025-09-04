@@ -1,140 +1,252 @@
 # Database Schema Documentation
 
-This document provides a comprehensive overview of the database structure for the iTrack.iWin fitness application.
-
 ## Overview
-- **Total Tables**: 128
-- **Database Type**: PostgreSQL (Supabase)
-- **Schema**: public
+This document contains the complete database schema for the iTrackiWin fitness tracking application, including all tables, columns, foreign keys, and Row Level Security (RLS) policies.
 
-## Table Categories
+## Table Structure
 
-### Authentication & User Management
-- `users` - Core user profiles
-- `user_roles` - Role-based access control
-- `admin_audit_log` - Admin action tracking
-- `admin_check_rate_limit` - Rate limiting for admin checks
-- `profiles` - Extended user profile information
+### achievements
+**Description**: Achievement system for tracking user milestones and goals
 
-### Fitness & Exercise Management
-- `exercises` - Core exercise definitions
-- `exercise_aliases` - Alternative names for exercises
-- `exercise_equipment_variants` - Equipment variations per exercise
-- `exercise_grips` - Grip configurations for exercises
-- `exercise_images` - Exercise demonstration images
-- `exercise_similars` - Related/similar exercises
-- `muscle_groups` - Muscle group definitions
-- `muscles` - Individual muscle definitions
-- `equipment` - Exercise equipment definitions
-- `movement_patterns` - Movement pattern classifications
-- `movements` - Basic movement definitions
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| title | text | No | None | Achievement title |
+| description | text | No | None | Achievement description |
+| category | text | No | None | Achievement category |
+| icon | text | No | None | Achievement icon identifier |
+| points | integer | No | 0 | Points awarded for achievement |
+| criteria | jsonb | No | None | Criteria for earning achievement |
+| is_active | boolean | No | true | Whether achievement is active |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
 
-### Workout System
-- `workouts` - Individual workout sessions
-- `workout_exercises` - Exercises within a workout
-- `workout_sets` - Individual sets within exercises
-- `workout_templates` - Reusable workout templates
-- `template_exercises` - Exercises within templates
-- `workout_checkins` - Pre/post workout check-ins
-- `workout_session_feedback` - Session feedback and ratings
+**RLS Policies:**
+- `Achievements are viewable by everyone` (SELECT): `true`
+- `Admins can manage achievements` (ALL): `is_admin(auth.uid())`
 
-### Gym & Equipment Management
-- `gyms` - Gym location definitions
-- `gym_equipment` - Equipment available at specific gyms
-- `gym_equipment_availability` - Equipment availability tracking
-- `gym_equipment_overrides` - Gym-specific equipment settings
-- `gym_plate_inventory` - Plate inventory per gym
-- `user_gym_memberships` - User gym associations
-- `user_gyms` - User's personal gym setups
+**Foreign Keys:** None
 
-### User Preferences & Tracking
-- `user_exercise_estimates` - Exercise weight estimates
-- `user_exercise_overrides` - Custom exercise settings
-- `user_equipment_preferences` - Equipment preferences
-- `user_lifting_prefs` - Lifting style preferences
-- `user_settings` - General user settings
-- `personal_records` - Personal record tracking
-- `user_stats` - User performance statistics
+---
 
-### Social Features
-- `friendships` - User friend connections
-- `workout_likes` - Workout social interactions
-- `workout_comments` - Workout comments
-- `workout_shares` - Workout sharing
-- `challenges` - Fitness challenges
-- `challenge_participants` - Challenge participation
+### admin_audit_log
+**Description**: Audit trail for administrative actions
 
-### Gamification
-- `achievements` - Available achievements
-- `user_achievements` - User-earned achievements
-- `user_gamification` - Gamification stats
-- `streaks` - Streak tracking
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| action_type | text | No | None | Type of action performed |
+| performed_by | uuid | Yes | None | User who performed action |
+| target_user_id | uuid | Yes | None | Target user (if applicable) |
+| details | jsonb | Yes | '{}' | Additional action details |
+| ip_address | inet | Yes | None | IP address of performer |
+| user_agent | text | Yes | None | User agent string |
+| created_at | timestamp with time zone | No | now() | Action timestamp |
 
-### Health & Wellness
-- `cycle_events` - Menstrual cycle tracking
-- `pain_events` - Pain/injury tracking
-- `user_injuries` - Injury history
-- `readiness_checkins` - Readiness assessments
+**RLS Policies:**
+- `Superadmins can view audit logs` (SELECT): `has_role(auth.uid(), 'superadmin'::app_role)`
+- `System can insert audit logs` (INSERT): `true`
 
-### Coaching & Mentorship
-- `mentor_profiles` - Coach/mentor profiles
-- `mentorships` - Coaching relationships
-- `coach_assigned_templates` - Coach-assigned workouts
-- `coach_logs` - Coaching activity logs
+**Foreign Keys:** None
 
-### System Configuration
-- `languages` - Supported languages
-- `text_translations` - Internationalization
-- `attribute_schemas` - Dynamic attribute definitions
-- `data_quality_reports` - Data integrity monitoring
-- `idempotency_keys` - Request deduplication
+---
 
-## Key Relationships
+### admin_check_rate_limit
+**Description**: Rate limiting for admin privilege checks
 
-### User-Centric Design
-All major entities are linked to users through `user_id` foreign keys with proper RLS policies.
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| user_id | uuid | No | None | User being rate limited |
+| check_count | integer | Yes | 1 | Number of checks in window |
+| window_start | timestamp with time zone | No | now() | Rate limit window start |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
 
-### Exercise Hierarchy
-```
-movements → exercises → workout_exercises → workout_sets
-equipment → exercises
-muscle_groups → exercises
-```
+**RLS Policies:**
+- `Users can view own rate limits` (SELECT): `(auth.uid() = user_id)`
+- `Users can insert own rate limits` (INSERT): `(auth.uid() = user_id)`
+- `Users can update own rate limits` (UPDATE): `(auth.uid() = user_id)`
 
-### Workout Structure
-```
-workout_templates → template_exercises
-workouts → workout_exercises → workout_sets
-```
+**Foreign Keys:** None
 
-### Gym Integration
-```
-gyms → gym_equipment → exercises
-users → user_gym_memberships → gyms
-```
+---
 
-## Security Model
-- Row Level Security (RLS) enabled on all user-data tables
-- Role-based access control for admin functions
-- User isolation for personal data
-- Public read access for reference data (exercises, equipment, etc.)
+### workouts
+**Description**: Main workout sessions table
 
-## Data Types Used
-- `uuid` - Primary keys and foreign keys
-- `text` - Strings and descriptions
-- `jsonb` - Flexible data structures
-- `numeric` - Weights, measurements
-- `integer` - Counts, indices
-- `boolean` - Flags and settings
-- `timestamp with time zone` - Temporal data
-- `USER-DEFINED` enums - Controlled vocabularies
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| user_id | uuid | No | None | User who owns the workout |
+| template_id | uuid | Yes | None | Template used (if any) |
+| title | text | Yes | None | Workout title |
+| started_at | timestamp with time zone | No | now() | When workout started |
+| ended_at | timestamp with time zone | Yes | None | When workout ended |
+| notes | text | Yes | None | Workout notes |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
+| updated_at | timestamp with time zone | No | now() | Last update timestamp |
 
-## Internationalization Support
-Most reference tables have corresponding `_translations` tables supporting multiple languages:
-- `exercises_translations`
-- `equipment_translations`
-- `muscle_groups_translations`
-- `movements_translations`
-- etc.
+**RLS Policies:**
+- `Users can manage their own workouts` (ALL): `(auth.uid() = user_id)`
 
-This schema supports a comprehensive fitness tracking application with social features, coaching capabilities, and extensive customization options.
+**Foreign Keys:**
+- `user_id` references `auth.users(id)` ON DELETE CASCADE
+- `template_id` references `workout_templates(id)` ON DELETE SET NULL
+
+---
+
+### workout_exercises
+**Description**: Exercises within a workout session
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| workout_id | uuid | No | None | Parent workout |
+| exercise_id | uuid | No | None | Exercise being performed |
+| order_index | integer | No | 1 | Order in workout |
+| target_sets | integer | Yes | 3 | Target number of sets |
+| target_reps | integer | Yes | 8 | Target reps per set |
+| target_weight_kg | numeric | Yes | None | Target weight in kg |
+| weight_unit | text | Yes | 'kg' | Weight unit |
+| notes | text | Yes | None | Exercise-specific notes |
+| grip_id | uuid | Yes | None | Grip used |
+| warmup_plan | jsonb | Yes | None | Warmup plan for exercise |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
+| updated_at | timestamp with time zone | No | now() | Last update timestamp |
+
+**RLS Policies:**
+- `Users can manage exercises in their workouts` (ALL): `EXISTS (SELECT 1 FROM workouts w WHERE w.id = workout_id AND w.user_id = auth.uid())`
+
+**Foreign Keys:**
+- `workout_id` references `workouts(id)` ON DELETE CASCADE
+- `exercise_id` references `exercises(id)` ON DELETE CASCADE
+- `grip_id` references `grips(id)` ON DELETE SET NULL
+
+---
+
+### workout_sets
+**Description**: Individual sets within workout exercises
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| workout_exercise_id | uuid | No | None | Parent workout exercise |
+| set_index | integer | No | 1 | Set number |
+| set_kind | set_type | Yes | 'normal' | Type of set (normal, warmup, drop, amrap) |
+| target_weight_kg | numeric | Yes | None | Target weight |
+| target_reps | integer | Yes | None | Target reps |
+| weight_kg | numeric | Yes | None | Actual weight performed |
+| reps | integer | Yes | None | Actual reps performed |
+| is_completed | boolean | No | false | Whether set is completed |
+| completed_at | timestamp with time zone | Yes | None | When set was completed |
+| rest_seconds | integer | Yes | None | Rest time after set |
+| grip_key | text | Yes | None | Grip identifier |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
+| updated_at | timestamp with time zone | No | now() | Last update timestamp |
+
+**RLS Policies:**
+- `Users can manage sets in their workouts` (ALL): `can_mutate_workout_set(workout_exercise_id)`
+
+**Foreign Keys:**
+- `workout_exercise_id` references `workout_exercises(id)` ON DELETE CASCADE
+
+---
+
+### exercises
+**Description**: Exercise database with all available exercises
+
+| Column | Type | Nullable | Default | Description |
+|--------|------|----------|---------|-------------|
+| id | uuid | No | gen_random_uuid() | Primary key |
+| slug | text | No | None | URL-friendly identifier |
+| display_name | text | Yes | None | Human-readable name |
+| custom_display_name | text | Yes | None | User-customized name |
+| name_locale | text | Yes | 'en' | Language for name |
+| name_version | integer | Yes | 1 | Name version number |
+| owner_user_id | uuid | Yes | None | User who created (null = system) |
+| is_public | boolean | No | true | Whether exercise is public |
+| equipment_id | uuid | No | None | Primary equipment required |
+| equipment_ref_id | uuid | Yes | None | Equipment reference |
+| movement_id | uuid | Yes | None | Movement pattern |
+| movement_pattern_id | uuid | Yes | None | Movement pattern category |
+| body_part_id | uuid | Yes | None | Primary body part |
+| primary_muscle_id | uuid | Yes | None | Primary muscle worked |
+| secondary_muscle_group_ids | uuid[] | Yes | None | Secondary muscles |
+| exercise_skill_level | exercise_skill_level | Yes | 'medium' | Difficulty level |
+| complexity_score | smallint | Yes | 3 | Complexity rating (1-5) |
+| popularity_rank | integer | Yes | None | Popularity ranking |
+| is_unilateral | boolean | Yes | false | Whether exercise is single-limb |
+| is_bar_loaded | boolean | No | false | Whether uses loaded barbell |
+| default_bar_weight | numeric | Yes | None | Default bar weight |
+| default_bar_type_id | uuid | Yes | None | Default bar type |
+| load_type | load_type | Yes | None | How weight is loaded |
+| loading_hint | text | Yes | None | Loading instructions |
+| allows_grips | boolean | Yes | true | Whether grips can be varied |
+| default_grip_ids | uuid[] | Yes | '{}' | Default grip options |
+| tags | text[] | Yes | '{}' | Exercise tags |
+| contraindications | jsonb | Yes | '[]' | Medical contraindications |
+| capability_schema | jsonb | Yes | '{}' | Exercise capabilities |
+| attribute_values_json | jsonb | No | '{}' | Exercise attributes |
+| configured | boolean | No | false | Whether fully configured |
+| source_url | text | Yes | None | Original source URL |
+| image_url | text | Yes | None | Exercise image URL |
+| thumbnail_url | text | Yes | None | Thumbnail image URL |
+| display_name_tsv | tsvector | Yes | None | Text search vector |
+| created_at | timestamp with time zone | No | now() | Creation timestamp |
+
+**RLS Policies:**
+- `exercises_select_public_or_owned` (SELECT): `((is_public = true) OR (owner_user_id = auth.uid()))`
+- `exercises_insert_authenticated` (INSERT): `((auth.uid() IS NOT NULL) AND ((owner_user_id = auth.uid()) OR (owner_user_id IS NULL)))`
+- `exercises_update_own_or_system` (UPDATE): `((owner_user_id = auth.uid()) OR ((owner_user_id IS NULL) AND (auth.uid() IS NOT NULL)))`
+- `exercises_delete_own` (DELETE): `(owner_user_id = auth.uid())`
+
+**Foreign Keys:**
+- `equipment_id` references `equipment(id)`
+- `primary_muscle_id` references `muscle_groups(id)`
+- `body_part_id` references `body_parts(id)`
+
+---
+
+## Enums
+
+### app_role
+Values: `'admin'`, `'moderator'`, `'user'`
+
+### exercise_skill_level  
+Values: `'beginner'`, `'easy'`, `'medium'`, `'hard'`, `'expert'`
+
+### load_type
+Values: `'dual_load'`, `'single_load'`, `'stack'`, `'none'`
+
+### load_medium
+Values: `'plate'`, `'stack'`, `'body'`, `'other'`
+
+### set_type
+Values: `'warmup'`, `'normal'`, `'drop'`, `'amrap'`, `'top_set'`, `'backoff'`
+
+### weight_unit
+Values: `'kg'`, `'lbs'`
+
+---
+
+## Key Database Features
+
+### Row Level Security (RLS)
+All user-related tables implement RLS to ensure data isolation:
+- Users can only access their own workouts, sets, and user-created exercises
+- System exercises are public but user exercises are private
+- Admin functions are protected by role checks
+
+### Triggers and Functions
+- Automatic timestamp updates via `update_updated_at_column()`
+- Set index auto-assignment via `assign_next_set_index()`
+- Warmup calculation after set completion via `trg_after_set_logged()`
+- Exercise name generation via `exercises_autoname_tg()`
+
+### Full-Text Search
+- Exercise names are indexed with `tsvector` for fast text search
+- Supports multiple languages and custom names
+
+### Data Integrity
+- Comprehensive foreign key relationships maintain referential integrity
+- Enum types ensure valid values for categorical data
+- NOT NULL constraints prevent incomplete records
