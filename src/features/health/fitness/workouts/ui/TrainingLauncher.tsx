@@ -59,7 +59,7 @@ const TrainingLauncher: React.FC = () => {
       });
 
       // Navigate to the workout session
-      navigate(`/app/workouts/${currentWorkoutId}`);
+      navigate(`/fitness/workout/${currentWorkoutId}`);
     } catch (error) {
       console.error('🚀 TrainingLauncher: Failed to start workout:', error);
       toast({

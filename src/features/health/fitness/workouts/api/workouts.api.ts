@@ -146,14 +146,18 @@ export const useStartWorkout = () => {
     mutationFn: async (options: { templateId?: string } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
-      // start_workout RPC now handles readiness automatically from latest pre_workout_checkins
+      // start_workout RPC now returns a table with workout_id
       const { data, error } = await supabase.rpc('start_workout', {
         p_template_id: options.templateId || null
       });
       
       if (error) throw error;
       
-      return { workoutId: data };
+      // data is an array with one element containing { workout_id }
+      const workoutId = data && data.length > 0 && data[0] ? data[0] : null;
+      if (!workoutId) throw new Error('Failed to create workout');
+      
+      return { workoutId };
     },
     onSuccess: () => {
       if (user?.id) {

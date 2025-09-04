@@ -38,7 +38,7 @@ import { generateQuickWarmup } from "@/features/health/fitness/utils/warmupGener
 // import WorkoutClock from "@/features/health/fitness/components/WorkoutClock";
 import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestions";
 import { useRestTimer } from "@/hooks/useRestTimer";
-import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
+
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";

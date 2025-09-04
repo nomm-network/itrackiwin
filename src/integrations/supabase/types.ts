@@ -8206,7 +8206,7 @@ export type Database = {
               p_sleep_quality: number
               p_soreness: number
               p_stress: number
-              p_supplements?: number
+              p_supplements: number
               p_workout_id: string
             }
         Returns: string
