@@ -2,121 +2,62 @@
 import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 
-export default function WarmupPanel(props: {
-  topKg?: number | null;
-  steps?: { kg:number; reps:number; rest_s:number }[];
-  exerciseId?: string;
-  workoutExerciseId?: string;
-  exerciseName?: string;
+export default function WarmupPanel({
+  workoutExerciseId,
+  steps = [],
+  topWeightKg,
+  compact = false,
+  exerciseName,
+  onFeedback
+}: {
+  workoutExerciseId: string;
+  steps?: { kg: number; reps: number; rest_s: number }[];
   topWeightKg?: number | null;
-  warmupSteps?: any;
   compact?: boolean;
-  onWarmupRecalculated?: () => Promise<void>;
+  exerciseName?: string;
+  onFeedback?: (v: "low" | "ok" | "high") => void;
 }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [showTools, setShowTools] = useState(false);
-  
-  // Handle legacy props
-  const topWeight = props.topKg ?? props.topWeightKg ?? 60;
-  const steps = props.steps ?? props.warmupSteps ?? [];
-  
-  const handleFeedback = async (value: 'too_little' | 'excellent' | 'too_much') => {
-    if (!props.workoutExerciseId) return;
-    
-    try {
-      // Save feedback to database
-      await supabase.from('workout_exercise_feedback').upsert({
-        workout_exercise_id: props.workoutExerciseId,
-        warmup_rating: value,
-      }, { onConflict: 'workout_exercise_id' });
-      
-      // Recalculate warmup if not excellent
-      if (value !== 'excellent' && props.workoutExerciseId) {
-        await supabase.rpc('recalc_warmup_from_last_set', {
-          p_workout_exercise_id: props.workoutExerciseId
-        });
-      }
-      
-      // Collapse panel and refresh
-      setIsCollapsed(true);
-      if (props.onWarmupRecalculated) {
-        await props.onWarmupRecalculated();
-      }
-    } catch (error) {
-      console.error('Failed to save warmup feedback:', error);
-    }
+  const [collapsed, setCollapsed] = useState(false);
+
+  const pick = async (v: "low" | "ok" | "high") => {
+    // Optional: await supabase.from("workout_exercise_feedback")
+    //   .upsert({ workout_exercise_id: workoutExerciseId, warmup_feedback: v });
+    setCollapsed(true);
+    onFeedback?.(v);
   };
 
-  if (isCollapsed) {
+  if (collapsed) {
     return (
-      <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-2 mb-2">
-        <div className="flex items-center justify-between">
-          <div className="text-sm">Warm-up completed ✅</div>
-          <button 
-            onClick={() => setIsCollapsed(false)}
-            className="text-xs opacity-70 hover:opacity-100"
-          >
-            Show
-          </button>
-        </div>
+      <div className="mt-2 flex items-center gap-2 text-xs opacity-80">
+        <button onClick={() => setCollapsed(false)} className="hover:underline">
+          Show warm-up
+        </button>
+        <span>•</span>
+        <span>Target: {topWeightKg ?? "—"} kg</span>
       </div>
     );
   }
-  
+
   return (
-    <div className="rounded-xl border border-neutral-800 bg-neutral-900/50 p-4 mb-6">
-      <div className="flex items-center justify-between">
-        <div className="text-lg font-semibold">Warm-up 🏋️‍♀️</div>
-        <button 
-          onClick={() => setShowTools(!showTools)}
-          className="text-xs opacity-70 hover:opacity-100"
-        >
-          Tools
-        </button>
-      </div>
-      
-      <div className="text-sm opacity-80 mt-1">
-        Strategy: ramped • Top: {topWeight}kg • Auto-adjusts from feedback
-      </div>
-
-      {showTools && (
-        <div className="mt-2 flex gap-2">
-          <button className="text-xs bg-neutral-800 px-2 py-1 rounded">🖐️ Grips</button>
-          <button 
-            onClick={() => setIsCollapsed(true)}
-            className="text-xs bg-neutral-800 px-2 py-1 rounded"
-          >
-            🔥 Hide Warm-up
-          </button>
-        </div>
-      )}
-
-      <div className="mt-3 rounded-lg bg-neutral-950/60 p-3">
-        {steps.map((s: any, idx: number) => (
-          <div key={idx} className="flex items-center justify-between py-1">
-            <div>{s.kg}kg × {s.reps} reps</div>
-            <div className="opacity-70">{s.rest_s}s rest</div>
+    <div className={`rounded border p-2 ${compact ? "text-xs space-y-1" : "space-y-2"}`}>
+      <div className="font-medium">Warm-up</div>
+      <div className={`grid ${compact ? "gap-1" : "gap-2"}`}>
+        {steps.map((s, i) => (
+          <div key={i} className="flex justify-between">
+            <span>{s.kg} kg × {s.reps}</span>
+            <span className="opacity-70">{s.rest_s}s</span>
           </div>
         ))}
+        {!steps.length && <div className="opacity-60">No warm-up steps</div>}
       </div>
-
-      <div className="mt-3 flex gap-2">
-        <button 
-          onClick={() => handleFeedback('too_little')}
-          className="rounded-lg bg-neutral-900 px-3 py-2 hover:bg-neutral-800"
-        >
-          🥶 Too little
+      <div className="flex gap-1">
+        <button className="btn btn-xs px-2 py-1 text-xs rounded bg-blue-100 hover:bg-blue-200" onClick={() => pick("low")}>
+          🧊 Too little
         </button>
-        <button 
-          onClick={() => handleFeedback('excellent')}
-          className="rounded-lg bg-neutral-900 px-3 py-2 hover:bg-neutral-800"
-        >
+        <button className="btn btn-xs px-2 py-1 text-xs rounded bg-green-100 hover:bg-green-200" onClick={() => pick("ok")}>
           🔥 Excellent
         </button>
-        <button 
-          onClick={() => handleFeedback('too_much')}
-          className="rounded-lg bg-neutral-900 px-3 py-2 hover:bg-neutral-800"
-        >
+        <button className="btn btn-xs px-2 py-1 text-xs rounded bg-red-100 hover:bg-red-200" onClick={() => pick("high")}>
           🥵 Too much
         </button>
       </div>

@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import WorkoutHeader from '../components/WorkoutHeader';
 import WarmupPanel from '../components/WarmupPanel';
 import SetList from '../components/SetList';
+import WorkoutExerciseCard from '../components/WorkoutExerciseCard';
 import { DebugPanel } from '../components/DebugPanel';
 
 type UUID = string;
@@ -32,6 +33,7 @@ type WorkoutExercise = {
   weight_unit: 'kg' | 'lb' | null;
   attribute_values_json: any | null; // { warmup: [...] } when present
   readiness_adjusted_from: UUID | null;
+  workout_sets?: WorkoutSet[]; // Add sets to the type
   exercise: {
     id: UUID;
     display_name: string | null;
@@ -55,6 +57,7 @@ type WorkoutSet = {
 
 const WorkoutPage: React.FC = () => {
   const { workoutId } = useParams<{ workoutId: string }>();
+  if (!workoutId) return <div>❌ Missing workoutId</div>;
   const navigate = useNavigate();
 
   const [workout, setWorkout] = useState<Workout | null>(null);
@@ -114,17 +117,20 @@ const WorkoutPage: React.FC = () => {
         return;
       }
 
-      // 3) extract sets from nested workout_exercises data
+      // 3) extract sets from nested workout_exercises data and attach to exercises
       let setsMap: Record<string, WorkoutSet[]> = {};
-      (wes ?? []).forEach((we: any) => {
+      const exercisesWithSets = (wes ?? []).map((we: any) => {
         if (we.workout_sets && Array.isArray(we.workout_sets)) {
-          setsMap[we.id] = we.workout_sets.sort((a: any, b: any) => a.set_index - b.set_index);
+          const sortedSets = we.workout_sets.sort((a: any, b: any) => a.set_index - b.set_index);
+          setsMap[we.id] = sortedSets;
+          return { ...we, workout_sets: sortedSets };
         }
+        return { ...we, workout_sets: [] };
       });
 
       if (!isCancelled) {
         setWorkout(w as Workout);
-        setExercises((wes ?? []) as unknown as WorkoutExercise[]);
+        setExercises(exercisesWithSets as unknown as WorkoutExercise[]);
         setSetsByExercise(setsMap);
         setLoading(false);
       }
@@ -233,47 +239,34 @@ const WorkoutPage: React.FC = () => {
 
       {/* Exercises list */}
       <div className="space-y-6">
-        {(() => {
-          console.log('🔍 DEBUG: About to render exercises', { 
-            exercisesLength: exercises?.length, 
-            exercises: exercises,
-            firstExercise: exercises?.[0] 
-          });
-          return exercises.map((we) => {
-            console.log('🔍 DEBUG: Rendering exercise', { we, exerciseData: we.exercise });
-            const warmupSteps =
-              we.attribute_values_json?.warmup && Array.isArray(we.attribute_values_json.warmup)
-                ? we.attribute_values_json.warmup
-                : null;
-
-            // compact warmup block + sets below (old UI feel)
-            return (
-              <div key={we.id} className="rounded-lg border bg-card">
-                {/* Warmup (compact) */}
-                <WarmupPanel
-                  exerciseId={we.exercise_id}
-                  workoutExerciseId={we.id}
-                  exerciseName={we.exercise.display_name || we.exercise.slug}
-                  topWeightKg={we.target_weight_kg ?? null}
-                  warmupSteps={warmupSteps}
-                  // Ask WarmupPanel to be compact like old UI
-                  compact
-                  onWarmupRecalculated={() => refreshOneExercise(we.id)}
-                />
-
-                {/* Working sets */}
-                <SetList
-                  workoutExerciseId={we.id}
-                  targetReps={we.target_reps ?? undefined}
-                  targetWeightKg={we.target_weight_kg ?? undefined}
-                  unit={we.weight_unit ?? 'kg'}
-                  sets={setsByExercise[we.id] ?? []}
-                  onSetsChanged={() => refreshSetsFor(we.id)}
-                />
-              </div>
-            );
-          });
-        })()}
+        {exercises?.map(we => {
+          const warmup = we.attribute_values_json?.warmup ?? null;
+          return (
+            <WorkoutExerciseCard
+              key={we.id}
+              title={we.exercise?.display_name ?? "—"}
+              totalSets={we.workout_sets?.length ?? 0}
+              targetReps={we.target_reps ?? undefined}
+              targetWeightKg={we.target_weight_kg ?? undefined}
+              unit={we.weight_unit ?? "kg"}
+            >
+              <WarmupPanel
+                workoutExerciseId={we.id}
+                exerciseName={we.exercise?.display_name ?? ""}
+                topWeightKg={we.target_weight_kg ?? null}
+                steps={Array.isArray(warmup) ? warmup : undefined}
+                compact
+              />
+              <SetList
+                workoutExerciseId={we.id}
+                sets={we.workout_sets ?? []}
+                targetReps={we.target_reps ?? undefined}
+                targetWeightKg={we.target_weight_kg ?? undefined}
+                unit={we.weight_unit ?? "kg"}
+              />
+            </WorkoutExerciseCard>
+          );
+        })}
       </div>
 
       {/* Debug Panel */}

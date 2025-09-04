@@ -18,15 +18,11 @@ const WorkoutExerciseList: React.FC<Props> = ({ workoutId }) => {
       {exercises.map((exercise) => (
         <WorkoutExerciseCard 
           key={exercise.id} 
-          exercise={exercise}
-          // Add handlers for set management when ready
-          onAddSet={(exerciseId) => {
-            console.log('Add set for exercise:', exerciseId);
-          }}
-          onCompleteSet={(setId, data) => {
-            console.log('Complete set:', setId, data);
-          }}
-        />
+          title={exercise.display_name ?? "—"}
+          totalSets={0}
+        >
+          <div>Exercise: {exercise.display_name}</div>
+        </WorkoutExerciseCard>
       ))}
     </div>
   );

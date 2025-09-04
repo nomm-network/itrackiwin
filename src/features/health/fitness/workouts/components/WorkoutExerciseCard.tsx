@@ -4,34 +4,23 @@ import WarmupBlock from "./WarmupBlock";
 import WorkoutSetsBlock from "./WorkoutSetsBlock";
 
 interface WorkoutExerciseCardProps {
-  exercise: {
-    id: string;
-    display_name: string;
-    attribute_values_json?: any;
-    sets?: any[];
-  };
-  onAddSet?: (exerciseId: string) => void;
-  onCompleteSet?: (setId: string, data: any) => void;
+  title: string;
+  totalSets?: number;
+  children: React.ReactNode;
+  targetReps?: number;
+  targetWeightKg?: number;
+  unit?: string;
 }
 
-const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({ exercise, onAddSet, onCompleteSet }) => {
-  const warmupSteps = exercise.attribute_values_json?.warmup ?? [];
-
+const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({ title, totalSets, children }) => {
   return (
-    <div className="border rounded-lg p-4 mb-4 shadow-sm bg-white">
-      {/* Exercise name */}
-      <h2 className="font-semibold text-lg mb-2">{exercise.display_name}</h2>
-
-      {/* Warmup area */}
-      {warmupSteps && warmupSteps.length > 0 && (
-        <div className="mb-3">
-          <WarmupBlock steps={warmupSteps} />
-        </div>
-      )}
-
-      {/* Sets area */}
-      <WorkoutSetsBlock sets={exercise.sets || []} onComplete={(setId) => onCompleteSet?.(setId, {})} onEdit={(setId) => console.log('Edit set:', setId)} />
-    </div>
+    <section className="card rounded-lg border bg-card">
+      <header className="card-header p-4 border-b">
+        <h2 className="text-base font-semibold">{title}</h2>
+        <span className="text-xs opacity-70">{totalSets ?? 0} sets</span>
+      </header>
+      <div className="card-body p-4">{children}</div>
+    </section>
   );
 };
 

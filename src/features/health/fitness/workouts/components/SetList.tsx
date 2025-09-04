@@ -5,77 +5,24 @@ import { supabase } from '@/integrations/supabase/client';
 import WorkoutSetsBlock from './WorkoutSetsBlock';
 
 interface SetListProps {
-  exercises?: any[];
-  onUpdateSet?: (setId: string, data: any) => void;
+  sets?: any[];
+  unit?: "kg" | "lb";
   workoutExerciseId?: string;
   targetReps?: number;
   targetWeightKg?: number;
-  unit?: "kg" | "lb";
-  sets?: any[];
   onSetsChanged?: () => Promise<void>;
 }
 
-const SetList: React.FC<SetListProps> = ({ exercises, onUpdateSet, sets, workoutExerciseId, targetReps, targetWeightKg, unit, onSetsChanged }) => {
+const SetList: React.FC<SetListProps> = ({ sets = [], unit = "kg" }) => {
+  if (!sets.length) return <div className="text-xs opacity-60">No sets yet</div>;
   
-  const handleAddFirstSet = async () => {
-    if (!workoutExerciseId) return;
-    
-    try {
-      const { error } = await supabase.rpc('log_workout_set', {
-        p_workout_exercise_id: workoutExerciseId,
-        p_set_index: 1,
-        p_metrics: {
-          weight: targetWeightKg || 60,
-          reps: targetReps || 10
-        }
-      });
-      
-      if (!error && onSetsChanged) {
-        await onSetsChanged();
-      }
-    } catch (err) {
-      console.error('Failed to add first set:', err);
-    }
-  };
-
-  // Handle direct sets prop
-  if (sets !== undefined && workoutExerciseId) {
-    // If no sets, show "Add Set 1" button
-    if (!sets.length) {
-      return (
-        <div className="p-4">
-          <Button onClick={handleAddFirstSet} className="w-full">
-            + Add Set 1
-          </Button>
-        </div>
-      );
-    }
-    
-    return (
-      <div>
-        <WorkoutSetsBlock
-          sets={sets}
-          onComplete={(setId) => onUpdateSet?.(setId, {})}
-          onEdit={(setId) => onUpdateSet?.(setId, {})}
-        />
-      </div>
-    );
-  }
-
-  // Handle exercises array
-  if (!exercises || exercises.length === 0) {
-    return null;
-  }
-
   return (
-    <div>
-      {exercises.map((exercise) => (
-        <WorkoutSetsBlock
-          key={exercise.id}
-          sets={exercise.sets}
-          onComplete={(setId) => onUpdateSet(setId, {})}
-          onEdit={(setId) => onUpdateSet(setId, {})}
-        />
+    <div className="mt-2 space-y-1">
+      {sets.sort((a, b) => a.set_index - b.set_index).map(s => (
+        <div key={s.id} className="flex justify-between text-sm">
+          <span>Set {s.set_index}</span>
+          <span>{s.reps ?? "—"} reps @ {s.weight_kg ?? "—"} {unit}</span>
+        </div>
       ))}
     </div>
   );

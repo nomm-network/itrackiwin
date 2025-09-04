@@ -29,7 +29,13 @@ export default function ExerciseCard(props: {
 
   return (
     <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 mb-8">
-      {props.showWarmup && <WarmupPanel topKg={props.target.kg} steps={warmupSteps} />}
+      {props.showWarmup && (
+        <WarmupPanel 
+          workoutExerciseId={props.exercise.id || ""} 
+          topWeightKg={props.target.kg} 
+          steps={warmupSteps} 
+        />
+      )}
 
       <div className="flex items-center justify-between mb-2">
         <div className="text-xl font-semibold">{displayName}</div>
