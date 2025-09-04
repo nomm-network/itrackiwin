@@ -35,7 +35,7 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
   const handleLogSet = async () => {
     setIsLogging(true);
     try {
-      const { error } = await supabase.rpc('log_workout_set', {
+      const { error } = await supabase.rpc('log_simple_workout_set', {
         p_workout_exercise_id: workoutExerciseId,
         p_set_index: setIndex,
         p_weight_kg: weight,

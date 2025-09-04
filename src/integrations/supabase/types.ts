@@ -7872,6 +7872,16 @@ export type Database = {
         }
         Returns: string
       }
+      log_simple_workout_set: {
+        Args: {
+          p_reps: number
+          p_set_index: number
+          p_set_kind?: string
+          p_weight_kg: number
+          p_workout_exercise_id: string
+        }
+        Returns: string
+      }
       log_workout_set: {
         Args: {
           p_grip_ids?: string[]
