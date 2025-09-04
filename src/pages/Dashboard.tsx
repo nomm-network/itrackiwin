@@ -25,6 +25,8 @@ const Dashboard: React.FC = () => {
     testWorkoutId: string | null;
     normalWorkoutError: string | null;
     normalWorkoutId: string | null;
+    rawData: any;
+    userInfo: any;
     error: string | null;
   }>({
     readinessScore: null,
@@ -32,6 +34,8 @@ const Dashboard: React.FC = () => {
     testWorkoutId: null,
     normalWorkoutError: null,
     normalWorkoutId: null,
+    rawData: null,
+    userInfo: null,
     error: null
   });
   const { checkAndRedirect } = useFitnessProfileCheck();
@@ -130,6 +134,17 @@ const Dashboard: React.FC = () => {
         testWorkoutId,
         normalWorkoutError,
         normalWorkoutId,
+        rawData: {
+          scoreData,
+          multiplierData,
+          testWorkoutId,
+          normalWorkoutId,
+          templateData: templateData?.id
+        },
+        userInfo: {
+          userId: user.id,
+          email: user.email
+        },
         error: templateData ? null : 'No templates found for test'
       });
       
@@ -380,6 +395,25 @@ const Dashboard: React.FC = () => {
                       {debugInfo.normalWorkoutId || 'None'}
                     </div>
                   </div>
+                </div>
+              </div>
+            )}
+            
+            {debugInfo.rawData && (
+              <div className="p-3 bg-blue-50 border border-blue-200 rounded">
+                <div className="font-medium text-blue-800 mb-2">Raw Data:</div>
+                <pre className="text-xs text-blue-700 overflow-auto whitespace-pre-wrap">
+                  {JSON.stringify(debugInfo.rawData, null, 2)}
+                </pre>
+              </div>
+            )}
+            
+            {debugInfo.userInfo && (
+              <div className="p-3 bg-green-50 border border-green-200 rounded">
+                <div className="font-medium text-green-800 mb-2">User Info:</div>
+                <div className="text-sm text-green-700">
+                  <div>User ID: {debugInfo.userInfo.userId}</div>
+                  <div>Email: {debugInfo.userInfo.email}</div>
                 </div>
               </div>
             )}
