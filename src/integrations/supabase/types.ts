@@ -8132,6 +8132,19 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: Json
       }
+      save_readiness_checkin: {
+        Args: {
+          p_alcohol: boolean
+          p_energy: number
+          p_illness: boolean
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+          p_supplements: Json
+        }
+        Returns: string
+      }
       set_limit: {
         Args: { "": number }
         Returns: number
