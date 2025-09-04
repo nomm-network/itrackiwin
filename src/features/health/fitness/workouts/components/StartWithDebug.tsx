@@ -56,7 +56,7 @@ export const StartWithDebug: React.FC<Props> = ({ templateId, children }) => {
     }
 
     // Success: navigate to the workout
-    navigate(`/fitness/workout/${data}`);
+    navigate(`/app/workouts/${data}`);
   };
 
   return (
