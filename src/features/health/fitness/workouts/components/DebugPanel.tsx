@@ -16,7 +16,7 @@ export function DebugPanel({
   setsByExercise?: Record<string, any[]>;
   lastError?: any;
 }) {
-  if (process.env.NODE_ENV === 'production') return null;
+  // Always show debug panel
   
   const sx: React.CSSProperties = {
     position: 'fixed',
