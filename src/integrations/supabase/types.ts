@@ -6659,81 +6659,45 @@ export type Database = {
       }
       v_latest_readiness: {
         Row: {
-          alcohol: boolean | null
+          alcohol: number | null
           created_at: string | null
           energy: number | null
-          illness: boolean | null
+          illness: number | null
+          readiness_score: number | null
           sleep_hours: number | null
           sleep_quality: number | null
           soreness: number | null
           stress: number | null
           supplements: number | null
           user_id: string | null
-          workout_id: string | null
         }
         Insert: {
           alcohol?: never
           created_at?: string | null
           energy?: never
           illness?: never
+          readiness_score?: number | null
           sleep_hours?: never
           sleep_quality?: never
           soreness?: never
           stress?: never
           supplements?: never
           user_id?: string | null
-          workout_id?: string | null
         }
         Update: {
           alcohol?: never
           created_at?: string | null
           energy?: never
           illness?: never
+          readiness_score?: number | null
           sleep_hours?: never
           sleep_quality?: never
           soreness?: never
           stress?: never
           supplements?: never
           user_id?: string | null
-          workout_id?: string | null
         }
-        Relationships: [
-          {
-            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: true
-            referencedRelation: "v_current_workout"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: true
-            referencedRelation: "v_last_working_set"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: true
-            referencedRelation: "v_pre_checkin_exists"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: true
-            referencedRelation: "v_workout_has_checkin"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: true
-            referencedRelation: "workouts"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       v_muscle_groups_with_translations: {
         Row: {
