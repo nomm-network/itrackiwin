@@ -30,6 +30,38 @@ export function DebugPanel({
         <div>exercise keys: {exercises ? Object.keys(exercises[0] || {}).join(', ') : '—'}</div>
         <div>exercise.exercise keys: {firstExercise?.exercise ? Object.keys(firstExercise.exercise).join(', ') : '—'}</div>
         
+        {/* SQL QUERIES EXECUTED */}
+        <div style={{marginTop: '10px', backgroundColor: 'rgba(0,0,0,0.3)', padding: '8px', borderRadius: '4px'}}>
+          <b style={{color: '#ffff00'}}>🔍 SQL QUERIES EXECUTED:</b>
+          <div style={{marginTop: '5px'}}>
+            <b>Query 1 - Workout:</b>
+            <pre style={{fontSize: '10px', color: '#00ff88', whiteSpace: 'pre-wrap', marginLeft: '10px'}}>
+{`SELECT 
+  id,user_id,template_id,started_at,ended_at,readiness_score,title,
+  workout_templates!inner(name)
+FROM workouts 
+WHERE id = '${workoutId}'`}
+            </pre>
+          </div>
+          <div style={{marginTop: '5px'}}>
+            <b>Query 2 - Workout Exercises + Sets:</b>
+            <pre style={{fontSize: '10px', color: '#00ff88', whiteSpace: 'pre-wrap', marginLeft: '10px'}}>
+{`SELECT 
+  id, workout_id, exercise_id, order_index,
+  target_reps, target_weight_kg, weight_unit, grip_key,
+  attribute_values_json, readiness_adjusted_from,
+  exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
+  workout_sets!inner(
+    id, workout_exercise_id, set_index, set_kind, 
+    reps, weight_kg, is_completed, rest_seconds
+  )
+FROM workout_exercises 
+WHERE workout_id = '${workoutId}'
+ORDER BY order_index ASC, set_index ASC (on workout_sets)`}
+            </pre>
+          </div>
+        </div>
+        
         {/* ALL EXERCISE NAMES */}
         <div style={{marginTop: '10px'}}>
           <b>ALL EXERCISES:</b>
