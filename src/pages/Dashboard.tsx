@@ -362,21 +362,21 @@ const Dashboard: React.FC = () => {
                   <div className="space-y-2">
                     <div className="font-medium text-gray-700">Readiness Score:</div>
                     <div className="p-2 bg-white rounded border">
-                      {debugInfo.readinessScore ?? 'N/A'} / 100
+                      {debugInfo.readinessScore ?? debugInfo.rawData?.scoreData ?? 'N/A'} / 100
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="font-medium text-gray-700">Multiplier:</div>
                     <div className="p-2 bg-white rounded border">
-                      {debugInfo.multiplier ?? 'N/A'}x
+                      {debugInfo.multiplier ?? debugInfo.rawData?.multiplierData ?? 'N/A'}x
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="font-medium text-gray-700">Test w/ Template:</div>
                     <div className="p-2 bg-white rounded border">
-                      {debugInfo.testWorkoutId ? '✅ Created' : '❌ Failed'}
+                      {(debugInfo.testWorkoutId || debugInfo.rawData?.testWorkoutId) ? '✅ Created' : '❌ Failed'}
                     </div>
                   </div>
                 </div>
@@ -385,16 +385,38 @@ const Dashboard: React.FC = () => {
                   <div className="space-y-2">
                     <div className="font-medium text-gray-700">Normal Workout (no template):</div>
                     <div className="p-2 bg-white rounded border">
-                      {debugInfo.normalWorkoutId ? '✅ Created' : '❌ Failed'}
+                      {(debugInfo.normalWorkoutId || debugInfo.rawData?.normalWorkoutId) ? '✅ Created' : '❌ Failed'}
                     </div>
                   </div>
                   
                   <div className="space-y-2">
                     <div className="font-medium text-gray-700">Normal Workout ID:</div>
                     <div className="p-2 bg-white rounded border text-xs">
-                      {debugInfo.normalWorkoutId || 'None'}
+                      {debugInfo.normalWorkoutId || debugInfo.rawData?.normalWorkoutId || 'None'}
                     </div>
                   </div>
+                </div>
+                
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <div className="font-medium text-yellow-800 mb-2">SQL Commands to Test:</div>
+                  <pre className="text-xs text-yellow-700 overflow-auto whitespace-pre-wrap">{`-- Test readiness score calculation
+SELECT compute_readiness_for_user('${debugInfo.userInfo?.userId}', now());
+
+-- Test readiness multiplier
+SELECT readiness_multiplier(69);
+
+-- Test workout creation with template
+SELECT start_workout('${debugInfo.rawData?.templateData}');
+
+-- Test workout creation without template
+SELECT start_workout(null);
+
+-- Check if workouts were created
+SELECT id, user_id, template_id, started_at, readiness_score 
+FROM workouts 
+WHERE user_id = '${debugInfo.userInfo?.userId}' 
+ORDER BY started_at DESC 
+LIMIT 5;`}</pre>
                 </div>
               </div>
             )}
