@@ -93,21 +93,12 @@ const WorkoutPage: React.FC = () => {
         return;
       }
 
-      // 2) workout_exercises + exercise info + grip_key + sets
+      // 2) workout_exercises + sets (fetch separately to avoid relationship issues)
       const { data: wes, error: weErr } = await supabase
         .from('workout_exercises')
-        .select(`
-          id, workout_id, exercise_id, order_index,
-          target_reps, target_weight_kg, weight_unit, grip_key,
-          attribute_values_json, readiness_adjusted_from,
-          workout_sets(
-            id, workout_exercise_id, set_index, set_kind, 
-            reps, weight_kg, is_completed, rest_seconds
-          )
-        `)
+        .select('*')
         .eq('workout_id', workoutId)
-        .order('order_index', { ascending: true })
-        .order('set_index', { ascending: true, foreignTable: 'workout_sets' });
+        .order('order_index', { ascending: true });
 
       if (weErr) {
         if (!isCancelled) {
@@ -117,45 +108,65 @@ const WorkoutPage: React.FC = () => {
         return;
       }
 
-      // 3) Now fetch exercise details for each workout exercise
-      let setsMap: Record<string, WorkoutSet[]> = {};
+      // 3) Fetch workout sets separately
+      let allSets: any[] = [];
+      if (wes && wes.length > 0) {
+        const workoutExerciseIds = wes.map((we: any) => we.id);
+        const { data: setsData, error: setsErr } = await supabase
+          .from('workout_sets')
+          .select('*')
+          .in('workout_exercise_id', workoutExerciseIds)
+          .order('set_index', { ascending: true });
+
+        if (setsErr) {
+          if (!isCancelled) {
+            setErr(`Failed to load workout sets: ${setsErr.message}`);
+            setLoading(false);
+          }
+          return;
+        }
+        allSets = setsData || [];
+      }
+
+      // 4) Fetch exercise details
+      let exerciseData: any[] = [];
       if (wes && wes.length > 0) {
         const exerciseIds = wes.map((we: any) => we.exercise_id);
-        const { data: exerciseData } = await supabase
+        const { data: exData, error: exErr } = await supabase
           .from('exercises')
           .select('id, display_name, slug, equipment_id, load_type, tags')
           .in('id', exerciseIds);
 
-        // Create exercise map for quick lookup
-        const exerciseMap = (exerciseData || []).reduce((acc: any, ex: any) => {
-          acc[ex.id] = ex;
-          return acc;
-        }, {});
-
-        // Merge exercise data with workout exercises and sets
-        const exercisesWithSets = (wes ?? []).map((we: any) => {
-          const exercise = exerciseMap[we.exercise_id];
-          if (we.workout_sets && Array.isArray(we.workout_sets)) {
-            const sortedSets = we.workout_sets.sort((a: any, b: any) => a.set_index - b.set_index);
-            setsMap[we.id] = sortedSets;
-            return { ...we, exercise, workout_sets: sortedSets };
+        if (exErr) {
+          if (!isCancelled) {
+            setErr(`Failed to load exercises: ${exErr.message}`);
+            setLoading(false);
           }
-          return { ...we, exercise, workout_sets: [] };
-        });
+          return;
+        }
+        exerciseData = exData || [];
+      }
 
-        if (!isCancelled) {
-          setWorkout(w as Workout);
-          setExercises(exercisesWithSets as unknown as WorkoutExercise[]);
-          setSetsByExercise(setsMap);
-          setLoading(false);
-        }
-      } else {
-        if (!isCancelled) {
-          setWorkout(w as Workout);
-          setExercises([]);
-          setSetsByExercise({});
-          setLoading(false);
-        }
+      // 5) Merge everything together
+      let setsMap: Record<string, WorkoutSet[]> = {};
+      const exerciseMap = exerciseData.reduce((acc: any, ex: any) => {
+        acc[ex.id] = ex;
+        return acc;
+      }, {});
+
+      const exercisesWithSets = (wes ?? []).map((we: any) => {
+        const exercise = exerciseMap[we.exercise_id];
+        const sets = allSets.filter((set: any) => set.workout_exercise_id === we.id)
+          .sort((a: any, b: any) => a.set_index - b.set_index);
+        setsMap[we.id] = sets;
+        return { ...we, exercise, workout_sets: sets };
+      });
+
+      if (!isCancelled) {
+        setWorkout(w as Workout);
+        setExercises(exercisesWithSets as unknown as WorkoutExercise[]);
+        setSetsByExercise(setsMap);
+        setLoading(false);
       }
     };
 

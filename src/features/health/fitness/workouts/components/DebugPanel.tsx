@@ -46,18 +46,17 @@ WHERE id = '${workoutId || '—'}'`}
           <div style={{marginTop: '5px'}}>
             <b>Query 2 - Workout Exercises + Sets:</b>
             <pre style={{fontSize: '10px', color: '#00ff88', whiteSpace: 'pre-wrap', marginLeft: '10px'}}>
-{`SELECT 
-  id, workout_id, exercise_id, order_index,
-  target_reps, target_weight_kg, weight_unit, grip_key,
-  attribute_values_json, readiness_adjusted_from,
-  workout_sets(
-    id, workout_exercise_id, set_index, set_kind, 
-    reps, weight_kg, is_completed, rest_seconds
-  )
-FROM workout_exercises 
+{`Query 2a - Workout Exercises:
+SELECT * FROM workout_exercises 
 WHERE workout_id = '${workoutId || '—'}'
 ORDER BY order_index ASC
-+
+
+Query 2b - Workout Sets:  
+SELECT * FROM workout_sets 
+WHERE workout_exercise_id IN (...exercise_ids...)
+ORDER BY set_index ASC
+
+Query 2c - Exercises:
 SELECT id, display_name, slug, equipment_id, load_type, tags
 FROM exercises WHERE id IN (...exercise_ids...)`}
             </pre>
