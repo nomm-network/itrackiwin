@@ -5,8 +5,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { ChevronDown, ChevronUp, Edit2, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { buildWarmupPlan } from "@/features/workouts/warmup/calcWarmup";
-import type { WarmupPlan } from "@/features/workouts/types/warmup";
+import { buildWarmupPlan } from "../workouts/warmup/calcWarmup";
+import type { WarmupPlan } from "../workouts/types/warmup";
 
 interface WarmupPlanPanelProps {
   exerciseId: string;

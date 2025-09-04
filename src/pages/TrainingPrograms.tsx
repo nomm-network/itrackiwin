@@ -1,6 +1,6 @@
 import React from 'react';
 import PageNav from '@/components/PageNav';
-import { TrainingProgramManager } from '@/components/fitness/TrainingProgramManager';
+// import { TrainingProgramManager } from '@/components/fitness/TrainingProgramManager'; // TODO: Migrate this component
 
 const TrainingProgramsPage = () => {
   return (
@@ -15,7 +15,9 @@ const TrainingProgramsPage = () => {
             </p>
           </div>
           
-          <TrainingProgramManager />
+          <div className="p-4 bg-muted rounded-lg text-center">
+            <p>TrainingProgramManager component - Migration in progress</p>
+          </div>
         </div>
       </main>
     </>

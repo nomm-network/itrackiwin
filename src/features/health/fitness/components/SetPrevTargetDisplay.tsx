@@ -1,7 +1,7 @@
 import React from 'react';
 import { Feel, FEEL_OPTIONS } from '../lib/feelToRpe';
 import { parseFeelFromNotes } from '../lib/targetSuggestions';
-import { feelEmoji } from '@/features/workouts/utils/feel';
+import { feelEmoji } from '../workouts/lib/feel';
 import { useTargetCalculation } from '../hooks/useTargetCalculation';
 
 interface SetPrevTargetDisplayProps {

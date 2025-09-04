@@ -26,11 +26,15 @@ export const useStartWorkout = () => ({
     console.log('useStartWorkout stub', data);
     callbacks?.onSuccess?.({ workoutId: 'stub-workout-id' });
   },
+  mutateAsync: async (data: any) => {
+    console.log('useStartWorkout.mutateAsync stub', data);
+    return { workoutId: 'stub-workout-id' };
+  },
   isPending: false,
   isLoading: false
 });
 
-export const useExerciseEstimate = (exerciseId?: string) => ({
+export const useExerciseEstimate = (exerciseId?: string, type?: string) => ({
   data: null,
   isLoading: false
 });

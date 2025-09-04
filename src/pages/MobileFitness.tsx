@@ -11,7 +11,7 @@ import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNextProgramBlock } from "@/hooks/useTrainingPrograms";
-import { useStartWorkout } from "@/features/workouts";
+import { useStartWorkout } from "@/features/health/fitness/workouts/hooks";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
 import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";

@@ -4,12 +4,12 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Clock, Target, Zap, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
-import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
-import { useActiveWorkout } from '@/features/workouts/hooks';
-import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
+// import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal'; // TODO: Migrate this component
+import { useRecentWorkouts } from '../../services/fitness.api';
+import { useActiveWorkout } from '../../workouts/hooks';
+import { useFitnessProfileCheck } from '../../hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout } from '../../workouts/hooks';
 
 const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -130,10 +130,10 @@ const TrainingDashboard: React.FC = () => {
         </CardContent>
       </Card>
       
-      <WorkoutSelectionModal 
+      {/* <WorkoutSelectionModal 
         open={showWorkoutModal}
         onOpenChange={setShowWorkoutModal}
-      />
+      /> */}
     </>
   );
 };

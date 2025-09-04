@@ -10,7 +10,7 @@ import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/re
 import { useUserRole } from '@/hooks/useUserRole';
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
-import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
+// import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal'; // TODO: Migrate this component
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 
 
@@ -220,10 +220,10 @@ const Dashboard: React.FC = () => {
         );
       })()}
       
-      <WorkoutSelectionModal 
+      {/* <WorkoutSelectionModal 
         open={showTemplateDialog}
         onOpenChange={setShowTemplateDialog}
-      />
+      /> */}
     </div>
   );
 };

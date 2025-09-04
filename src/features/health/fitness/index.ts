@@ -49,7 +49,7 @@ export * from './hooks/useRecalibration.hook';
 
 // Warmup policy engine
 export { WarmupPolicyEngine } from './services/warmupPolicyEngine.service';
-export { useWarmupFeedback } from '@/features/workouts/warmup/useWarmupActions';
+export { useWarmupFeedback } from './workouts/warmup/useWarmupActions';
 export { default as WarmupPlanPanel } from './components/WarmupPlanPanel';
 
 export { 

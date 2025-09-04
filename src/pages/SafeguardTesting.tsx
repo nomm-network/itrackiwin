@@ -1,5 +1,5 @@
 import React from 'react';
-import { SafeguardTestingPanel } from '@/components/fitness/SafeguardTestingPanel';
+// import { SafeguardTestingPanel } from '@/components/fitness/SafeguardTestingPanel'; // TODO: Migrate this component
 
 const SafeguardTesting: React.FC = () => {
   return (
@@ -12,7 +12,9 @@ const SafeguardTesting: React.FC = () => {
           </p>
         </div>
         
-        <SafeguardTestingPanel />
+        <div className="p-4 bg-muted rounded-lg text-center">
+          <p>SafeguardTestingPanel component - Migration in progress</p>
+        </div>
       </div>
     </div>
   );

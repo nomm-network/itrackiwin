@@ -10,10 +10,10 @@ import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features
 import { Edit2, Trash2 } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
-import type { WarmupPlan } from "@/features/workouts/types/warmup";
-import { getStepWeight } from "@/features/workouts/warmup/calcWarmup";
-import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
-import { parseFeelFromNotes } from "@/features/workouts/utils/feel";
+import type { WarmupPlan } from "../workouts/types/warmup";
+import { getStepWeight } from "../workouts/warmup/calcWarmup";
+import { rpeToFeel } from "../lib/feelToRpe";
+import { parseFeelFromNotes } from "../workouts/lib/feel";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 
 // Component to properly display exercise name with translation

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ViewportTestSuite from "@/components/mobile/ViewportTestSuite";
-import MobileRestTimer from "@/components/fitness/MobileRestTimer";
+// import MobileRestTimer from "@/components/fitness/MobileRestTimer"; // TODO: Migrate this component
 import SwipeToCompleteSet from "@/components/mobile/SwipeToCompleteSet";
 import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import { Dumbbell, Timer, Smartphone, Target, Check } from "lucide-react";
@@ -55,12 +55,10 @@ const MobilePolishDemo: React.FC = () => {
 
       {/* Mobile Rest Timer Demo */}
       {showRestTimer && (
-        <MobileRestTimer
-          suggestedSeconds={180}
-          onComplete={handleRestComplete}
-          onSkip={() => setShowRestTimer(false)}
-          isActive={true}
-        />
+        <div className="p-4 bg-primary/20 rounded-lg text-center">
+          <p>MobileRestTimer component - Migration in progress</p>
+          <Button onClick={handleRestComplete} className="mt-2">Complete Rest</Button>
+        </div>
       )}
 
       <Tabs defaultValue="responsive" className="w-full">

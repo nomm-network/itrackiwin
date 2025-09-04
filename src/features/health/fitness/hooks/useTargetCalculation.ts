@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLastSet } from './useLastSet';
-import { useExerciseEstimate } from '@/features/workouts/hooks/useExerciseEstimate';
+import { useExerciseEstimate } from '../workouts/hooks/useExerciseEstimate';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 
 interface UseTargetCalculationProps {

@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout } from '@/features/health/fitness/workouts/hooks';
 
 export default function EnhancedPrograms() {
   const [showBuilder, setShowBuilder] = useState(false);

@@ -3,8 +3,8 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
-import { WarmupFeedback as WarmupFeedbackType } from "@/features/workouts/types/warmup-unified";
+import { useWarmupManager } from "../workouts/hooks/useWarmupManager";
+import { WarmupFeedback as WarmupFeedbackType } from "../workouts/types/warmup-unified";
 
 interface WarmupFeedbackProps {
   workoutExerciseId: string;
