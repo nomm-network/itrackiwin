@@ -34,7 +34,7 @@ type WorkoutExercise = {
   attribute_values_json: any | null; // { warmup: [...] } when present
   readiness_adjusted_from: UUID | null;
   workout_sets?: WorkoutSet[]; // Add sets to the type
-  exercise: {
+  exercises: {
     id: UUID;
     display_name: string | null;
     slug: string;
@@ -80,7 +80,7 @@ const WorkoutPage: React.FC = () => {
         .from('workouts')
         .select(`
           id,user_id,template_id,started_at,ended_at,readiness_score,title,
-          workout_templates!inner(name)
+          workout_templates(name)
         `)
         .eq('id', workoutId)
         .single();
@@ -100,8 +100,8 @@ const WorkoutPage: React.FC = () => {
           id, workout_id, exercise_id, order_index,
           target_reps, target_weight_kg, weight_unit, grip_key,
           attribute_values_json, readiness_adjusted_from,
-          exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
-          workout_sets!inner(
+          exercises(id, display_name, slug, equipment_id, load_type, tags),
+          workout_sets(
             id, workout_exercise_id, set_index, set_kind, 
             reps, weight_kg, is_completed, rest_seconds
           )
@@ -149,7 +149,7 @@ const WorkoutPage: React.FC = () => {
     if ((workout as any)?.workout_templates?.name) return (workout as any).workout_templates.name;
     if (exercises.length > 0) {
       const first = exercises[0];
-      return first?.exercise?.display_name || 'Workout Session';
+      return first?.exercises?.display_name || 'Workout Session';
     }
     return 'Workout Session';
   }, [workout, exercises]);
@@ -167,7 +167,7 @@ const WorkoutPage: React.FC = () => {
         id, workout_id, exercise_id, order_index,
         target_reps, target_weight_kg, weight_unit, grip_key,
         attribute_values_json, readiness_adjusted_from,
-        exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
+        exercises(id, display_name, slug, equipment_id, load_type, tags),
         workout_sets(
           id, workout_exercise_id, set_index, set_kind, 
           reps, weight_kg, is_completed, rest_seconds
@@ -245,7 +245,7 @@ const WorkoutPage: React.FC = () => {
           return (
             <WorkoutExerciseCard
               key={we.id}
-              title={we.exercise?.display_name ?? "—"}
+              title={we.exercises?.display_name ?? "—"}
               totalSets={we.workout_sets?.length ?? 0}
               targetReps={we.target_reps ?? undefined}
               targetWeightKg={we.target_weight_kg ?? undefined}
@@ -253,7 +253,7 @@ const WorkoutPage: React.FC = () => {
             >
               <WarmupPanel
                 workoutExerciseId={we.id}
-                exerciseName={we.exercise?.display_name ?? ""}
+                exerciseName={we.exercises?.display_name ?? ""}
                 topWeightKg={we.target_weight_kg ?? null}
                 steps={Array.isArray(warmup) ? warmup : undefined}
                 compact
