@@ -5050,6 +5050,7 @@ export type Database = {
           id: string
           injuries: string[] | null
           preferred_session_minutes: number | null
+          readiness_data: Json | null
           sex: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at: string | null
@@ -5067,6 +5068,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at?: string | null
@@ -5084,6 +5086,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal?: string
           updated_at?: string | null
