@@ -1,5 +1,9 @@
-import WorkoutPage from '@/features/health/fitness/workouts/pages/WorkoutPage';
+import { MobileWorkoutSession } from '@/components/mobile/MobileWorkoutSession';
 
 export default function WorkoutDetailPage() {
-  return <WorkoutPage />;
+  return <MobileWorkoutSession 
+    exercises={[]} 
+    onSetComplete={() => {}} 
+    onWorkoutComplete={() => {}} 
+  />;
 }
