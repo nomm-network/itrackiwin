@@ -10,9 +10,11 @@ interface WorkoutExerciseCardProps {
     attribute_values_json?: any;
     sets?: any[];
   };
+  onAddSet?: (exerciseId: string) => void;
+  onCompleteSet?: (setId: string, data: any) => void;
 }
 
-const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({ exercise }) => {
+const WorkoutExerciseCard: React.FC<WorkoutExerciseCardProps> = ({ exercise, onAddSet, onCompleteSet }) => {
   const warmupSteps = exercise.attribute_values_json?.warmup ?? [];
 
   return (

@@ -1,20 +1,25 @@
 import React from "react";
 
 interface WorkoutSetCardProps {
-  setIndex: number;
+  set: any;
+  onUpdate?: (data: any) => void;
+  setIndex?: number;
   prev?: { weight: number; reps: number; date: string };
   target?: { weight: number; reps: number };
 }
 
 const WorkoutSetCard: React.FC<WorkoutSetCardProps> = ({
+  set,
+  onUpdate,
   setIndex,
   prev,
   target,
 }) => {
+  const actualSetIndex = setIndex || set?.set_index || 1;
   return (
     <div className="bg-gray-900 rounded-lg p-4 mb-3 border border-gray-700">
       <div className="flex justify-between items-center mb-2">
-        <h4 className="font-semibold">Set {setIndex}</h4>
+        <h4 className="font-semibold">Set {actualSetIndex}</h4>
         <span className="text-xs text-gray-400">Current Set</span>
       </div>
 
@@ -45,7 +50,7 @@ const WorkoutSetCard: React.FC<WorkoutSetCardProps> = ({
           <input
             type="number"
             className="w-full bg-gray-800 rounded px-2 py-1 text-white"
-            defaultValue={target?.weight || ""}
+            defaultValue={target?.weight || set?.target_weight_kg || set?.weight_kg || ""}
           />
         </div>
         <div>
@@ -53,7 +58,7 @@ const WorkoutSetCard: React.FC<WorkoutSetCardProps> = ({
           <input
             type="number"
             className="w-full bg-gray-800 rounded px-2 py-1 text-white"
-            defaultValue={target?.reps || ""}
+            defaultValue={target?.reps || set?.target_reps || set?.reps || ""}
           />
         </div>
       </div>
@@ -80,7 +85,7 @@ const WorkoutSetCard: React.FC<WorkoutSetCardProps> = ({
 
       {/* Log button */}
       <button className="w-full bg-green-600 py-2 rounded text-sm font-semibold">
-        Log Set {setIndex}
+        Log Set {actualSetIndex}
       </button>
     </div>
   );

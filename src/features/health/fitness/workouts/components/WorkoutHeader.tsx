@@ -5,27 +5,34 @@ import { Button } from "@/components/ui/button";
 
 interface WorkoutHeaderProps {
   templateName?: string;
-  onEndWorkout: () => void;
+  onEndWorkout?: () => void;
+  workout?: any;
+  title?: string;
+  subtitle?: string;
+  onExit?: () => void;
 }
 
-const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({ templateName, onEndWorkout }) => {
+const WorkoutHeader: React.FC<WorkoutHeaderProps> = ({ templateName, onEndWorkout, workout, title, subtitle, onExit }) => {
   const navigate = useNavigate();
 
   return (
     <div className="flex items-center justify-between mb-4">
       <h1 className="text-xl font-bold">
-        {templateName ? templateName : "Workout Session"}
+        {title || templateName || workout?.title || "Workout Session"}
       </h1>
+      {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
       <div className="flex gap-2">
         <Button
           variant="outline"
-          onClick={() => navigate("/app/dashboard")}
+          onClick={onExit || (() => navigate("/app/dashboard"))}
         >
           Back
         </Button>
-        <Button variant="destructive" onClick={onEndWorkout}>
-          Finish Workout
-        </Button>
+        {onEndWorkout && (
+          <Button variant="destructive" onClick={onEndWorkout}>
+            Finish Workout
+          </Button>
+        )}
       </div>
     </div>
   );

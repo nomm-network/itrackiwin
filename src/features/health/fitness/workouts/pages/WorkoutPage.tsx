@@ -45,7 +45,7 @@ type WorkoutSet = {
   id: UUID;
   workout_exercise_id: UUID;
   set_index: number;
-  set_kind: 'warmup' | 'normal' | 'top_set' | 'backoff' | 'amrap' | 'drop';
+  set_kind: 'warmup' | 'normal' | 'top_set' | 'backoff' | 'amrap' | 'drop' | 'distance' | 'timed' | 'cooldown';
   reps: number | null;
   weight_kg: number | null; // ✅ prefer normalized
   is_completed: boolean;

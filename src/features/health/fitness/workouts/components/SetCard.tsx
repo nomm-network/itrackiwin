@@ -11,7 +11,7 @@ interface WorkoutSet {
   weight_kg?: number;
   reps?: number;
   is_completed?: boolean;
-  set_kind?: 'warmup' | 'normal' | 'drop' | 'amrap';
+  set_kind?: 'warmup' | 'normal' | 'top_set' | 'backoff' | 'amrap' | 'drop' | 'distance' | 'timed' | 'cooldown';
   rest_seconds?: number;
   prev_weight_kg?: number;
   prev_reps?: number;
