@@ -1,48 +1,35 @@
+// src/features/health/fitness/workouts/components/WarmupBlock.tsx
 import React from "react";
 
 interface WarmupStep {
-  weight: number;
+  percent: number;
   reps: number;
-  rest_seconds: number;
+  rest_s: number;
+  kg: number;
 }
 
 interface WarmupBlockProps {
-  topWeight: number;
-  warmupSteps: WarmupStep[];
+  steps: WarmupStep[];
 }
 
-const WarmupBlock: React.FC<WarmupBlockProps> = ({ topWeight, warmupSteps }) => {
+const WarmupBlock: React.FC<WarmupBlockProps> = ({ steps }) => {
+  if (!steps || steps.length === 0) return null;
+
   return (
-    <div className="p-3 rounded-lg bg-gray-900 text-sm">
-      <h3 className="text-base font-semibold mb-1.5">Warm-up 🏋️</h3>
-
-      <p className="text-xs text-gray-400 mb-2.5">
-        Strategy: ramped • Top: {topWeight}kg •{" "}
-        <a href="#" className="text-blue-500 hover:text-blue-400">
-          Auto-adjusts from feedback
-        </a>
-      </p>
-
+    <div className="bg-gray-50 border rounded-md p-2 text-sm">
+      <h3 className="font-medium text-gray-700 mb-1">Warmup</h3>
       <ul className="space-y-1">
-        {warmupSteps.map((step, i) => (
-          <li key={i} className="flex justify-between">
-            <span>– {step.weight}kg × {step.reps} reps</span>
-            <span className="text-gray-500 text-xs">{step.rest_seconds}s rest</span>
+        {steps.map((step, idx) => (
+          <li key={idx} className="flex justify-between text-gray-600">
+            <span>
+              {Math.round(step.percent * 100)}% — {step.reps} reps
+            </span>
+            <span>
+              {step.kg} kg · {step.rest_s}s rest
+            </span>
           </li>
         ))}
       </ul>
-
-      <div className="flex justify-around mt-2.5 gap-2">
-        <button className="bg-gray-800 hover:bg-gray-700 px-2.5 py-1.5 rounded text-xs transition-colors">
-          🥶 Too little
-        </button>
-        <button className="bg-gray-800 hover:bg-gray-700 px-2.5 py-1.5 rounded text-xs transition-colors">
-          🔥 Excellent
-        </button>
-        <button className="bg-gray-800 hover:bg-gray-700 px-2.5 py-1.5 rounded text-xs transition-colors">
-          🥵 Too much
-        </button>
-      </div>
     </div>
   );
 };
