@@ -1,5 +1,5 @@
-import WorkoutSession from '@/features/health/fitness/pages/WorkoutSession.page';
+import WorkoutPage from '@/features/health/fitness/workouts/pages/WorkoutPage';
 
-export default function WorkoutPage() {
-  return <WorkoutSession />;
+export default function WorkoutDetailPage() {
+  return <WorkoutPage />;
 }
