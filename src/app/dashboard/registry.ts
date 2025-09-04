@@ -53,7 +53,7 @@ const DynamicFitnessStartAction = () => {
     error 
   });
   
-  const targetPath = activeWorkout?.id ? `/app/workouts/${activeWorkout.id}` : '/app/workouts/start-quick';
+  const targetPath = activeWorkout?.id ? `/app/workouts/${activeWorkout.id}` : '/fitness/templates';
   
   console.log('🎯 [DynamicFitnessStartAction] Target path:', targetPath);
   
