@@ -32,16 +32,11 @@ const TrainingDashboard: React.FC = () => {
     if (!checkAndRedirect('start a workout')) return;
 
     if (nextBlock) {
-      // Start from program
-      try {
-        const result = await startWorkout.mutateAsync({ templateId: nextBlock.workout_template_id });
-        navigate(`/app/workouts/${result.workoutId}`);
-      } catch (error) {
-        console.error('Failed to start program workout:', error);
-        setShowWorkoutModal(true);
-      }
+      // Start from program - navigate to readiness check first
+      navigate(`/app/workouts/start-quick?templateId=${nextBlock.workout_template_id}`);
     } else {
-      setShowWorkoutModal(true);
+      // No program - navigate to workout start page to show readiness check
+      navigate('/app/workouts/start-quick');
     }
   };
 

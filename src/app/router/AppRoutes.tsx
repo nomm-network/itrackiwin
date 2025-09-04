@@ -157,6 +157,13 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
+          {/* Quick Start Workout Route */}
+          <Route path="/app/workouts/start-quick" element={
+            <ProtectedMobileLayout>
+              <LazyStartQuickWorkout />
+            </ProtectedMobileLayout>
+          } />
+
           {/* Workout Routes with Layout */}
           <Route path="/app/workouts" element={
             <ProtectedMobileLayout>
