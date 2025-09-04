@@ -14,20 +14,24 @@ export const useReadinessCheckin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Store readiness data in the new readiness_logs table
-      const { error: insertError } = await supabase
-        .from('readiness_logs')
-        .insert({
-          user_id: user.id,
-          energy: data.energy,
-          sleep_quality: data.sleep_quality,
-          sleep_hours: data.sleep_hours,
-          soreness: data.soreness,
-          stress: data.stress,
-          illness: data.illness,
-          alcohol: data.alcohol,
-          supplements: data.supplements
-        });
+      // Execute raw SQL to insert into readiness_logs since types aren't regenerated yet
+      const { error: insertError } = await supabase.rpc('exec_sql', {
+        sql: `
+          INSERT INTO readiness_logs (user_id, energy, sleep_quality, sleep_hours, soreness, stress, illness, alcohol, supplements)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+        `,
+        params: [
+          user.id,
+          data.energy,
+          data.sleep_quality,
+          data.sleep_hours,
+          data.soreness,
+          data.stress,
+          data.illness,
+          data.alcohol,
+          JSON.stringify(data.supplements)
+        ]
+      });
 
       if (insertError) throw insertError;
 
