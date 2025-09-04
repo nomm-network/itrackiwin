@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Settings } from 'lucide-react';
+import { Settings, AlertTriangle } from 'lucide-react';
 import { useLifeCategoriesWithSubcategories, getCategoryBySlug } from '@/hooks/useLifeCategories';
 import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/registry';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -12,12 +12,24 @@ import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 // import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal'; // TODO: Migrate this component
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
+import { supabase } from '@/integrations/supabase/client';
 
 
 const Dashboard: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const [showTemplateDialog, setShowTemplateDialog] = useState(false);
+  const [debugInfo, setDebugInfo] = useState<{
+    readinessScore: number | null;
+    multiplier: number | null;
+    testWorkoutId: string | null;
+    error: string | null;
+  }>({
+    readinessScore: null,
+    multiplier: null,
+    testWorkoutId: null,
+    error: null
+  });
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { isSuperAdmin } = useUserRole();
   
@@ -35,6 +47,67 @@ const Dashboard: React.FC = () => {
   // Handle subcategory changes in the Health context
   const handleSubcategoryChange = (newSubcategory: string) => {
     setSearchParams({ sub: newSubcategory });
+  };
+
+  // Debug functions to test the readiness system
+  const runDebugTests = async () => {
+    try {
+      setDebugInfo(prev => ({ ...prev, error: null }));
+      
+      // Test 1: Check readiness score
+      const { data: scoreData, error: scoreError } = await supabase.rpc('compute_readiness_for_user', {
+        p_user_id: (await supabase.auth.getUser()).data.user?.id
+      });
+      
+      if (scoreError) throw new Error(`Score error: ${scoreError.message}`);
+      
+      // Test 2: Check multiplier
+      const { data: multiplierData, error: multiplierError } = await supabase.rpc('readiness_multiplier', {
+        p_score: scoreData || 65
+      });
+      
+      if (multiplierError) throw new Error(`Multiplier error: ${multiplierError.message}`);
+      
+      // Test 3: Try to start a workout with demo template
+      const { data: templateData } = await supabase
+        .from('workout_templates')
+        .select('id')
+        .limit(1)
+        .single();
+      
+      if (templateData) {
+        const { data: workoutData, error: workoutError } = await supabase.rpc('start_workout', {
+          p_template_id: templateData.id
+        });
+        
+        if (workoutError) throw new Error(`Workout creation error: ${workoutError.message}`);
+        
+        setDebugInfo({
+          readinessScore: scoreData,
+          multiplier: multiplierData,
+          testWorkoutId: workoutData,
+          error: null
+        });
+        
+        // Clean up test workout
+        if (workoutData) {
+          await supabase.rpc('end_workout', { p_workout_id: workoutData });
+        }
+      } else {
+        setDebugInfo({
+          readinessScore: scoreData,
+          multiplier: multiplierData,
+          testWorkoutId: null,
+          error: 'No templates found for test'
+        });
+      }
+      
+    } catch (err) {
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        error: err instanceof Error ? err.message : 'Unknown error' 
+      }));
+    }
   };
 
 
@@ -219,6 +292,58 @@ const Dashboard: React.FC = () => {
           />
         );
       })()}
+      
+      {/* Debug Box - for troubleshooting workout creation issues */}
+      <Card className="border-orange-200 bg-orange-50">
+        <CardContent className="pt-6">
+          <div className="flex items-center gap-2 mb-4">
+            <AlertTriangle className="w-5 h-5 text-orange-600" />
+            <h3 className="text-lg font-semibold text-orange-800">Debug Tools</h3>
+          </div>
+          
+          <div className="space-y-4">
+            <Button 
+              onClick={runDebugTests}
+              variant="outline"
+              className="w-full"
+            >
+              Test Readiness & Workout Creation
+            </Button>
+            
+            {(debugInfo.readinessScore !== null || debugInfo.error) && (
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                <div className="space-y-2">
+                  <div className="font-medium text-gray-700">Readiness Score:</div>
+                  <div className="p-2 bg-white rounded border">
+                    {debugInfo.readinessScore ?? 'N/A'} / 100
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="font-medium text-gray-700">Multiplier:</div>
+                  <div className="p-2 bg-white rounded border">
+                    {debugInfo.multiplier ?? 'N/A'}x
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="font-medium text-gray-700">Test Workout:</div>
+                  <div className="p-2 bg-white rounded border">
+                    {debugInfo.testWorkoutId ? '✅ Created' : '❌ Failed'}
+                  </div>
+                </div>
+              </div>
+            )}
+            
+            {debugInfo.error && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded">
+                <div className="font-medium text-red-800 mb-2">Error:</div>
+                <div className="text-sm text-red-700 font-mono">{debugInfo.error}</div>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
       
       {/* <WorkoutSelectionModal 
         open={showTemplateDialog}
