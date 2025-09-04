@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { WorkoutSet } from '../api/useWorkout';
+import { WorkoutSetDTO } from '../api/useWorkout';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -10,7 +10,7 @@ interface WorkoutSetsBlockProps {
   targetReps: number | null;
   targetWeightKg: number | null;
   unit: 'kg' | 'lb';
-  workoutSets: WorkoutSet[];
+  workoutSets: WorkoutSetDTO[];
 }
 
 interface SetRowProps {
@@ -19,8 +19,8 @@ interface SetRowProps {
   targetWeightKg: number | null;
   unit: 'kg' | 'lb';
   workoutExerciseId: string;
-  existingSet?: WorkoutSet;
-  previousSet?: WorkoutSet;
+  existingSet?: WorkoutSetDTO;
+  previousSet?: WorkoutSetDTO;
 }
 
 function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId, existingSet, previousSet }: SetRowProps) {

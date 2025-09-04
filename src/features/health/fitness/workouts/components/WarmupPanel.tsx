@@ -1,7 +1,12 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
-import { WarmupStep } from '../api/useWorkout';
 import { useToast } from '@/hooks/use-toast';
+// WarmupStep type (inline since it's not exported from the new API)
+type WarmupStep = { 
+  kg: number; 
+  reps: number; 
+  rest_s: number; 
+};
 
 interface WarmupPanelProps {
   topKg: number;

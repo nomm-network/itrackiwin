@@ -49,16 +49,16 @@ export function useWorkout(workoutId?: string) {
     queryFn: async (): Promise<WorkoutDTO> => {
       if (!workoutId) throw new Error('No workoutId')
 
-      // 1) Workout core (name comes from template if null)
+      // 1) Workout core (title comes from template if null)
       const { data: w, error: wErr } = await supabase
         .from('workouts')
-        .select('id, name, started_at, ended_at, template_id')
+        .select('id, title, started_at, ended_at, template_id')
         .eq('id', workoutId)
         .single()
       if (wErr) throw wErr
 
       // optional: fallback to template name
-      let title = w?.name ?? null
+      let title = w?.title ?? null
       if (!title && w?.template_id) {
         const { data: t } = await supabase
           .from('workout_templates')

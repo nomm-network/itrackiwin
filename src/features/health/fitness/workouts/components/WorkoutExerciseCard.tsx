@@ -1,14 +1,14 @@
-import { WorkoutExercise } from '../api/useWorkout';
+import { WorkoutExerciseDTO } from '../api/useWorkout';
 import { ExerciseMiniMenu } from './ExerciseMiniMenu';
 import { WarmupPanel } from './WarmupPanel';
 import { WorkoutSetsBlock } from './WorkoutSetsBlock';
 
 interface WorkoutExerciseCardProps {
-  workoutExercise: WorkoutExercise;
+  workoutExercise: WorkoutExerciseDTO;
 }
 
 export function WorkoutExerciseCard({ workoutExercise }: WorkoutExerciseCardProps) {
-  const completedSets = workoutExercise.workout_sets.filter(
+  const completedSets = workoutExercise.sets.filter(
     s => s.set_kind !== 'warmup' && s.is_completed
   ).length;
   
@@ -47,7 +47,7 @@ export function WorkoutExerciseCard({ workoutExercise }: WorkoutExerciseCardProp
         targetReps={workoutExercise.target_reps}
         targetWeightKg={workoutExercise.target_weight_kg}
         unit={workoutExercise.weight_unit || 'kg'}
-        workoutSets={workoutExercise.workout_sets}
+        workoutSets={workoutExercise.sets}
       />
     </div>
   );
