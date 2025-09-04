@@ -1,4 +1,7 @@
-// Barrel exports for fitness feature - Public API only
+// Fitness feature barrel exports - compatible with new structure
+// Note: New structure exports - gradual migration in progress
+
+// Legacy exports for backward compatibility
 export { default as FitnessPage } from './pages/Fitness.page';
 export { default as ExercisesPage } from './pages/Exercises.page';
 export { default as WorkoutSessionPage } from './pages/WorkoutSession.page';

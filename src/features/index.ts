@@ -1,6 +1,4 @@
-// Feature barrel exports
-export * from './workouts';
-export * from './programs';
-export * from './exercises';
-export * from './gym';
-export * from './profile';
+// Feature barrel exports - organized by category
+export * from './health';
+export * from './social';
+export * from './commerce';

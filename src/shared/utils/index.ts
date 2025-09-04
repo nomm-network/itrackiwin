@@ -1,4 +1,7 @@
-// Shared utilities
+// Re-export existing utilities
+export * from '../../lib/utils';
+
+// Additional shared utilities
 export const formatWeight = (weight: number, unit = 'kg') => {
   return `${weight}${unit}`;
 };
