@@ -44,6 +44,8 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
   };
 
   const handleTemplateSelect = (templateId: string) => {
+    console.log('🎯 WorkoutSelectionModal - handleTemplateSelect called with templateId:', templateId);
+    console.log('🎯 WorkoutSelectionModal - About to navigate to start-quick page');
     onOpenChange(false);
     navigate(`/app/workouts/start-quick?templateId=${templateId}`);
   };
@@ -183,7 +185,10 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
                               </div>
                             )}
                           </div>
-                          <Button onClick={() => handleTemplateSelect(template.id)}>
+                          <Button onClick={() => {
+                            console.log('🎯 Template Start button clicked for template:', template);
+                            handleTemplateSelect(template.id);
+                          }}>
                             <Play className="h-4 w-4 mr-2" />
                             Start
                           </Button>

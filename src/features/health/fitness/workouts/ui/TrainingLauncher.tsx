@@ -21,16 +21,34 @@ const TrainingLauncher: React.FC = () => {
   
   const templateId = searchParams.get('templateId');
 
+  useEffect(() => {
+    console.log('🔥 TrainingLauncher - Component mounted');
+    console.log('🔥 TrainingLauncher - Template ID from URL:', templateId);
+    console.log('🔥 TrainingLauncher - All search params:', Object.fromEntries(searchParams.entries()));
+  }, [templateId, searchParams]);
+
   // Create workout immediately when component mounts
   useEffect(() => {
     const createWorkout = async () => {
       try {
+        console.log('🔥 TrainingLauncher - About to call startWorkout with:', { 
+          templateId: templateId || undefined 
+        });
+        
         const result = await startWorkout({ 
           templateId: templateId || undefined
         });
+        
+        console.log('🔥 TrainingLauncher - startWorkout SUCCESS, result:', result);
         setWorkoutId(result.workoutId);
       } catch (error) {
-        console.error('Failed to create workout:', error);
+        console.error('🔥 TrainingLauncher - startWorkout FAILED:', error);
+        console.error('🔥 TrainingLauncher - Error details:', {
+          name: error?.name,
+          message: error?.message,
+          stack: error?.stack,
+          cause: error?.cause
+        });
         toast({
           title: "Error",
           description: "Failed to create workout. Please try again.",
