@@ -32,33 +32,10 @@ const TrainingLauncher: React.FC = () => {
   useEffect(() => {
     const createWorkout = async () => {
       try {
-        console.log('🔥 TrainingLauncher - About to call startWorkout with:', { 
+        console.log('🔥 TrainingLauncher - About to call startWorkout hook with:', { 
           templateId: templateId || undefined 
         });
         
-        console.log('🔥 TrainingLauncher - TESTING DIRECT RPC CALL LIKE DASHBOARD TEST...');
-        
-        // Try the direct RPC call like the working test in Dashboard
-        const { data: directWorkoutData, error: directWorkoutError } = await supabase.rpc('start_workout', {
-          p_template_id: templateId || null
-        });
-        
-        console.log('🔥 TrainingLauncher - DIRECT RPC RESULT:', { 
-          data: directWorkoutData, 
-          error: directWorkoutError 
-        });
-        
-        if (directWorkoutError) {
-          console.error('🔥 TrainingLauncher - DIRECT RPC FAILED:', directWorkoutError);
-        } else {
-          console.log('🔥 TrainingLauncher - DIRECT RPC SUCCESS! WorkoutID:', directWorkoutData);
-          setWorkoutId(directWorkoutData);
-          setIsCreatingWorkout(false);
-          return;
-        }
-        
-        // If direct RPC fails, try the hook
-        console.log('🔥 TrainingLauncher - Now trying hook method...');
         const result = await startWorkout({ 
           templateId: templateId || undefined
         });
