@@ -478,25 +478,41 @@ const WorkoutSession: React.FC = () => {
                     {/* Exercise Details - Expandable */}
                     {isActive && (
                       <div className="p-4 border-t bg-background">
-                        {/* Show warmup suggestions */}
+                        {/* Smart Target & Warmup Display */}
                         {(() => {
-                          // Get the target weight for the first working set (estimate based on previous sessions or default)
-                          const targetWeight = 60; // This would come from exercise history or estimates
-                          const warmup = generateQuickWarmup(ex.exercises?.id || '', targetWeight);
+                          const targetWeight = ex.target_weight_kg;
+                          const warmupSteps = ex.warmup_plan;
+                          const readinessScore = data?.workout?.readiness_score;
                           
-                          if (warmup.warmupSets.length > 0) {
+                          if (targetWeight || warmupSteps) {
                             return (
-                              <div className="mb-3 p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                                <h4 className="text-sm font-medium text-blue-700 dark:text-blue-300 mb-2">🔥 Warmup Plan</h4>
-                                <div className="space-y-1">
-                                  {warmup.warmupSets.map((set, idx) => (
-                                    <div key={idx} className="text-xs text-blue-600 dark:text-blue-400 flex items-center gap-2">
-                                      <span>Set {set.setIndex}:</span>
-                                      <span>{set.weight}kg × {set.reps} reps</span>
-                                      <span className="text-blue-500">({set.restSeconds}s rest)</span>
-                                    </div>
-                                  ))}
+                              <div className="mb-3 p-3 bg-primary/5 rounded-lg border">
+                                <div className="flex items-center justify-between mb-2">
+                                  <h4 className="text-sm font-medium">🎯 Smart Target</h4>
+                                  {readinessScore && (
+                                    <span className="text-xs text-muted-foreground">
+                                      Readiness: {Math.round(readinessScore)}%
+                                    </span>
+                                  )}
                                 </div>
+                                
+                                {targetWeight && (
+                                  <div className="mb-2">
+                                    <span className="text-sm font-medium">Target: {targetWeight}kg</span>
+                                  </div>
+                                )}
+                                
+                                {warmupSteps && Array.isArray(warmupSteps) && warmupSteps.length > 0 && (
+                                  <div className="space-y-1">
+                                    <div className="text-xs font-medium text-muted-foreground">Warmup Plan:</div>
+                                    {warmupSteps.map((step: any, idx: number) => (
+                                      <div key={idx} className="text-xs flex items-center justify-between">
+                                        <span>{step.weight_kg}kg × {step.reps} reps</span>
+                                        <span className="text-muted-foreground">{step.rest_s}s rest</span>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
                               </div>
                             );
                           }
