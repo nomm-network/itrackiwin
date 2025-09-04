@@ -23,11 +23,15 @@ const Dashboard: React.FC = () => {
     readinessScore: number | null;
     multiplier: number | null;
     testWorkoutId: string | null;
+    normalWorkoutError: string | null;
+    normalWorkoutId: string | null;
     error: string | null;
   }>({
     readinessScore: null,
     multiplier: null,
     testWorkoutId: null,
+    normalWorkoutError: null,
+    normalWorkoutId: null,
     error: null
   });
   const { checkAndRedirect } = useFitnessProfileCheck();
@@ -52,11 +56,19 @@ const Dashboard: React.FC = () => {
   // Debug functions to test the readiness system
   const runDebugTests = async () => {
     try {
-      setDebugInfo(prev => ({ ...prev, error: null }));
+      setDebugInfo(prev => ({ 
+        ...prev, 
+        error: null, 
+        normalWorkoutError: null,
+        normalWorkoutId: null
+      }));
+      
+      const user = (await supabase.auth.getUser()).data.user;
+      if (!user) throw new Error('Not authenticated');
       
       // Test 1: Check readiness score
       const { data: scoreData, error: scoreError } = await supabase.rpc('compute_readiness_for_user', {
-        p_user_id: (await supabase.auth.getUser()).data.user?.id,
+        p_user_id: user.id,
         p_workout_started_at: new Date().toISOString()
       });
       
@@ -69,39 +81,57 @@ const Dashboard: React.FC = () => {
       
       if (multiplierError) throw new Error(`Multiplier error: ${multiplierError.message}`);
       
-      // Test 3: Try to start a workout with demo template
+      // Test 3: Try to start a workout with demo template (like the debug test)
       const { data: templateData } = await supabase
         .from('workout_templates')
         .select('id')
         .limit(1)
         .single();
       
+      let testWorkoutId = null;
       if (templateData) {
         const { data: workoutData, error: workoutError } = await supabase.rpc('start_workout', {
           p_template_id: templateData.id
         });
         
-        if (workoutError) throw new Error(`Workout creation error: ${workoutError.message}`);
-        
-        setDebugInfo({
-          readinessScore: scoreData,
-          multiplier: multiplierData,
-          testWorkoutId: workoutData,
-          error: null
-        });
+        if (workoutError) throw new Error(`Test workout creation error: ${workoutError.message}`);
+        testWorkoutId = workoutData;
         
         // Clean up test workout
         if (workoutData) {
           await supabase.rpc('end_workout', { p_workout_id: workoutData });
         }
-      } else {
-        setDebugInfo({
-          readinessScore: scoreData,
-          multiplier: multiplierData,
-          testWorkoutId: null,
-          error: 'No templates found for test'
-        });
       }
+      
+      // Test 4: Try the normal workout creation flow (without template like when clicking Start)
+      let normalWorkoutId = null;
+      let normalWorkoutError = null;
+      try {
+        const { data: normalWorkoutData, error: normalError } = await supabase.rpc('start_workout', {
+          p_template_id: null  // This is what happens when clicking "Start Workout" without template
+        });
+        
+        if (normalError) {
+          normalWorkoutError = `Normal workout error: ${normalError.message}`;
+        } else {
+          normalWorkoutId = normalWorkoutData;
+          // Clean up normal test workout
+          if (normalWorkoutData) {
+            await supabase.rpc('end_workout', { p_workout_id: normalWorkoutData });
+          }
+        }
+      } catch (err) {
+        normalWorkoutError = `Normal workout exception: ${err instanceof Error ? err.message : 'Unknown error'}`;
+      }
+      
+      setDebugInfo({
+        readinessScore: scoreData,
+        multiplier: multiplierData,
+        testWorkoutId,
+        normalWorkoutError,
+        normalWorkoutId,
+        error: templateData ? null : 'No templates found for test'
+      });
       
     } catch (err) {
       setDebugInfo(prev => ({ 
@@ -312,33 +342,58 @@ const Dashboard: React.FC = () => {
             </Button>
             
             {(debugInfo.readinessScore !== null || debugInfo.error) && (
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-700">Readiness Score:</div>
-                  <div className="p-2 bg-white rounded border">
-                    {debugInfo.readinessScore ?? 'N/A'} / 100
+              <div className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-700">Readiness Score:</div>
+                    <div className="p-2 bg-white rounded border">
+                      {debugInfo.readinessScore ?? 'N/A'} / 100
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-700">Multiplier:</div>
+                    <div className="p-2 bg-white rounded border">
+                      {debugInfo.multiplier ?? 'N/A'}x
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-700">Test w/ Template:</div>
+                    <div className="p-2 bg-white rounded border">
+                      {debugInfo.testWorkoutId ? '✅ Created' : '❌ Failed'}
+                    </div>
                   </div>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-700">Multiplier:</div>
-                  <div className="p-2 bg-white rounded border">
-                    {debugInfo.multiplier ?? 'N/A'}x
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-700">Normal Workout (no template):</div>
+                    <div className="p-2 bg-white rounded border">
+                      {debugInfo.normalWorkoutId ? '✅ Created' : '❌ Failed'}
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="font-medium text-gray-700">Test Workout:</div>
-                  <div className="p-2 bg-white rounded border">
-                    {debugInfo.testWorkoutId ? '✅ Created' : '❌ Failed'}
+                  
+                  <div className="space-y-2">
+                    <div className="font-medium text-gray-700">Normal Workout ID:</div>
+                    <div className="p-2 bg-white rounded border text-xs">
+                      {debugInfo.normalWorkoutId || 'None'}
+                    </div>
                   </div>
                 </div>
               </div>
             )}
             
+            {debugInfo.normalWorkoutError && (
+              <div className="p-3 bg-red-50 border border-red-200 rounded">
+                <div className="font-medium text-red-800 mb-2">Normal Workout Error:</div>
+                <div className="text-sm text-red-700 font-mono">{debugInfo.normalWorkoutError}</div>
+              </div>
+            )}
+            
             {debugInfo.error && (
               <div className="p-3 bg-red-50 border border-red-200 rounded">
-                <div className="font-medium text-red-800 mb-2">Error:</div>
+                <div className="font-medium text-red-800 mb-2">General Error:</div>
                 <div className="text-sm text-red-700 font-mono">{debugInfo.error}</div>
               </div>
             )}
