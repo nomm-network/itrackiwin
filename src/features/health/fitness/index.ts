@@ -4,7 +4,7 @@
 // Legacy exports for backward compatibility
 export { default as FitnessPage } from './pages/Fitness.page';
 export { default as ExercisesPage } from './pages/Exercises.page';
-export { default as WorkoutSessionPage } from './pages/WorkoutSession.page';
+// export { default as WorkoutSessionPage } from './pages/WorkoutSession.page'; // REMOVED
 export { default as TrainingProgramsPage } from './pages/TrainingPrograms.page';
 export { default as HistoryPage } from './pages/History.page';
 
@@ -49,8 +49,8 @@ export * from './hooks/useRecalibration.hook';
 
 // Warmup policy engine
 export { WarmupPolicyEngine } from './services/warmupPolicyEngine.service';
-export { useWarmupFeedback } from './workouts/warmup/useWarmupActions';
-export { default as WarmupPlanPanel } from './components/WarmupPlanPanel';
+// export { useWarmupFeedback } from './workouts/warmup/useWarmupActions'; // REMOVED
+// export { default as WarmupPlanPanel } from './components/WarmupPlanPanel'; // REMOVED
 
 export { 
   useExercises, 

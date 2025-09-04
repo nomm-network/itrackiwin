@@ -11,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
-import { useStartWorkout } from '@/features/health/fitness/workouts/hooks';
+// import { useStartWorkout } from '@/features/health/fitness/workouts/hooks'; // REMOVED
 
 export default function EnhancedPrograms() {
   const [showBuilder, setShowBuilder] = useState(false);
@@ -22,7 +22,7 @@ export default function EnhancedPrograms() {
   const setActiveProgram = useSetActiveProgram();
   const deleteProgram = useDeleteTrainingProgram();
   const updateProgram = useUpdateTrainingProgram();
-  const startWorkout = useStartWorkout();
+  // const startWorkout = useStartWorkout(); // REMOVED
 
   const handleActivateProgram = async (programId: string) => {
     try {
@@ -77,15 +77,11 @@ export default function EnhancedPrograms() {
     if (!nextBlock) return;
     
     try {
-      const result = await startWorkout.mutateAsync({ 
-        templateId: nextBlock.workout_template_id
-      });
-      
-      // Navigate to workout session
-      window.location.href = `/fitness/session/${result.workoutId}`;
+      // Direct navigation to templates page since workout functionality removed
+      window.location.href = `/fitness/templates`;
     } catch (error) {
-      console.error('Failed to start workout:', error);
-      toast.error('Could not start workout. Please try again.');
+      console.error('Failed to navigate:', error);
+      toast.error('Could not navigate to templates. Please try again.');
     }
   };
 
@@ -143,8 +139,8 @@ export default function EnhancedPrograms() {
                 </p>
               </div>
               
-              <Button onClick={handleStartWorkout} disabled={startWorkout.isPending}>
-                {startWorkout.isPending ? 'Starting...' : 'Start Workout'}
+              <Button onClick={handleStartWorkout}>
+                Go to Templates
               </Button>
             </div>
           </CardContent>

@@ -6,7 +6,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ViewportTestSuite from "@/components/mobile/ViewportTestSuite";
 // import MobileRestTimer from "@/components/fitness/MobileRestTimer"; // TODO: Migrate this component
 import SwipeToCompleteSet from "@/components/mobile/SwipeToCompleteSet";
-import TouchOptimizedSetInput from "@/features/health/fitness/workouts/ui/components/TouchOptimizedSetInput";
+// import TouchOptimizedSetInput from "@/features/health/fitness/workouts/ui/components/TouchOptimizedSetInput"; // REMOVED
 import { Dumbbell, Timer, Smartphone, Target, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -127,24 +127,14 @@ const MobilePolishDemo: React.FC = () => {
               <div>
                 <h4 className="text-fluid-base font-medium mb-fluid-xs">Touch-Optimized Set Input</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-fluid-s">
-                  <TouchOptimizedSetInput
-                    value={currentWeight}
-                    onChange={setCurrentWeight}
-                    label="Weight"
-                    suffix="kg"
-                    step={2.5}
-                    min={0}
-                    max={300}
-                  />
-                  <TouchOptimizedSetInput
-                    value={currentReps}
-                    onChange={setCurrentReps}
-                    label="Reps"
-                    suffix="reps"
-                    step={1}
-                    min={1}
-                    max={50}
-                  />
+                  <div className="p-4 bg-muted/20 rounded-lg text-center">
+                    <p>TouchOptimizedSetInput component removed</p>
+                    <p className="text-sm text-muted-foreground">Part of workout cleanup</p>
+                  </div>
+                  <div className="p-4 bg-muted/20 rounded-lg text-center">
+                    <p>TouchOptimizedSetInput component removed</p>
+                    <p className="text-sm text-muted-foreground">Part of workout cleanup</p>
+                  </div>
                 </div>
               </div>
 

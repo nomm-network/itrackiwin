@@ -5,8 +5,8 @@ import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
-import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout';
-import { StartOrContinue } from '@/features/health/fitness/workouts/ui';
+// import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout'; // REMOVED
+// import { StartOrContinue } from '@/features/health/fitness/workouts/ui'; // REMOVED
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -44,10 +44,10 @@ const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
-const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
-const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
-const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutSessionPage'));
-const WorkoutPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutPage'));
+// const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page')); // REMOVED
+// const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail')); // REMOVED
+// const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutSessionPage')); // REMOVED
+// const WorkoutPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutPage')); // REMOVED
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -159,22 +159,7 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Quick Start Workout Route */}
-          <Route path="/app/workouts/start-quick" element={
-            <ProtectedMobileLayout>
-              <LazyStartQuickWorkout />
-            </ProtectedMobileLayout>
-          } />
-
-          {/* Workout Routes with Layout */}
-          <Route path="/app/workouts" element={
-            <ProtectedMobileLayout>
-              <WorkoutsLayout />
-            </ProtectedMobileLayout>
-          }>
-            <Route index element={<StartOrContinue />} />
-            <Route path=":workoutId" element={<WorkoutPage />} />
-          </Route>
+          {/* Workout routes removed for cleanup */}
 
           {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
