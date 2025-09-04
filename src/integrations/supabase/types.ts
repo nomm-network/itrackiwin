@@ -5445,6 +5445,7 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          attribute_values_json: Json | null
           bar_type_id: string | null
           display_name: string | null
           exercise_id: string
@@ -5478,6 +5479,7 @@ export type Database = {
           workout_id: string
         }
         Insert: {
+          attribute_values_json?: Json | null
           bar_type_id?: string | null
           display_name?: string | null
           exercise_id: string
@@ -5511,6 +5513,7 @@ export type Database = {
           workout_id: string
         }
         Update: {
+          attribute_values_json?: Json | null
           bar_type_id?: string | null
           display_name?: string | null
           exercise_id?: string
