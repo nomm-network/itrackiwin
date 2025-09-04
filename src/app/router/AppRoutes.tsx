@@ -3,6 +3,8 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Paths } from './paths';
 import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
+
+const WorkoutPage = lazy(() => import("@/features/health/fitness/workouts/WorkoutPage"));
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
 // import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout'; // REMOVED
@@ -156,6 +158,13 @@ export function AppRoutes() {
           <Route path="/app/programs" element={
             <ProtectedMobileLayout>
               <LazyProgramsPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          {/* Workout route */}
+          <Route path="/app/workouts/:workoutId" element={
+            <ProtectedMobileLayout>
+              <WorkoutPage />
             </ProtectedMobileLayout>
           } />
 

@@ -34,7 +34,7 @@ export type WorkoutExercise = {
 
 export type Workout = { 
   id: string; 
-  name: string | null; 
+  title: string | null; 
   started_at: string; 
   workout_exercises: WorkoutExercise[]; 
 };
@@ -46,7 +46,7 @@ export const useWorkout = (workoutId: string) => {
       const { data, error } = await supabase
         .from('workouts')
         .select(`
-          id, name, started_at,
+          id, title, started_at,
           workout_exercises:workout_exercises!inner (
             id, order_index, target_reps, target_weight_kg, weight_unit, attribute_values_json,
             exercise:exercises!inner ( id, display_name, slug ),
