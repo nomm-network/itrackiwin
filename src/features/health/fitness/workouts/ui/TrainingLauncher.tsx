@@ -15,8 +15,21 @@ const TrainingLauncher: React.FC = () => {
 
     const templateId = searchParams.get('templateId') || undefined;
 
+    console.log('[TrainingLauncher] Starting workout with templateId:', templateId);
+    
     startWorkout({ templateId })
-      .then(({ workoutId }) => navigate(`/app/workouts/${workoutId}`))
+      .then((result) => {
+        console.log('[TrainingLauncher] start_workout result:', result);
+        const { workoutId } = result;
+        
+        if (!workoutId) {
+          throw new Error('No workout ID returned from start_workout');
+        }
+        
+        const targetUrl = `/app/workouts/${workoutId}`;
+        console.log('[TrainingLauncher] Navigating to:', targetUrl);
+        navigate(targetUrl);
+      })
       .catch((e) => {
         const msg = e?.message || e?.error_description || JSON.stringify(e);
         console.error('[TrainingLauncher] start_workout failed', e);
