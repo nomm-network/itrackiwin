@@ -143,7 +143,7 @@ export const useStartWorkout = () => {
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (options: { templateId?: string } = {}) => {
+    mutationFn: async (options: { templateId?: string; readinessData?: any } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
       const { data, error } = await supabase.rpc('start_workout', {
@@ -151,6 +151,12 @@ export const useStartWorkout = () => {
       });
       
       if (error) throw error;
+      
+      // TODO: Store readiness data if provided (currently RPC doesn't handle it)
+      if (options.readinessData) {
+        console.log('Readiness data will be stored:', options.readinessData);
+      }
+      
       return { workoutId: data };
     },
     onSuccess: () => {
