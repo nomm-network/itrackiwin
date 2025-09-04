@@ -10,6 +10,7 @@ import { useNavigate } from 'react-router-dom';
 import { useTrainingPrograms, useNextProgramBlock, useSetActiveProgram } from '@/hooks/useTrainingPrograms';
 import { useTemplates } from '../services/fitness.api';
 import { useStartWorkout } from '../workouts/hooks';
+import { StartWithDebug } from '../workouts/components/StartWithDebug';
 import { toast } from 'sonner';
 
 interface WorkoutSelectionModalProps {
@@ -61,7 +62,7 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
         </DialogHeader>
 
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+          <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="programs" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
               Programs
@@ -69,6 +70,10 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
             <TabsTrigger value="templates" className="flex items-center gap-2">
               <FileText className="h-4 w-4" />
               Templates
+            </TabsTrigger>
+            <TabsTrigger value="debug" className="flex items-center gap-2">
+              <Zap className="h-4 w-4" />
+              Debug
             </TabsTrigger>
           </TabsList>
 
@@ -199,6 +204,36 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({
                 )}
               </div>
             </ScrollArea>
+          </TabsContent>
+
+          <TabsContent value="debug" className="mt-4">
+            <div className="space-y-4">
+              <div className="text-sm text-muted-foreground">
+                Direct RPC testing - shows exact error details
+              </div>
+              
+              <Card>
+                <CardHeader>
+                  <CardTitle className="text-sm">Test Direct Start</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-3">
+                    <StartWithDebug>🔍 Start Workout (No Template)</StartWithDebug>
+                    
+                    {templates.length > 0 && (
+                      <div className="space-y-2">
+                        <p className="text-xs text-muted-foreground">With Templates:</p>
+                        {templates.slice(0, 3).map((template) => (
+                          <StartWithDebug key={template.id} templateId={template.id}>
+                            🔍 Start with {template.name}
+                          </StartWithDebug>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </TabsContent>
         </Tabs>
       </DialogContent>

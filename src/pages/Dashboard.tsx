@@ -12,6 +12,7 @@ import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 // import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal'; // TODO: Migrate this component
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
+import { StartErrorBanner } from './Dashboard/StartErrorBanner';
 import { supabase } from '@/integrations/supabase/client';
 
 
@@ -192,6 +193,9 @@ const Dashboard: React.FC = () => {
 
   return (
     <div className="container mx-auto p-2 sm:p-6 space-y-2 sm:space-y-6 pb-20 md:pb-6">
+      {/* Error Banner for start workout failures */}
+      <StartErrorBanner />
+      
       {/* Header */}
       <div className="space-y-1 sm:space-y-2">
         <div className="flex items-center justify-between">
