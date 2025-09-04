@@ -23,12 +23,12 @@ export function DebugPanel({
       <div className="bg-black/85 text-green-400 p-3 rounded-lg font-mono text-xs max-h-96 overflow-auto">
         <div>🐞 <b>DEBUG</b></div>
         <div>workoutId: {workoutId || '—'}</div>
-        <div>title: {workout?.title || (workout as any)?.workout_templates?.name || firstExercise?.exercises?.display_name || '—'}</div>
+        <div>title: {workout?.title || (workout as any)?.workout_templates?.name || firstExercise?.exercise?.display_name || '—'}</div>
         <div>exercises: {exercises?.length ?? 0}</div>
         <div>firstExerciseId: {firstExercise?.id || '—'}</div>
         <div>first target: {firstExercise?.target_weight_kg ?? '—'} kg × {firstExercise?.target_reps ?? '—'}</div>
         <div>exercise keys: {exercises ? Object.keys(exercises[0] || {}).join(', ') : '—'}</div>
-        <div>exercise.exercises keys: {firstExercise?.exercises ? Object.keys(firstExercise.exercises).join(', ') : '—'}</div>
+        <div>exercise.exercise keys: {firstExercise?.exercise ? Object.keys(firstExercise.exercise).join(', ') : '—'}</div>
         
         {/* SQL QUERIES EXECUTED */}
         <div style={{marginTop: '10px', backgroundColor: 'rgba(0,0,0,0.3)', padding: '8px', borderRadius: '4px'}}>
@@ -50,14 +50,16 @@ WHERE id = '${workoutId || '—'}'`}
   id, workout_id, exercise_id, order_index,
   target_reps, target_weight_kg, weight_unit, grip_key,
   attribute_values_json, readiness_adjusted_from,
-  exercises(id, display_name, slug, equipment_id, load_type, tags),
   workout_sets(
     id, workout_exercise_id, set_index, set_kind, 
     reps, weight_kg, is_completed, rest_seconds
   )
 FROM workout_exercises 
 WHERE workout_id = '${workoutId || '—'}'
-ORDER BY order_index ASC`}
+ORDER BY order_index ASC
++
+SELECT id, display_name, slug, equipment_id, load_type, tags
+FROM exercises WHERE id IN (...exercise_ids...)`}
             </pre>
           </div>
         </div>
@@ -67,7 +69,7 @@ ORDER BY order_index ASC`}
           <b>ALL EXERCISES:</b>
           {exercises?.map((ex, i) => (
             <div key={ex.id} style={{marginLeft: '10px', fontSize: '11px'}}>
-              {i+1}. {ex.exercises?.display_name || 'NO NAME'} (id: {ex.id})
+              {i+1}. {ex.exercise?.display_name || 'NO NAME'} (id: {ex.id})
               <br />- sets: {ex.workout_sets?.length ?? 0} | setsByExercise: {setsByExercise?.[ex.id]?.length ?? 0}
               <br />- workout_sets keys: {ex.workout_sets?.[0] ? Object.keys(ex.workout_sets[0]).join(', ') : 'no sets'}
             </div>
