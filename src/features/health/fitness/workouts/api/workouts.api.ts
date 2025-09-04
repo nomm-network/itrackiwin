@@ -146,17 +146,28 @@ export const useStartWorkout = () => {
     mutationFn: async (options: { templateId?: string } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      console.log('🚀 useStartWorkout: Starting workout with options:', options);
+      
       // start_workout RPC returns a uuid directly
       const { data, error } = await supabase.rpc('start_workout', {
         p_template_id: options.templateId || null
       });
       
-      if (error) throw error;
+      console.log('🚀 useStartWorkout: RPC response:', { data, error });
+      
+      if (error) {
+        console.error('🚀 useStartWorkout: RPC error:', error);
+        throw error;
+      }
       
       // data is the workout_id directly
       const workoutId = data;
-      if (!workoutId) throw new Error('Failed to create workout');
+      if (!workoutId) {
+        console.error('🚀 useStartWorkout: No workout ID returned:', data);
+        throw new Error('Failed to create workout');
+      }
       
+      console.log('🚀 useStartWorkout: Success, workout ID:', workoutId);
       return { workoutId };
     },
     onSuccess: () => {
