@@ -47,7 +47,7 @@ const TrainingLauncher: React.FC = () => {
         stress: data.readiness.stress,
         illness: data.readiness.illness,
         alcohol: data.readiness.alcohol,
-        supplements: data.readiness.supplements || []
+        supplements: data.readiness.energisers_taken ? 1 : 0 // Convert boolean to number for RPC
       };
 
       // Save readiness data with workout ID

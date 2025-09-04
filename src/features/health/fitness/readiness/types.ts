@@ -6,7 +6,7 @@ export interface ReadinessInput {
   stress: number;           // 1-10 (lower is better)
   illness: boolean;
   alcohol: boolean;
-  supplements: string[];    // ["protein", "creatine"]
+  supplements: number;      // 0 or 1 for RPC call
 }
 
 export interface WarmupStep {
