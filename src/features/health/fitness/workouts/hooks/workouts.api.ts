@@ -37,23 +37,11 @@ export const useWorkoutSession = (workoutId: string) => {
         .single();
       if (error) throw error;
 
-      // Optionally pull last-set info per exercise (lightweight query)
+      // Pull last-set info per exercise using the new RPC
       const exerciseIds = (w?.workout_exercises ?? []).map((e:any)=>e.exercise_id);
       let last = [] as any[];
       if (exerciseIds.length) {
-        // Fallback to manual query if RPC doesn't exist yet
-        const { data: lastRows } = await supabase
-          .from('workout_sets')
-          .select(`
-            workout_exercise_id,
-            weight_kg,
-            reps,
-            completed_at,
-            workout_exercises!inner(exercise_id)
-          `)
-          .in('workout_exercises.exercise_id', exerciseIds)
-          .order('completed_at', { ascending: false })
-          .limit(1);
+        const { data: lastRows } = await supabase.rpc('get_last_sets_for_exercises', { p_exercise_ids: exerciseIds });
         last = lastRows ?? [];
       }
       return { workout: w, last };

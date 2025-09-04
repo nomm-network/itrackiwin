@@ -7648,6 +7648,17 @@ export type Database = {
           primary_muscle: boolean
         }[]
       }
+      get_last_sets_for_exercises: {
+        Args: { p_exercise_ids: string[] }
+        Returns: {
+          base_weight_kg: number
+          exercise_id: string
+          prev_date: string
+          prev_reps: number
+          prev_weight_kg: number
+          readiness_multiplier: number
+        }[]
+      }
       get_latest_readiness: {
         Args: { p_user_id: string; p_workout_started_at?: string }
         Returns: {

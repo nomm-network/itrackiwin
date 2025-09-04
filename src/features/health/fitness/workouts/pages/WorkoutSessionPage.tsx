@@ -49,8 +49,7 @@ export default function WorkoutSessionPage() {
       </div>
 
       {exs.map((ex:any, idx:number) => {
-        const lastRow = (data.last || []).find((r:any)=>r.workout_exercises?.exercise_id === ex.exercise_id) ?? null;
-        // Determine first-set target
+        const lastRow = (data.last || []).find((r:any)=>r.exercise_id === ex.exercise_id) ?? null;
         const targetKg = pickFirstSetTarget({
           serverTargetKg: ex.target_weight_kg,
           lastGoodBaseKg: lastRow?.base_weight_kg ?? lastRow?.prev_weight_kg ?? null,
@@ -72,9 +71,9 @@ export default function WorkoutSessionPage() {
             key={ex.id}
             exercise={ex}
             last={ lastRow ? { 
-              kg:lastRow.weight_kg, 
-              reps:lastRow.reps, 
-              date:lastRow.completed_at ? new Date(lastRow.completed_at).toLocaleDateString() : null 
+              kg: lastRow.prev_weight_kg, 
+              reps: lastRow.prev_reps, 
+              date: lastRow.prev_date 
             } : undefined }
             target={target}
             setIndex={1}
