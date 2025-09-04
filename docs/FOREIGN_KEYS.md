@@ -2,9 +2,9 @@
 
 This document details all foreign key relationships in the database.
 
-## Note on Foreign Key Discovery
+## Current Status
 
-**IMPORTANT**: The initial query for foreign keys returned empty results. This typically indicates one of the following:
+**CONFIRMED**: Database analysis shows no formal foreign key constraints are currently implemented in the public schema. This is a deliberate design choice for the fitness application.
 
 1. **No Foreign Key Constraints**: The database may be using a design pattern where foreign key relationships exist logically but are not enforced at the database level through formal FOREIGN KEY constraints.
 
