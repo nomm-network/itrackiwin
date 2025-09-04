@@ -28,12 +28,12 @@ export default function ExerciseCard(props: {
   const displayName = props.exercise.exercises?.display_name || props.exercise.display_name || 'Exercise';
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-4 mb-8">
+    <div className="rounded-2xl border border-neutral-800 bg-neutral-900/40 p-4 mb-8">
       {props.showWarmup && <WarmupPanel topKg={props.target.kg} steps={warmupSteps} />}
 
       <div className="flex items-center justify-between mb-2">
         <div className="text-xl font-semibold">{displayName}</div>
-        <div className="text-muted-foreground text-sm">{props.setIndex - 1}/3 sets</div>
+        <div className="opacity-70 text-sm">{props.setIndex - 1}/3 sets</div>
       </div>
 
       <PrevTargetTile prev={props.last} target={props.target} />

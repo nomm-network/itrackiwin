@@ -60,7 +60,7 @@ export const StartWithDebug: React.FC<Props> = ({ templateId, children }) => {
   };
 
   return (
-    <button onClick={handleStart} className="btn btn-primary">
+    <button onClick={handleStart} className="px-4 py-2 rounded-md bg-primary text-primary-foreground hover:bg-primary/90">
       {children ?? 'Start'}
     </button>
   );

@@ -13,12 +13,12 @@ export default function PrevTargetTile(props: {
     : '—kg × —';
 
   return (
-    <div className="rounded-lg bg-card border border-border p-3 mb-3">
+    <div className="rounded-lg bg-neutral-800/60 p-3 mb-3">
       <div className="flex items-center justify-between text-sm">
-        <div>🧻 Prev <span className="font-semibold">{prevTxt}</span></div>
-        {props.prev?.date && <div className="text-muted-foreground">{props.prev.date}</div>}
+        <div>🧻 Prev <b>{prevTxt}</b></div>
+        {props.prev?.date && <div className="opacity-70">{props.prev.date}</div>}
       </div>
-      <div className="mt-1 text-sm">🎯 Target <span className="font-semibold">{targetTxt}</span></div>
+      <div className="mt-1 text-sm">🎯 Target <b>{targetTxt}</b></div>
     </div>
   );
 }

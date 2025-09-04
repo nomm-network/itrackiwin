@@ -29,15 +29,14 @@ export const useWorkoutSession = (workoutId: string) => {
           workout_exercises (
             id, exercise_id, display_name, order_index,
             target_sets, target_reps, target_weight_kg, weight_unit, grip_key,
-            attribute_values_json,
-            exercises:exercise_id ( id, slug, display_name )
+            attribute_values_json
           )
         `)
         .eq('id', workoutId)
         .single();
       if (error) throw error;
 
-      // Pull last-set info per exercise using the new RPC
+      // Optionally pull last-set info per exercise (lightweight RPC or view)
       const exerciseIds = (w?.workout_exercises ?? []).map((e:any)=>e.exercise_id);
       let last = [] as any[];
       if (exerciseIds.length) {
@@ -68,8 +67,7 @@ export const useLogSet = () => {
           weight_kg: payload.weight_kg,
           reps: payload.reps,
           rpe: payload.rpe ?? null,
-          pain_flag: payload.pain ?? null,
-          completed_at: new Date().toISOString(),
+          had_pain: payload.pain !== 'none'
         })
         .select('id')
         .single();

@@ -1,11 +1,8 @@
 // Compatibility exports for existing components
-import { startWorkout } from '../api/workouts.api';
+export { useStartWorkout, useWorkoutSession, useLogSet } from './workouts.api';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
-
-// Re-export direct functions for new code
-export { startWorkout, getWorkout, getWorkoutExercises, logSet } from '../api/workouts.api';
 
 // Types
 export type EffortLevel = 'very_easy' | 'easy' | 'moderate' | 'hard' | 'very_hard' | 'max';
@@ -29,22 +26,6 @@ export const useMissingEstimates = (workoutId?: string) => {
     queryKey: ['missing-estimates', workoutId],
     enabled: !!workoutId,
     queryFn: async (): Promise<MissingEstimate[]> => [], // stub
-  });
-};
-
-// Hook wrappers for existing components that expect hooks
-export const useStartWorkout = () => {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (opts: { templateId?: string } = {}) => {
-      const workoutId = await startWorkout(opts.templateId || null);
-      return { workoutId };
-    },
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['workouts'] });
-      qc.invalidateQueries({ queryKey: ['active-workout'] });
-    },
   });
 };
 

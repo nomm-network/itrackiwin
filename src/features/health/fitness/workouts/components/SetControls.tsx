@@ -16,19 +16,18 @@ export default function SetControls(props: {
     <div>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-sm text-muted-foreground">Weight (kg)</label>
+          <label className="text-sm opacity-80">Weight (kg)</label>
           <input
-            className="w-full mt-1 rounded-md bg-background border border-border px-3 py-2 text-foreground"
+            className="w-full mt-1 rounded-md bg-neutral-900 px-3 py-2"
             type="number"
-            step="0.5"
             value={props.weight ?? ''}
             onChange={e => props.onChange(e.target.value === '' ? null : Number(e.target.value), props.reps)}
           />
         </div>
         <div>
-          <label className="text-sm text-muted-foreground">Reps</label>
+          <label className="text-sm opacity-80">Reps</label>
           <input
-            className="w-full mt-1 rounded-md bg-background border border-border px-3 py-2 text-foreground"
+            className="w-full mt-1 rounded-md bg-neutral-900 px-3 py-2"
             type="number"
             value={props.reps ?? ''}
             onChange={e => props.onChange(props.weight, e.target.value === '' ? null : Number(e.target.value))}
@@ -37,31 +36,27 @@ export default function SetControls(props: {
       </div>
 
       <div className="mt-3">
-        <label className="text-sm text-muted-foreground">How did that feel?</label>
+        <label className="text-sm opacity-80">How did that feel?</label>
         <div className="mt-2 flex gap-2">
           {[0,1,2,3,4].map(i => (
             <button
               key={i}
-              className={`rounded-md px-3 py-2 bg-card border transition-all ${
-                props.rpe===i ? 'ring-2 ring-primary' : 'border-border hover:border-primary/50'
-              }`}
+              className={`rounded-md px-3 py-2 bg-neutral-900 ${props.rpe===i?'ring-2 ring-emerald-500':''}`}
               onClick={() => props.onRpe(i)}
             >{['😵‍💫','😖','🙂','😁','😎'][i]}</button>
           ))}
         </div>
       </div>
 
-      <div className="mt-3 rounded-md bg-card border border-border px-3 py-2">
+      <div className="mt-3 rounded-md bg-neutral-900 px-3 py-2">
         <button
-          className={`w-full text-left transition-colors ${
-            props.pain==='none' ? 'text-green-400' : 'text-foreground'
-          }`}
+          className={`w-full text-left ${props.pain==='none'?'text-emerald-400':''}`}
           onClick={() => props.onPain(props.pain==='none'?'minor':'none')}
         >🔁 No pain</button>
       </div>
 
       <button
-        className="mt-4 w-full rounded-lg bg-primary text-primary-foreground font-semibold py-3 hover:bg-primary/90 transition-colors"
+        className="mt-4 w-full rounded-lg bg-emerald-500 text-black font-semibold py-3"
         onClick={props.onLog}
       >
         Log Set {props.setIndex}

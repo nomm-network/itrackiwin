@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { BarSelector } from './BarSelector';
 import { useEquipmentEffective } from '@/hooks/useEquipmentEffective';
-import { logSet } from '@/features/health/fitness/workouts/api/workouts.api';
+import { useLogSet } from '@/features/health/fitness/workouts/hooks/workouts.api';
 import { toast } from '@/hooks/use-toast';
 
 type Exercise = {
@@ -88,7 +88,9 @@ export function LoadTypeSetInput({ exercise, setIndex, onLogged }: Props) {
 
     try {
       setIsLoading(true);
-      await logSet({
+      // Use the hook pattern from the new API
+      const { mutateAsync } = useLogSet();
+      await mutateAsync({
         workout_exercise_id: exercise.id,
         set_index: setIndex,
         weight_kg: total,

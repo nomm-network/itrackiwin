@@ -1,14 +1,15 @@
 import { useNavigate } from 'react-router-dom';
-import { startWorkout } from '../api/workouts.api';
+import { useStartWorkout } from '../hooks/workouts.api';
 import { toast } from 'sonner';
 
 export function StartFromTemplateButton({ templateId }: { templateId: string }) {
   const navigate = useNavigate();
+  const startWorkout = useStartWorkout();
 
   const handle = async () => {
     try {
-      const id = await startWorkout(templateId);
-      navigate(`/app/workouts/${id}`);
+      const result = await startWorkout.mutateAsync({ templateId });
+      navigate(`/app/workouts/${result.workoutId}`);
     } catch (e: any) {
       // Show exact payload (code, message, details, hint) if available
       const raw = e?.cause ?? e;
