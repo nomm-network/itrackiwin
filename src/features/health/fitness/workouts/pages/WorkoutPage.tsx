@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import WorkoutHeader from '../components/WorkoutHeader';
 import WarmupPanel from '../components/WarmupPanel';
 import SetList from '../components/SetList';
+import { DebugPanel } from '../components/DebugPanel';
 
 type UUID = string;
 
@@ -266,6 +267,16 @@ const WorkoutPage: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Debug Panel */}
+      <DebugPanel
+        workoutId={workoutId}
+        workout={workout}
+        exercises={exercises}
+        firstExercise={exercises?.[0]}
+        setsByExercise={setsByExercise}
+        lastError={err}
+      />
     </div>
   );
 };
