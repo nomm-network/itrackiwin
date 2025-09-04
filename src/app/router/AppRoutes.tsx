@@ -6,7 +6,7 @@ import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLay
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
 import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout';
-import StartOrContinue from '@/features/workouts/components/StartOrContinue';
+import { StartOrContinue } from '@/features/health/fitness/workouts/ui';
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));

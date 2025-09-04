@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Dumbbell, HelpCircle } from "lucide-react";
-import { useMissingEstimates, type MissingEstimate } from "@/features/workouts/hooks/useMissingEstimates";
+import { useMissingEstimates, type MissingEstimate } from "@/features/health/fitness/workouts/hooks";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";

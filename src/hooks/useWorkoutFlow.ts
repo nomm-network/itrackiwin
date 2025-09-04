@@ -1,9 +1,9 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useStartWorkout } from "@/features/workouts/hooks";
+import { useStartWorkout } from "@/features/health/fitness/workouts/hooks";
 import type { ReadinessData } from "@/features/health/fitness/readiness/ui/ReadinessCheckIn";
-import type { EffortLevel } from "@/components/fitness/EffortSelector";
+import type { EffortLevel } from "@/features/health/fitness/workouts/hooks";
 
 export type WorkoutPhase = 'readiness' | 'active' | 'rest' | 'complete';
 

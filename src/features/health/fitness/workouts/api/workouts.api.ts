@@ -1,7 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
-import { updateWarmupForWorkout } from '@/features/workouts/warmup/updateWarmupForWorkout';
+// TODO: Import warmup function from new location
+// import { updateWarmupForWorkout } from '@/features/workouts/warmup/updateWarmupForWorkout';
 
 // ============================================================================
 // API LAYER - All Supabase interactions for workouts
@@ -213,21 +214,22 @@ export const useLogSet = () => {
       return data;
     },
     onSuccess: async (data, variables) => {
+      // TODO: Re-enable warmup update after migration
       // Update warmup plan after logging a working set
-      if (variables.set_kind === 'normal' || !variables.set_kind) {
-        try {
-          // Get user ID from auth
-          const { data: { user } } = await supabase.auth.getUser();
-          if (user) {
-            await updateWarmupForWorkout({
-              workoutExerciseId: variables.workout_exercise_id,
-              userId: user.id,
-            });
-          }
-        } catch (error) {
-          console.error('Failed to update warmup after set log:', error);
-        }
-      }
+      // if (variables.set_kind === 'normal' || !variables.set_kind) {
+      //   try {
+      //     // Get user ID from auth
+      //     const { data: { user } } = await supabase.auth.getUser();
+      //     if (user) {
+      //       await updateWarmupForWorkout({
+      //         workoutExerciseId: variables.workout_exercise_id,
+      //         userId: user.id,
+      //       });
+      //     }
+      //   } catch (error) {
+      //     console.error('Failed to update warmup after set log:', error);
+      //   }
+      // }
       
       // Optimistically update workout cache instead of full reload
       const workoutId = variables.workout_exercise_id; // We'd need to track this
