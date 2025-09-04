@@ -182,6 +182,7 @@ const calculateRestTime = (effort: EffortLevel): number => {
     'moderate': 180,   // 3 minutes
     'hard': 240,       // 4 minutes
     'very_hard': 300,  // 5 minutes
+    'max': 360,        // 6 minutes
   };
   
   return restMap[effort] || 180;
