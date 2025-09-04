@@ -349,12 +349,33 @@ const WorkoutSession: React.FC = () => {
   // Gate UI until we know the readiness status
   const stillLoading = isCheckingReadiness || authLoading || !user;
 
+  // Show errors if any
+  if (!id) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold text-destructive mb-2">No Workout ID</h2>
+          <p className="text-muted-foreground">No workout ID provided in the URL.</p>
+          <Button className="mt-4" onClick={() => navigate('/dashboard')}>
+            Go to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   // Show loading until we have all the data
   if (stillLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2">Loading workout...</span>
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+          <span>Loading workout...</span>
+          <div className="text-xs text-muted-foreground mt-2">
+            Auth: {authLoading ? 'Loading...' : user ? 'Ready' : 'No user'}<br/>
+            Readiness: {isCheckingReadiness ? 'Checking...' : 'Done'}
+          </div>
+        </div>
       </div>
     );
   }
