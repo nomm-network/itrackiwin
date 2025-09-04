@@ -7247,7 +7247,11 @@ export type Database = {
         Returns: number
       }
       compute_readiness_for_user: {
-        Args: { p_user_id: string; p_workout_started_at?: string }
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      compute_readiness_for_user_at: {
+        Args: { p_at: string; p_user_id: string }
         Returns: number
       }
       compute_readiness_score: {
