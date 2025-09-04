@@ -14,8 +14,8 @@ export const useReadinessCheckin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Save readiness data using RPC function
-      const { error: insertError } = await supabase.rpc('save_readiness_checkin', {
+      // Save readiness data using RPC function with proper typing
+      const { error: insertError } = await supabase.rpc('save_readiness_checkin' as any, {
         p_energy: data.energy,
         p_sleep_quality: data.sleep_quality,
         p_sleep_hours: data.sleep_hours,
