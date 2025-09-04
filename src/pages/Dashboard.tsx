@@ -14,6 +14,7 @@ import EmptyCategory from '@/app/dashboard/components/EmptyCategory';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { StartErrorBanner } from './Dashboard/StartErrorBanner';
 import { supabase } from '@/integrations/supabase/client';
+import TrainingCenterCard from './Dashboard/TrainingCenterCard';
 
 
 const Dashboard: React.FC = () => {
@@ -281,6 +282,11 @@ const Dashboard: React.FC = () => {
             </React.Suspense>
           </div>
         ))}
+      </div>
+
+      {/* Training Center */}
+      <div className="mt-4">
+        <TrainingCenterCard />
       </div>
 
       {/* Quick Actions - immediately after Quick Start */}
