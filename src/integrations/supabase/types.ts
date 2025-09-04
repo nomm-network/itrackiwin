@@ -3593,6 +3593,7 @@ export type Database = {
       }
       template_exercises: {
         Row: {
+          attribute_values_json: Json
           backoff_percent: number | null
           backoff_sets: number | null
           created_at: string | null
@@ -3622,6 +3623,7 @@ export type Database = {
           weight_unit: string
         }
         Insert: {
+          attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
@@ -3651,6 +3653,7 @@ export type Database = {
           weight_unit?: string
         }
         Update: {
+          attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
