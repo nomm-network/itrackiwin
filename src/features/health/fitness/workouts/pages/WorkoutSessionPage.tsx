@@ -19,8 +19,26 @@ export default function WorkoutSessionPage() {
     return <div className="p-4">Loading workout...</div>;
   }
 
-  if (error) return <div className="p-4 text-red-400">Failed to load: {String((error as any)?.message || error)}</div>;
-  if (isLoading || !data) return <div className="p-4">Loading…</div>;
+  if (error) {
+    console.error('[WorkoutSessionPage] Error loading workout:', error);
+    return (
+      <div className="p-4 text-red-400">
+        <div className="text-lg font-bold">Failed to load workout</div>
+        <div className="text-sm mt-2">Error: {String((error as any)?.message || error)}</div>
+        <div className="text-xs mt-2 opacity-70">Workout ID: {id}</div>
+        <button 
+          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+          onClick={() => nav('/dashboard')}
+        >
+          Back to Dashboard
+        </button>
+      </div>
+    );
+  }
+  if (isLoading || !data) {
+    console.log('[WorkoutSessionPage] Loading workout...', { id, isLoading, data: !!data });
+    return <div className="p-4">Loading…</div>;
+  }
 
   const exs = (data.workout?.workout_exercises ?? []).slice().sort((a:any,b:any)=>a.order_index-b.order_index);
 
