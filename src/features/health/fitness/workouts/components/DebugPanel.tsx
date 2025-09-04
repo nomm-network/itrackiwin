@@ -57,7 +57,7 @@ WHERE id = '${workoutId || '—'}'`}
   )
 FROM workout_exercises 
 WHERE workout_id = '${workoutId || '—'}'
-ORDER BY order_index ASC, set_index ASC (on workout_sets)`}
+ORDER BY order_index ASC`}
             </pre>
           </div>
         </div>
