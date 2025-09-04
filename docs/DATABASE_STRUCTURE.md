@@ -1,7 +1,11 @@
-# Database Structure Documentation
+# FITNESS DATABASE STRUCTURE - CURRENT STATE (128 TABLES)
+
+## CRITICAL SYSTEM STATUS
+**ISSUE**: Workout creation failing when clicking "Start" button. Readiness form not opening properly.
+**AFFECTED COMPONENTS**: TrainingLauncher, useStartWorkout hook, start_workout RPC, readiness system
 
 ## Overview
-This document outlines the complete database structure for the fitness application, including exercise management, movement patterns, equipment, and muscle group hierarchies.
+This document outlines the complete database structure for the fitness application with all 128 tables, foreign key relationships, and critical debugging information for the workout creation flow issue.
 
 ## Core Entity Relationships
 
