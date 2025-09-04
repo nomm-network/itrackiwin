@@ -3371,48 +3371,6 @@ export type Database = {
           },
         ]
       }
-      readiness_logs: {
-        Row: {
-          alcohol: boolean
-          created_at: string
-          energy: number
-          id: string
-          illness: boolean
-          sleep_hours: number
-          sleep_quality: number
-          soreness: number
-          stress: number
-          supplements: Json | null
-          user_id: string
-        }
-        Insert: {
-          alcohol?: boolean
-          created_at?: string
-          energy: number
-          id?: string
-          illness?: boolean
-          sleep_hours: number
-          sleep_quality: number
-          soreness: number
-          stress: number
-          supplements?: Json | null
-          user_id: string
-        }
-        Update: {
-          alcohol?: boolean
-          created_at?: string
-          energy?: number
-          id?: string
-          illness?: boolean
-          sleep_hours?: number
-          sleep_quality?: number
-          soreness?: number
-          stress?: number
-          supplements?: Json | null
-          user_id?: string
-        }
-        Relationships: []
-      }
       rest_timer_sessions: {
         Row: {
           actual_rest_seconds: number | null
@@ -6699,6 +6657,84 @@ export type Database = {
           },
         ]
       }
+      v_latest_readiness: {
+        Row: {
+          alcohol: boolean | null
+          created_at: string | null
+          energy: number | null
+          illness: boolean | null
+          sleep_hours: number | null
+          sleep_quality: number | null
+          soreness: number | null
+          stress: number | null
+          supplements: number | null
+          user_id: string | null
+          workout_id: string | null
+        }
+        Insert: {
+          alcohol?: never
+          created_at?: string | null
+          energy?: never
+          illness?: never
+          sleep_hours?: never
+          sleep_quality?: never
+          soreness?: never
+          stress?: never
+          supplements?: never
+          user_id?: string | null
+          workout_id?: string | null
+        }
+        Update: {
+          alcohol?: never
+          created_at?: string | null
+          energy?: never
+          illness?: never
+          sleep_hours?: never
+          sleep_quality?: never
+          soreness?: never
+          stress?: never
+          supplements?: never
+          user_id?: string | null
+          workout_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "v_workout_has_checkin"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "pre_workout_checkins_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: true
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_muscle_groups_with_translations: {
         Row: {
           body_part_id: string | null
@@ -7273,6 +7309,10 @@ export type Database = {
         Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
       }
+      compute_readiness_for_user: {
+        Args: { p_user_id: string; p_workout_started_at?: string }
+        Returns: number
+      }
       compute_readiness_score: {
         Args: {
           p_alcohol: boolean
@@ -7665,6 +7705,20 @@ export type Database = {
           effective_score: number
           muscle_id: string
           primary_muscle: boolean
+        }[]
+      }
+      get_latest_readiness: {
+        Args: { p_user_id: string; p_workout_started_at?: string }
+        Returns: {
+          alcohol: boolean
+          created_at: string
+          energy: number
+          illness: boolean
+          sleep_hours: number
+          sleep_quality: number
+          soreness: number
+          stress: number
+          supplements: number
         }[]
       }
       get_life_categories_i18n: {
@@ -8133,16 +8187,28 @@ export type Database = {
         Returns: Json
       }
       save_readiness_checkin: {
-        Args: {
-          p_alcohol: boolean
-          p_energy: number
-          p_illness: boolean
-          p_sleep_hours: number
-          p_sleep_quality: number
-          p_soreness: number
-          p_stress: number
-          p_supplements: Json
-        }
+        Args:
+          | {
+              p_alcohol: boolean
+              p_energy: number
+              p_illness: boolean
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+              p_supplements: Json
+            }
+          | {
+              p_alcohol: boolean
+              p_energy: number
+              p_illness: boolean
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+              p_supplements?: number
+              p_workout_id: string
+            }
         Returns: string
       }
       set_limit: {

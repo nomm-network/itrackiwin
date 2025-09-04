@@ -6,7 +6,7 @@ export const useReadinessCheckin = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const saveCheckin = async (data: ReadinessInput) => {
+  const saveCheckin = async (data: ReadinessInput, workoutId: string) => {
     setIsLoading(true);
     setError(null);
 
@@ -16,6 +16,7 @@ export const useReadinessCheckin = () => {
 
       // Save readiness data using RPC function with proper typing
       const { error: insertError } = await supabase.rpc('save_readiness_checkin' as any, {
+        p_workout_id: workoutId,
         p_energy: data.energy,
         p_sleep_quality: data.sleep_quality,
         p_sleep_hours: data.sleep_hours,
@@ -23,7 +24,7 @@ export const useReadinessCheckin = () => {
         p_stress: data.stress,
         p_illness: data.illness,
         p_alcohol: data.alcohol,
-        p_supplements: data.supplements
+        p_supplements: data.supplements || 0
       });
 
       if (insertError) throw insertError;

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
-import { useStartWorkout } from '../hooks';
+import { useStartWorkout, useEndWorkout } from '../hooks';
+import { useReadinessCheckin } from '../../readiness/hooks/useReadinessCheckin';
 import EnhancedReadinessCheckIn, { type EnhancedReadinessData } from '../../readiness/ui/EnhancedReadinessCheckIn';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,7 +13,10 @@ const TrainingLauncher: React.FC = () => {
   const [searchParams] = useSearchParams();
   const { toast } = useToast();
   const { mutateAsync: startWorkout, isPending } = useStartWorkout();
+  const { mutateAsync: endWorkout } = useEndWorkout();
+  const { saveCheckin } = useReadinessCheckin();
   const [showReadiness, setShowReadiness] = useState(true);
+  const [workoutId, setWorkoutId] = useState<string | null>(null);
   
   const templateId = searchParams.get('templateId');
 
@@ -20,9 +24,34 @@ const TrainingLauncher: React.FC = () => {
     try {
       console.log('🚀 TrainingLauncher: Starting workout with readiness data:', data);
       
-      const result = await startWorkout({ 
-        templateId: templateId || undefined
-      });
+      // First create the workout to get the ID
+      let currentWorkoutId = workoutId;
+      if (!currentWorkoutId) {
+        const result = await startWorkout({ 
+          templateId: templateId || undefined
+        });
+        currentWorkoutId = result.workoutId;
+        setWorkoutId(currentWorkoutId);
+      }
+
+      if (!currentWorkoutId) {
+        throw new Error('Failed to create workout');
+      }
+
+      // Map the readiness data to the format expected by the RPC
+      const readinessInput = {
+        energy: data.readiness.energy,
+        sleep_quality: data.readiness.sleep_quality,
+        sleep_hours: data.readiness.sleep_hours,
+        soreness: data.readiness.soreness,
+        stress: data.readiness.stress,
+        illness: data.readiness.illness,
+        alcohol: data.readiness.alcohol,
+        supplements: data.readiness.supplements || []
+      };
+
+      // Save readiness data with workout ID
+      await saveCheckin(readinessInput, currentWorkoutId);
       
       toast({
         title: "Workout Started!",
@@ -30,7 +59,7 @@ const TrainingLauncher: React.FC = () => {
       });
 
       // Navigate to the workout session
-      navigate(`/app/workouts/${result.workoutId}`);
+      navigate(`/app/workouts/${currentWorkoutId}`);
     } catch (error) {
       console.error('🚀 TrainingLauncher: Failed to start workout:', error);
       toast({
@@ -41,8 +70,17 @@ const TrainingLauncher: React.FC = () => {
     }
   };
 
-  const handleAbort = () => {
-    navigate('/dashboard');
+  const handleAbort = async () => {
+    try {
+      // If we created a workout, delete it
+      if (workoutId) {
+        await endWorkout(workoutId);
+      }
+    } catch (error) {
+      console.error('Failed to clean up workout:', error);
+    } finally {
+      navigate('/dashboard');
+    }
   };
 
   if (showReadiness) {
