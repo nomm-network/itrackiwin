@@ -101,13 +101,14 @@ const WorkoutPage: React.FC = () => {
           target_reps, target_weight_kg, weight_unit, grip_key,
           attribute_values_json, readiness_adjusted_from,
           exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
-          workout_sets(
+          workout_sets!inner(
             id, workout_exercise_id, set_index, set_kind, 
             reps, weight_kg, is_completed, rest_seconds
           )
         `)
         .eq('workout_id', workoutId)
-        .order('order_index', { ascending: true });
+        .order('order_index', { ascending: true })
+        .order('set_index', { ascending: true, foreignTable: 'workout_sets' });
 
       if (weErr) {
         if (!isCancelled) {
