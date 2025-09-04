@@ -1,2 +1,2 @@
 // Workout UI components
-// Add workout screens and widgets here
+export { default as WorkoutsLayout } from './WorkoutsLayout';

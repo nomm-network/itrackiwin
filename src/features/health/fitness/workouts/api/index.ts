@@ -1,2 +1,3 @@
 // Workout API functions
-export * from '../../../../../features/workouts/api';
+export * from './workouts.api';
+export * from './warmup';

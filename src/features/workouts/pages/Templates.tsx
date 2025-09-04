@@ -1,1 +1,0 @@
-export { default } from '../../health/fitness/pages/Templates.page';

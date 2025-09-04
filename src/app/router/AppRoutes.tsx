@@ -5,7 +5,7 @@ import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
-import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
+import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard

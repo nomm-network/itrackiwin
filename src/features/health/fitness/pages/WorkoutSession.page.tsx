@@ -18,11 +18,11 @@ import { Input } from "@/components/ui/input";
 
 import { useAddExerciseToWorkout, useAddSet, useEndWorkout, useDeleteWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
 import { supabase } from "@/integrations/supabase/client";
-import DynamicMetricsForm from "@/components/DynamicMetricsForm";
+import { DynamicMetricsForm } from "@/features/health/fitness/exercises/ui";
 import { useToast } from "@/hooks/use-toast";
 
 import { useTranslations } from "@/hooks/useTranslations";
-import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
+import { ReadinessCheckIn, type ReadinessData } from "@/features/health/fitness/readiness/ui";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
 import { useShouldShowReadiness } from "@/features/health/fitness/hooks/useShouldShowReadiness";
 import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
