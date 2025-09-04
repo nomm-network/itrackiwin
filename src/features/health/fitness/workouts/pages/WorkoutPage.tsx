@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 // Old-UI building blocks you restored earlier:
 import WorkoutHeader from '../components/WorkoutHeader';
@@ -65,6 +66,26 @@ const WorkoutPage: React.FC = () => {
   const [setsByExercise, setSetsByExercise] = useState<Record<string, WorkoutSet[]>>({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState<string | null>(null);
+  const [header, setHeader] = useState<{title?: string|null; tmpl?: string|null; started_at?: string|null}>({});
+
+  // -------- header data loader ----------
+  useEffect(() => {
+    if (!workoutId) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from('workouts')
+        .select('id, title, started_at, workout_templates(name)')
+        .eq('id', workoutId)
+        .single();
+      if (!error && data) {
+        setHeader({
+          title: data.title,
+          tmpl: (data as any).workout_templates?.name ?? null,
+          started_at: data.started_at
+        });
+      }
+    })();
+  }, [workoutId]);
 
   // -------- data loaders ----------
   useEffect(() => {
@@ -272,11 +293,19 @@ const WorkoutPage: React.FC = () => {
 
   return (
     <div className="p-4 space-y-4">
-      <WorkoutHeader
-        title={headerTitle}
-        subtitle={workout.started_at ? new Date(workout.started_at).toLocaleString() : undefined}
-        onExit={onExit}
-      />
+      <div className="flex items-center justify-between mb-4">
+        <div className="text-2xl font-bold">
+          {header.title || header.tmpl || 'Workout'}
+        </div>
+        <div className="flex items-center gap-3">
+          <div className="text-sm text-slate-400">
+            {header.started_at ? format(new Date(header.started_at), "dd/MM/yyyy, HH:mm:ss") : ''}
+          </div>
+          <button onClick={() => navigate(-1)} className="px-4 py-2 rounded-lg bg-slate-800 text-white">
+            Back
+          </button>
+        </div>
+      </div>
 
       {/* Exercises list */}
       <div className="space-y-6">
