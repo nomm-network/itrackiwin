@@ -233,39 +233,47 @@ const WorkoutPage: React.FC = () => {
 
       {/* Exercises list */}
       <div className="space-y-6">
-        {exercises.map((we) => {
-          const warmupSteps =
-            we.attribute_values_json?.warmup && Array.isArray(we.attribute_values_json.warmup)
-              ? we.attribute_values_json.warmup
-              : null;
+        {(() => {
+          console.log('🔍 DEBUG: About to render exercises', { 
+            exercisesLength: exercises?.length, 
+            exercises: exercises,
+            firstExercise: exercises?.[0] 
+          });
+          return exercises.map((we) => {
+            console.log('🔍 DEBUG: Rendering exercise', { we, exerciseData: we.exercise });
+            const warmupSteps =
+              we.attribute_values_json?.warmup && Array.isArray(we.attribute_values_json.warmup)
+                ? we.attribute_values_json.warmup
+                : null;
 
-          // compact warmup block + sets below (old UI feel)
-          return (
-            <div key={we.id} className="rounded-lg border bg-card">
-              {/* Warmup (compact) */}
-              <WarmupPanel
-                exerciseId={we.exercise_id}
-                workoutExerciseId={we.id}
-                exerciseName={we.exercise.display_name || we.exercise.slug}
-                topWeightKg={we.target_weight_kg ?? null}
-                warmupSteps={warmupSteps}
-                // Ask WarmupPanel to be compact like old UI
-                compact
-                onWarmupRecalculated={() => refreshOneExercise(we.id)}
-              />
+            // compact warmup block + sets below (old UI feel)
+            return (
+              <div key={we.id} className="rounded-lg border bg-card">
+                {/* Warmup (compact) */}
+                <WarmupPanel
+                  exerciseId={we.exercise_id}
+                  workoutExerciseId={we.id}
+                  exerciseName={we.exercise.display_name || we.exercise.slug}
+                  topWeightKg={we.target_weight_kg ?? null}
+                  warmupSteps={warmupSteps}
+                  // Ask WarmupPanel to be compact like old UI
+                  compact
+                  onWarmupRecalculated={() => refreshOneExercise(we.id)}
+                />
 
-              {/* Working sets */}
-              <SetList
-                workoutExerciseId={we.id}
-                targetReps={we.target_reps ?? undefined}
-                targetWeightKg={we.target_weight_kg ?? undefined}
-                unit={we.weight_unit ?? 'kg'}
-                sets={setsByExercise[we.id] ?? []}
-                onSetsChanged={() => refreshSetsFor(we.id)}
-              />
-            </div>
-          );
-        })}
+                {/* Working sets */}
+                <SetList
+                  workoutExerciseId={we.id}
+                  targetReps={we.target_reps ?? undefined}
+                  targetWeightKg={we.target_weight_kg ?? undefined}
+                  unit={we.weight_unit ?? 'kg'}
+                  sets={setsByExercise[we.id] ?? []}
+                  onSetsChanged={() => refreshSetsFor(we.id)}
+                />
+              </div>
+            );
+          });
+        })()}
       </div>
 
       {/* Debug Panel */}
