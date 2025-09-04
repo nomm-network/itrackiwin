@@ -29,6 +29,19 @@ export function DebugPanel({
         <div>first target: {firstExercise?.target_weight_kg ?? '—'} kg × {firstExercise?.target_reps ?? '—'}</div>
         <div>exercise keys: {exercises ? Object.keys(exercises[0] || {}).join(', ') : '—'}</div>
         <div>exercise.exercise keys: {firstExercise?.exercise ? Object.keys(firstExercise.exercise).join(', ') : '—'}</div>
+        
+        {/* ALL EXERCISE NAMES */}
+        <div style={{marginTop: '10px'}}>
+          <b>ALL EXERCISES:</b>
+          {exercises?.map((ex, i) => (
+            <div key={ex.id} style={{marginLeft: '10px', fontSize: '11px'}}>
+              {i+1}. {ex.exercise?.display_name || 'NO NAME'} (id: {ex.id})
+              <br />- sets: {ex.workout_sets?.length ?? 0} | setsByExercise: {setsByExercise?.[ex.id]?.length ?? 0}
+              <br />- workout_sets keys: {ex.workout_sets?.[0] ? Object.keys(ex.workout_sets[0]).join(', ') : 'no sets'}
+            </div>
+          )) || <div>No exercises found</div>}
+        </div>
+        
         <div>warmup json:
           <pre style={{whiteSpace:'pre-wrap'}}>
             {JSON.stringify(firstExercise?.attribute_values_json?.warmup ?? firstExercise?.attribute_values_json ?? {}, null, 2)}
