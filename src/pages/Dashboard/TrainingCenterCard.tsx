@@ -1,146 +1,123 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useTemplates } from '@/features/health/fitness/training/hooks/useTemplates';
+import { useNextProgramBlock } from '@/features/health/fitness/training/hooks/useNextProgramBlock';
+import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
-type TemplateRow = { id: string; name: string | null; is_public: boolean; };
+const TrainingCenterCard: React.FC = () => {
+  const navigate = useNavigate();
+  const { data: templates = [], isLoading: tLoading } = useTemplates();
+  const { data: nextBlock, isLoading: bLoading } = useNextProgramBlock();
+  const [rpcError, setRpcError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
 
-export const TrainingCenterCard: React.FC = () => {
-  const nav = useNavigate();
-  const qc = useQueryClient();
-  const [debug, setDebug] = useState<string | null>(null);
+  const canStartProgram = useMemo(
+    () => !!nextBlock?.workout_template_id,
+    [nextBlock]
+  );
 
-  // 1) Active workout (continue)
-  const { data: activeWorkout } = useQuery({
-    queryKey: ['active-workout'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select('id, title, started_at, template_id')
-        .is('ended_at', null)
-        .order('started_at', { ascending: false })
-        .limit(1)
-        .maybeSingle();
-      if (error) throw error;
-      return data;
-    },
-  });
+  const startWorkout = async (templateId?: string) => {
+    setPending(true);
+    setRpcError(null);
+    try {
+      const args = { p_template_id: templateId ?? null };
+      const { data, error } = await supabase.rpc('start_workout', args);
 
-  // 2) Few recent templates for quick start
-  const { data: templates } = useQuery({
-    queryKey: ['my-templates'],
-    queryFn: async (): Promise<TemplateRow[]> => {
-      const { data, error } = await supabase
-        .from('workout_templates')
-        .select('id, name, is_public')
-        .order('updated_at', { ascending: false })
-        .limit(6);
-      if (error) throw error;
-      return data ?? [];
-    },
-  });
-
-  // 3) Start workout mutation
-  const startFromTemplate = useMutation({
-    mutationFn: async (templateId: string | null) => {
-      const { data, error } = await supabase.rpc('start_workout', {
-        p_template_id: templateId,
-      });
+      // Full error visibility
       if (error) {
-        // show exact DB error
-        setDebug(JSON.stringify(error, null, 2));
-        throw error;
+        console.error('[start_workout][RPC ERROR]', { args, error });
+        setRpcError(`${error.code ?? ''} ${error.message}`);
+        toast.error(error.message);
+        return;
       }
-      return data as string; // workoutId
-    },
-    onSuccess: async (workoutId) => {
-      toast.success('Workout started');
-      await Promise.all([
-        qc.invalidateQueries({ queryKey: ['active-workout'] }),
-        qc.invalidateQueries({ queryKey: ['workouts'] }),
-      ]);
-      nav(`/app/workouts/${workoutId}`);
-    },
-    onError: (err: any) => {
-      // loud + detailed
-      toast.error(err?.message ?? 'Failed to start');
-      console.error('[TrainingCenterCard] start_workout error:', err);
-    },
-  });
+      if (!data) {
+        setRpcError('No workout id returned');
+        console.error('[start_workout] No id returned');
+        toast.error('Failed to start workout');
+        return;
+      }
 
-  const hasActive = !!activeWorkout?.id;
-  const quickList = useMemo(() => templates ?? [], [templates]);
+      toast.success('Workout started!');
+      navigate(`/app/workouts/${data}`);
+    } catch (e: any) {
+      console.error('[start_workout][JS ERROR]', e);
+      setRpcError(e?.message ?? 'Unknown error');
+      toast.error('Failed to start workout');
+    } finally {
+      setPending(false);
+    }
+  };
 
   return (
-    <div className="rounded-xl border border-emerald-900/40 bg-[#0f1f1b] p-4">
+    <div className="rounded-lg border border-emerald-900/40 bg-[#0f1f1b] p-4">
       <div className="mb-3 flex items-center justify-between">
-        <h3 className="text-base font-semibold text-emerald-200">Training Center</h3>
-        <button
-          onClick={() => nav('/app/workouts')}
-          className="text-xs text-emerald-300/80 hover:text-emerald-200"
-        >
-          View all
-        </button>
+        <h3 className="text-lg font-semibold text-emerald-300">Training Center</h3>
+        <span className="text-xs text-emerald-500/70">
+          {bLoading || tLoading ? 'Loading…' : ''}
+        </span>
       </div>
 
-      {/* Continue */}
-      {hasActive ? (
-        <div className="mb-4 rounded-lg bg-[#0d1a17] p-3">
-          <div className="mb-2 text-sm text-emerald-100">
-            Continue workout{activeWorkout?.title ? `: ${activeWorkout.title}` : ''}
+      <div className="grid gap-3 md:grid-cols-2">
+        {/* Program card */}
+        <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
+          <div className="mb-2 text-sm text-emerald-200">Program</div>
+          <div className="text-xs text-emerald-500/80">
+            {nextBlock?.title ?? 'No upcoming block'}
           </div>
-          <button
-            className="rounded-md bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-500"
-            onClick={() => nav(`/app/workouts/${activeWorkout!.id}`)}
+          <Button
+            className="mt-3 w-full"
+            disabled={!canStartProgram || pending}
+            onClick={() => startWorkout(nextBlock?.workout_template_id)}
           >
-            Continue
-          </button>
+            {pending ? 'Starting…' : 'Start Program Session'}
+          </Button>
         </div>
-      ) : (
-        <div className="mb-4 rounded-lg bg-[#0d1a17] p-3">
-          <div className="mb-2 text-sm text-emerald-100">Start a new session</div>
-          <div className="flex gap-2">
-            <button
-              className="rounded-md bg-emerald-600 px-3 py-2 text-sm text-white hover:bg-emerald-500"
-              onClick={() => startFromTemplate.mutate(null)}
-              disabled={startFromTemplate.isPending}
-            >
-              {startFromTemplate.isPending ? 'Starting…' : 'Quick Start'}
-            </button>
-          </div>
-        </div>
-      )}
 
-      {/* Start from template */}
-      <div className="rounded-lg bg-[#0d1a17] p-3">
-        <div className="mb-2 text-sm text-emerald-100">Start from template</div>
-        <div className="grid grid-cols-2 gap-2">
-          {quickList.map((t) => (
-            <button
-              key={t.id}
-              onClick={() => startFromTemplate.mutate(t.id)}
-              className="truncate rounded-md border border-emerald-900/40 bg-[#0f1f1b] px-3 py-2 text-left text-xs text-emerald-200 hover:border-emerald-700"
-              title={t.name ?? 'Untitled'}
-            >
-              {t.name ?? 'Untitled'}
-              {t.is_public && <span className="ml-2 rounded bg-emerald-800 px-1 text-[10px]">Public</span>}
-            </button>
-          ))}
-          {quickList.length === 0 && (
-            <div className="col-span-2 text-xs text-emerald-300/70">
-              No templates yet. Create one in Templates.
-            </div>
-          )}
+        {/* Templates card */}
+        <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
+          <div className="mb-2 text-sm text-emerald-200">Templates</div>
+          <div className="max-h-48 overflow-auto rounded bg-[#0f1f1b] p-2">
+            {templates.length === 0 ? (
+              <div className="py-6 text-center text-xs text-emerald-500/60">
+                {tLoading ? 'Loading templates…' : 'No templates found'}
+              </div>
+            ) : (
+              <ul className="space-y-2">
+                {templates.map((t) => (
+                  <li
+                    key={t.id}
+                    className="flex items-center justify-between rounded border border-emerald-900/40 bg-[#0d1a17] p-2"
+                  >
+                    <span className="truncate text-xs text-emerald-200">
+                      {t.name ?? 'Untitled'}
+                    </span>
+                    <Button
+                      size="sm"
+                      variant="secondary"
+                      disabled={pending}
+                      onClick={() => startWorkout(t.id)}
+                    >
+                      Start
+                    </Button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Debug drawer */}
-      {debug && (
-        <pre className="mt-3 max-h-40 overflow-auto rounded bg-black/50 p-2 text-[11px] text-emerald-300">
-          {debug}
-        </pre>
-      )}
+      {/* Tiny debug row */}
+      <div className="mt-3 text-[11px] leading-4 text-emerald-500/70">
+        <span className="font-medium">Debug:</span>{' '}
+        {rpcError ? (
+          <span className="text-red-400">{rpcError}</span>
+        ) : (
+          'OK'
+        )}
+      </div>
     </div>
   );
 };
