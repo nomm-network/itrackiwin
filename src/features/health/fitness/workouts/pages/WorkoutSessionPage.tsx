@@ -14,30 +14,75 @@ export default function WorkoutSessionPage() {
   const { data, isLoading, error } = useWorkoutSession(id || '');
   const logSet = useLogSet();
 
+  // DEBUG PANEL - ALWAYS VISIBLE
+  const DebugPanel = () => (
+    <div className="fixed top-4 right-4 bg-black/90 text-white p-4 rounded-lg max-w-md w-full z-50 text-xs font-mono">
+      <div className="text-yellow-400 font-bold mb-2">🐛 DEBUG PANEL</div>
+      <div className="space-y-1">
+        <div><span className="text-green-400">ID from URL:</span> {id || 'NO ID'}</div>
+        <div><span className="text-green-400">ID valid:</span> {id && id !== 'undefined' && id.length >= 36 ? '✅' : '❌'}</div>
+        <div><span className="text-green-400">Is Loading:</span> {isLoading ? '⏳' : '✅'}</div>
+        <div><span className="text-green-400">Has Error:</span> {error ? '❌' : '✅'}</div>
+        <div><span className="text-green-400">Has Data:</span> {data ? '✅' : '❌'}</div>
+        {error && (
+          <div className="mt-2">
+            <div className="text-red-400 font-bold">ERROR:</div>
+            <div className="text-red-300 whitespace-pre-wrap">{JSON.stringify(error, null, 2)}</div>
+          </div>
+        )}
+        {data && (
+          <div className="mt-2">
+            <div className="text-blue-400 font-bold">DATA:</div>
+            <div className="text-blue-300 whitespace-pre-wrap max-h-40 overflow-auto">{JSON.stringify(data, null, 2)}</div>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+
   // Show loading if no ID yet (during navigation)
   if (!id || id === 'undefined') {
-    return <div className="p-4">Loading workout...</div>;
+    return (
+      <div className="p-4">
+        <DebugPanel />
+        <div className="text-red-500 text-xl font-bold">❌ NO WORKOUT ID IN URL</div>
+        <div className="mt-2">URL Params: {JSON.stringify(useParams())}</div>
+        <div className="mt-2">Current URL: {window.location.href}</div>
+      </div>
+    );
   }
 
   if (error) {
     console.error('[WorkoutSessionPage] Error loading workout:', error);
     return (
-      <div className="p-4 text-red-400">
-        <div className="text-lg font-bold">Failed to load workout</div>
-        <div className="text-sm mt-2">Error: {String((error as any)?.message || error)}</div>
-        <div className="text-xs mt-2 opacity-70">Workout ID: {id}</div>
-        <button 
-          className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
-          onClick={() => nav('/dashboard')}
-        >
-          Back to Dashboard
-        </button>
+      <div className="p-4">
+        <DebugPanel />
+        <div className="text-red-400">
+          <div className="text-lg font-bold">Failed to load workout</div>
+          <div className="text-sm mt-2">Error: {String((error as any)?.message || error)}</div>
+          <div className="text-xs mt-2 opacity-70">Workout ID: {id}</div>
+          <button 
+            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded"
+            onClick={() => nav('/dashboard')}
+          >
+            Back to Dashboard
+          </button>
+        </div>
       </div>
     );
   }
+  
   if (isLoading || !data) {
     console.log('[WorkoutSessionPage] Loading workout...', { id, isLoading, data: !!data });
-    return <div className="p-4">Loading…</div>;
+    return (
+      <div className="p-4">
+        <DebugPanel />
+        <div className="text-yellow-500 text-xl font-bold">⏳ LOADING WORKOUT...</div>
+        <div className="mt-2">Workout ID: {id}</div>
+        <div className="mt-2">Loading state: {isLoading ? 'true' : 'false'}</div>
+        <div className="mt-2">Data exists: {data ? 'true' : 'false'}</div>
+      </div>
+    );
   }
 
   const exs = (data.workout?.workout_exercises ?? []).slice().sort((a:any,b:any)=>a.order_index-b.order_index);
