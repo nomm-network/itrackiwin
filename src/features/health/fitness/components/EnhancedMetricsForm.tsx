@@ -6,9 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Mic, Calculator, Zap } from 'lucide-react';
-import VoiceInput from './VoiceInput';
-import QuickEntryPad from './QuickEntryPad';
-import MetricVisualization from './MetricVisualization';
+import VoiceInput from '@/components/mobile/VoiceInput';
+import QuickEntryPad from '@/components/mobile/QuickEntryPad';
+import MetricVisualization from '@/components/mobile/MetricVisualization';
 import { ExerciseMetricDef } from '@/features/health/fitness/hooks/useMetrics.hook';
 
 interface EnhancedMetricsFormProps {

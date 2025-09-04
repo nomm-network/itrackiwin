@@ -12,7 +12,7 @@ import { Slider } from "@/components/ui/slider";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import ExerciseImageUploader from "@/components/ExerciseImageUploader";
+import ExerciseImageUploader from "@/features/health/fitness/components/ExerciseImageUploader";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";

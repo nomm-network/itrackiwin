@@ -14,7 +14,7 @@ import {
   Target
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
-import { PersistentRestTimer } from './PersistentRestTimer';
+import { PersistentRestTimer } from '@/components/mobile/PersistentRestTimer';
 
 interface SetData {
   id?: string;
