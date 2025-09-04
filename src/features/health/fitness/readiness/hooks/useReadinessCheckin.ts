@@ -14,7 +14,7 @@ export const useReadinessCheckin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // For now, we'll create a simple readiness table to store this data
+      // Store readiness data in the new readiness_logs table
       const { error: insertError } = await supabase
         .from('readiness_logs')
         .insert({

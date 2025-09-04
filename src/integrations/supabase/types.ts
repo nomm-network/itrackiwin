@@ -3371,6 +3371,48 @@ export type Database = {
           },
         ]
       }
+      readiness_logs: {
+        Row: {
+          alcohol: boolean
+          created_at: string
+          energy: number
+          id: string
+          illness: boolean
+          sleep_hours: number
+          sleep_quality: number
+          soreness: number
+          stress: number
+          supplements: Json | null
+          user_id: string
+        }
+        Insert: {
+          alcohol?: boolean
+          created_at?: string
+          energy: number
+          id?: string
+          illness?: boolean
+          sleep_hours: number
+          sleep_quality: number
+          soreness: number
+          stress: number
+          supplements?: Json | null
+          user_id: string
+        }
+        Update: {
+          alcohol?: boolean
+          created_at?: string
+          energy?: number
+          id?: string
+          illness?: boolean
+          sleep_hours?: number
+          sleep_quality?: number
+          soreness?: number
+          stress?: number
+          supplements?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       rest_timer_sessions: {
         Row: {
           actual_rest_seconds: number | null
