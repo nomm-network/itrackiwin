@@ -1,6 +1,6 @@
 import React from 'react';
 import PageNav from '@/components/PageNav';
-// import { TrainingProgramManager } from '@/components/fitness/TrainingProgramManager'; // TODO: Migrate this component
+// TODO: Migrate TrainingProgramManager component to the new structure
 
 const TrainingProgramsPage = () => {
   return (
@@ -17,6 +17,9 @@ const TrainingProgramsPage = () => {
           
           <div className="p-4 bg-muted rounded-lg text-center">
             <p>TrainingProgramManager component - Migration in progress</p>
+            <p className="text-sm text-muted-foreground mt-2">
+              This component will be rebuilt following the new feature-first architecture
+            </p>
           </div>
         </div>
       </main>
