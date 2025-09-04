@@ -35,8 +35,8 @@ const TrainingDashboard: React.FC = () => {
       // Start from program - navigate to readiness check first
       navigate(`/app/workouts/start-quick?templateId=${nextBlock.workout_template_id}`);
     } else {
-      // No program - navigate to workout start page to show readiness check
-      navigate('/app/workouts/start-quick');
+      // No program - navigate to templates page to select workout
+      navigate('/fitness/templates');
     }
   };
 
