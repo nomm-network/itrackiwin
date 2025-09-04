@@ -10,6 +10,9 @@ interface Workout {
   started_at: string;
   ended_at?: string;
   template_id?: string;
+  template?: {
+    name: string;
+  };
 }
 
 interface Props {
@@ -34,9 +37,9 @@ const WorkoutHeader: React.FC<Props> = ({ workout, onEndWorkout }) => {
     <Card className="mb-4">
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl">
-            {workout.title || 'Workout Session'}
-          </CardTitle>
+          <h2 className="text-xl font-bold">
+            {workout?.template?.name || "Workout Session"}
+          </h2>
           <Badge variant={isActive ? "default" : "secondary"}>
             {isActive ? "Active" : "Completed"}
           </Badge>
