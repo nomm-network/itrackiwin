@@ -72,8 +72,7 @@ const Dashboard: React.FC = () => {
       
       // Test 1: Check readiness score
       const { data: scoreData, error: scoreError } = await supabase.rpc('compute_readiness_for_user', {
-        p_user_id: user.id,
-        p_workout_started_at: new Date().toISOString()
+        p_user_id: user.id
       });
       
       if (scoreError) throw new Error(`Score error: ${scoreError.message}`);

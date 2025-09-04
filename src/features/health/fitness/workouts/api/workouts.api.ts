@@ -137,72 +137,21 @@ export const useGetWorkout = (workoutId?: string) => {
   });
 };
 
-// ✅ UNIFIED START WORKOUT - Smart readiness-aware workout start
 export const useStartWorkout = () => {
-  const queryClient = useQueryClient();
-  const { user } = useAuth();
-  
+  const qc = useQueryClient();
+
   return useMutation({
-    mutationFn: async (options: { templateId?: string } = {}) => {
-      console.log('🚀 useStartWorkout: ===== AUTHENTICATION CHECK =====');
-      console.log('🚀 useStartWorkout: User object:', user);
-      console.log('🚀 useStartWorkout: User ID:', user?.id);
-      console.log('🚀 useStartWorkout: Is authenticated:', !!user?.id);
-      
-      if (!user?.id) {
-        console.error('🚀 useStartWorkout: NOT AUTHENTICATED - throwing error');
-        throw new Error('Not authenticated - please log in first');
-      }
-      
-      console.log('🚀 useStartWorkout: ===== DETAILED DEBUG START =====');
-      console.log('🚀 useStartWorkout: User ID:', user.id);
-      console.log('🚀 useStartWorkout: Input options:', options);
-      console.log('🚀 useStartWorkout: Template ID being sent:', options.templateId || null);
-      console.log('🚀 useStartWorkout: About to call RPC with params:', {
-        p_template_id: options.templateId || null
-      });
-      
-      // start_workout RPC returns a uuid directly
+    mutationFn: async (opts: { templateId?: string } = {}) => {
       const { data, error } = await supabase.rpc('start_workout', {
-        p_template_id: options.templateId || null
+        p_template_id: opts.templateId ?? null,
       });
-      
-      console.log('🚀 useStartWorkout: ===== RPC RESPONSE =====');
-      console.log('🚀 useStartWorkout: Raw data:', data);
-      console.log('🚀 useStartWorkout: Raw error:', error);
-      console.log('🚀 useStartWorkout: Data type:', typeof data);
-      console.log('🚀 useStartWorkout: Error details:', error ? {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code
-      } : 'No error');
-      
-      if (error) {
-        console.error('🚀 useStartWorkout: RPC ERROR - throwing error');
-        throw error;
-      }
-      
-      // data is the workout_id directly
-      const workoutId = data;
-      console.log('🚀 useStartWorkout: Extracted workout ID:', workoutId);
-      console.log('🚀 useStartWorkout: Workout ID type:', typeof workoutId);
-      
-      if (!workoutId) {
-        console.error('🚀 useStartWorkout: NO WORKOUT ID - data was:', data);
-        throw new Error('Failed to create workout - no ID returned');
-      }
-      
-      console.log('🚀 useStartWorkout: ===== SUCCESS =====');
-      console.log('🚀 useStartWorkout: Final workout ID:', workoutId);
-      return { workoutId };
+      if (error) throw error;
+      return { workoutId: data as string };
     },
     onSuccess: () => {
-      if (user?.id) {
-        queryClient.invalidateQueries({ queryKey: workoutKeys.active(user.id) });
-        queryClient.invalidateQueries({ queryKey: workoutKeys.sessions(user.id) });
-      }
-    }
+      qc.invalidateQueries({ queryKey: ['workouts'] });
+      qc.invalidateQueries({ queryKey: ['active-workout'] });
+    },
   });
 };
 
