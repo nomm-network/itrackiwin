@@ -5456,6 +5456,7 @@ export type Database = {
           notes: string | null
           order_index: number
           per_side_weight: number | null
+          readiness_adjusted_from: string | null
           rest_seconds: number | null
           selected_bar_id: string | null
           target_origin: string | null
@@ -5488,6 +5489,7 @@ export type Database = {
           notes?: string | null
           order_index: number
           per_side_weight?: number | null
+          readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
@@ -5520,6 +5522,7 @@ export type Database = {
           notes?: string | null
           order_index?: number
           per_side_weight?: number | null
+          readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
@@ -6137,6 +6140,7 @@ export type Database = {
           id: string
           notes: string | null
           perceived_exertion: number | null
+          readiness_score: number | null
           session_unit: string
           started_at: string
           template_id: string | null
@@ -6151,6 +6155,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          readiness_score?: number | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
@@ -6165,6 +6170,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          readiness_score?: number | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
@@ -7222,6 +7228,19 @@ export type Database = {
         Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
       }
+      compute_readiness_score: {
+        Args: {
+          p_alcohol: boolean
+          p_energy: number
+          p_illness: boolean
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+          p_supplements: Json
+        }
+        Returns: number
+      }
       compute_total_weight: {
         Args: {
           p_bar_weight: number
@@ -7348,6 +7367,10 @@ export type Database = {
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
+        Returns: Json
+      }
+      generate_warmup_steps: {
+        Args: { p_top_kg: number }
         Returns: Json
       }
       geography: {
@@ -7883,6 +7906,13 @@ export type Database = {
         Args: { "": unknown }
         Returns: string
       }
+      pick_base_load: {
+        Args: { p_exercise: string; p_user: string }
+        Returns: {
+          base_weight: number
+          source_workout_exercise_id: string
+        }[]
+      }
       plan_next_prescription: {
         Args: {
           p_exercise_id: string
@@ -8036,6 +8066,10 @@ export type Database = {
       promote_frequent_gym: {
         Args: { _user_id: string }
         Returns: undefined
+      }
+      readiness_multiplier: {
+        Args: { p_score: number }
+        Returns: number
       }
       recalc_warmup_from_last_set: {
         Args: { p_workout_exercise_id: string }

@@ -137,25 +137,21 @@ export const useGetWorkout = (workoutId?: string) => {
   });
 };
 
-// ✅ UNIFIED START WORKOUT - One clean function that calls the simplified RPC
+// ✅ UNIFIED START WORKOUT - Smart readiness-aware workout start
 export const useStartWorkout = () => {
   const queryClient = useQueryClient();
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (options: { templateId?: string; readinessData?: any } = {}) => {
+    mutationFn: async (options: { templateId?: string } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
       
+      // start_workout RPC now handles readiness automatically from latest pre_workout_checkins
       const { data, error } = await supabase.rpc('start_workout', {
         p_template_id: options.templateId || null
       });
       
       if (error) throw error;
-      
-      // TODO: Store readiness data if provided (currently RPC doesn't handle it)
-      if (options.readinessData) {
-        console.log('Readiness data will be stored:', options.readinessData);
-      }
       
       return { workoutId: data };
     },

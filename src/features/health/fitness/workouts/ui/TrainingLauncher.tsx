@@ -21,8 +21,7 @@ const TrainingLauncher: React.FC = () => {
       console.log('🚀 TrainingLauncher: Starting workout with readiness data:', data);
       
       const result = await startWorkout({ 
-        templateId: templateId || undefined,
-        readinessData: data.readiness 
+        templateId: templateId || undefined
       });
       
       toast({
