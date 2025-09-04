@@ -20,12 +20,8 @@ export const useStartWorkout = () => {
 export const useWorkoutSession = (workoutId: string) => {
   return useQuery({
     queryKey: ['workout-session', workoutId],
-    enabled: !!workoutId && workoutId !== 'undefined',
+    enabled: !!workoutId && workoutId !== 'undefined' && workoutId.length >= 36,
     queryFn: async () => {
-      // Validate workoutId is a proper UUID format
-      if (!workoutId || workoutId === 'undefined' || workoutId.length < 36) {
-        throw new Error('Invalid workout ID');
-      }
       // Pull workout + exercises; include last set info via server view or joins
       const { data: w, error } = await supabase
         .from('workouts')

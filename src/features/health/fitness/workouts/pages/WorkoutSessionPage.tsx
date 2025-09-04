@@ -11,23 +11,13 @@ export default function WorkoutSessionPage() {
   const { id } = useParams<{id:string}>();
   const nav = useNavigate();
   
-  // Validate workout ID early
-  if (!id || id === 'undefined' || id.length < 36) {
-    return (
-      <div className="p-4 text-red-400">
-        Invalid workout ID. Please return to dashboard and start a new workout.
-        <button 
-          className="block mt-2 rounded-lg bg-neutral-800 px-4 py-2" 
-          onClick={() => nav('/app/dashboard')}
-        >
-          Go to Dashboard
-        </button>
-      </div>
-    );
-  }
-
-  const { data, isLoading, error } = useWorkoutSession(id);
+  const { data, isLoading, error } = useWorkoutSession(id || '');
   const logSet = useLogSet();
+
+  // Show loading if no ID yet (during navigation)
+  if (!id || id === 'undefined') {
+    return <div className="p-4">Loading workout...</div>;
+  }
 
   if (error) return <div className="p-4 text-red-400">Failed to load: {String((error as any)?.message || error)}</div>;
   if (isLoading || !data) return <div className="p-4">Loading…</div>;
