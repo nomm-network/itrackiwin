@@ -11,12 +11,10 @@ export function StartFromTemplateButton({ templateId }: { templateId: string }) 
       const result = await startWorkout.mutateAsync({ templateId });
       navigate(`/app/workouts/${result.workoutId}`);
     } catch (e: any) {
-      // Show exact payload (code, message, details, hint) if available
-      const raw = e?.cause ?? e;
-      const msg = typeof raw === 'object' ? JSON.stringify(raw, null, 2) : String(raw);
-      console.error('[Start Workout] RPC error:', e);
-      // toast (visible), and also a modal if you want
-      toast.error(`Failed to start workout:\n${e.message ?? msg}`);
+      // Show real database error details for debugging
+      const msg = e?.message || e?.error_description || JSON.stringify(e);
+      console.error('[start_workout] error:', e);
+      toast.error(`Start failed: ${msg}`);
       // stay on page; do NOT redirect
     }
   };

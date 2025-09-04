@@ -18,8 +18,9 @@ const TrainingLauncher: React.FC = () => {
     startWorkout({ templateId })
       .then(({ workoutId }) => navigate(`/app/workouts/${workoutId}`))
       .catch((e) => {
+        const msg = e?.message || e?.error_description || JSON.stringify(e);
         console.error('[TrainingLauncher] start_workout failed', e);
-        toast.error(e?.message ?? 'Failed to start workout');
+        toast.error(`Start failed: ${msg}`);
         navigate('/dashboard');
       });
   }, [searchParams, startWorkout, navigate]);
