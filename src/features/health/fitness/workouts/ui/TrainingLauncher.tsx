@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { useStartWorkout, useEndWorkout } from '../hooks';
 import { useReadinessCheckin } from '../../readiness/hooks/useReadinessCheckin';
+import { supabase } from '@/integrations/supabase/client';
 import EnhancedReadinessCheckIn, { type EnhancedReadinessData } from '../../readiness/ui/EnhancedReadinessCheckIn';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +36,29 @@ const TrainingLauncher: React.FC = () => {
           templateId: templateId || undefined 
         });
         
+        console.log('🔥 TrainingLauncher - TESTING DIRECT RPC CALL LIKE DASHBOARD TEST...');
+        
+        // Try the direct RPC call like the working test in Dashboard
+        const { data: directWorkoutData, error: directWorkoutError } = await supabase.rpc('start_workout', {
+          p_template_id: templateId || null
+        });
+        
+        console.log('🔥 TrainingLauncher - DIRECT RPC RESULT:', { 
+          data: directWorkoutData, 
+          error: directWorkoutError 
+        });
+        
+        if (directWorkoutError) {
+          console.error('🔥 TrainingLauncher - DIRECT RPC FAILED:', directWorkoutError);
+        } else {
+          console.log('🔥 TrainingLauncher - DIRECT RPC SUCCESS! WorkoutID:', directWorkoutData);
+          setWorkoutId(directWorkoutData);
+          setIsCreatingWorkout(false);
+          return;
+        }
+        
+        // If direct RPC fails, try the hook
+        console.log('🔥 TrainingLauncher - Now trying hook method...');
         const result = await startWorkout({ 
           templateId: templateId || undefined
         });
