@@ -14,12 +14,13 @@ export const useReadinessCheckin = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Store readiness data in answers JSON field
-      const { error: insertError } = await supabase
-        .from('pre_workout_checkins')
-        .insert({
+      // Store readiness data in user profile readiness field for now
+      // This is a simplified approach until we have proper pre-workout check-ins
+      const { error: updateError } = await supabase
+        .from('user_profile_fitness')
+        .upsert({
           user_id: user.id,
-          answers: {
+          readiness_data: {
             energy: data.energy,
             sleep_quality: data.sleep_quality,
             sleep_hours: data.sleep_hours,
@@ -27,11 +28,12 @@ export const useReadinessCheckin = () => {
             stress: data.stress,
             illness: data.illness,
             alcohol: data.alcohol,
-            supplements: data.supplements
+            supplements: data.supplements,
+            timestamp: new Date().toISOString()
           }
         });
 
-      if (insertError) throw insertError;
+      if (updateError) throw updateError;
 
       return true;
     } catch (err) {
