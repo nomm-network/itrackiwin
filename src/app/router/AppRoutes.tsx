@@ -47,6 +47,7 @@ const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutSessionPage'));
+const WorkoutPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutPage'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -172,7 +173,7 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           }>
             <Route index element={<StartOrContinue />} />
-            <Route path=":workoutId" element={<WorkoutSessionPage />} />
+            <Route path=":workoutId" element={<WorkoutPage />} />
           </Route>
 
           {/* Fitness sub-routes still work for admin/configuration */}
