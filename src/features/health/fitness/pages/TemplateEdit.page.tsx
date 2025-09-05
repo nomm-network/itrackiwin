@@ -220,16 +220,42 @@ export default function TemplateEdit() {
   };
 
   const handleAddExercise = async (exercise: Exercise) => {
+    let actualTemplateId = templateId;
+    
+    // Auto-save template if creating
     if (isCreating) {
-      toast.error("Please save the template first before adding exercises");
-      return;
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) throw new Error('Not authenticated');
+        
+        const { data: newTemplate, error } = await supabase
+          .from('workout_templates')
+          .insert({
+            name: name.trim() || "Untitled Template",
+            notes: notes.trim(),
+            is_public: isPublic,
+            user_id: user.user.id
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        actualTemplateId = newTemplate.id;
+        toast.success("Template created");
+        navigate(`/fitness/templates/${newTemplate.id}/edit`, { replace: true });
+      } catch (error) {
+        toast.error("Failed to create template");
+        console.error("Template creation error:", error);
+        return;
+      }
     }
     
-    if (!templateId) return;
+    if (!actualTemplateId) return;
     
     try {
       await addExerciseToTemplate.mutateAsync({
-        template_id: templateId,
+        template_id: actualTemplateId,
         exercise_id: exercise.id,
         order_index: (exercises?.length || 0) + 1,
         default_sets: 3,
