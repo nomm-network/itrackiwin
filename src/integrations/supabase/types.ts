@@ -7309,6 +7309,10 @@ export type Database = {
         }
         Returns: number
       }
+      compute_targets_for_workout: {
+        Args: { p_workout_id: string }
+        Returns: undefined
+      }
       compute_total_weight: {
         Args: {
           p_bar_weight: number
@@ -9332,6 +9336,10 @@ export type Database = {
         Returns: number
       }
       start_workout: {
+        Args: { p_template_id?: string }
+        Returns: string
+      }
+      start_workout_with_smart_targets: {
         Args: { p_template_id?: string }
         Returns: string
       }

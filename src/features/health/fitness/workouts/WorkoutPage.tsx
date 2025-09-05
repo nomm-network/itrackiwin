@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { useWorkout } from './api/useWorkout';
+import { useSmartWorkoutTargets } from './hooks/useSmartWorkoutTargets';
 import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 import { Button } from '@/components/ui/button';
 
@@ -13,8 +14,32 @@ const Box: React.FC<{title?:string, children:React.ReactNode}> = ({title, childr
 
 export default function WorkoutPage() {
   const { workoutId = '' } = useParams();
-  const { data, isLoading, error } = useWorkout(workoutId);
+  const { data, isLoading, error, refetch } = useWorkout(workoutId);
+  const { computeTargets, isComputing } = useSmartWorkoutTargets();
   const [showDebug, setShowDebug] = useState(false);
+  const [targetsComputed, setTargetsComputed] = useState(false);
+
+  // BLOCKER 3 FIX: Compute targets on mount if they're missing
+  useEffect(() => {
+    if (data && !targetsComputed && !isComputing) {
+      const hasEmptyTargets = data.exercises.some(ex => 
+        ex.target_weight_kg === null || ex.target_weight_kg === 0
+      );
+      
+      if (hasEmptyTargets) {
+        computeTargets(workoutId)
+          .then(() => {
+            setTargetsComputed(true);
+            refetch(); // Refetch to get updated data
+          })
+          .catch(err => {
+            console.error('Failed to compute targets:', err);
+          });
+      } else {
+        setTargetsComputed(true);
+      }
+    }
+  }, [data, workoutId, computeTargets, isComputing, targetsComputed, refetch]);
 
   if (isLoading) return <div className="p-4 text-emerald-200">Loading…</div>;
   if (error) return <div className="p-4 text-red-400">Error: {(error as any)?.message}</div>;
