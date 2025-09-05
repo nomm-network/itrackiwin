@@ -1,7 +1,7 @@
 import React from 'react';
 import { useParams } from 'react-router-dom';
-import { useWorkout } from './api/useWorkout';
-import WorkoutExerciseCard from './components/WorkoutExerciseCard';
+import { useWorkout } from '@/features/health/fitness/workouts/api/useWorkout';
+import WorkoutExerciseCard from '@/features/health/fitness/workouts/components/WorkoutExerciseCard';
 
 const Box: React.FC<{title?:string, children:React.ReactNode}> = ({title, children}) => (
   <div className="rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-4">
