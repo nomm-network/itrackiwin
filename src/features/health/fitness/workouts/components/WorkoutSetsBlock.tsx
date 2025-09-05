@@ -88,9 +88,31 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
           >
             -
           </button>
-          <span className="text-white min-w-[60px] text-center">
-            {weight}{unit}
-          </span>
+          <input
+            type="number"
+            value={weight}
+            onChange={(e) => {
+              const value = parseFloat(e.target.value);
+              if (!isNaN(value) && value >= 0) {
+                // Round to 2 decimal places
+                setWeight(Math.round(value * 100) / 100);
+              } else if (e.target.value === '') {
+                setWeight(0);
+              }
+            }}
+            onBlur={(e) => {
+              // Ensure valid number on blur
+              const value = parseFloat(e.target.value);
+              if (isNaN(value) || value < 0) {
+                setWeight(0);
+              }
+            }}
+            step="0.01"
+            min="0"
+            disabled={isCompleted}
+            className="w-16 h-8 bg-transparent text-white text-center text-sm border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+          />
+          <span className="text-gray-400 text-xs">{unit}</span>
           <button
             onClick={() => setWeight(weight + 2.5)}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
@@ -109,9 +131,29 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
           >
             -
           </button>
-          <span className="text-white min-w-[40px] text-center">
-            {reps}
-          </span>
+          <input
+            type="number"
+            value={reps}
+            onChange={(e) => {
+              const value = parseInt(e.target.value);
+              if (!isNaN(value) && value >= 1) {
+                setReps(value);
+              } else if (e.target.value === '') {
+                setReps(1);
+              }
+            }}
+            onBlur={(e) => {
+              // Ensure valid number on blur
+              const value = parseInt(e.target.value);
+              if (isNaN(value) || value < 1) {
+                setReps(1);
+              }
+            }}
+            step="1"
+            min="1"
+            disabled={isCompleted}
+            className="w-12 h-8 bg-transparent text-white text-center text-sm border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+          />
           <button
             onClick={() => setReps(reps + 1)}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
