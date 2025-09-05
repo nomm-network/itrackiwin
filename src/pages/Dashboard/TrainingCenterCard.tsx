@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useTemplates } from '@/features/health/fitness/training/hooks/useTemplates';
 import { useNextProgramBlock } from '@/features/health/fitness/training/hooks/useNextProgramBlock';
+import { useActiveWorkout } from '@/features/health/fitness/training/hooks/useActiveWorkout';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -10,6 +11,7 @@ const TrainingCenterCard: React.FC = () => {
   const navigate = useNavigate();
   const { data: templates = [], isLoading: tLoading } = useTemplates();
   const { data: nextBlock, isLoading: bLoading } = useNextProgramBlock();
+  const { active, isLoading: activeLoading, error: activeError } = useActiveWorkout();
   const [rpcError, setRpcError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
@@ -50,64 +52,108 @@ const TrainingCenterCard: React.FC = () => {
     }
   };
 
+  const handleEndCurrent = async () => {
+    if (!active) return;
+    setPending(true);
+    try {
+      await supabase.rpc("end_workout", { p_workout_id: active.id });
+      toast.success('Workout ended');
+      window.location.reload(); // simplest refetch
+    } catch (e: any) {
+      toast.error('Failed to end workout');
+    } finally {
+      setPending(false);
+    }
+  };
+
   return (
     <div className="rounded-lg border border-emerald-900/40 bg-[#0f1f1b] p-4">
       <div className="mb-3 flex items-center justify-between">
         <h3 className="text-lg font-semibold text-emerald-300">Training Center</h3>
         <span className="text-xs text-emerald-500/70">
-          {bLoading || tLoading ? 'Loading…' : ''}
+          {bLoading || tLoading || activeLoading ? 'Loading…' : ''}
         </span>
       </div>
 
-      <div className="grid gap-3 md:grid-cols-2">
-        {/* Program card */}
-        <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
-          <div className="mb-2 text-sm text-emerald-200">Program</div>
-          <div className="text-xs text-emerald-500/80">
-            {nextBlock?.title ?? 'No upcoming block'}
-          </div>
-          <Button
-            className="mt-3 w-full"
-            disabled={!canStartProgram || pending}
-            onClick={() => startWorkout(nextBlock?.workout_template_id)}
-          >
-            {pending ? 'Starting…' : 'Start Program Session'}
-          </Button>
-        </div>
+      {activeError && (
+        <p className="mb-3 text-xs text-red-400">Active check: {activeError}</p>
+      )}
 
-        {/* Templates card */}
-        <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
-          <div className="mb-2 text-sm text-emerald-200">Templates</div>
-          <div className="max-h-48 overflow-auto rounded bg-[#0f1f1b] p-2">
-            {templates.length === 0 ? (
-              <div className="py-6 text-center text-xs text-emerald-500/60">
-                {tLoading ? 'Loading templates…' : 'No templates found'}
-              </div>
-            ) : (
-              <ul className="space-y-2">
-                {templates.map((t) => (
-                  <li
-                    key={t.id}
-                    className="flex items-center justify-between rounded border border-emerald-900/40 bg-[#0d1a17] p-2"
-                  >
-                    <span className="truncate text-xs text-emerald-200">
-                      {t.name ?? 'Untitled'}
-                    </span>
-                    <Button
-                      size="sm"
-                      variant="secondary"
-                      disabled={pending}
-                      onClick={() => startWorkout(t.id)}
-                    >
-                      Start
-                    </Button>
-                  </li>
-                ))}
-              </ul>
-            )}
+      {active ? (
+        <div className="space-y-3">
+          <div className="text-sm text-emerald-200/80">
+            Active workout{active.workout_templates?.name ? ` • ${active.workout_templates.name}` : ""}  
+          </div>
+          <div className="flex gap-2">
+            <Button
+              className="flex-1"
+              onClick={() => navigate(`/app/workouts/${active.id}`)}
+              disabled={pending}
+            >
+              Continue Workout
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleEndCurrent}
+              disabled={pending}
+              title="End current workout"
+            >
+              End
+            </Button>
           </div>
         </div>
-      </div>
+      ) : (
+        <div className="grid gap-3 md:grid-cols-2">
+          {/* Program card */}
+          <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
+            <div className="mb-2 text-sm text-emerald-200">Program</div>
+            <div className="text-xs text-emerald-500/80">
+              {nextBlock?.title ?? 'No upcoming block'}
+            </div>
+            <Button
+              className="mt-3 w-full"
+              disabled={!canStartProgram || pending}
+              onClick={() => startWorkout(nextBlock?.workout_template_id)}
+            >
+              {pending ? 'Starting…' : 'Start Program Session'}
+            </Button>
+          </div>
+
+          {/* Templates card */}
+          <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
+            <div className="mb-2 text-sm text-emerald-200">Templates</div>
+            <div className="max-h-48 overflow-auto rounded bg-[#0f1f1b] p-2">
+              {templates.length === 0 ? (
+                <div className="py-6 text-center text-xs text-emerald-500/60">
+                  {tLoading ? 'Loading templates…' : 'No templates found'}
+                </div>
+              ) : (
+                <ul className="space-y-2">
+                  {templates.map((t) => (
+                    <li
+                      key={t.id}
+                      className="flex items-center justify-between rounded border border-emerald-900/40 bg-[#0d1a17] p-2"
+                    >
+                      <span className="truncate text-xs text-emerald-200">
+                        {t.name ?? 'Untitled'}
+                      </span>
+                      <Button
+                        size="sm"
+                        variant="secondary"
+                        disabled={pending}
+                        onClick={() => startWorkout(t.id)}
+                      >
+                        Start
+                      </Button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Tiny debug row */}
       <div className="mt-3 text-[11px] leading-4 text-emerald-500/70">
