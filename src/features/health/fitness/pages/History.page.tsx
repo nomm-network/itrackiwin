@@ -60,7 +60,7 @@ const History: React.FC = () => {
   return (
     <>
       <PageNav current="History" />
-      <main className="container py-8 pb-20 space-y-6">
+      <main className="container py-8 pb-nav-safe space-y-6">
         <h1 className="text-2xl font-semibold">Workout History</h1>
         <section className="grid md:grid-cols-2 gap-4">
           {(workouts ?? []).map(w => (

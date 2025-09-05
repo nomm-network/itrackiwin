@@ -93,7 +93,7 @@ const PersonaSeedingPage: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto p-fluid-s pb-20 space-y-fluid-s">
+    <div className="container mx-auto p-fluid-s pb-nav-safe space-y-fluid-s">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
