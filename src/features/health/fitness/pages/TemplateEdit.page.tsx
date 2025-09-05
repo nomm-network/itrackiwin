@@ -47,17 +47,19 @@ export default function TemplateEdit() {
   const navigate = useNavigate();
   const { i18n } = useTranslation();
   
+  const isCreating = templateId === 'create';
+  
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(isCreating); // Start in edit mode when creating
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("all");
   const [selectedEquipment, setSelectedEquipment] = useState("all");
 
-  const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
-  const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
+  const { data: template, isLoading: templateLoading } = useTemplateDetail(isCreating ? undefined : templateId);
+  const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(isCreating ? undefined : templateId);
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
   const addExerciseToTemplate = useAddExerciseToTemplate();
@@ -160,22 +162,45 @@ export default function TemplateEdit() {
   }, [template]);
 
   const handleSave = async () => {
-    if (!templateId) return;
-    
     try {
-      await updateTemplate.mutateAsync({
-        templateId,
-        updates: {
-          name: name.trim() || "Untitled Template",
-          notes: notes.trim(),
-          is_public: isPublic
-        }
-      });
-      setIsEditing(false);
-      toast.success("Template updated successfully");
+      if (isCreating) {
+        // Create new template
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) throw new Error('Not authenticated');
+        
+        const { data: newTemplate, error } = await supabase
+          .from('workout_templates')
+          .insert({
+            name: name.trim() || "Untitled Template",
+            notes: notes.trim(),
+            is_public: isPublic,
+            user_id: user.user.id
+          })
+          .select()
+          .single();
+          
+        if (error) throw error;
+        
+        toast.success("Template created successfully");
+        navigate(`/fitness/templates/${newTemplate.id}/edit`);
+      } else {
+        // Update existing template
+        if (!templateId) return;
+        
+        await updateTemplate.mutateAsync({
+          templateId,
+          updates: {
+            name: name.trim() || "Untitled Template",
+            notes: notes.trim(),
+            is_public: isPublic
+          }
+        });
+        setIsEditing(false);
+        toast.success("Template updated successfully");
+      }
     } catch (error) {
-      toast.error("Failed to update template");
-      console.error("Template update error:", error);
+      toast.error(isCreating ? "Failed to create template" : "Failed to update template");
+      console.error("Template save error:", error);
     }
   };
 
@@ -266,7 +291,7 @@ export default function TemplateEdit() {
     }
   };
 
-  if (templateLoading) {
+  if (templateLoading && !isCreating) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -274,7 +299,7 @@ export default function TemplateEdit() {
     );
   }
 
-  if (!template) {
+  if (!template && !isCreating) {
     return (
       <div className="container py-8">
         <div className="text-center">
@@ -304,7 +329,7 @@ export default function TemplateEdit() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Templates
             </Button>
-            <h1 className="text-2xl font-semibold">Edit Template</h1>
+            <h1 className="text-2xl font-semibold">{isCreating ? 'Create Template' : 'Edit Template'}</h1>
           </div>
           
           <div className="flex gap-2">
@@ -320,17 +345,21 @@ export default function TemplateEdit() {
               </>
             ) : (
               <>
-                <Button variant="outline" onClick={() => setIsEditing(true)}>
-                  Edit Details
-                </Button>
-                <Button 
-                  variant="destructive" 
-                  onClick={handleDelete}
-                  disabled={deleteTemplate.isPending}
-                >
-                  <Trash2 className="h-4 w-4 mr-2" />
-                  Delete
-                </Button>
+                {!isCreating && (
+                  <Button variant="outline" onClick={() => setIsEditing(true)}>
+                    Edit Details
+                  </Button>
+                )}
+                {!isCreating && (
+                  <Button 
+                    variant="destructive" 
+                    onClick={handleDelete}
+                    disabled={deleteTemplate.isPending}
+                  >
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete
+                  </Button>
+                )}
               </>
             )}
           </div>
