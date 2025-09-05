@@ -200,7 +200,9 @@ const Dashboard: React.FC = () => {
       {/* Header */}
       <div className="space-y-1 sm:space-y-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">
+            {category?.name ? `${category.name.split(' ')[0]} Hub` : 'Dashboard'}
+          </h1>
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
               <Button 
@@ -208,7 +210,6 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/admin')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
                 Admin
               </Button>
             )}
@@ -217,7 +218,7 @@ const Dashboard: React.FC = () => {
               onClick={() => navigate('/explore')}
               className="text-sm"
             >
-              Explore by Planets
+              Explore All
             </Button>
           </div>
         </div>
