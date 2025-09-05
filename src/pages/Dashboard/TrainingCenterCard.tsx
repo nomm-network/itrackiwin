@@ -213,15 +213,12 @@ const TrainingCenterCard: React.FC = () => {
         </div>
       )}
 
-      {/* Tiny debug row */}
-      <div className="mt-3 text-[11px] leading-4 text-emerald-500/70">
-        <span className="font-medium">Debug:</span>{' '}
-        {rpcError ? (
-          <span className="text-red-400">{rpcError}</span>
-        ) : (
-          'OK'
-        )}
-      </div>
+      {/* Error display only when there's an RPC error */}
+      {rpcError && (
+        <div className="mt-3 text-xs text-red-400">
+          Error: {rpcError}
+        </div>
+      )}
     </div>
   );
 };
