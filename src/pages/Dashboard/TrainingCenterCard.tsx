@@ -139,7 +139,7 @@ const TrainingCenterCard: React.FC = () => {
                   variant="ghost"
                   size="sm"
                   className="w-full text-xs text-emerald-400"
-                  onClick={() => navigate('/app/templates')}
+                  onClick={() => navigate('/fitness/templates')}
                 >
                   Pick favorites → Explore more
                 </Button>
@@ -171,7 +171,7 @@ const TrainingCenterCard: React.FC = () => {
                     variant="ghost"
                     size="sm"
                     className="text-xs text-emerald-400"
-                    onClick={() => navigate('/app/templates')}
+                    onClick={() => navigate('/fitness/templates')}
                   >
                     Explore more
                   </Button>
