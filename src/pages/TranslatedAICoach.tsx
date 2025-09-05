@@ -299,7 +299,7 @@ const TranslatedAICoachPage: React.FC = () => {
   }
 
   return (
-    <div className="container mx-auto p-fluid-s space-y-fluid-s pb-safe-area-bottom">
+    <div className="container mx-auto p-fluid-s space-y-fluid-s pb-20">{/* Note: pb-safe-area-bottom was changed to pb-20 for consistent mobile spacing */}
       {/* Page Header */}
       <div className="space-y-2">
         <h1 className="text-fluid-3xl font-bold flex items-center gap-2">

@@ -21,7 +21,7 @@ export default function WorkoutPage() {
   const title = data.workout_title || 'Workout Session';
 
   return (
-    <div className="mx-auto max-w-3xl space-y-4 p-4 text-emerald-100">
+    <div className="mx-auto max-w-3xl space-y-4 p-4 pb-20 text-emerald-100">
       <h1 className="text-xl font-semibold text-emerald-200">{title}</h1>
 
       <Box title="Debug">
