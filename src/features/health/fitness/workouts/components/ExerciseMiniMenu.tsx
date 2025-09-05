@@ -1,8 +1,8 @@
 import { useState } from 'react';
-import { WorkoutExerciseDTO } from '../api/useWorkout';
+import { WorkoutExercise } from '../api/useWorkout';
 
 interface ExerciseMiniMenuProps {
-  workoutExercise: WorkoutExerciseDTO;
+  workoutExercise: WorkoutExercise;
 }
 
 export function ExerciseMiniMenu({ workoutExercise }: ExerciseMiniMenuProps) {

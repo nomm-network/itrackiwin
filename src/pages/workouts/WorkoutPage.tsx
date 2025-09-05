@@ -18,7 +18,7 @@ export default function WorkoutPage() {
   if (error) return <div className="p-4 text-red-400">Error: {(error as any)?.message}</div>;
   if (!data) return <div className="p-4 text-emerald-200">No data</div>;
 
-  const title = data.name || 'Workout Session';
+  const title = data.workout_title || 'Workout Session';
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4 text-emerald-100">
@@ -28,7 +28,7 @@ export default function WorkoutPage() {
         <pre className="text-xs whitespace-pre-wrap">
 {JSON.stringify({
   workoutId,
-  name: data.name,
+  name: data.workout_title,
   exercises: data.exercises.length
 }, null, 2)}
         </pre>

@@ -1,9 +1,9 @@
 import React from 'react';
-import type { WorkoutExerciseDTO } from '../api/useWorkout';
+import type { WorkoutExercise } from '../api/useWorkout';
 import WarmupPanel from './WarmupPanel';
 import { WorkoutSetsBlock } from './WorkoutSetsBlock';
 
-export default function WorkoutExerciseCard({ we }: { we: WorkoutExerciseDTO }) {
+export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
   // Add defensive checks
   if (!we || !we.exercise) {
     return (
@@ -19,8 +19,8 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExerciseDTO }) 
     we?.attribute_values_json?.warmup ?? [];
 
   // pill: completed/total normal sets
-  const totalNormal = we.sets?.filter(s => s.set_kind !== 'warmup').length || 3;
-  const doneNormal  = we.sets?.filter(s => s.set_kind !== 'warmup' && s.is_completed).length || 0;
+  const totalNormal = we.workout_sets?.filter(s => s.set_kind !== 'warmup').length || 3;
+  const doneNormal  = we.workout_sets?.filter(s => s.set_kind !== 'warmup' && s.is_completed).length || 0;
 
   return (
     <div className="rounded-xl border border-emerald-900/30 bg-[#0d1a17] p-4">
@@ -42,7 +42,7 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExerciseDTO }) 
         targetReps={we.target_reps}
         targetWeightKg={we.target_weight_kg}
         unit={we.weight_unit || 'kg'}
-        workoutSets={we.sets}
+        workoutSets={we.workout_sets}
       />
     </div>
   );
