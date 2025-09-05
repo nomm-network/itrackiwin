@@ -3,8 +3,9 @@ import { Hand, Hash, Flame } from 'lucide-react';
 import type { WorkoutExercise } from '../api/useWorkout';
 import WarmupPanel from './WarmupPanel';
 import { WorkoutSetsBlock } from './WorkoutSetsBlock';
+import SetsConfigPanel from './panels/SetsConfigPanel';
 
-type ActivePanel = 'warmup' | 'grips' | 'sets' | null;
+type ActivePanel = 'warmup' | 'grips' | 'setsConfig' | null;
 
 export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
   // Add defensive checks
@@ -16,12 +17,13 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
     );
   }
 
-  const [active, setActive] = useState<ActivePanel>('warmup');
+  const hasWarmup = we?.attribute_values_json?.warmup?.length > 0;
+  const [active, setActive] = useState<ActivePanel>(hasWarmup ? 'warmup' : null);
   const [warmupDone, setWarmupDone] = useState(false);
 
   const name = we.exercise.display_name || we.exercise.slug;
   const warmupSteps: {kg:number; reps:number; rest_s:number}[] = we?.attribute_values_json?.warmup ?? [];
-  const totalNormal = we.workout_sets?.filter(s => s.set_kind !== 'warmup').length || 3;
+  const totalNormal = we.target_sets || 3;
   const doneNormal = we.workout_sets?.filter(s => s.set_kind !== 'warmup' && s.is_completed).length || 0;
 
   const IconBtn = ({
@@ -57,7 +59,7 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
           <IconBtn label="Grips" activeWhen="grips" onClick={() => setActive(prev => (prev === 'grips' ? null : 'grips'))}>
             <Hand className="h-4 w-4" />
           </IconBtn>
-          <IconBtn label="Sets" activeWhen="sets" onClick={() => setActive(prev => (prev === 'sets' ? null : 'sets'))}>
+          <IconBtn label="Sets Config" activeWhen="setsConfig" onClick={() => setActive(prev => (prev === 'setsConfig' ? null : 'setsConfig'))}>
             <Hash className="h-4 w-4" />
           </IconBtn>
           <IconBtn label="Warmup" activeWhen="warmup" onClick={() => setActive(prev => (prev === 'warmup' ? null : 'warmup'))}>
@@ -78,7 +80,10 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
             warmupSteps={Array.isArray(warmupSteps) ? warmupSteps : []}
             workoutExerciseId={we.id}
             attributeValuesJson={we.attribute_values_json}
-            onFeedbackSubmitted={() => setWarmupDone(true)}
+            onFeedbackSubmitted={() => {
+              setWarmupDone(true);
+              setActive(null);
+            }}
             compact
           />
         </div>
@@ -91,18 +96,30 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
         </div>
       )}
 
-      {/* Sets */}
-      {active === 'sets' && (
-        <div className="rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-3">
-          <WorkoutSetsBlock 
+      {/* Sets Config */}
+      {active === 'setsConfig' && (
+        <div className="mb-4 rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-3">
+          <SetsConfigPanel
             workoutExerciseId={we.id}
-            targetReps={we.target_reps}
-            targetWeightKg={we.target_weight_kg}
-            unit={we.weight_unit || 'kg'}
-            workoutSets={we.workout_sets}
+            initialTargetSets={we.target_sets}
+            onSaved={(newTarget) => {
+              // Could trigger a refetch or update local state
+              console.log('Target sets updated to:', newTarget);
+            }}
           />
         </div>
       )}
+
+      {/* Sets Block - Always visible below the panels */}
+      <div className="rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-3">
+        <WorkoutSetsBlock 
+          workoutExerciseId={we.id}
+          targetReps={we.target_reps}
+          targetWeightKg={we.target_weight_kg}
+          unit={we.weight_unit || 'kg'}
+          workoutSets={we.workout_sets}
+        />
+      </div>
     </div>
   );
 }

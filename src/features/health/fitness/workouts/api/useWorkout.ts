@@ -17,6 +17,7 @@ export type WorkoutExercise = {
   workout_id: string;
   exercise_id: string;
   order_index: number;
+  target_sets: number | null;
   target_reps: number | null;
   target_weight_kg: number | null;
   weight_unit: 'kg' | 'lb' | null;
@@ -69,7 +70,7 @@ async function fetchWorkout(workoutId: string): Promise<WorkoutData> {
     .from('workout_exercises')
     .select(`
       id, workout_id, exercise_id, order_index,
-      target_reps, target_weight_kg, weight_unit, attribute_values_json, readiness_adjusted_from,
+      target_sets, target_reps, target_weight_kg, weight_unit, attribute_values_json, readiness_adjusted_from,
       exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
       workout_sets(
         id, workout_exercise_id, set_index, set_kind, reps, weight_kg, is_completed, rest_seconds
