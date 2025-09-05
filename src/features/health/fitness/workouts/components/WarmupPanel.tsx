@@ -8,12 +8,14 @@ export default function WarmupPanel({
   warmupSteps,
   workoutExerciseId,
   attributeValuesJson,
+  onFeedbackSubmitted,
   compact = true,
 }: {
   topWeightKg: number | null;
   warmupSteps: Step[];
   workoutExerciseId?: string;
   attributeValuesJson?: any;
+  onFeedbackSubmitted?: () => void;
   compact?: boolean;
 }) {
   const [open, setOpen] = useState(true);
@@ -22,17 +24,19 @@ export default function WarmupPanel({
   const handleFeedback = async (choice: 'too_easy' | 'good' | 'too_hard') => {
     if (!workoutExerciseId) return;
     
-    await supabase
-      .from('workout_exercises')
-      .update({
-        attribute_values_json: {
-          ...attributeValuesJson,
-          warmup_feedback: choice
-        }
-      })
-      .eq('id', workoutExerciseId);
-    
-    setOpen(false);
+    try {
+      await supabase
+        .from('workout_exercises')
+        .update({
+          attribute_values_json: {
+            ...attributeValuesJson,
+            warmup_feedback: choice
+          }
+        })
+        .eq('id', workoutExerciseId);
+    } finally {
+      onFeedbackSubmitted?.();
+    }
   };
 
   if (!steps.length && topWeightKg == null) return null;
