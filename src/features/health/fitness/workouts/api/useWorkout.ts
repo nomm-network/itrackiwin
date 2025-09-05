@@ -72,21 +72,26 @@ async function fetchWorkout(workoutId: string): Promise<WorkoutData> {
       id, workout_id, exercise_id, order_index,
       target_sets, target_reps, target_weight_kg, weight_unit, attribute_values_json, readiness_adjusted_from,
       exercise:exercises!inner(id, display_name, slug, equipment_id, load_type, tags),
-      workout_sets!inner(
+      workout_sets(
         id, workout_exercise_id, set_index, set_kind, reps, weight_kg, is_completed, rest_seconds
       )
     `)
     .eq('workout_id', workoutId)
-    .order('order_index', { ascending: true })
-    .order('workout_sets.set_index', { ascending: true });
+    .order('order_index', { ascending: true });
 
   if (weErr) throw new Error(weErr.message);
+
+  // Sort workout_sets by set_index for each exercise
+  const sortedExercises = (wes || []).map(exercise => ({
+    ...exercise,
+    workout_sets: (exercise.workout_sets || []).sort((a, b) => a.set_index - b.set_index)
+  }));
 
   return {
     ...w,
     title: workout_title,
     workout_title,
-    exercises: (wes || []) as WorkoutExercise[],
+    exercises: sortedExercises as WorkoutExercise[],
   };
 }
 
