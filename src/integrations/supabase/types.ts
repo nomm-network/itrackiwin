@@ -7912,6 +7912,19 @@ export type Database = {
         }
         Returns: string
       }
+      log_set_with_grip_aware_constraint: {
+        Args: {
+          p_grip_key?: string
+          p_reps: number
+          p_rest_seconds?: number
+          p_rpe?: number
+          p_set_index: number
+          p_set_kind?: string
+          p_weight_kg: number
+          p_workout_exercise_id: string
+        }
+        Returns: string
+      }
       log_simple_workout_set: {
         Args:
           | {
