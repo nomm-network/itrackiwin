@@ -6,6 +6,17 @@ import { useNextProgramBlock } from '@/features/health/fitness/training/hooks/us
 import { useActiveWorkout } from '@/features/health/fitness/training/hooks/useActiveWorkout';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { toast } from 'sonner';
 
 const TrainingCenterCard: React.FC = () => {
@@ -94,15 +105,35 @@ const TrainingCenterCard: React.FC = () => {
             >
               Continue Workout
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleEndCurrent}
-              disabled={pending}
-              title="End current workout"
-            >
-              End
-            </Button>
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={pending}
+                  title="End current workout"
+                >
+                  End
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>End Workout?</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    This will permanently delete all logged sets from this session. This action cannot be undone.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction 
+                    onClick={handleEndCurrent}
+                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  >
+                    End Workout
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
           </div>
         </div>
       ) : (
