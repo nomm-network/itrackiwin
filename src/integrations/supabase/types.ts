@@ -7817,6 +7817,10 @@ export type Database = {
         Args: { p_workout_exercise_id: string }
         Returns: undefined
       }
+      initialize_warmups_for_workout: {
+        Args: { p_workout_id: string }
+        Returns: number
+      }
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean

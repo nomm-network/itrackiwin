@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useWorkout } from '../api/useWorkout';
+import { supabase } from '@/integrations/supabase/client';
 
 const Pill: React.FC<React.HTMLAttributes<HTMLSpanElement>> = ({ className, children, ...rest }) => (
   <span
@@ -16,7 +17,16 @@ const Pill: React.FC<React.HTMLAttributes<HTMLSpanElement>> = ({ className, chil
 
 export default function WorkoutPage() {
   const { workoutId } = useParams();
-  const { data, isLoading, error } = useWorkout(workoutId);
+  const { data, isLoading, error, refetch } = useWorkout(workoutId);
+
+  // Initialize warmups on mount
+  useEffect(() => {
+    if (!workoutId) return;
+    (async () => {
+      await supabase.rpc('initialize_warmups_for_workout', { p_workout_id: workoutId });
+      await refetch();
+    })();
+  }, [workoutId, refetch]);
 
   if (isLoading) return <div className="p-4 text-emerald-200">Loading workout…</div>;
   if (error) {

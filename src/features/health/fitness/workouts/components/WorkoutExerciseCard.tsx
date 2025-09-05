@@ -34,6 +34,8 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
       <WarmupPanel
         topWeightKg={we.target_weight_kg ?? null}
         warmupSteps={Array.isArray(warmupSteps) ? warmupSteps : []}
+        workoutExerciseId={we.id}
+        attributeValuesJson={we.attribute_values_json}
         compact
       />
 
