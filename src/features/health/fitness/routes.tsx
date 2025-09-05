@@ -3,17 +3,15 @@ import { Routes, Route } from "react-router-dom";
 
 const FitnessPage = lazy(() => import("./pages/Fitness.page"));
 const ExercisesPage = lazy(() => import("./pages/Exercises.page"));
-// const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page")); // REMOVED
 const TemplatesPage = lazy(() => import("./pages/Templates.page"));
 const TemplateEditPage = lazy(() => import("./pages/TemplateEdit.page"));
-// const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page")); // REMOVED
 const HistoryPage = lazy(() => import("./pages/History.page"));
-// const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page")); // REMOVED
 const FitnessConfigurePage = lazy(() => import("./pages/FitnessConfigure.page"));
 const MyGymPage = lazy(() => import("./pages/MyGym.page"));
-// const TemplateRotationPage = lazy(() => import("./pages/TemplateRotation.page")); // REMOVED
 const FitnessProfilePage = lazy(() => import("./components/FitnessProfile"));
 const LazyTrainingPrograms = lazy(() => import('./pages/TrainingPrograms.page'));
+// Re-use WorkoutPage for workout detail view
+const WorkoutDetailPage = lazy(() => import("./workouts/WorkoutPage"));
 
 export const FitnessRoutes = (
   <Routes>
@@ -29,6 +27,6 @@ export const FitnessRoutes = (
     {/* <Route path="templates/rotation" element={<TemplateRotationPage />} /> REMOVED */}
     <Route path="profile" element={<FitnessProfilePage />} />
     <Route path="history" element={<HistoryPage />} />
-    {/* <Route path="history/:id" element={<WorkoutDetailPage />} /> REMOVED */}
+    <Route path="history/:id" element={<WorkoutDetailPage />} />
   </Routes>
 );

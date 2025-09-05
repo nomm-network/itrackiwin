@@ -13,8 +13,9 @@ const Box: React.FC<{title?:string, children:React.ReactNode}> = ({title, childr
 );
 
 export default function WorkoutPage() {
-  const { workoutId = '' } = useParams();
-  const { data, isLoading, error, refetch } = useWorkout(workoutId);
+  const { workoutId, id } = useParams(); // Support both :workoutId and :id params
+  const actualWorkoutId = workoutId || id || '';
+  const { data, isLoading, error, refetch } = useWorkout(actualWorkoutId);
   const { computeTargets, isComputing } = useSmartWorkoutTargets();
   const [showDebug, setShowDebug] = useState(false);
   const [targetsComputed, setTargetsComputed] = useState(false);
@@ -27,7 +28,7 @@ export default function WorkoutPage() {
       );
       
       if (hasEmptyTargets) {
-        computeTargets(workoutId)
+        computeTargets(actualWorkoutId)
           .then(() => {
             setTargetsComputed(true);
             refetch(); // Refetch to get updated data
@@ -39,7 +40,7 @@ export default function WorkoutPage() {
         setTargetsComputed(true);
       }
     }
-  }, [data, workoutId, computeTargets, isComputing, targetsComputed, refetch]);
+  }, [data, actualWorkoutId, computeTargets, isComputing, targetsComputed, refetch]);
 
   if (isLoading) return <div className="p-4 text-emerald-200">Loading…</div>;
   if (error) return <div className="p-4 text-red-400">Error: {(error as any)?.message}</div>;
@@ -83,9 +84,9 @@ export default function WorkoutPage() {
               ×
             </Button>
           </div>
-          <pre className="whitespace-pre-wrap text-xs">
+           <pre className="whitespace-pre-wrap text-xs">
 {JSON.stringify({
-  workoutId,
+  workoutId: actualWorkoutId,
   name: data.workout_title,
   exercises: data.exercises.length
 }, null, 2)}
