@@ -220,6 +220,11 @@ export default function TemplateEdit() {
   };
 
   const handleAddExercise = async (exercise: Exercise) => {
+    if (isCreating) {
+      toast.error("Please save the template first before adding exercises");
+      return;
+    }
+    
     if (!templateId) return;
     
     try {
@@ -233,11 +238,11 @@ export default function TemplateEdit() {
       });
       
       toast.success(`Added ${exercise.name} to template`);
-    setShowExerciseDialog(false);
-    setExerciseSearch("");
-    setSelectedMuscleGroup("all");
-    setSelectedEquipment("all");
-    refetchExercises();
+      setShowExerciseDialog(false);
+      setExerciseSearch("");
+      setSelectedMuscleGroup("all");
+      setSelectedEquipment("all");
+      refetchExercises();
     } catch (error) {
       toast.error("Failed to add exercise");
       console.error("Add exercise error:", error);
