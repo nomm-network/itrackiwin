@@ -149,7 +149,29 @@ const TemplatesPage = () => {
               Created {new Date(template.created_at).toLocaleDateString()}
             </div>
             <Button
-              onClick={() => navigate(`/fitness/workout/start?template=${template.id}`)}
+              onClick={() => {
+                // Use the start_workout RPC function like in the Training Center
+                const startWorkout = async () => {
+                  try {
+                    const { data, error } = await supabase.rpc('start_workout', { 
+                      p_template_id: template.id 
+                    });
+                    
+                    if (error) {
+                      toast.error(error.message);
+                      return;
+                    }
+                    
+                    if (data) {
+                      navigate(`/app/workouts/${data}`);
+                      toast.success('Workout started!');
+                    }
+                  } catch (e: any) {
+                    toast.error('Failed to start workout');
+                  }
+                };
+                startWorkout();
+              }}
               size="sm"
             >
               <Play className="h-4 w-4 mr-2" />
@@ -168,7 +190,7 @@ const TemplatesPage = () => {
           <h1 className="text-3xl font-bold">Workout Templates</h1>
           <p className="text-muted-foreground">Create and manage your workout templates</p>
         </div>
-        <Button onClick={() => navigate('/fitness/templates/new')}>
+        <Button onClick={() => navigate('/fitness/templates/create/edit')}>
           <Plus className="h-4 w-4 mr-2" />
           New Template
         </Button>
@@ -238,7 +260,7 @@ const TemplatesPage = () => {
               }
             </p>
             {(!searchQuery.trim() && showOnlyMyTemplates) && (
-              <Button onClick={() => navigate('/fitness/templates/new')}>
+              <Button onClick={() => navigate('/fitness/templates/create/edit')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Template
               </Button>
