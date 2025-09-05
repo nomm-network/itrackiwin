@@ -46,10 +46,7 @@ const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
-// const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page')); // REMOVED
-// const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail')); // REMOVED
-// const WorkoutSessionPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutSessionPage')); // REMOVED
-// const WorkoutPage = lazy(() => import('@/features/health/fitness/workouts/pages/WorkoutPage')); // REMOVED
+// Cleaned up - all workout page imports now use single source of truth
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
