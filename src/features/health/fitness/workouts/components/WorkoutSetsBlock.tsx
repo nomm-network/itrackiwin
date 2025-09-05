@@ -79,27 +79,27 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
   const isCompleted = existingSet?.is_completed || false;
 
   return (
-    <div className="p-4 border-b border-[#133a2f] last:border-b-0">
+    <div className="p-2 border-b border-[#133a2f] last:border-b-0">
       {/* Previous/Target Banner */}
       {previousSet && (
-        <div className="text-xs text-gray-400 mb-2">
+        <div className="text-xs text-gray-400 mb-1">
           Prev {previousSet.weight_kg}×{previousSet.reps} | Target {targetWeightKg}×{targetReps}
         </div>
       )}
 
-      <div className="flex items-center gap-4">
-        <span className="text-sm font-medium text-emerald-300 min-w-[60px]">
+      <div className="flex items-center gap-1 text-sm">
+        <span className="text-xs font-medium text-emerald-300 min-w-[35px]">
           Set {setIndex}
         </span>
 
         {/* Weight Input */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => {
               const currentWeight = typeof weight === 'string' ? parseFloat(weight) || 0 : weight;
               setWeight(Math.max(0, currentWeight - 2.5));
             }}
-            className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
+            className="w-6 h-6 rounded-full bg-gray-700 text-white text-xs hover:bg-gray-600 flex items-center justify-center"
             disabled={isCompleted}
           >
             -
@@ -129,7 +129,7 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
             step="0.01"
             min="0"
             disabled={isCompleted}
-            className="w-16 h-8 bg-transparent text-white text-center text-sm border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+            className="w-12 h-6 bg-transparent text-white text-center text-xs border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
           />
           <span className="text-gray-400 text-xs">{unit}</span>
           <button
@@ -137,7 +137,7 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
               const currentWeight = typeof weight === 'string' ? parseFloat(weight) || 0 : weight;
               setWeight(currentWeight + 2.5);
             }}
-            className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
+            className="w-6 h-6 rounded-full bg-gray-700 text-white text-xs hover:bg-gray-600 flex items-center justify-center"
             disabled={isCompleted}
           >
             +
@@ -145,13 +145,13 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
         </div>
 
         {/* Reps Input */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => {
               const currentReps = typeof reps === 'string' ? parseInt(reps) || 1 : reps;
               setReps(Math.max(1, currentReps - 1));
             }}
-            className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
+            className="w-6 h-6 rounded-full bg-gray-700 text-white text-xs hover:bg-gray-600 flex items-center justify-center"
             disabled={isCompleted}
           >
             -
@@ -180,14 +180,14 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
             step="1"
             min="1"
             disabled={isCompleted}
-            className="w-12 h-8 bg-transparent text-white text-center text-sm border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
+            className="w-8 h-6 bg-transparent text-white text-center text-xs border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
           />
           <button
             onClick={() => {
               const currentReps = typeof reps === 'string' ? parseInt(reps) || 1 : reps;
               setReps(currentReps + 1);
             }}
-            className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
+            className="w-6 h-6 rounded-full bg-gray-700 text-white text-xs hover:bg-gray-600 flex items-center justify-center"
             disabled={isCompleted}
           >
             +
@@ -199,7 +199,7 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
           onClick={handleLogSet}
           disabled={isCompleted || isLogging}
           size="sm"
-          className="bg-emerald-500 text-black hover:bg-emerald-400 disabled:opacity-50"
+          className="bg-emerald-500 text-black hover:bg-emerald-400 disabled:opacity-50 h-6 px-2 text-xs"
         >
           {isCompleted ? 'Logged' : isLogging ? 'Logging...' : 'Log'}
         </Button>
@@ -207,14 +207,14 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
 
       {/* How did that feel? */}
       {isCompleted && (
-        <div className="mt-3">
-          <div className="text-xs text-gray-400 mb-2">How did that feel?</div>
-          <div className="flex gap-2">
+        <div className="mt-2">
+          <div className="text-xs text-gray-400 mb-1">How did that feel?</div>
+          <div className="flex gap-1">
             {(['terrible', 'poor', 'ok', 'good', 'excellent'] as const).map((emotion) => (
               <button
                 key={emotion}
                 onClick={() => setFeeling(emotion)}
-                className={`p-2 rounded border text-xs ${
+                className={`p-1 rounded border text-xs ${
                   feeling === emotion
                     ? 'border-emerald-500 bg-emerald-500/20 text-emerald-300'
                     : 'border-gray-600 text-gray-400 hover:border-gray-500'

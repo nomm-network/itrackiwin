@@ -24,6 +24,13 @@ export default function WorkoutPage() {
     <div className="mx-auto max-w-3xl space-y-4 p-4 text-emerald-100">
       <h1 className="text-xl font-semibold text-emerald-200">{title}</h1>
 
+      <div className="space-y-3">
+        {data.exercises.map((we) => (
+          <WorkoutExerciseCard key={we.id} we={we} />
+        ))}
+      </div>
+
+      {/* Debug at bottom */}
       <Box title="Debug">
         <pre className="text-xs whitespace-pre-wrap">
 {JSON.stringify({
@@ -33,12 +40,6 @@ export default function WorkoutPage() {
 }, null, 2)}
         </pre>
       </Box>
-
-      <div className="space-y-3">
-        {data.exercises.map((we) => (
-          <WorkoutExerciseCard key={we.id} we={we} />
-        ))}
-      </div>
     </div>
   );
 }
