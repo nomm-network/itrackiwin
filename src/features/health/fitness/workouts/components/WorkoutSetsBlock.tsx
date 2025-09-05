@@ -24,8 +24,8 @@ interface SetRowProps {
 }
 
 function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId, existingSet, previousSet }: SetRowProps) {
-  const [weight, setWeight] = useState(existingSet?.weight_kg || targetWeightKg || 0);
-  const [reps, setReps] = useState(existingSet?.reps || targetReps || 8);
+  const [weight, setWeight] = useState<number | string>(existingSet?.weight_kg || targetWeightKg || 0);
+  const [reps, setReps] = useState<number | string>(existingSet?.reps || targetReps || 8);
   const [feeling, setFeeling] = useState<'terrible' | 'poor' | 'ok' | 'good' | 'excellent' | null>(null);
   const [isLogging, setIsLogging] = useState(false);
   
@@ -33,13 +33,26 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
   const queryClient = useQueryClient();
 
   const handleLogSet = async () => {
+    // Convert to numbers and validate
+    const weightNum = typeof weight === 'string' ? parseFloat(weight) : weight;
+    const repsNum = typeof reps === 'string' ? parseInt(reps) : reps;
+    
+    if (isNaN(weightNum) || weightNum <= 0 || isNaN(repsNum) || repsNum <= 0) {
+      toast({
+        title: "Invalid values",
+        description: "Please enter valid weight and reps values",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLogging(true);
     try {
       const { error } = await supabase.rpc('log_simple_workout_set', {
         p_workout_exercise_id: workoutExerciseId,
         p_set_index: setIndex,
-        p_weight_kg: weight,
-        p_reps: reps,
+        p_weight_kg: weightNum,
+        p_reps: repsNum,
         p_set_kind: 'normal'
       });
 
@@ -50,7 +63,7 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
       
       toast({
         title: "Set logged",
-        description: `${weight}kg × ${reps} reps recorded`,
+        description: `${weightNum}kg × ${repsNum} reps recorded`,
       });
     } catch (error) {
       toast({
@@ -82,7 +95,10 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
         {/* Weight Input */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setWeight(Math.max(0, weight - 2.5))}
+            onClick={() => {
+              const currentWeight = typeof weight === 'string' ? parseFloat(weight) || 0 : weight;
+              setWeight(Math.max(0, currentWeight - 2.5));
+            }}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
             disabled={isCompleted}
           >
@@ -92,18 +108,21 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
             type="number"
             value={weight}
             onChange={(e) => {
-              const value = parseFloat(e.target.value);
+              const inputValue = e.target.value;
+              if (inputValue === '') {
+                setWeight('');
+                return;
+              }
+              const value = parseFloat(inputValue);
               if (!isNaN(value) && value >= 0) {
                 // Round to 2 decimal places
                 setWeight(Math.round(value * 100) / 100);
-              } else if (e.target.value === '') {
-                setWeight(0);
               }
             }}
             onBlur={(e) => {
-              // Ensure valid number on blur
+              // Ensure valid number on blur or set to 0 if empty
               const value = parseFloat(e.target.value);
-              if (isNaN(value) || value < 0) {
+              if (isNaN(value) || value < 0 || e.target.value === '') {
                 setWeight(0);
               }
             }}
@@ -114,7 +133,10 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
           />
           <span className="text-gray-400 text-xs">{unit}</span>
           <button
-            onClick={() => setWeight(weight + 2.5)}
+            onClick={() => {
+              const currentWeight = typeof weight === 'string' ? parseFloat(weight) || 0 : weight;
+              setWeight(currentWeight + 2.5);
+            }}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
             disabled={isCompleted}
           >
@@ -125,7 +147,10 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
         {/* Reps Input */}
         <div className="flex items-center gap-2">
           <button
-            onClick={() => setReps(Math.max(1, reps - 1))}
+            onClick={() => {
+              const currentReps = typeof reps === 'string' ? parseInt(reps) || 1 : reps;
+              setReps(Math.max(1, currentReps - 1));
+            }}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
             disabled={isCompleted}
           >
@@ -135,17 +160,20 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
             type="number"
             value={reps}
             onChange={(e) => {
-              const value = parseInt(e.target.value);
+              const inputValue = e.target.value;
+              if (inputValue === '') {
+                setReps('');
+                return;
+              }
+              const value = parseInt(inputValue);
               if (!isNaN(value) && value >= 1) {
                 setReps(value);
-              } else if (e.target.value === '') {
-                setReps(1);
               }
             }}
             onBlur={(e) => {
-              // Ensure valid number on blur
+              // Ensure valid number on blur or set to 1 if empty
               const value = parseInt(e.target.value);
-              if (isNaN(value) || value < 1) {
+              if (isNaN(value) || value < 1 || e.target.value === '') {
                 setReps(1);
               }
             }}
@@ -155,7 +183,10 @@ function SetRow({ setIndex, targetReps, targetWeightKg, unit, workoutExerciseId,
             className="w-12 h-8 bg-transparent text-white text-center text-sm border border-gray-600 rounded focus:border-emerald-500 focus:outline-none disabled:opacity-50"
           />
           <button
-            onClick={() => setReps(reps + 1)}
+            onClick={() => {
+              const currentReps = typeof reps === 'string' ? parseInt(reps) || 1 : reps;
+              setReps(currentReps + 1);
+            }}
             className="w-8 h-8 rounded-full bg-gray-700 text-white text-sm hover:bg-gray-600"
             disabled={isCompleted}
           >
