@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import { toast } from 'sonner';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyMyTemplates, setShowOnlyMyTemplates] = useState(false);
   
@@ -56,6 +57,9 @@ const TemplatesPage = () => {
         .eq('id', templateId);
         
       if (error) throw error;
+      
+      // Invalidate templates query to refresh the list
+      queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
       
       toast.success('Template deleted successfully');
     } catch (error) {

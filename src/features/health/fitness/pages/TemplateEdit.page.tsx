@@ -18,7 +18,7 @@ import {
   useAddExerciseToTemplate
 } from "../services/fitness.api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,6 +45,7 @@ interface Equipment {
 export default function TemplateEdit() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const { i18n } = useTranslation();
   
   const isCreating = templateId === 'create';
@@ -181,6 +182,9 @@ export default function TemplateEdit() {
           
         if (error) throw error;
         
+        // Invalidate templates query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
+        
         toast.success("Template created successfully");
         navigate(`/fitness/templates/${newTemplate.id}/edit`);
       } else {
@@ -242,6 +246,10 @@ export default function TemplateEdit() {
         if (error) throw error;
         
         actualTemplateId = newTemplate.id;
+        
+        // Invalidate templates query to refresh the list
+        queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
+        
         toast.success("Template created");
         navigate(`/fitness/templates/${newTemplate.id}/edit`, { replace: true });
       } catch (error) {

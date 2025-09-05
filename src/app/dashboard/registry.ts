@@ -10,15 +10,6 @@ const FitnessReadiness = React.lazy(() => import('@/features/health/fitness/ui/w
 
 export const widgets: DashboardWidget[] = [
   {
-    id: 'fitness.quickstart',
-    title: 'Quick Start',
-    size: 'md',
-    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
-    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
-    Component: React.lazy(() => Promise.resolve({ default: () => React.createElement('div', null, 'Training feature removed') })),
-    order: 1
-  },
-  {
     id: 'fitness.readiness',
     title: 'Readiness',
     size: 'sm',
