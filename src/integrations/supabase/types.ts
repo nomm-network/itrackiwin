@@ -4279,6 +4279,39 @@ export type Database = {
           },
         ]
       }
+      user_favorite_templates: {
+        Row: {
+          created_at: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_features: {
         Row: {
           created_at: string
@@ -6087,6 +6120,7 @@ export type Database = {
       workout_templates: {
         Row: {
           created_at: string
+          favorite: boolean
           id: string
           is_public: boolean
           name: string | null
@@ -6095,6 +6129,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          favorite?: boolean
           id?: string
           is_public?: boolean
           name?: string | null
@@ -6103,6 +6138,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          favorite?: boolean
           id?: string
           is_public?: boolean
           name?: string | null

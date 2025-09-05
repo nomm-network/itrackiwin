@@ -5,15 +5,17 @@ import { useTemplates } from '@/features/health/fitness/training/hooks/useTempla
 import { useNextProgramBlock } from '@/features/health/fitness/training/hooks/useNextProgramBlock';
 import { useActiveWorkout } from '@/features/health/fitness/training/hooks/useActiveWorkout';
 import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { toast } from 'sonner';
 
 const TrainingCenterCard: React.FC = () => {
   const navigate = useNavigate();
-  const { data: templates = [], isLoading: tLoading } = useTemplates();
+  const { data: favoritesData, isLoading: tLoading } = useTemplates({ onlyFavorites: true });
   const { data: nextBlock, isLoading: bLoading } = useNextProgramBlock();
   const { active, isLoading: activeLoading, error: activeError } = useActiveWorkout();
   const [rpcError, setRpcError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
 
   const canStartProgram = useMemo(
     () => !!nextBlock?.workout_template_id,
@@ -120,37 +122,62 @@ const TrainingCenterCard: React.FC = () => {
             </Button>
           </div>
 
-          {/* Templates card */}
+          {/* Start from Template card */}
           <div className="rounded-md border border-emerald-900/40 bg-[#0d1a17] p-3">
-            <div className="mb-2 text-sm text-emerald-200">Templates</div>
-            <div className="max-h-48 overflow-auto rounded bg-[#0f1f1b] p-2">
-              {templates.length === 0 ? (
-                <div className="py-6 text-center text-xs text-emerald-500/60">
-                  {tLoading ? 'Loading templates…' : 'No templates found'}
+            <div className="mb-2 text-sm text-emerald-200">Start from Template</div>
+            
+            {tLoading ? (
+              <div className="py-6 text-center text-xs text-emerald-500/60">
+                Loading favorites…
+              </div>
+            ) : favoritesData?.favorites.length === 0 ? (
+              <div className="space-y-3">
+                <div className="py-4 text-center text-xs text-emerald-500/60">
+                  No favorites yet
                 </div>
-              ) : (
-                <ul className="space-y-2">
-                  {templates.map((t) => (
-                    <li
-                      key={t.id}
-                      className="flex items-center justify-between rounded border border-emerald-900/40 bg-[#0d1a17] p-2"
-                    >
-                      <span className="truncate text-xs text-emerald-200">
-                        {t.name ?? 'Untitled'}
-                      </span>
-                      <Button
-                        size="sm"
-                        variant="secondary"
-                        disabled={pending}
-                        onClick={() => startWorkout(t.id)}
-                      >
-                        Start
-                      </Button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs text-emerald-400"
+                  onClick={() => navigate('/app/templates')}
+                >
+                  Pick favorites → Explore more
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <Select value={selectedTemplateId} onValueChange={setSelectedTemplateId}>
+                  <SelectTrigger className="w-full bg-[#0f1f1b] border-emerald-900/40">
+                    <SelectValue placeholder="Choose favorite template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {favoritesData?.favorites.map((template) => (
+                      <SelectItem key={template.id} value={template.id}>
+                        {template.name || 'Untitled'}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                <div className="flex gap-2">
+                  <Button
+                    className="flex-1"
+                    disabled={!selectedTemplateId || pending}
+                    onClick={() => startWorkout(selectedTemplateId)}
+                  >
+                    {pending ? 'Starting…' : 'Start'}
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-xs text-emerald-400"
+                    onClick={() => navigate('/app/templates')}
+                  >
+                    Explore more
+                  </Button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -2,12 +2,13 @@ import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useTemplates, useFavoriteTemplate } from '@/features/health/fitness/training/hooks/useTemplates';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search } from 'lucide-react';
+import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TemplatesPage = () => {
@@ -24,9 +25,13 @@ const TemplatesPage = () => {
     }
   });
 
-  // Fetch all templates (user's own + public)
-  const { data: allTemplates, isLoading } = useQuery({
-    queryKey: ['all-workout-templates'],
+  // Use the new useTemplates hook that includes favorites
+  const { data: templatesData, isLoading } = useTemplates();
+  const favoriteTemplate = useFavoriteTemplate();
+
+  // Get detailed template data for display
+  const { data: allTemplates } = useQuery({
+    queryKey: ['detailed-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_templates')
@@ -68,11 +73,23 @@ const TemplatesPage = () => {
     }
   };
 
+  // Combine detailed templates with favorite status
+  const templatesWithFavorites = useMemo(() => {
+    if (!allTemplates || !templatesData) return [];
+    
+    const favoriteIds = new Set(templatesData.favorites.map(f => f.id));
+    
+    return allTemplates.map(template => ({
+      ...template,
+      is_favorite: favoriteIds.has(template.id)
+    }));
+  }, [allTemplates, templatesData]);
+
   // Filter and search templates
   const filteredTemplates = useMemo(() => {
-    if (!allTemplates || !user) return [];
+    if (!templatesWithFavorites || !user) return [];
     
-    let filtered = allTemplates;
+    let filtered = templatesWithFavorites;
     
     // Filter by ownership if toggle is on
     if (showOnlyMyTemplates) {
@@ -89,7 +106,7 @@ const TemplatesPage = () => {
     }
     
     return filtered;
-  }, [allTemplates, user, showOnlyMyTemplates, searchQuery]);
+  }, [templatesWithFavorites, user, showOnlyMyTemplates, searchQuery]);
 
   const renderTemplateCard = (template: any) => {
     const isOwner = template.user_id === user?.id;
@@ -127,24 +144,39 @@ const TemplatesPage = () => {
                 </p>
               )}
             </div>
-            {isOwner && (
-              <div className="flex gap-1 ml-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => handleDeleteTemplate(template.id)}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              </div>
-            )}
+            <div className="flex gap-1 ml-2">
+              {/* Favorite toggle */}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => favoriteTemplate.mutate({ 
+                  templateId: template.id, 
+                  isFavorite: !template.is_favorite 
+                })}
+                disabled={favoriteTemplate.isPending}
+                title={template.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
+              >
+                <Star className={`h-4 w-4 ${template.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
+              </Button>
+              {isOwner && (
+                <>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
+                  >
+                    <Edit className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleDeleteTemplate(template.id)}
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -192,7 +224,17 @@ const TemplatesPage = () => {
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Workout Templates</h1>
-          <p className="text-muted-foreground">Create and manage your workout templates</p>
+          <div className="flex items-center gap-4">
+            <p className="text-muted-foreground">Create and manage your workout templates</p>
+            <Button 
+              variant="link" 
+              size="sm" 
+              className="text-sm text-yellow-600 hover:text-yellow-500 p-0 h-auto"
+            >
+              <Star className="h-3 w-3 mr-1" />
+              Manage favorites
+            </Button>
+          </div>
         </div>
         <Button onClick={() => navigate('/fitness/templates/create/edit')}>
           <Plus className="h-4 w-4 mr-2" />
