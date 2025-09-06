@@ -40,7 +40,7 @@ export function useCreateGymEquipment() {
   const queryClient = useQueryClient();
   
   return useMutation({
-    mutationFn: async (equipment: Partial<GymEquipment> & { gym_id: string; equipment_id: string }) => {
+    mutationFn: async (equipment: Partial<GymEquipment> & { gym_id: string; equipment_id: string; loading_mode: string }) => {
       const { data, error } = await supabase
         .from("gym_equipment")
         .insert([equipment])
