@@ -87,11 +87,11 @@ export default function AdminUsersListPage() {
 
         {/* DEBUG AREA */}
         <div className="mt-8 p-4 bg-gray-100 border rounded">
-          <h3 className="font-bold text-lg mb-3">🐛 Debug Information</h3>
+          <h3 className="font-bold text-lg mb-3 text-black">🐛 Debug Information</h3>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-black">
             <div>
-              <h4 className="font-semibold mb-2">Query Status</h4>
+              <h4 className="font-semibold mb-2 text-black">Query Status</h4>
               <ul className="space-y-1">
                 <li><strong>Status:</strong> {status}</li>
                 <li><strong>Fetch Status:</strong> {fetchStatus}</li>
@@ -103,33 +103,33 @@ export default function AdminUsersListPage() {
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Error Details</h4>
+              <h4 className="font-semibold mb-2 text-black">Error Details</h4>
               {error ? (
-                <div className="bg-red-50 p-2 rounded text-xs">
-                  <pre className="whitespace-pre-wrap">
+                <div className="bg-red-50 p-2 rounded text-xs text-black">
+                  <pre className="whitespace-pre-wrap text-black">
                     {JSON.stringify(error, null, 2)}
                   </pre>
                 </div>
               ) : (
-                <p className="text-gray-500">No errors</p>
+                <p className="text-black">No errors</p>
               )}
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Raw Data Sample</h4>
+              <h4 className="font-semibold mb-2 text-black">Raw Data Sample</h4>
               {users ? (
-                <div className="bg-green-50 p-2 rounded text-xs max-h-32 overflow-y-auto">
-                  <pre className="whitespace-pre-wrap">
+                <div className="bg-green-50 p-2 rounded text-xs max-h-32 overflow-y-auto text-black">
+                  <pre className="whitespace-pre-wrap text-black">
                     {JSON.stringify(users?.slice(0, 2), null, 2)}
                   </pre>
                 </div>
               ) : (
-                <p className="text-gray-500">No data</p>
+                <p className="text-black">No data</p>
               )}
             </div>
 
             <div>
-              <h4 className="font-semibold mb-2">Environment Info</h4>
+              <h4 className="font-semibold mb-2 text-black">Environment Info</h4>
               <ul className="space-y-1">
                 <li><strong>URL:</strong> {window.location.href}</li>
                 <li><strong>Timestamp:</strong> {new Date().toISOString()}</li>
@@ -139,8 +139,8 @@ export default function AdminUsersListPage() {
           </div>
 
           <div className="mt-4">
-            <h4 className="font-semibold mb-2">Console Logs</h4>
-            <p className="text-xs text-gray-600">
+            <h4 className="font-semibold mb-2 text-black">Console Logs</h4>
+            <p className="text-xs text-black">
               Check the browser console (F12) for detailed logs from useAdminUsers hook.
             </p>
           </div>
