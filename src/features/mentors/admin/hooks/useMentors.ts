@@ -14,6 +14,10 @@ export type MentorRow = {
   hourly_rate?: number | null;
   is_public?: boolean;
   updated_at?: string;
+  gym_id?: string | null;
+  gym_name?: string | null;
+  category_slug?: string | null;
+  category_name?: string | null;
 };
 
 const qk = {

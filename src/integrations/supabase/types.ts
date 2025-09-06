@@ -6616,6 +6616,8 @@ export type Database = {
       v_admin_mentors_overview: {
         Row: {
           bio: string | null
+          category_name: string | null
+          category_slug: string | null
           created_at: string | null
           display_name: string | null
           email: string | null

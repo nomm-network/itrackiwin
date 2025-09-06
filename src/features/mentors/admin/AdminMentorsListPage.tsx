@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useMentors } from './hooks/useMentors';
 import { useDeleteMentor } from './hooks/useDeleteMentor';
@@ -25,6 +25,11 @@ const AdminMentorsListPage: React.FC = () => {
   const deleteMentor = useDeleteMentor();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [mentorToDelete, setMentorToDelete] = useState<any>(null);
+
+  // Auto-refresh when component mounts or when returning from add/edit pages
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const handleDeleteClick = (mentor: any) => {
     setMentorToDelete(mentor);
@@ -126,14 +131,14 @@ const AdminMentorsListPage: React.FC = () => {
                           </Badge>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-muted-foreground">Email:</span>
                             <p className="mt-1">{mentor.email || '—'}</p>
                           </div>
                           <div>
-                            <span className="font-medium text-muted-foreground">User ID:</span>
-                            <p className="mt-1 font-mono text-xs">{mentor.user_id?.substring(0, 8)}...</p>
+                            <span className="font-medium text-muted-foreground">Category:</span>
+                            <p className="mt-1">{mentor.category_name || 'No category'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Hourly Rate:</span>
@@ -142,6 +147,10 @@ const AdminMentorsListPage: React.FC = () => {
                           <div>
                             <span className="font-medium text-muted-foreground">Gym:</span>
                             <p className="mt-1">{mentor.gym_name || 'No gym assigned'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-muted-foreground">User ID:</span>
+                            <p className="mt-1 font-mono text-xs">{mentor.user_id?.substring(0, 8)}...</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Created:</span>
