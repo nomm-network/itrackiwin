@@ -1,259 +1,284 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { useMentor } from './hooks/useMentors';
+import { supabase } from '@/integrations/supabase/client';
 import { useUpsertMentor } from './hooks/useUpsertMentor';
 import { useDeleteMentor } from './hooks/useDeleteMentor';
-import { supabase } from '@/integrations/supabase/client';
 
-type Category = { id: string; name: string };
+type MentorType = 'mentor' | 'coach';
 
-const AdminMentorEditPage: React.FC = () => {
-  const navigate = useNavigate();
-  const { id = 'new' } = useParams();
+type ViewRow = {
+  id: string;
+  user_id: string;
+  display_name: string | null;
+  email: string | null;
+  mentor_type: MentorType | null;
+  primary_category_id: string | null;
+  is_active: boolean | null;
+  created_at: string;
+  bio?: string | null;            // if present in your view; safe as optional
+  hourly_rate?: number | null;    // "
+};
+
+type LifeCategory = { id: string; slug?: string | null; name?: string | null };
+
+export default function AdminMentorEditPage() {
+  const { id } = useParams<{ id: string }>();
   const isNew = id === 'new';
+  const navigate = useNavigate();
 
-  // readonly view row (for existing mentor)
-  const { data: mentor, isLoading, error } = useMentor(isNew ? undefined : id);
+  const [loading, setLoading] = useState(true);
+  const [row, setRow] = useState<ViewRow | null>(null);
+  const [categories, setCategories] = useState<LifeCategory[]>([]);
+  const [error, setError] = useState<string | null>(null);
 
-  // minimal local form state
+  // form state
   const [userId, setUserId] = useState<string>('');
-  const [userEmail, setUserEmail] = useState<string>('');
-  const [displayName, setDisplayName] = useState<string>('');
-  const [mentorType, setMentorType] = useState<'mentor' | 'coach' | ''>('');
+  const [mentorType, setMentorType] = useState<MentorType>('mentor');
   const [primaryCategoryId, setPrimaryCategoryId] = useState<string>('');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [bio, setBio] = useState<string>('');
-  const [hourlyRate, setHourlyRate] = useState<number | ''>('');
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [saving, setSaving] = useState(false);
-  const [loadErr, setLoadErr] = useState<string | null>(null);
+  const [hourlyRate, setHourlyRate] = useState<string>(''); // keep string for input
 
-  // hooks for mutations
-  const upsertMentor = useUpsertMentor();
-  const deleteMentor = useDeleteMentor();
+  const { mutateAsync: upsertMentor, isPending: saving } = useUpsertMentor();
+  const { mutateAsync: deleteMentor, isPending: deleting } = useDeleteMentor();
 
-  // Load categories (read-only)
   useEffect(() => {
-    let ignore = false;
+    let cancelled = false;
+
     const load = async () => {
-      const { data, error } = await supabase
+      setLoading(true);
+      setError(null);
+
+      // load categories
+      const { data: cats, error: catErr } = await supabase
         .from('life_categories')
-        .select('id, name')
+        .select('id, slug, name')
         .order('name', { ascending: true });
-      if (!ignore) {
-        if (error) setLoadErr(error.message);
-        else setCategories((data || []) as Category[]);
+
+      if (!cancelled) {
+        if (catErr) setError(catErr.message);
+        else setCategories(cats || []);
       }
+
+      if (!isNew) {
+        const { data, error: vErr } = await supabase
+          .from('v_admin_mentors_overview')
+          .select('*')
+          .eq('id', id)
+          .maybeSingle();
+
+        if (!cancelled) {
+          if (vErr) setError(vErr.message);
+          setRow(data || null);
+          if (data) {
+            setUserId(data.user_id || '');
+            setMentorType((data.mentor_type as MentorType) || 'mentor');
+            setPrimaryCategoryId(data.primary_category_id || '');
+            setIsActive(Boolean(data.is_active));
+          }
+        }
+      }
+
+      if (isNew) {
+        // defaults for create
+        setRow(null);
+        setUserId('');
+        setMentorType('mentor');
+        setPrimaryCategoryId('');
+        setIsActive(true);
+      }
+
+      if (!cancelled) setLoading(false);
     };
+
     load();
     return () => {
-      ignore = true;
+      cancelled = true;
     };
-  }, []);
+  }, [id, isNew]);
 
-  // hydrate form for existing mentor
-  useEffect(() => {
-    if (!mentor || isNew) return;
-    setUserId(mentor.user_id ?? '');
-    setUserEmail(mentor.email ?? '');
-    setDisplayName(mentor.display_name ?? '');
-    setMentorType((mentor.mentor_type as any) ?? '');
-    setPrimaryCategoryId(mentor.primary_category_id ?? '');
-    setIsActive(!!mentor.is_active);
-    // optional fields if your view exposes them:
-    // setBio(mentor.bio ?? '');
-    // setHourlyRate(mentor.hourly_rate ?? '');
-  }, [mentor, isNew]);
-
-  const canSave = useMemo(() => {
-    // For new mentor we need user_id & mentor_type at minimum
-    if (isNew) return userId && mentorType;
-    return true;
-  }, [isNew, userId, mentorType]);
+  const title = useMemo(
+    () =>
+      isNew
+        ? 'New Mentor'
+        : row?.display_name
+          ? `Edit: ${row.display_name}`
+          : 'Edit Mentor',
+    [isNew, row?.display_name]
+  );
 
   const onSave = async () => {
+    setError(null);
+    // minimal validation
+    if (!userId) return setError('User ID is required.');
+    if (!mentorType) return setError('Mentor type is required.');
+    // primary_category_id optional, depends on your logic
+
+    const payload = {
+      id: isNew ? null : id,
+      user_id: userId,
+      mentor_type: mentorType,
+      primary_category_id: primaryCategoryId || null,
+      is_active: isActive,
+      bio: bio || null,
+      hourly_rate: hourlyRate ? Number(hourlyRate) : null,
+    };
+
     try {
-      setSaving(true);
-      const payload = {
-        id: isNew ? undefined : id,
-        user_id: userId || undefined,
-        mentor_type: mentorType || undefined,
-        primary_category_id: primaryCategoryId || null,
-        is_active: isActive,
-        bio: bio || null,
-        hourly_rate: hourlyRate === '' ? null : Number(hourlyRate),
-      } as any;
-      const res = await upsertMentor.mutateAsync(payload);
-      const newId = (res as any)?.[0]?.id || id;
+      const newId = await upsertMentor(payload);
       navigate(`/app/admin/mentors/${newId}`);
     } catch (e: any) {
-      alert(e?.message || 'Save failed');
-    } finally {
-      setSaving(false);
+      setError(e?.message || 'Failed to save mentor.');
     }
   };
 
   const onDelete = async () => {
-    if (isNew) {
-      navigate('/app/admin/mentors');
-      return;
-    }
-    if (!confirm('Delete this mentor profile?')) return;
+    if (isNew) return navigate('/app/admin/mentors');
+    if (!id) return;
+
+    if (!confirm('Delete this mentor profile? This cannot be undone.')) return;
+
+    setError(null);
     try {
-      await deleteMentor.mutateAsync(id as string);
+      await deleteMentor(id);
       navigate('/app/admin/mentors');
     } catch (e: any) {
-      alert(e?.message || 'Delete failed');
+      setError(e?.message || 'Failed to delete mentor.');
     }
   };
 
   return (
-    <div className="p-4 md:p-6 space-y-4">
-      <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold">
-          {isNew ? 'New Mentor / Coach' : 'Edit Mentor / Coach'}
-        </h1>
-        <div className="flex items-center gap-2">
+    <div className="p-4 md:p-6 max-w-3xl mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">{title}</h1>
+        <div className="flex gap-2">
           <button
             onClick={() => navigate('/app/admin/mentors')}
-            className="px-3 py-2 rounded-md border hover:bg-muted"
+            className="px-3 py-2 rounded border"
           >
             Back
           </button>
           {!isNew && (
             <button
               onClick={onDelete}
-              className="px-3 py-2 rounded-md border border-red-500 text-red-600 hover:bg-red-600 hover:text-white"
+              disabled={deleting}
+              className="px-3 py-2 rounded border border-red-600 text-red-600"
             >
-              Delete
+              {deleting ? 'Deleting…' : 'Delete'}
             </button>
           )}
           <button
             onClick={onSave}
-            disabled={!canSave || saving}
-            className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700 disabled:opacity-50"
+            disabled={saving}
+            className="px-3 py-2 rounded bg-emerald-600 text-white"
           >
             {saving ? 'Saving…' : 'Save'}
           </button>
         </div>
       </div>
 
-      {(isLoading || upsertMentor.isPending) && (
+      {loading ? (
         <div className="text-sm opacity-70">Loading…</div>
+      ) : (
+        <>
+          {error && (
+            <div className="mb-3 text-sm text-red-600">
+              {error}
+            </div>
+          )}
+
+          {/* User (readonly when editing, free input when creating) */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">User</label>
+            {isNew ? (
+              <input
+                className="w-full rounded border p-2"
+                placeholder="User UUID (paste)"
+                value={userId}
+                onChange={(e) => setUserId(e.target.value)}
+              />
+            ) : (
+              <div className="p-2 rounded border bg-gray-50">
+                <div className="text-sm">
+                  <span className="font-medium">{row?.display_name || '—'}</span>
+                </div>
+                <div className="text-xs opacity-70">{row?.email || '—'}</div>
+                <div className="text-[11px] opacity-50 mt-1">User ID: {row?.user_id}</div>
+              </div>
+            )}
+            <p className="text-xs opacity-60 mt-1">
+              For a nicer UX later we can add a user picker; UUID is safest for now.
+            </p>
+          </div>
+
+          {/* Mentor type */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Type</label>
+            <select
+              className="w-full rounded border p-2"
+              value={mentorType}
+              onChange={(e) => setMentorType(e.target.value as MentorType)}
+            >
+              <option value="mentor">Mentor</option>
+              <option value="coach">Coach</option>
+            </select>
+          </div>
+
+          {/* Primary category */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Primary Category</label>
+            <select
+              className="w-full rounded border p-2"
+              value={primaryCategoryId}
+              onChange={(e) => setPrimaryCategoryId(e.target.value)}
+            >
+              <option value="">— None —</option>
+              {categories.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.name || c.slug || c.id}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Active */}
+          <div className="mb-4 flex items-center gap-2">
+            <input
+              id="is_active"
+              type="checkbox"
+              className="h-4 w-4"
+              checked={isActive}
+              onChange={(e) => setIsActive(e.target.checked)}
+            />
+            <label htmlFor="is_active" className="text-sm">Active</label>
+          </div>
+
+          {/* Bio */}
+          <div className="mb-4">
+            <label className="block text-sm font-medium mb-1">Bio (optional)</label>
+            <textarea
+              className="w-full rounded border p-2"
+              rows={4}
+              value={bio}
+              onChange={(e) => setBio(e.target.value)}
+              placeholder="Short bio…"
+            />
+          </div>
+
+          {/* Hourly rate */}
+          <div className="mb-6">
+            <label className="block text-sm font-medium mb-1">Hourly Rate (optional)</label>
+            <input
+              className="w-full rounded border p-2"
+              type="number"
+              step="0.01"
+              value={hourlyRate}
+              onChange={(e) => setHourlyRate(e.target.value)}
+              placeholder="e.g. 49.99"
+            />
+          </div>
+        </>
       )}
-      {error && <div className="text-sm text-red-500">{String(error)}</div>}
-      {loadErr && <div className="text-sm text-red-500">{loadErr}</div>}
-
-      {/* User (readonly for existing, manual for new) */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-muted/30 p-4 rounded-md">
-        <div>
-          <label className="text-xs uppercase opacity-70">User ID</label>
-          <input
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder={isNew ? 'UUID of the user' : ''}
-            readOnly={!isNew}
-          />
-          <p className="text-xs opacity-60 mt-1">
-            {isNew
-              ? 'Paste the user UUID. (We can add a user picker later.)'
-              : 'Readonly for existing mentor.'}
-          </p>
-        </div>
-        <div>
-          <label className="text-xs uppercase opacity-70">User Email</label>
-          <input
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={userEmail}
-            onChange={(e) => setUserEmail(e.target.value)}
-            placeholder="(auto from view if existing)"
-            readOnly
-          />
-          <p className="text-xs opacity-60 mt-1">
-            Populated from the admin view (readonly).
-          </p>
-        </div>
-
-        <div>
-          <label className="text-xs uppercase opacity-70">Display Name</label>
-          <input
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
-            placeholder="(auto from view if existing)"
-            readOnly
-          />
-        </div>
-
-        <div>
-          <label className="text-xs uppercase opacity-70">Type</label>
-          <select
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={mentorType}
-            onChange={(e) => setMentorType(e.target.value as any)}
-          >
-            <option value="">— select —</option>
-            <option value="mentor">Mentor</option>
-            <option value="coach">Coach</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="text-xs uppercase opacity-70">Primary Category</label>
-          <select
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={primaryCategoryId}
-            onChange={(e) => setPrimaryCategoryId(e.target.value)}
-          >
-            <option value="">— none —</option>
-            {categories.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.name}
-              </option>
-            ))}
-          </select>
-          <p className="text-xs opacity-60 mt-1">
-            Optional. Categories read directly from <code>life_categories</code>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <input
-            id="is_active"
-            type="checkbox"
-            className="h-4 w-4"
-            checked={isActive}
-            onChange={(e) => setIsActive(e.target.checked)}
-          />
-          <label htmlFor="is_active">Active</label>
-        </div>
-
-        <div className="md:col-span-2">
-          <label className="text-xs uppercase opacity-70">Bio (optional)</label>
-          <textarea
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            rows={4}
-            value={bio}
-            onChange={(e) => setBio(e.target.value)}
-            placeholder="Short bio, credentials, coaching style…"
-          />
-        </div>
-
-        <div>
-          <label className="text-xs uppercase opacity-70">Hourly Rate (optional)</label>
-          <input
-            type="number"
-            className="w-full mt-1 px-3 py-2 rounded-md border bg-background"
-            value={hourlyRate}
-            onChange={(e) => setHourlyRate(e.target.value === '' ? '' : Number(e.target.value))}
-            placeholder="e.g., 50"
-            min={0}
-          />
-        </div>
-      </div>
     </div>
   );
-};
-
-export default AdminMentorEditPage;
+}

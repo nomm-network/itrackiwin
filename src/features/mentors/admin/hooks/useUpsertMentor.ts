@@ -22,7 +22,7 @@ export function useUpsertMentor() {
         p_payload: payload
       });
       if (error) throw error;
-      return data as { id: string }[];
+      return data as string; // RPC now returns UUID directly
     },
     onSuccess: () => {
       toast.success('Mentor saved');
