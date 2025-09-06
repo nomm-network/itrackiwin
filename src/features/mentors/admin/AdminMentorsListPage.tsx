@@ -67,24 +67,13 @@ const AdminMentorsListPage: React.FC = () => {
             <h1 className="text-3xl font-bold">Mentors & Coaches</h1>
             <p className="text-muted-foreground mt-1">Manage mentor profiles and settings</p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button
-              variant="outline"
-              onClick={() => refetch()}
-              disabled={isLoading}
-              className="flex items-center gap-2"
-            >
-              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-              Refresh
-            </Button>
-            <Button
-              onClick={() => navigate('/admin/mentors/new')}
-              className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
-            >
-              <Plus className="h-4 w-4" />
-              New Mentor
-            </Button>
-          </div>
+          <Button
+            onClick={() => navigate('/admin/mentors/new')}
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700"
+          >
+            <Plus className="h-4 w-4" />
+            New Mentor
+          </Button>
         </div>
 
         {isLoading && (
