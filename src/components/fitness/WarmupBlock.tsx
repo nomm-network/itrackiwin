@@ -137,7 +137,7 @@ export function WarmupBlock({
       // Get warmup plan and feedback 
       const { data, error } = await supabase
         .from('workout_exercises')
-        .select('warmup_plan, warmup_feedback')
+        .select('attribute_values_json, warmup_feedback, target_weight_kg, id')
         .eq('id', workoutExerciseId)
         .maybeSingle();
 
@@ -169,8 +169,28 @@ export function WarmupBlock({
 
       setActualTopWeight(targetWeight);
 
-      if (data?.warmup_plan) {
-        setPlan(data.warmup_plan as unknown as DBWarmupPlan);
+      // Extract warmup from attribute_values_json
+      const attributeValues = data?.attribute_values_json as any;
+      const warmupSteps = Array.isArray(attributeValues?.warmup) 
+        ? attributeValues.warmup 
+        : [];
+
+      if (warmupSteps.length > 0) {
+        // Convert database format to component format
+        const planData: DBWarmupPlan = {
+          strategy: 'ramped',
+          baseWeight: targetWeight,
+          updated_from: 'current_working_set',
+          updatedAt: new Date().toISOString(),
+          steps: warmupSteps.map((step: any, index: number) => ({
+            id: `W${index + 1}` as 'W1' | 'W2' | 'W3',
+            pct: step.percent || ((index + 1) * 20 + 20), // fallback percentages: 40, 60, 80
+            reps: step.reps || 8,
+            restSec: step.rest_s || 60,
+            targetWeight: step.kg || 0
+          }))
+        };
+        setPlan(planData);
         setLocalFeedback(data.warmup_feedback as DBWarmupFeedback || null);
       } else {
         // Generate default plan if nothing saved
@@ -208,12 +228,29 @@ export function WarmupBlock({
       // Fetch the updated plan
       const { data } = await supabase
         .from('workout_exercises')
-        .select('warmup_plan')
+        .select('attribute_values_json')
         .eq('id', workoutExerciseId)
         .single();
       
-      if (data?.warmup_plan) {
-        setPlan(data.warmup_plan as unknown as DBWarmupPlan);
+      const attributeValues = data?.attribute_values_json as any;
+      if (attributeValues?.warmup) {
+        const warmupSteps = Array.isArray(attributeValues.warmup) 
+          ? attributeValues.warmup 
+          : [];
+        const planData: DBWarmupPlan = {
+          strategy: 'ramped',
+          baseWeight: actualTopWeight || 60,
+          updated_from: 'current_working_set',
+          updatedAt: new Date().toISOString(),
+          steps: warmupSteps.map((step: any, index: number) => ({
+            id: `W${index + 1}` as 'W1' | 'W2' | 'W3',
+            pct: step.percent || ((index + 1) * 20 + 20),
+            reps: step.reps || 8,
+            restSec: step.rest_s || 60,
+            targetWeight: step.kg || 0
+          }))
+        };
+        setPlan(planData);
       }
     } catch (error) {
       toast.error('Failed to save warmup feedback');
@@ -224,6 +261,18 @@ export function WarmupBlock({
   if (!plan) return null;
 
   return (
+    <div>
+      {/* Debug info */}
+      <details style={{opacity: 0.6, fontSize: 12, marginBottom: 8}}>
+        <summary>debug: warmup</summary>
+        <pre>{JSON.stringify({
+          weId: workoutExerciseId,
+          topKg: actualTopWeight,
+          warmup: plan?.steps,
+          planStrategy: plan?.strategy
+        }, null, 2)}</pre>
+      </details>
+      
     <Card className="mb-4">
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
@@ -314,5 +363,6 @@ export function WarmupBlock({
         </div>
       </CardContent>
     </Card>
+    </div>
   );
 }
