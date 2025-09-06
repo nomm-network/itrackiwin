@@ -13,7 +13,6 @@ type MentorType = 'mentor' | 'coach';
 type LifeCategory = { 
   id: string; 
   slug?: string | null; 
-  name?: string | null; 
 };
 
 export default function AdminMentorForm() {
@@ -43,8 +42,8 @@ export default function AdminMentorForm() {
       try {
         const { data, error } = await supabase
           .from('life_categories')
-          .select('id, slug, name')
-          .order('name', { ascending: true });
+          .select('id, slug')
+          .order('slug', { ascending: true });
         
         if (error) {
           console.error('Failed to load categories:', error);
@@ -216,7 +215,7 @@ export default function AdminMentorForm() {
               <SelectItem value="">— None —</SelectItem>
               {categories.map((c) => (
                 <SelectItem key={c.id} value={c.id}>
-                  {c.name || c.slug || c.id}
+                  {c.slug || c.id}
                 </SelectItem>
               ))}
             </SelectContent>
