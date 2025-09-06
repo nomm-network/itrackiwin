@@ -1,6 +1,7 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
 import AdminLayout from "./layout/AdminLayout";
+import { AdminErrorBoundary } from "@/components/util/AdminErrorBoundary";
 
 const AdminHomePage = lazy(() => import("./pages/AdminHome.page"));
 const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManagement"));
@@ -24,20 +25,34 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorForm"));
+const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorNew"));
 
 export function AdminRoutes() {
   console.log('🔍 AdminRoutes component rendered!');
   return (
-    <Routes>
-      <Route index element={<AdminHomePage />} />
-      <Route path="exercises" element={<AdminExercisesManagement />} />
-      <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
-      <Route path="users" element={<AdminUsersListPage />} />
-      <Route path="users/:id" element={<AdminUserDetailPage />} />
-      <Route path="mentors" element={<AdminMentorsListPage />} />
-      <Route path="mentors/new" element={<AdminMentorForm />} />
-      <Route path="mentors/:id" element={<AdminMentorForm />} />
+    <AdminErrorBoundary>
+      <Suspense fallback={<div className="container py-12"><p className="text-muted-foreground">Loading admin...</p></div>}>
+        <Routes>
+          <Route index element={<AdminHomePage />} />
+          <Route path="exercises" element={<AdminExercisesManagement />} />
+          <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
+          <Route path="users" element={<AdminUsersListPage />} />
+          <Route path="users/:id" element={<AdminUserDetailPage />} />
+          <Route path="mentors" element={<AdminMentorsListPage />} />
+          <Route path="mentors/new" element={
+            <AdminErrorBoundary>
+              <Suspense fallback={<div className="container py-6"><p className="text-muted-foreground">Loading mentor form...</p></div>}>
+                <AdminMentorForm />
+              </Suspense>
+            </AdminErrorBoundary>
+          } />
+          <Route path="mentors/:id" element={
+            <AdminErrorBoundary>
+              <Suspense fallback={<div className="container py-6"><p className="text-muted-foreground">Loading mentor form...</p></div>}>
+                <AdminMentorForm />
+              </Suspense>
+            </AdminErrorBoundary>
+          } />
       
       {/* Setup Flow Routes */}
       <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
@@ -58,8 +73,10 @@ export function AdminRoutes() {
       <Route path="settings" element={<AdminSettings />} />
       <Route path="translations/*" element={<AdminTranslations />} />
       <Route path="coach-logs" element={<AdminCoachLogs />} />
-      <Route path="category/:categoryId" element={<AdminCategoryPage />} />
-      <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
-    </Routes>
+          <Route path="category/:categoryId" element={<AdminCategoryPage />} />
+          <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
+        </Routes>
+      </Suspense>
+    </AdminErrorBoundary>
   );
 }

@@ -1,0 +1,289 @@
+import React, { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { normalizeMentor, MentorModel } from "./schema";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/hooks/use-toast";
+
+type Props = { 
+  mode: "create" | "edit"; 
+  initial?: Partial<MentorModel>;
+};
+
+type LifeCategory = {
+  id: string;
+  name: string;
+};
+
+export function MentorForm({ mode, initial = {} }: Props) {
+  // Form state
+  const [userId, setUserId] = useState(initial.userId ?? "");
+  const [mentorType, setMentorType] = useState(initial.type ?? "mentor");
+  const [primaryCategoryId, setPrimaryCategoryId] = useState(initial.primaryCategoryId ?? "");
+  const [isActive, setIsActive] = useState(initial.isActive ?? true);
+  const [bio, setBio] = useState(initial.bio ?? "");
+  const [hourlyRate, setHourlyRate] = useState<string>(initial.hourlyRate?.toString() ?? "");
+
+  // UI state
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<LifeCategory[]>([]);
+
+  const navigate = useNavigate();
+  const { id } = useParams();
+
+  // Load categories safely
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('life_categories')
+          .select('id, name')
+          .order('name');
+        
+        if (error) {
+          console.warn('Failed to load categories:', error.message);
+          setCategories([]);
+        } else {
+          setCategories(data || []);
+        }
+      } catch (e: any) {
+        console.warn('Categories load error:', e.message);
+        setCategories([]);
+      } finally {
+        setLoading(false);
+      }
+    }
+    loadCategories();
+  }, []);
+
+  // Load mentor data for edit mode
+  useEffect(() => {
+    if (mode === "edit" && id) {
+      async function loadMentor() {
+        try {
+          setLoading(true);
+          const { data, error } = await supabase
+            .from('v_admin_mentors_overview')
+            .select('*')
+            .eq('id', id)
+            .single();
+          
+          if (error) throw new Error(error.message);
+          if (!data) throw new Error('Mentor not found');
+          
+          const mentor = normalizeMentor(data);
+          setUserId(mentor.userId);
+          setMentorType(mentor.type);
+          setPrimaryCategoryId(mentor.primaryCategoryId || "");
+          setIsActive(mentor.isActive);
+          setBio(mentor.bio || "");
+          setHourlyRate(mentor.hourlyRate?.toString() || "");
+        } catch (e: any) {
+          setError(e.message);
+        } finally {
+          setLoading(false);
+        }
+      }
+      loadMentor();
+    }
+  }, [mode, id]);
+
+  async function onSave() {
+    setError(null);
+    setSaving(true);
+    
+    try {
+      if (!userId.trim()) {
+        throw new Error('User ID is required');
+      }
+
+      const payload = {
+        id: mode === "edit" ? id : undefined,
+        user_id: userId.trim(),
+        mentor_type: mentorType,
+        primary_category_id: primaryCategoryId || null,
+        is_active: isActive,
+        bio: bio.trim() || null,
+        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null
+      };
+
+      const { data, error } = await supabase.rpc('admin_upsert_mentor', {
+        p_payload: payload
+      });
+
+      if (error) throw new Error(error.message);
+      
+      toast({ title: `Mentor ${mode === "create" ? "created" : "updated"} successfully` });
+      
+      if (mode === "create") {
+        navigate('/admin/mentors');
+      }
+    } catch (e: any) {
+      setError(e.message);
+      toast({ 
+        title: 'Failed to save mentor', 
+        description: e.message, 
+        variant: 'destructive' 
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function onDelete() {
+    if (!id || mode !== "edit") return;
+    
+    if (!confirm('Are you sure you want to delete this mentor?')) return;
+    
+    try {
+      setSaving(true);
+      const { error } = await supabase.rpc('admin_delete_mentor', { p_id: id });
+      if (error) throw new Error(error.message);
+      
+      toast({ title: 'Mentor deleted successfully' });
+      navigate('/admin/mentors');
+    } catch (e: any) {
+      setError(e.message);
+      toast({ 
+        title: 'Failed to delete mentor', 
+        description: e.message, 
+        variant: 'destructive' 
+      });
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-12">
+        <div className="text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Navigation */}
+      <div className="flex items-center justify-between">
+        <Button variant="outline" onClick={() => navigate('/admin/mentors')}>
+          ← Back to Mentors
+        </Button>
+        <div className="flex gap-2">
+          {mode === "edit" && (
+            <Button variant="destructive" onClick={onDelete} disabled={saving}>
+              Delete
+            </Button>
+          )}
+          <Button onClick={onSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Error display */}
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded p-4">
+          <div className="text-red-800 font-medium">Error</div>
+          <div className="text-red-700 text-sm mt-1">{error}</div>
+        </div>
+      )}
+
+      {/* Form */}
+      <div className="grid gap-4 max-w-lg">
+        <div>
+          <Label htmlFor="userId">User ID *</Label>
+          <Input
+            id="userId"
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="Enter user ID"
+            required
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="mentorType">Mentor Type</Label>
+          <Select value={mentorType} onValueChange={setMentorType}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select mentor type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="mentor">Mentor</SelectItem>
+              <SelectItem value="coach">Coach</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="primaryCategory">Primary Category</Label>
+          <Select value={primaryCategoryId} onValueChange={setPrimaryCategoryId}>
+            <SelectTrigger>
+              <SelectValue placeholder="Select primary category" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">None</SelectItem>
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id}>
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center space-x-2">
+          <Checkbox
+            id="isActive"
+            checked={isActive}
+            onCheckedChange={(checked) => setIsActive(checked as boolean)}
+          />
+          <Label htmlFor="isActive">Active</Label>
+        </div>
+
+        <div>
+          <Label htmlFor="bio">Bio</Label>
+          <Textarea
+            id="bio"
+            value={bio}
+            onChange={(e) => setBio(e.target.value)}
+            placeholder="Enter bio..."
+            rows={4}
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="hourlyRate">Hourly Rate</Label>
+          <Input
+            id="hourlyRate"
+            type="number"
+            step="0.01"
+            value={hourlyRate}
+            onChange={(e) => setHourlyRate(e.target.value)}
+            placeholder="0.00"
+          />
+        </div>
+      </div>
+
+      {/* Safe debug info */}
+      <div className="mt-8 p-4 bg-green-100 border border-green-200 rounded">
+        <h3 className="font-bold text-lg mb-2 text-green-800">🐛 Debug Info</h3>
+        <div className="space-y-1 text-sm text-green-700">
+          <p><strong>Route ID:</strong> {id || 'new'}</p>
+          <p><strong>Mode:</strong> {mode}</p>
+          <p><strong>Categories loaded:</strong> {categories.length}</p>
+          <p><strong>Current URL:</strong> {window.location.href}</p>
+          <p><strong>Form State:</strong> userId="{userId}", type="{mentorType}", active={isActive.toString()}</p>
+        </div>
+      </div>
+    </div>
+  );
+}
