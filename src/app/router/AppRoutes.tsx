@@ -46,6 +46,7 @@ const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
+const LazyHistoryBrief = lazy(() => import('@/features/health/fitness/history/HistoryBrief'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -171,6 +172,13 @@ export function AppRoutes() {
           <Route path={`${Paths.health.fitness.root}/*`} element={
             <ProtectedMobileLayout>
               {FitnessRoutes}
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Fitness History Brief */}
+          <Route path="/fitness/history/:workoutId" element={
+            <ProtectedMobileLayout>
+              <LazyHistoryBrief />
             </ProtectedMobileLayout>
           } />
 
