@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -6,11 +6,13 @@ import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { PreCheckinInput, usePreCheckin } from '../hooks/usePreCheckin';
 import { EstimatesSection } from './EstimatesSection';
+import { useTemplateEstimates } from '../hooks/useTemplateEstimates';
+import { getMissingEstimateExerciseIds } from '../hooks/useMissingEstimates';
 
 interface PreWorkoutDialogProps {
   open: boolean;
   onClose: () => void;
-  onSubmit: (input: PreCheckinInput) => Promise<void>;
+  onSubmit: (input: PreCheckinInput & { estimates?: Record<string, number> }) => Promise<void>;
   templateId?: string;
 }
 
@@ -23,12 +25,24 @@ export function PreWorkoutDialog({ open, onClose, onSubmit, templateId }: PreWor
     stress_level: 2,
     sick: false,
   });
+  const [estimates, setEstimates] = useState<Record<string, number>>({});
+  const [missingIds, setMissingIds] = useState<string[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  
+  const { rows } = useTemplateEstimates(templateId);
+
+  useEffect(() => {
+    if (!rows.length) return;
+    
+    getMissingEstimateExerciseIds(rows.map(r => r.exercise_id)).then(setMissingIds);
+  }, [rows]);
+
+  const allEstimatesProvided = missingIds.every(id => estimates[id] && estimates[id] > 0);
 
   const handleSubmit = async () => {
     setSubmitting(true);
     try {
-      await onSubmit(formData);
+      await onSubmit({ ...formData, estimates });
       onClose();
     } catch (error) {
       console.error('Failed to submit pre-checkin:', error);
@@ -114,14 +128,18 @@ export function PreWorkoutDialog({ open, onClose, onSubmit, templateId }: PreWor
             <Label htmlFor="sick">Feeling sick or unwell</Label>
           </div>
 
-          <EstimatesSection templateId={templateId} />
+          <EstimatesSection 
+            templateId={templateId} 
+            onEstimatesChange={setEstimates}
+            estimates={estimates}
+          />
         </div>
 
         <div className="flex justify-end gap-2">
           <Button variant="outline" onClick={onClose} disabled={submitting}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={submitting}>
+          <Button onClick={handleSubmit} disabled={submitting || !allEstimatesProvided}>
             {submitting ? 'Starting...' : 'Start Workout'}
           </Button>
         </div>

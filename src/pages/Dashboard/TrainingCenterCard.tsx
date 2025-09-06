@@ -43,7 +43,7 @@ const TrainingCenterCard: React.FC = () => {
     setShowPreCheckin(true);
   };
 
-  const handlePreCheckinSubmit = async (input: PreCheckinInput) => {
+  const handlePreCheckinSubmit = async (input: PreCheckinInput & { estimates?: Record<string, number> }) => {
     setPending(true);
     setRpcError(null);
     try {

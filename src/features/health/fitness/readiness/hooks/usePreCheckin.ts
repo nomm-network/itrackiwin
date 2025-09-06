@@ -7,6 +7,7 @@ export type PreCheckinInput = {
   muscle_soreness: number; // 1-5
   stress_level: number; // 1-5
   sick: boolean;
+  estimates?: Record<string, number>; // { exerciseId: est_10rm_kg }
 };
 
 export function usePreCheckin() {
@@ -23,6 +24,21 @@ export function usePreCheckin() {
       (c.stress_level * 5) + // stress hurts
       (c.sick ? -20 : 0) // sick is major penalty
     ));
+
+    // Save estimates to user_exercise_estimates table if provided
+    if (c.estimates) {
+      for (const [exerciseId, est] of Object.entries(c.estimates)) {
+        if (est && est > 0) {
+          await supabase.from('user_exercise_estimates').upsert({
+            user_id: user.id,
+            exercise_id: exerciseId,
+            estimated_weight: est,
+            type: '10rm',
+            unit: 'kg'
+          });
+        }
+      }
+    }
 
     return supabase.from('pre_workout_checkins').insert({
       workout_id: workoutId,
