@@ -30,7 +30,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
   const [isActive, setIsActive] = useState(initial.isActive ?? true);
   const [bio, setBio] = useState(initial.bio ?? "");
   const [hourlyRate, setHourlyRate] = useState<string>(initial.hourlyRate?.toString() ?? "");
-  const [gymId, setGymId] = useState<string>("");
+  const [gymId, setGymId] = useState<string>("none");
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -120,7 +120,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
         is_active: isActive,
         bio: bio.trim() || null,
         hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
-        gym_id: gymId || null
+        gym_id: gymId === "none" ? null : gymId
       };
 
       const { data, error } = await supabase.rpc('admin_upsert_mentor', {
@@ -267,7 +267,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
               <SelectValue placeholder="Select a gym (optional)" />
             </SelectTrigger>
             <SelectContent className="bg-background border border-border shadow-lg z-50">
-              <SelectItem value="" className="bg-background hover:bg-muted">
+              <SelectItem value="none" className="bg-background hover:bg-muted">
                 <span className="text-muted-foreground">No gym selected</span>
               </SelectItem>
               {gyms?.map((gym) => (
