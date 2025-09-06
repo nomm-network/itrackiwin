@@ -7401,10 +7401,12 @@ export type Database = {
       admin_get_users_overview: {
         Args: Record<PropertyKey, never>
         Returns: {
-          assignments: Json
           created_at: string
           email: string
-          name: string
+          email_confirmed_at: string
+          is_pro: boolean
+          last_sign_in_at: string
+          roles: string[]
           user_id: string
         }[]
       }
