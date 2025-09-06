@@ -2,14 +2,16 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Clock, Target, Zap, Settings } from 'lucide-react';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Play, Clock, Target, Zap, Settings, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
 import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
 import { useActiveWorkout } from '@/features/workouts/hooks';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout, useEndWorkout } from '@/features/workouts';
+import { useToast } from '@/hooks/use-toast';
 
 const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -18,6 +20,8 @@ const TrainingDashboard: React.FC = () => {
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
   const startWorkout = useStartWorkout();
+  const endWorkout = useEndWorkout();
+  const { toast } = useToast();
   
   const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
 
@@ -45,6 +49,25 @@ const TrainingDashboard: React.FC = () => {
     }
   };
 
+  const handleEndWorkout = async () => {
+    if (!activeWorkout?.id) return;
+    
+    try {
+      await endWorkout.mutateAsync(activeWorkout.id);
+      toast({
+        title: "Workout ended",
+        description: "Your workout has been completed successfully.",
+      });
+    } catch (error) {
+      console.error('Failed to end workout:', error);
+      toast({
+        title: "Failed to end workout",
+        description: "Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (isLoadingProgram) {
     return (
       <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
@@ -69,17 +92,48 @@ const TrainingDashboard: React.FC = () => {
         </CardHeader>
         <CardContent className="space-y-3">
           {activeWorkout ? (
-            <div className="space-y-2">
+            <div className="space-y-3">
               <p className="text-sm text-muted-foreground">
                 Continue your active training session
               </p>
-              <Button 
-                onClick={handleStartTraining}
-                className="w-full bg-primary hover:bg-primary/90"
-              >
-                <Clock className="h-4 w-4 mr-2" />
-                Continue Training
-              </Button>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={handleStartTraining}
+                  className="flex-1 bg-primary hover:bg-primary/90"
+                >
+                  <Clock className="h-4 w-4 mr-2" />
+                  Continue Training
+                </Button>
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-destructive border-destructive/20 hover:bg-destructive/5"
+                    >
+                      <XCircle className="h-4 w-4" />
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>End Workout?</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to end your current workout? This will save all your progress and mark the workout as complete.
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleEndWorkout}
+                        disabled={endWorkout.isPending}
+                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                      >
+                        {endWorkout.isPending ? 'Ending...' : 'End Workout'}
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
+              </div>
             </div>
           ) : nextBlock ? (
             <div className="space-y-3">
