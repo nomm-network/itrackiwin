@@ -230,7 +230,6 @@ export function MentorForm({ mode, initial = {} }: Props) {
               <SelectValue placeholder="Select primary category" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">None</SelectItem>
               {categories.map((category) => (
                 <SelectItem key={category.id} value={category.id}>
                   {category.name}
