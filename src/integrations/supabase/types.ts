@@ -1735,19 +1735,79 @@ export type Database = {
           },
         ]
       }
+      gym_coach_memberships: {
+        Row: {
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          gym_id: string
+          id: string
+          mentor_id: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id: string
+          id?: string
+          mentor_id: string
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id?: string
+          id?: string
+          mentor_id?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_coach_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_coach_memberships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_coach_memberships_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_admin_mentors_overview"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gym_equipment: {
         Row: {
           bar_weight_kg: number | null
+          count: number | null
           created_at: string
           equipment_id: string
           fixed_increment_kg: number | null
           gym_id: string
           has_micro_plates: boolean
           id: string
+          increment_kg: number | null
           is_symmetrical: boolean
           loading_mode: string
+          max_weight_kg: number | null
           micro_plate_min_kg: number | null
           min_plate_kg: number | null
+          min_weight_kg: number | null
+          name: string | null
           notes: string | null
           stack_has_magnet: boolean
           stack_increment_kg: number | null
@@ -1756,16 +1816,21 @@ export type Database = {
         }
         Insert: {
           bar_weight_kg?: number | null
+          count?: number | null
           created_at?: string
           equipment_id: string
           fixed_increment_kg?: number | null
           gym_id: string
           has_micro_plates?: boolean
           id?: string
+          increment_kg?: number | null
           is_symmetrical?: boolean
           loading_mode: string
+          max_weight_kg?: number | null
           micro_plate_min_kg?: number | null
           min_plate_kg?: number | null
+          min_weight_kg?: number | null
+          name?: string | null
           notes?: string | null
           stack_has_magnet?: boolean
           stack_increment_kg?: number | null
@@ -1774,16 +1839,21 @@ export type Database = {
         }
         Update: {
           bar_weight_kg?: number | null
+          count?: number | null
           created_at?: string
           equipment_id?: string
           fixed_increment_kg?: number | null
           gym_id?: string
           has_micro_plates?: boolean
           id?: string
+          increment_kg?: number | null
           is_symmetrical?: boolean
           loading_mode?: string
+          max_weight_kg?: number | null
           micro_plate_min_kg?: number | null
           min_plate_kg?: number | null
+          min_weight_kg?: number | null
+          name?: string | null
           notes?: string | null
           stack_has_magnet?: boolean
           stack_increment_kg?: number | null
@@ -1989,14 +2059,19 @@ export type Database = {
           city: string | null
           country: string | null
           created_at: string
+          created_by: string | null
           equipment_profile: Json | null
           id: string
           location: unknown
           name: string
           phone: string | null
+          photo_url: string | null
           provider: string
           provider_place_id: string | null
+          slug: string | null
+          status: string
           tz: string | null
+          updated_at: string
           verified: boolean | null
           website: string | null
         }
@@ -2005,14 +2080,19 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           equipment_profile?: Json | null
           id?: string
           location: unknown
           name: string
           phone?: string | null
+          photo_url?: string | null
           provider: string
           provider_place_id?: string | null
+          slug?: string | null
+          status?: string
           tz?: string | null
+          updated_at?: string
           verified?: boolean | null
           website?: string | null
         }
@@ -2021,14 +2101,19 @@ export type Database = {
           city?: string | null
           country?: string | null
           created_at?: string
+          created_by?: string | null
           equipment_profile?: Json | null
           id?: string
           location?: unknown
           name?: string
           phone?: string | null
+          photo_url?: string | null
           provider?: string
           provider_place_id?: string | null
+          slug?: string | null
+          status?: string
           tz?: string | null
+          updated_at?: string
           verified?: boolean | null
           website?: string | null
         }
@@ -7463,6 +7548,10 @@ export type Database = {
         Args: { p_workout_id: string }
         Returns: undefined
       }
+      assign_gym_admin: {
+        Args: { p_gym: string; p_role: string; p_user: string }
+        Returns: undefined
+      }
       audit_security_definer_functions: {
         Args: Record<PropertyKey, never>
         Returns: {
@@ -7594,6 +7683,14 @@ export type Database = {
       create_demo_template_for_current_user: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      create_gym: {
+        Args: { p_city: string; p_country: string; p_name: string }
+        Returns: string
+      }
+      decide_gym_coach: {
+        Args: { p_gym: string; p_mentor_id: string; p_status: string }
+        Returns: undefined
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -8138,6 +8235,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: boolean
       }
+      is_gym_admin: {
+        Args: { gym_uuid: string }
+        Returns: boolean
+      }
       is_pro_user: {
         Args: { user_id: string }
         Returns: boolean
@@ -8476,6 +8577,10 @@ export type Database = {
       }
       refresh_materialized_views_secure: {
         Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
+      request_gym_coach: {
+        Args: { p_gym: string; p_mentor_id: string }
         Returns: undefined
       }
       run_data_quality_check: {
