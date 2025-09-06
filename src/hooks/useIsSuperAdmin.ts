@@ -1,110 +1,48 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { useSecurityMonitoring } from "./useSecurityMonitoring";
 
-export function useIsSuperAdmin() {
-  const [loading, setLoading] = useState(true);
-  const [isSuperAdmin, setIsSuperAdmin] = useState(false);
-  const { logSecurityEvent } = useSecurityMonitoring();
+type AdminState =
+  | { status: "loading" }
+  | { status: "authorized" }
+  | { status: "unauthorized" }
+  | { status: "error"; message: string };
+
+export function useIsSuperAdmin(): AdminState {
+  const [state, setState] = useState<AdminState>({ status: "loading" });
 
   useEffect(() => {
-    let active = true;
-    
-    const sub = supabase.auth.onAuthStateChange((_evt, session) => {
-      if (!session?.user) {
-        if (active) {
-          setIsSuperAdmin(false);
-          setLoading(false);
-        }
-        return;
-      }
-      
-      // Use the secure superadmin check with rate limiting
-      (async () => {
-        try {
-        const { data: superAdminResult, error } = await (supabase as any)
-          .rpc("is_superadmin_simple");
-          
-          if (error) {
-            console.error('Superadmin check failed:', error);
-            
-            // Log security event
-            logSecurityEvent({
-              action_type: 'superadmin_check_failed',
-              details: { 
-                error: error.message,
-                user_id: session.user.id,
-                timestamp: Date.now()
-              }
-            });
-            
-            if (active) setIsSuperAdmin(false);
-          } else {
-            if (active) setIsSuperAdmin(superAdminResult === true);
-            
-            // Log successful superadmin access
-            if (superAdminResult === true) {
-              logSecurityEvent({
-                action_type: 'superadmin_access_granted',
-                details: { 
-                  user_id: session.user.id,
-                  timestamp: Date.now()
-                }
-              });
-            }
-          }
-        } catch (error) {
-          console.error('Unexpected error during superadmin check:', error);
-          
-          logSecurityEvent({
-            action_type: 'superadmin_check_error',
-            details: { 
-              error: String(error),
-              user_id: session.user.id,
-              timestamp: Date.now()
-            }
-          });
-          
-          if (active) setIsSuperAdmin(false);
-        } finally {
-          if (active) setLoading(false);
-        }
-      })();
-    }).data.subscription;
+    let isMounted = true;
 
-    // Initial load
-    supabase.auth.getSession().then(async ({ data: { session } }) => {
-      if (!session?.user) {
-        if (active) {
-          setIsSuperAdmin(false);
-          setLoading(false);
-        }
-        return;
-      }
-      
+    async function run() {
       try {
-      const { data: superAdminResult, error } = await (supabase as any)
-        .rpc("is_superadmin_simple");
-        
-        if (error) {
-          console.error('Initial superadmin check failed:', error);
-          if (active) setIsSuperAdmin(false);
-        } else {
-          if (active) setIsSuperAdmin(superAdminResult === true);
+        // Ensure we are logged in
+        const { data: ses } = await supabase.auth.getSession();
+        const user = ses?.session?.user ?? null;
+        if (!user) {
+          if (isMounted) setState({ status: "unauthorized" });
+          return;
         }
-      } catch (error) {
-        console.error('Unexpected error during initial superadmin check:', error);
-        if (active) setIsSuperAdmin(false);
-      } finally {
-        if (active) setLoading(false);
+
+        const { data, error } = await supabase.rpc("is_superadmin_simple");
+        if (error) {
+          if (isMounted) setState({ status: "error", message: error.message });
+          return;
+        }
+
+        const isAdmin = Boolean(data);
+        if (isMounted) {
+          setState(isAdmin ? { status: "authorized" } : { status: "unauthorized" });
+        }
+      } catch (e: any) {
+        if (isMounted) setState({ status: "error", message: e?.message ?? "Unknown error" });
       }
-    });
+    }
 
+    run();
     return () => {
-      active = false;
-      sub.unsubscribe();
+      isMounted = false;
     };
-  }, [logSecurityEvent]);
+  }, []);
 
-  return { isSuperAdmin, loading } as const;
+  return state;
 }

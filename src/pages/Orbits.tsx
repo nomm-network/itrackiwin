@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const Orbits: React.FC = () => {
   const navigate = useNavigate();
-  const { isSuperAdmin } = useIsSuperAdmin();
+  const admin = useIsSuperAdmin();
   const seedIfEmpty = useAppStore(s => s.seedIfEmpty);
   const areas = useAppStore(s => s.areas);
   const [session, setSession] = React.useState<any>(null);
@@ -56,7 +56,7 @@ const Orbits: React.FC = () => {
                 <Link className="story-link" to="/journal">Journal</Link>
                 <Link className="story-link" to="/fitness">Fitness</Link>
                 <Link className="story-link" to="/insights">Insights</Link>
-                {isSuperAdmin && <Link className="story-link" to="/admin">Admin</Link>}
+                {admin.status === "authorized" && <Link className="story-link" to="/admin">Admin</Link>}
               </div>
             ) : (
               <div className="hidden md:flex gap-4 items-center">

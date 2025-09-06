@@ -17,7 +17,7 @@ interface PageNavProps {
 
 const PageNav: React.FC<PageNavProps> = ({ current }) => {
   const { t } = useTranslation();
-  const { isSuperAdmin } = useIsSuperAdmin();
+  const admin = useIsSuperAdmin();
 
   return (
     <header className="container py-4">
@@ -39,7 +39,7 @@ const PageNav: React.FC<PageNavProps> = ({ current }) => {
         </div>
         <div className="flex items-center gap-4 text-sm">
           <Link to="/dashboard">{t('common.dashboard')}</Link>
-          {isSuperAdmin && <Link to="/admin">{t('common.admin')}</Link>}
+          {admin.status === "authorized" && <Link to="/admin">{t('common.admin')}</Link>}
         </div>
       </nav>
     </header>
