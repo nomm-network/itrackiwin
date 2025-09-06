@@ -107,6 +107,226 @@ export type Database = {
         }
         Relationships: []
       }
+      ambassador_commission_accruals: {
+        Row: {
+          agreement_id: string
+          commission_due: number
+          computed_at: string | null
+          gross_revenue: number
+          id: string
+          month: number
+          year: number
+        }
+        Insert: {
+          agreement_id: string
+          commission_due?: number
+          computed_at?: string | null
+          gross_revenue?: number
+          id?: string
+          month: number
+          year: number
+        }
+        Update: {
+          agreement_id?: string
+          commission_due?: number
+          computed_at?: string | null
+          gross_revenue?: number
+          id?: string
+          month?: number
+          year?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassador_commission_accruals_agreement_id_fkey"
+            columns: ["agreement_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_commission_agreements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ambassador_commission_agreements: {
+        Row: {
+          ambassador_id: string
+          battle_id: string
+          created_at: string | null
+          ends_at: string | null
+          gym_id: string
+          id: string
+          percent: number
+          starts_at: string
+          tier: string
+        }
+        Insert: {
+          ambassador_id: string
+          battle_id: string
+          created_at?: string | null
+          ends_at?: string | null
+          gym_id: string
+          id?: string
+          percent: number
+          starts_at?: string
+          tier: string
+        }
+        Update: {
+          ambassador_id?: string
+          battle_id?: string
+          created_at?: string | null
+          ends_at?: string | null
+          gym_id?: string
+          id?: string
+          percent?: number
+          starts_at?: string
+          tier?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassador_commission_agreements_ambassador_id_fkey"
+            columns: ["ambassador_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_commission_agreements_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_commission_agreements_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ambassador_gym_deals: {
+        Row: {
+          ambassador_id: string
+          battle_id: string
+          contract_url: string | null
+          gym_id: string
+          id: string
+          signed_at: string
+          status: string
+          verified_at: string | null
+          verified_by: string | null
+        }
+        Insert: {
+          ambassador_id: string
+          battle_id: string
+          contract_url?: string | null
+          gym_id: string
+          id?: string
+          signed_at?: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Update: {
+          ambassador_id?: string
+          battle_id?: string
+          contract_url?: string | null
+          gym_id?: string
+          id?: string
+          signed_at?: string
+          status?: string
+          verified_at?: string | null
+          verified_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassador_gym_deals_ambassador_id_fkey"
+            columns: ["ambassador_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_gym_deals_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_gym_deals_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ambassador_gym_visits: {
+        Row: {
+          ambassador_id: string
+          gym_id: string
+          id: string
+          notes: string | null
+          photo_url: string | null
+          visited_at: string
+        }
+        Insert: {
+          ambassador_id: string
+          gym_id: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          visited_at?: string
+        }
+        Update: {
+          ambassador_id?: string
+          gym_id?: string
+          id?: string
+          notes?: string | null
+          photo_url?: string | null
+          visited_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ambassador_gym_visits_ambassador_id_fkey"
+            columns: ["ambassador_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_gym_visits_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ambassador_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       attribute_schemas: {
         Row: {
           created_at: string
@@ -227,6 +447,125 @@ export type Database = {
           unit?: Database["public"]["Enums"]["weight_unit"]
         }
         Relationships: []
+      }
+      battle_invitations: {
+        Row: {
+          ambassador_id: string
+          battle_id: string
+          id: string
+          invited_at: string | null
+          responded_at: string | null
+          status: string
+        }
+        Insert: {
+          ambassador_id: string
+          battle_id: string
+          id?: string
+          invited_at?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Update: {
+          ambassador_id?: string
+          battle_id?: string
+          id?: string
+          invited_at?: string | null
+          responded_at?: string | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_invitations_ambassador_id_fkey"
+            columns: ["ambassador_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_invitations_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battle_participants: {
+        Row: {
+          ambassador_id: string
+          battle_id: string
+          joined_at: string | null
+        }
+        Insert: {
+          ambassador_id: string
+          battle_id: string
+          joined_at?: string | null
+        }
+        Update: {
+          ambassador_id?: string
+          battle_id?: string
+          joined_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battle_participants_ambassador_id_fkey"
+            columns: ["ambassador_id"]
+            isOneToOne: false
+            referencedRelation: "ambassador_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "battle_participants_battle_id_fkey"
+            columns: ["battle_id"]
+            isOneToOne: false
+            referencedRelation: "battles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      battles: {
+        Row: {
+          city_id: string
+          created_at: string | null
+          ends_at: string
+          id: string
+          max_participants: number
+          name: string
+          starts_at: string
+          status: string
+          target_win_deals: number
+        }
+        Insert: {
+          city_id: string
+          created_at?: string | null
+          ends_at: string
+          id?: string
+          max_participants?: number
+          name: string
+          starts_at: string
+          status?: string
+          target_win_deals?: number
+        }
+        Update: {
+          city_id?: string
+          created_at?: string | null
+          ends_at?: string
+          id?: string
+          max_participants?: number
+          name?: string
+          starts_at?: string
+          status?: string
+          target_win_deals?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "battles_city_id_fkey"
+            columns: ["city_id"]
+            isOneToOne: false
+            referencedRelation: "cities"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       body_parts: {
         Row: {
@@ -404,6 +743,33 @@ export type Database = {
           target_unit?: string | null
           target_value?: number
           title?: string
+        }
+        Relationships: []
+      }
+      cities: {
+        Row: {
+          city: string
+          country: string
+          created_at: string | null
+          id: string
+          region: string | null
+          slug: string | null
+        }
+        Insert: {
+          city: string
+          country: string
+          created_at?: string | null
+          id?: string
+          region?: string | null
+          slug?: string | null
+        }
+        Update: {
+          city?: string
+          country?: string
+          created_at?: string | null
+          id?: string
+          region?: string | null
+          slug?: string | null
         }
         Relationships: []
       }
@@ -2014,6 +2380,35 @@ export type Database = {
           },
           {
             foreignKeyName: "gym_equipment_overrides_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_observers: {
+        Row: {
+          created_at: string | null
+          gym_id: string
+          source: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          gym_id: string
+          source?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          gym_id?: string
+          source?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_observers_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
             referencedRelation: "gyms"
@@ -7544,6 +7939,10 @@ export type Database = {
         Args: { _completed_block_id: string; _user_id: string }
         Returns: boolean
       }
+      ambassador_submit_gym_deal: {
+        Args: { p_battle: string; p_contract_url: string; p_gym: string }
+        Returns: string
+      }
       apply_initial_targets: {
         Args: { p_workout_id: string }
         Returns: undefined
@@ -7563,6 +7962,14 @@ export type Database = {
       bar_min_increment: {
         Args: { _gym_id: string }
         Returns: number
+      }
+      battle_invite_users: {
+        Args: { p_battle: string; p_user_ids: string[] }
+        Returns: undefined
+      }
+      battle_respond_invite: {
+        Args: { p_action: string; p_invitation: string }
+        Returns: undefined
       }
       box: {
         Args: { "": unknown } | { "": unknown }
@@ -7691,6 +8098,14 @@ export type Database = {
       decide_gym_coach: {
         Args: { p_gym: string; p_mentor_id: string; p_status: string }
         Returns: undefined
+      }
+      declare_battle_winners: {
+        Args: { p_battle: string }
+        Returns: {
+          ambassador_id: string
+          rank: number
+          verified_deals: number
+        }[]
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -8187,6 +8602,10 @@ export type Database = {
       gidx_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      grant_winner_benefits: {
+        Args: { p_battle: string; p_winner1: string; p_winner2: string }
+        Returns: undefined
       }
       gtrgm_compress: {
         Args: { "": unknown }
@@ -9792,6 +10211,10 @@ export type Database = {
       validate_muscle_group_ids: {
         Args: { muscle_group_ids: string[] }
         Returns: boolean
+      }
+      verify_gym_deal: {
+        Args: { p_deal: string; p_status: string }
+        Returns: undefined
       }
       workout_open: {
         Args: { p_workout_id: string }
