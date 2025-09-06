@@ -15,14 +15,21 @@ export function EstimatesSection({ templateId, onEstimatesChange, estimates }: E
   useEffect(() => {
     if (!rows.length) return;
     
-    getMissingEstimateExerciseIds(rows.map(r => r.exercise_id)).then(setMissingIds);
+    console.log('EstimatesSection: rows loaded', rows);
+    getMissingEstimateExerciseIds(rows.map(r => r.exercise_id)).then(ids => {
+      console.log('EstimatesSection: missing IDs', ids);
+      setMissingIds(ids);
+    });
   }, [rows]);
+
+  console.log('EstimatesSection debug:', { templateId, loading, error, rowsLength: rows.length, missingIds });
 
   if (!templateId) return null;
   if (loading) return <div className="text-sm opacity-60">Loading exercise estimates…</div>;
   if (error) return <div className="text-sm text-red-400">Estimates error: {error}</div>;
   
   const missingRows = rows.filter(r => missingIds.includes(r.exercise_id));
+  console.log('EstimatesSection: missingRows', missingRows);
   if (!missingRows.length) return null;
 
   return (
