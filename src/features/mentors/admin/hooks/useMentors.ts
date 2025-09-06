@@ -10,7 +10,6 @@ export type MentorRow = {
   primary_category_id: string | null;
   is_active: boolean;
   created_at: string;
-  // Database also returns these fields
   bio?: string | null;
   hourly_rate?: number | null;
   is_public?: boolean;
@@ -26,11 +25,16 @@ export function useMentors() {
   return useQuery({
     queryKey: qk.all,
     queryFn: async (): Promise<MentorRow[]> => {
+      console.log('🔍 [useMentors] Calling v_admin_mentors_overview...');
       const { data, error } = await supabase
         .from('v_admin_mentors_overview')
         .select('*')
         .order('created_at', { ascending: false });
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useMentors] Error:', error);
+        throw error;
+      }
+      console.log('✅ [useMentors] Success:', data);
       return data as MentorRow[];
     }
   });
@@ -42,13 +46,18 @@ export function useMentor(id: string | undefined) {
     queryKey: id ? qk.one(id) : qk.all,
     queryFn: async (): Promise<MentorRow | null> => {
       if (!id) return null;
+      console.log('🔍 [useMentor] Fetching mentor:', id);
       const { data, error } = await supabase
         .from('v_admin_mentors_overview')
         .select('*')
         .eq('id', id)
         .limit(1)
         .maybeSingle();
-      if (error) throw error;
+      if (error) {
+        console.error('❌ [useMentor] Error:', error);
+        throw error;
+      }
+      console.log('✅ [useMentor] Success:', data);
       return data as MentorRow | null;
     }
   });

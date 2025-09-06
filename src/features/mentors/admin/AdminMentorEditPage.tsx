@@ -3,6 +3,14 @@ import { useNavigate, useParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useUpsertMentor } from './hooks/useUpsertMentor';
 import { useDeleteMentor } from './hooks/useDeleteMentor';
+import PageNav from '@/components/PageNav';
+import AdminMenu from '@/admin/components/AdminMenu';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Checkbox } from '@/components/ui/checkbox';
 
 type MentorType = 'mentor' | 'coach';
 
@@ -15,8 +23,8 @@ type ViewRow = {
   primary_category_id: string | null;
   is_active: boolean | null;
   created_at: string;
-  bio?: string | null;            // if present in your view; safe as optional
-  hourly_rate?: number | null;    // "
+  bio?: string | null;
+  hourly_rate?: number | null;
 };
 
 type LifeCategory = { id: string; slug?: string | null; name?: string | null };
@@ -37,7 +45,7 @@ export default function AdminMentorEditPage() {
   const [primaryCategoryId, setPrimaryCategoryId] = useState<string>('');
   const [isActive, setIsActive] = useState<boolean>(true);
   const [bio, setBio] = useState<string>('');
-  const [hourlyRate, setHourlyRate] = useState<string>(''); // keep string for input
+  const [hourlyRate, setHourlyRate] = useState<string>('');
 
   const { mutateAsync: upsertMentor, isPending: saving } = useUpsertMentor();
   const { mutateAsync: deleteMentor, isPending: deleting } = useDeleteMentor();
@@ -75,6 +83,8 @@ export default function AdminMentorEditPage() {
             setMentorType((data.mentor_type as MentorType) || 'mentor');
             setPrimaryCategoryId(data.primary_category_id || '');
             setIsActive(Boolean(data.is_active));
+            setBio(data.bio || '');
+            setHourlyRate(data.hourly_rate?.toString() || '');
           }
         }
       }
@@ -86,6 +96,8 @@ export default function AdminMentorEditPage() {
         setMentorType('mentor');
         setPrimaryCategoryId('');
         setIsActive(true);
+        setBio('');
+        setHourlyRate('');
       }
 
       if (!cancelled) setLoading(false);
@@ -112,7 +124,6 @@ export default function AdminMentorEditPage() {
     // minimal validation
     if (!userId) return setError('User ID is required.');
     if (!mentorType) return setError('Mentor type is required.');
-    // primary_category_id optional, depends on your logic
 
     const payload = {
       id: isNew ? null : id,
@@ -148,137 +159,143 @@ export default function AdminMentorEditPage() {
   };
 
   return (
-    <div className="p-4 md:p-6 max-w-3xl mx-auto">
-      <div className="flex items-center justify-between mb-4">
-        <h1 className="text-xl font-semibold">{title}</h1>
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate('/admin/mentors')}
-            className="px-3 py-2 rounded border"
-          >
-            Back
-          </button>
-          {!isNew && (
-            <button
-              onClick={onDelete}
-              disabled={deleting}
-              className="px-3 py-2 rounded border border-red-600 text-red-600"
+    <main className="container py-12">
+      <PageNav current={`Admin / Mentors / ${title}`} />
+      <AdminMenu />
+      
+      <div className="max-w-3xl mx-auto space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-bold">{title}</h1>
+          <div className="flex gap-2">
+            <Button
+              onClick={() => navigate('/admin/mentors')}
+              variant="outline"
             >
-              {deleting ? 'Deleting…' : 'Delete'}
-            </button>
-          )}
-          <button
-            onClick={onSave}
-            disabled={saving}
-            className="px-3 py-2 rounded bg-emerald-600 text-white"
-          >
-            {saving ? 'Saving…' : 'Save'}
-          </button>
+              Back
+            </Button>
+            {!isNew && (
+              <Button
+                onClick={onDelete}
+                disabled={deleting}
+                variant="destructive"
+              >
+                {deleting ? 'Deleting…' : 'Delete'}
+              </Button>
+            )}
+            <Button
+              onClick={onSave}
+              disabled={saving}
+            >
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {loading ? (
-        <div className="text-sm opacity-70">Loading…</div>
-      ) : (
-        <>
-          {error && (
-            <div className="mb-3 text-sm text-red-600">
-              {error}
-            </div>
-          )}
-
-          {/* User (readonly when editing, free input when creating) */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">User</label>
-            {isNew ? (
-              <input
-                className="w-full rounded border p-2"
-                placeholder="User UUID (paste)"
-                value={userId}
-                onChange={(e) => setUserId(e.target.value)}
-              />
-            ) : (
-              <div className="p-2 rounded border bg-gray-50">
-                <div className="text-sm">
-                  <span className="font-medium">{row?.display_name || '—'}</span>
-                </div>
-                <div className="text-xs opacity-70">{row?.email || '—'}</div>
-                <div className="text-[11px] opacity-50 mt-1">User ID: {row?.user_id}</div>
+        {loading ? (
+          <div className="p-4 bg-blue-50 border border-blue-200 rounded">
+            <p className="text-blue-800">Loading…</p>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {error && (
+              <div className="p-4 bg-red-50 border border-red-200 rounded">
+                <p className="text-red-700">{error}</p>
               </div>
             )}
-            <p className="text-xs opacity-60 mt-1">
-              For a nicer UX later we can add a user picker; UUID is safest for now.
-            </p>
-          </div>
 
-          {/* Mentor type */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Type</label>
-            <select
-              className="w-full rounded border p-2"
-              value={mentorType}
-              onChange={(e) => setMentorType(e.target.value as MentorType)}
-            >
-              <option value="mentor">Mentor</option>
-              <option value="coach">Coach</option>
-            </select>
-          </div>
+            {/* User ID */}
+            <div className="space-y-2">
+              <Label htmlFor="userId">User ID</Label>
+              {isNew ? (
+                <Input
+                  id="userId"
+                  placeholder="User UUID (paste from Users list)"
+                  value={userId}
+                  onChange={(e) => setUserId(e.target.value)}
+                />
+              ) : (
+                <div className="p-3 rounded border bg-gray-50">
+                  <div className="text-sm">
+                    <span className="font-medium">{row?.display_name || '—'}</span>
+                  </div>
+                  <div className="text-xs text-muted-foreground">{row?.email || '—'}</div>
+                  <div className="text-xs text-muted-foreground mt-1">User ID: {row?.user_id}</div>
+                </div>
+              )}
+              <p className="text-xs text-muted-foreground">
+                For now, paste the User ID from the Users management page.
+              </p>
+            </div>
 
-          {/* Primary category */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Primary Category</label>
-            <select
-              className="w-full rounded border p-2"
-              value={primaryCategoryId}
-              onChange={(e) => setPrimaryCategoryId(e.target.value)}
-            >
-              <option value="">— None —</option>
-              {categories.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name || c.slug || c.id}
-                </option>
-              ))}
-            </select>
-          </div>
+            {/* Mentor Type */}
+            <div className="space-y-2">
+              <Label htmlFor="mentorType">Type</Label>
+              <Select value={mentorType} onValueChange={(value) => setMentorType(value as MentorType)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="mentor">Mentor</SelectItem>
+                  <SelectItem value="coach">Coach</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Active */}
-          <div className="mb-4 flex items-center gap-2">
-            <input
-              id="is_active"
-              type="checkbox"
-              className="h-4 w-4"
-              checked={isActive}
-              onChange={(e) => setIsActive(e.target.checked)}
-            />
-            <label htmlFor="is_active" className="text-sm">Active</label>
-          </div>
+            {/* Primary Category */}
+            <div className="space-y-2">
+              <Label htmlFor="primaryCategory">Primary Category</Label>
+              <Select value={primaryCategoryId} onValueChange={setPrimaryCategoryId}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">— None —</SelectItem>
+                  {categories.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.name || c.slug || c.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-          {/* Bio */}
-          <div className="mb-4">
-            <label className="block text-sm font-medium mb-1">Bio (optional)</label>
-            <textarea
-              className="w-full rounded border p-2"
-              rows={4}
-              value={bio}
-              onChange={(e) => setBio(e.target.value)}
-              placeholder="Short bio…"
-            />
-          </div>
+            {/* Active Status */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="isActive"
+                checked={isActive}
+                onCheckedChange={(checked) => setIsActive(!!checked)}
+              />
+              <Label htmlFor="isActive">Active</Label>
+            </div>
 
-          {/* Hourly rate */}
-          <div className="mb-6">
-            <label className="block text-sm font-medium mb-1">Hourly Rate (optional)</label>
-            <input
-              className="w-full rounded border p-2"
-              type="number"
-              step="0.01"
-              value={hourlyRate}
-              onChange={(e) => setHourlyRate(e.target.value)}
-              placeholder="e.g. 49.99"
-            />
+            {/* Bio */}
+            <div className="space-y-2">
+              <Label htmlFor="bio">Bio (optional)</Label>
+              <Textarea
+                id="bio"
+                rows={4}
+                value={bio}
+                onChange={(e) => setBio(e.target.value)}
+                placeholder="Short bio or description..."
+              />
+            </div>
+
+            {/* Hourly Rate */}
+            <div className="space-y-2">
+              <Label htmlFor="hourlyRate">Hourly Rate (optional)</Label>
+              <Input
+                id="hourlyRate"
+                type="number"
+                step="0.01"
+                value={hourlyRate}
+                onChange={(e) => setHourlyRate(e.target.value)}
+                placeholder="e.g. 49.99"
+              />
+            </div>
           </div>
-        </>
-      )}
-    </div>
+        )}
+      </div>
+    </main>
   );
 }

@@ -1,9 +1,9 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 
 type UpsertPayload = {
-  id?: string;                 // omit for new
+  id?: string | null;
   user_id: string;
   mentor_type: 'mentor' | 'coach';
   primary_category_id?: string | null;
@@ -17,20 +17,24 @@ export function useUpsertMentor() {
 
   return useMutation({
     mutationFn: async (payload: UpsertPayload) => {
-      // If your RPC name differs, change it here:
+      console.log('🔍 [useUpsertMentor] Calling admin_upsert_mentor...', payload);
       const { data, error } = await supabase.rpc('admin_upsert_mentor', {
         p_payload: payload
       });
-      if (error) throw error;
-      return data as string; // RPC now returns UUID directly
+      if (error) {
+        console.error('❌ [useUpsertMentor] Error:', error);
+        throw error;
+      }
+      console.log('✅ [useUpsertMentor] Success:', data);
+      return data as string;
     },
     onSuccess: () => {
-      toast.success('Mentor saved');
+      toast({ title: 'Mentor saved successfully' });
       qc.invalidateQueries({ queryKey: ['admin','mentors'] });
     },
     onError: (e: any) => {
-      console.error('[admin_upsert_mentor]', e);
-      toast.error(e?.message ?? 'Failed to save mentor');
+      console.error('[admin_upsert_mentor] Error:', e);
+      toast({ title: 'Failed to save mentor', description: e?.message, variant: 'destructive' });
     }
   });
 }
