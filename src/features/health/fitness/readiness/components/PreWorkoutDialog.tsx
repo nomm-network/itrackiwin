@@ -5,14 +5,16 @@ import { Label } from '@/components/ui/label';
 import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import { PreCheckinInput, usePreCheckin } from '../hooks/usePreCheckin';
+import { EstimatesSection } from './EstimatesSection';
 
 interface PreWorkoutDialogProps {
   open: boolean;
   onClose: () => void;
   onSubmit: (input: PreCheckinInput) => Promise<void>;
+  templateId?: string;
 }
 
-export function PreWorkoutDialog({ open, onClose, onSubmit }: PreWorkoutDialogProps) {
+export function PreWorkoutDialog({ open, onClose, onSubmit, templateId }: PreWorkoutDialogProps) {
   const [formData, setFormData] = useState<PreCheckinInput>({
     energy: 3,
     sleep_quality: 3,
@@ -111,6 +113,8 @@ export function PreWorkoutDialog({ open, onClose, onSubmit }: PreWorkoutDialogPr
             />
             <Label htmlFor="sick">Feeling sick or unwell</Label>
           </div>
+
+          <EstimatesSection templateId={templateId} />
         </div>
 
         <div className="flex justify-end gap-2">

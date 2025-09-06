@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { useWorkout } from './api/useWorkout';
 import { useSmartWorkoutTargets } from './hooks/useSmartWorkoutTargets';
 import WorkoutExerciseCard from './components/WorkoutExerciseCard';
 import { Button } from '@/components/ui/button';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const Box: React.FC<{title?:string, children:React.ReactNode}> = ({title, children}) => (
   <div className="rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-4">
@@ -19,6 +21,9 @@ export default function WorkoutPage() {
   const { computeTargets, isComputing } = useSmartWorkoutTargets();
   const [showDebug, setShowDebug] = useState(false);
   const [targetsComputed, setTargetsComputed] = useState(false);
+  const [finishing, setFinishing] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
   // BLOCKER 3 FIX: Compute targets on mount if they're missing
   useEffect(() => {
@@ -42,6 +47,30 @@ export default function WorkoutPage() {
     }
   }, [data, actualWorkoutId, computeTargets, isComputing, targetsComputed, refetch]);
 
+  const handleFinishWorkout = async () => {
+    setFinishing(true);
+    try {
+      const { error } = await supabase.rpc('end_workout', { p_workout_id: actualWorkoutId });
+      if (error) throw error;
+      
+      toast({
+        title: "Workout completed!",
+        description: "Great job on finishing your workout.",
+      });
+      
+      navigate('/app/fitness');
+    } catch (error) {
+      console.error('Failed to finish workout:', error);
+      toast({
+        title: "Error",
+        description: "Failed to finish workout. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setFinishing(false);
+    }
+  };
+
   if (isLoading) return <div className="p-4 text-emerald-200">Loading…</div>;
   if (error) return <div className="p-4 text-red-400">Error: {(error as any)?.message}</div>;
   if (!data) return <div className="p-4 text-emerald-200">No data</div>;
@@ -50,7 +79,16 @@ export default function WorkoutPage() {
 
   return (
     <div className="mx-auto max-w-3xl space-y-4 p-4 pb-nav-safe text-emerald-100">
-      <h1 className="text-xl font-semibold text-emerald-200">{title}</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-semibold text-emerald-200">{title}</h1>
+        <Button 
+          onClick={handleFinishWorkout}
+          disabled={finishing}
+          className="bg-emerald-600 hover:bg-emerald-500"
+        >
+          {finishing ? 'Finishing...' : 'Finish Workout'}
+        </Button>
+      </div>
 
       <div className="space-y-3">
         {data.exercises.map((we) => (

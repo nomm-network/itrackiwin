@@ -233,10 +233,11 @@ const TrainingCenterCard: React.FC = () => {
         </div>
       )}
 
-      <PreWorkoutDialog
+      <PreWorkoutDialog 
         open={showPreCheckin}
         onClose={() => setShowPreCheckin(false)}
         onSubmit={handlePreCheckinSubmit}
+        templateId={pendingTemplateId || undefined}
       />
     </div>
   );
