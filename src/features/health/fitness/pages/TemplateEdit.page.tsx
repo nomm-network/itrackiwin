@@ -18,7 +18,7 @@ import {
   useAddExerciseToTemplate
 } from "../services/fitness.api";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -45,22 +45,19 @@ interface Equipment {
 export default function TemplateEdit() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const { i18n } = useTranslation();
-  
-  const isCreating = templateId === 'create';
   
   const [name, setName] = useState("");
   const [notes, setNotes] = useState("");
   const [isPublic, setIsPublic] = useState(false);
-  const [isEditing, setIsEditing] = useState(isCreating); // Start in edit mode when creating
+  const [isEditing, setIsEditing] = useState(false);
   const [showExerciseDialog, setShowExerciseDialog] = useState(false);
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("all");
   const [selectedEquipment, setSelectedEquipment] = useState("all");
 
-  const { data: template, isLoading: templateLoading } = useTemplateDetail(isCreating ? undefined : templateId);
-  const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(isCreating ? undefined : templateId);
+  const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
+  const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
   const addExerciseToTemplate = useAddExerciseToTemplate();
@@ -163,48 +160,22 @@ export default function TemplateEdit() {
   }, [template]);
 
   const handleSave = async () => {
+    if (!templateId) return;
+    
     try {
-      if (isCreating) {
-        // Create new template
-        const { data: user } = await supabase.auth.getUser();
-        if (!user.user) throw new Error('Not authenticated');
-        
-        const { data: newTemplate, error } = await supabase
-          .from('workout_templates')
-          .insert({
-            name: name.trim() || "Untitled Template",
-            notes: notes.trim(),
-            is_public: isPublic,
-            user_id: user.user.id
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
-        
-        // Invalidate templates query to refresh the list
-        queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
-        
-        toast.success("Template created successfully");
-        navigate(`/fitness/templates/${newTemplate.id}/edit`);
-      } else {
-        // Update existing template
-        if (!templateId) return;
-        
-        await updateTemplate.mutateAsync({
-          templateId,
-          updates: {
-            name: name.trim() || "Untitled Template",
-            notes: notes.trim(),
-            is_public: isPublic
-          }
-        });
-        setIsEditing(false);
-        toast.success("Template updated successfully");
-      }
+      await updateTemplate.mutateAsync({
+        templateId,
+        updates: {
+          name: name.trim() || "Untitled Template",
+          notes: notes.trim(),
+          is_public: isPublic
+        }
+      });
+      setIsEditing(false);
+      toast.success("Template updated successfully");
     } catch (error) {
-      toast.error(isCreating ? "Failed to create template" : "Failed to update template");
-      console.error("Template save error:", error);
+      toast.error("Failed to update template");
+      console.error("Template update error:", error);
     }
   };
 
@@ -224,46 +195,11 @@ export default function TemplateEdit() {
   };
 
   const handleAddExercise = async (exercise: Exercise) => {
-    let actualTemplateId = templateId;
-    
-    // Auto-save template if creating
-    if (isCreating) {
-      try {
-        const { data: user } = await supabase.auth.getUser();
-        if (!user.user) throw new Error('Not authenticated');
-        
-        const { data: newTemplate, error } = await supabase
-          .from('workout_templates')
-          .insert({
-            name: name.trim() || "Untitled Template",
-            notes: notes.trim(),
-            is_public: isPublic,
-            user_id: user.user.id
-          })
-          .select()
-          .single();
-          
-        if (error) throw error;
-        
-        actualTemplateId = newTemplate.id;
-        
-        // Invalidate templates query to refresh the list
-        queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
-        
-        toast.success("Template created");
-        navigate(`/fitness/templates/${newTemplate.id}/edit`, { replace: true });
-      } catch (error) {
-        toast.error("Failed to create template");
-        console.error("Template creation error:", error);
-        return;
-      }
-    }
-    
-    if (!actualTemplateId) return;
+    if (!templateId) return;
     
     try {
       await addExerciseToTemplate.mutateAsync({
-        template_id: actualTemplateId,
+        template_id: templateId,
         exercise_id: exercise.id,
         order_index: (exercises?.length || 0) + 1,
         default_sets: 3,
@@ -272,11 +208,11 @@ export default function TemplateEdit() {
       });
       
       toast.success(`Added ${exercise.name} to template`);
-      setShowExerciseDialog(false);
-      setExerciseSearch("");
-      setSelectedMuscleGroup("all");
-      setSelectedEquipment("all");
-      refetchExercises();
+    setShowExerciseDialog(false);
+    setExerciseSearch("");
+    setSelectedMuscleGroup("all");
+    setSelectedEquipment("all");
+    refetchExercises();
     } catch (error) {
       toast.error("Failed to add exercise");
       console.error("Add exercise error:", error);
@@ -330,7 +266,7 @@ export default function TemplateEdit() {
     }
   };
 
-  if (templateLoading && !isCreating) {
+  if (templateLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -338,7 +274,7 @@ export default function TemplateEdit() {
     );
   }
 
-  if (!template && !isCreating) {
+  if (!template) {
     return (
       <div className="container py-8">
         <div className="text-center">
@@ -356,7 +292,7 @@ export default function TemplateEdit() {
     <>
       <PageNav current="Templates" />
       
-      <div className="container py-6 pb-nav-safe space-y-6">
+      <div className="container py-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -368,7 +304,7 @@ export default function TemplateEdit() {
               <ArrowLeft className="h-4 w-4 mr-2" />
               Templates
             </Button>
-            <h1 className="text-2xl font-semibold">{isCreating ? 'Create Template' : 'Edit Template'}</h1>
+            <h1 className="text-2xl font-semibold">Edit Template</h1>
           </div>
           
           <div className="flex gap-2">
@@ -384,21 +320,17 @@ export default function TemplateEdit() {
               </>
             ) : (
               <>
-                {!isCreating && (
-                  <Button variant="outline" onClick={() => setIsEditing(true)}>
-                    Edit Details
-                  </Button>
-                )}
-                {!isCreating && (
-                  <Button 
-                    variant="destructive" 
-                    onClick={handleDelete}
-                    disabled={deleteTemplate.isPending}
-                  >
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Delete
-                  </Button>
-                )}
+                <Button variant="outline" onClick={() => setIsEditing(true)}>
+                  Edit Details
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  onClick={handleDelete}
+                  disabled={deleteTemplate.isPending}
+                >
+                  <Trash2 className="h-4 w-4 mr-2" />
+                  Delete
+                </Button>
               </>
             )}
           </div>

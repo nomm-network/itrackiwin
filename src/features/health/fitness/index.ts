@@ -1,11 +1,8 @@
-// Fitness feature barrel exports - compatible with new structure
-// Note: New structure exports - gradual migration in progress
-
-// Legacy exports for backward compatibility
+// Barrel exports for fitness feature - Public API only
 export { default as FitnessPage } from './pages/Fitness.page';
 export { default as ExercisesPage } from './pages/Exercises.page';
-// export { default as WorkoutSessionPage } from './pages/WorkoutSession.page'; // REMOVED
-export { default as TrainingProgramsPage } from './pages/TrainingPrograms.page';
+export { default as WorkoutSessionPage } from './pages/WorkoutSession.page';
+export { default as TemplatesPage } from './pages/Templates.page';
 export { default as HistoryPage } from './pages/History.page';
 
 // Onboarding pages
@@ -49,8 +46,8 @@ export * from './hooks/useRecalibration.hook';
 
 // Warmup policy engine
 export { WarmupPolicyEngine } from './services/warmupPolicyEngine.service';
-// export { useWarmupFeedback } from './workouts/warmup/useWarmupActions'; // REMOVED
-// export { default as WarmupPlanPanel } from './components/WarmupPlanPanel'; // REMOVED
+export { useWarmupFeedback } from '@/features/workouts/warmup/useWarmupActions';
+export { default as WarmupPlanPanel } from './components/WarmupPlanPanel';
 
 export { 
   useExercises, 

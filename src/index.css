@@ -173,9 +173,6 @@ All colors MUST be HSL.
   .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
   .safe-area-top { padding-top: env(safe-area-inset-top); }
   
-  /* Bottom navigation spacing - easily adjustable */
-  .pb-nav-safe { padding-bottom: 5rem; } /* 80px - adjust this value to change all bottom paddings */
-  
   /* Better touch targets */
   .touch-target {
     min-height: var(--touch-target-min);

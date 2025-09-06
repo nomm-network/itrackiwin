@@ -1,19 +1,17 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useTemplates, useFavoriteTemplate } from '@/features/health/fitness/training/hooks/useTemplates';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search, Star } from 'lucide-react';
+import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyMyTemplates, setShowOnlyMyTemplates] = useState(false);
   
@@ -25,13 +23,9 @@ const TemplatesPage = () => {
     }
   });
 
-  // Use the new useTemplates hook that includes favorites
-  const { data: templatesData, isLoading } = useTemplates();
-  const favoriteTemplate = useFavoriteTemplate();
-
-  // Get detailed template data for display
-  const { data: allTemplates } = useQuery({
-    queryKey: ['detailed-templates'],
+  // Fetch all templates (user's own + public)
+  const { data: allTemplates, isLoading } = useQuery({
+    queryKey: ['all-workout-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workout_templates')
@@ -63,9 +57,6 @@ const TemplatesPage = () => {
         
       if (error) throw error;
       
-      // Invalidate templates query to refresh the list
-      queryClient.invalidateQueries({ queryKey: ['all-workout-templates'] });
-      
       toast.success('Template deleted successfully');
     } catch (error) {
       toast.error('Failed to delete template');
@@ -73,23 +64,11 @@ const TemplatesPage = () => {
     }
   };
 
-  // Combine detailed templates with favorite status
-  const templatesWithFavorites = useMemo(() => {
-    if (!allTemplates || !templatesData) return [];
-    
-    const favoriteIds = new Set(templatesData.favorites.map(f => f.id));
-    
-    return allTemplates.map(template => ({
-      ...template,
-      is_favorite: favoriteIds.has(template.id)
-    }));
-  }, [allTemplates, templatesData]);
-
   // Filter and search templates
   const filteredTemplates = useMemo(() => {
-    if (!templatesWithFavorites || !user) return [];
+    if (!allTemplates || !user) return [];
     
-    let filtered = templatesWithFavorites;
+    let filtered = allTemplates;
     
     // Filter by ownership if toggle is on
     if (showOnlyMyTemplates) {
@@ -106,7 +85,7 @@ const TemplatesPage = () => {
     }
     
     return filtered;
-  }, [templatesWithFavorites, user, showOnlyMyTemplates, searchQuery]);
+  }, [allTemplates, user, showOnlyMyTemplates, searchQuery]);
 
   const renderTemplateCard = (template: any) => {
     const isOwner = template.user_id === user?.id;
@@ -144,39 +123,24 @@ const TemplatesPage = () => {
                 </p>
               )}
             </div>
-            <div className="flex gap-1 ml-2">
-              {/* Favorite toggle */}
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => favoriteTemplate.mutate({ 
-                  templateId: template.id, 
-                  isFavorite: !template.is_favorite 
-                })}
-                disabled={favoriteTemplate.isPending}
-                title={template.is_favorite ? 'Remove from favorites' : 'Add to favorites'}
-              >
-                <Star className={`h-4 w-4 ${template.is_favorite ? 'fill-yellow-400 text-yellow-400' : ''}`} />
-              </Button>
-              {isOwner && (
-                <>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => handleDeleteTemplate(template.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </>
-              )}
-            </div>
+            {isOwner && (
+              <div className="flex gap-1 ml-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => navigate(`/fitness/templates/${template.id}/edit`)}
+                >
+                  <Edit className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleDeleteTemplate(template.id)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
         </CardHeader>
         <CardContent>
@@ -185,29 +149,7 @@ const TemplatesPage = () => {
               Created {new Date(template.created_at).toLocaleDateString()}
             </div>
             <Button
-              onClick={() => {
-                // Use the start_workout RPC function like in the Training Center
-                const startWorkout = async () => {
-                  try {
-                    const { data, error } = await supabase.rpc('start_workout', { 
-                      p_template_id: template.id 
-                    });
-                    
-                    if (error) {
-                      toast.error(error.message);
-                      return;
-                    }
-                    
-                    if (data) {
-                      navigate(`/app/workouts/${data}`);
-                      toast.success('Workout started!');
-                    }
-                  } catch (e: any) {
-                    toast.error('Failed to start workout');
-                  }
-                };
-                startWorkout();
-              }}
+              onClick={() => navigate(`/fitness/workout/start?template=${template.id}`)}
               size="sm"
             >
               <Play className="h-4 w-4 mr-2" />
@@ -220,23 +162,13 @@ const TemplatesPage = () => {
   };
 
   return (
-    <div className="container py-6 pb-nav-safe">
+    <div className="container py-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-3xl font-bold">Workout Templates</h1>
-          <div className="flex items-center gap-4">
-            <p className="text-muted-foreground">Create and manage your workout templates</p>
-            <Button 
-              variant="link" 
-              size="sm" 
-              className="text-sm text-yellow-600 hover:text-yellow-500 p-0 h-auto"
-            >
-              <Star className="h-3 w-3 mr-1" />
-              Manage favorites
-            </Button>
-          </div>
+          <p className="text-muted-foreground">Create and manage your workout templates</p>
         </div>
-        <Button onClick={() => navigate('/fitness/templates/create/edit')}>
+        <Button onClick={() => navigate('/fitness/templates/new')}>
           <Plus className="h-4 w-4 mr-2" />
           New Template
         </Button>
@@ -306,7 +238,7 @@ const TemplatesPage = () => {
               }
             </p>
             {(!searchQuery.trim() && showOnlyMyTemplates) && (
-              <Button onClick={() => navigate('/fitness/templates/create/edit')}>
+              <Button onClick={() => navigate('/fitness/templates/new')}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Template
               </Button>

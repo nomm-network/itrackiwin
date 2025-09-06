@@ -4,8 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-// import { SessionRunner } from '@/components/fitness/SessionRunner'; // TODO: Migrate this component
-// import { EnhancedRestTimer } from '@/components/fitness/EnhancedRestTimer'; // TODO: Migrate this component
+import { SessionRunner } from '@/components/fitness/SessionRunner';
+import { EnhancedRestTimer } from '@/components/fitness/EnhancedRestTimer';
 import { 
   Play, 
   Square, 
@@ -237,10 +237,15 @@ const SessionRunnerDemo: React.FC = () => {
 
         {/* Current Exercise */}
         {isWorkoutActive && currentExercise && (
-          <div className="p-4 bg-muted rounded-lg text-center">
-            <p>SessionRunner component - Migration in progress</p>
-            <p>Current exercise: {currentExercise.name}</p>
-          </div>
+          <SessionRunner
+            exercise={currentExercise}
+            completedSets={currentSets}
+            targetSet={{ weight: 85, reps: 8, rpe: 7 }} // Demo target
+            unit="kg"
+            onSetComplete={(setData) => handleSetComplete(currentExercise.id, setData)}
+            onExerciseComplete={handleExerciseComplete}
+            isLoading={false}
+          />
         )}
 
         {/* Exercise List / Summary */}
@@ -324,10 +329,13 @@ const SessionRunnerDemo: React.FC = () => {
         {/* Global Rest Timer (Demo) */}
         {showGlobalTimer && (
           <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-white p-6 rounded-lg shadow-2xl text-center">
-              <p>EnhancedRestTimer component - Migration in progress</p>
-              <Button onClick={() => setShowGlobalTimer(false)} className="mt-2">Close Timer</Button>
-            </div>
+            <EnhancedRestTimer
+              suggestedSeconds={180}
+              onComplete={() => setShowGlobalTimer(false)}
+              onSkip={() => setShowGlobalTimer(false)}
+              isActive={true}
+              className="shadow-2xl"
+            />
           </div>
         )}
       </div>

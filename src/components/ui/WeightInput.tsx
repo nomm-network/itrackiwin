@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-// import { useDisplayUnit } from '@/hooks/useWorkoutUnit'; // REMOVED
+import { useDisplayUnit } from '@/hooks/useWorkoutUnit';
 import { convertWeight, roundWeight, formatDualWeight, createWeightData, type WeightUnit, type WeightData } from '@/lib/weightConversion';
 import { useUserProfile } from '@/hooks/useUserProfile';
 
@@ -28,7 +28,7 @@ export const WeightInput: React.FC<WeightInputProps> = ({
   showDualDisplay = true
 }) => {
   const { data: userProfile } = useUserProfile();
-  const displayUnit = userProfile?.default_unit || 'kg'; // Use user default since workout unit removed
+  const displayUnit = useDisplayUnit(workoutId);
   const [inputValue, setInputValue] = useState<string>('');
   
   const userDefaultUnit = userProfile?.default_unit || 'kg';

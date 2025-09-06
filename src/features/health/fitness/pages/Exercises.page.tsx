@@ -213,7 +213,7 @@ const Exercises: React.FC = () => {
         </NavigationMenu>
       </nav>
 
-      <main className="container py-8 pb-nav-safe space-y-6">
+      <main className="container py-8 space-y-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <h1 className="text-xl md:text-2xl font-semibold">Exercises</h1>
         </div>

@@ -17,19 +17,22 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
-      "@shared": path.resolve(__dirname, "src/shared"),
-      "@app": path.resolve(__dirname, "src/app"),
+      "@core": path.resolve(__dirname, "src/core"),
+      "@features": path.resolve(__dirname, "src/features"),
+      "@components": path.resolve(__dirname, "src/components"),
+      "@hooks": path.resolve(__dirname, "src/hooks"),
+      "@lib": path.resolve(__dirname, "src/lib"),
       "@admin": path.resolve(__dirname, "src/admin"),
-      // Category aliases
-      "@health": path.resolve(__dirname, "src/features/health"),
-      "@social": path.resolve(__dirname, "src/features/social"), 
-      "@commerce": path.resolve(__dirname, "src/features/commerce"),
-      // Health subcategory aliases
+      "@types": path.resolve(__dirname, "src/types"),
+      "@pages": path.resolve(__dirname, "src/pages"),
+      "@shared": path.resolve(__dirname, "src/shared"),
+      // Feature-specific aliases
+      "@profile": path.resolve(__dirname, "src/features/profile"),
+      "@coach": path.resolve(__dirname, "src/features/coach"),
+      "@gym": path.resolve(__dirname, "src/features/gym"),
+      "@workouts": path.resolve(__dirname, "src/features/workouts"),
+      "@social": path.resolve(__dirname, "src/features/social"),
       "@fitness": path.resolve(__dirname, "src/features/health/fitness"),
-      "@nutrition": path.resolve(__dirname, "src/features/health/nutrition"),
-      "@sleep": path.resolve(__dirname, "src/features/health/sleep"),
-      "@recovery": path.resolve(__dirname, "src/features/health/recovery"),
-      "@mindset": path.resolve(__dirname, "src/features/health/mindset"),
     },
   },
 }));

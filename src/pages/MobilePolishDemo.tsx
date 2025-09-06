@@ -4,9 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import ViewportTestSuite from "@/components/mobile/ViewportTestSuite";
-// import MobileRestTimer from "@/components/fitness/MobileRestTimer"; // TODO: Migrate this component
+import MobileRestTimer from "@/components/fitness/MobileRestTimer";
 import SwipeToCompleteSet from "@/components/mobile/SwipeToCompleteSet";
-// import TouchOptimizedSetInput from "@/features/health/fitness/workouts/ui/components/TouchOptimizedSetInput"; // REMOVED
+import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
 import { Dumbbell, Timer, Smartphone, Target, Check } from "lucide-react";
 import { toast } from "sonner";
 
@@ -55,10 +55,12 @@ const MobilePolishDemo: React.FC = () => {
 
       {/* Mobile Rest Timer Demo */}
       {showRestTimer && (
-        <div className="p-4 bg-primary/20 rounded-lg text-center">
-          <p>MobileRestTimer component - Migration in progress</p>
-          <Button onClick={handleRestComplete} className="mt-2">Complete Rest</Button>
-        </div>
+        <MobileRestTimer
+          suggestedSeconds={180}
+          onComplete={handleRestComplete}
+          onSkip={() => setShowRestTimer(false)}
+          isActive={true}
+        />
       )}
 
       <Tabs defaultValue="responsive" className="w-full">
@@ -127,14 +129,24 @@ const MobilePolishDemo: React.FC = () => {
               <div>
                 <h4 className="text-fluid-base font-medium mb-fluid-xs">Touch-Optimized Set Input</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-fluid-s">
-                  <div className="p-4 bg-muted/20 rounded-lg text-center">
-                    <p>TouchOptimizedSetInput component removed</p>
-                    <p className="text-sm text-muted-foreground">Part of workout cleanup</p>
-                  </div>
-                  <div className="p-4 bg-muted/20 rounded-lg text-center">
-                    <p>TouchOptimizedSetInput component removed</p>
-                    <p className="text-sm text-muted-foreground">Part of workout cleanup</p>
-                  </div>
+                  <TouchOptimizedSetInput
+                    value={currentWeight}
+                    onChange={setCurrentWeight}
+                    label="Weight"
+                    suffix="kg"
+                    step={2.5}
+                    min={0}
+                    max={300}
+                  />
+                  <TouchOptimizedSetInput
+                    value={currentReps}
+                    onChange={setCurrentReps}
+                    label="Reps"
+                    suffix="reps"
+                    step={1}
+                    min={1}
+                    max={50}
+                  />
                 </div>
               </div>
 

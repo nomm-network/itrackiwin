@@ -1,3 +1,3 @@
-import { DynamicMetricsForm } from '@/features/health/fitness/exercises/ui';
+import { default as DynamicMetricsFormComponent } from '@/components/DynamicMetricsForm';
 
-export default DynamicMetricsForm;
+export default DynamicMetricsFormComponent;

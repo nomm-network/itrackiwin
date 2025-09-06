@@ -3,12 +3,10 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Paths } from './paths';
 import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
-
-const WorkoutPage = lazy(() => import("@/features/health/fitness/workouts/WorkoutPage"));
 import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
-// import WorkoutsLayout from '@/features/health/fitness/workouts/ui/WorkoutsLayout'; // REMOVED
-// import { StartOrContinue } from '@/features/health/fitness/workouts/ui'; // REMOVED
+import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
+import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
@@ -46,7 +44,8 @@ const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
-// Cleaned up - all workout page imports now use single source of truth
+const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
+const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -157,15 +156,16 @@ export function AppRoutes() {
               <LazyProgramsPage />
             </ProtectedMobileLayout>
           } />
-          
-          {/* Workout route */}
-          <Route path="/app/workouts/:workoutId" element={
-            <ProtectedMobileLayout>
-              <WorkoutPage />
-            </ProtectedMobileLayout>
-          } />
 
-          {/* Workout routes removed for cleanup */}
+          {/* Workout Routes with Layout */}
+          <Route path="/app/workouts" element={
+            <ProtectedMobileLayout>
+              <WorkoutsLayout />
+            </ProtectedMobileLayout>
+          }>
+            <Route index element={<StartOrContinue />} />
+            <Route path=":workoutId" element={<LazyWorkoutPage />} />
+          </Route>
 
           {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
