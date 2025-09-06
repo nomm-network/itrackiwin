@@ -2550,6 +2550,73 @@ export type Database = {
           },
         ]
       }
+      mentors: {
+        Row: {
+          accepting_clients: boolean
+          bio: string | null
+          created_at: string
+          currency: string | null
+          display_name: string | null
+          hourly_rate: number | null
+          id: string
+          is_active: boolean
+          life_category_id: string | null
+          mentor_kind: Database["public"]["Enums"]["mentor_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          accepting_clients?: boolean
+          bio?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          life_category_id?: string | null
+          mentor_kind: Database["public"]["Enums"]["mentor_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          accepting_clients?: boolean
+          bio?: string | null
+          created_at?: string
+          currency?: string | null
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string
+          is_active?: boolean
+          life_category_id?: string | null
+          mentor_kind?: Database["public"]["Enums"]["mentor_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_mentors_life_category_id"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentors_life_category_id"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentors_user_id"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentorships: {
         Row: {
           client_user_id: string
