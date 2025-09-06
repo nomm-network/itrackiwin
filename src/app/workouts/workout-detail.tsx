@@ -1,28 +1,10 @@
 import { useParams } from 'react-router-dom';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
+import { useGetWorkout } from '@/features/workouts/hooks';
 import { EnhancedWorkoutSession } from '@/features/workouts/components';
 
 export default function WorkoutPage() {
   const { workoutId } = useParams<{ workoutId: string }>();
-  const { data: workout, isLoading, isError, error } = useQuery({
-    queryKey: ['workout-with-title', workoutId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('workouts')
-        .select(`
-          *,
-          workout_template:workout_templates(name),
-          program_session:program_sessions(title)
-        `)
-        .eq('id', workoutId)
-        .maybeSingle();
-      
-      if (error) throw error;
-      return data;
-    },
-    enabled: !!workoutId,
-  });
+  const { data: workout, isLoading, isError, error } = useGetWorkout(workoutId);
 
   console.log('[WorkoutPage] id param:', workoutId);
   console.log('[WorkoutPage] query state:', { isLoading, isError, hasData: !!workout });
