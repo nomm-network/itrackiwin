@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeMentor, MentorModel } from "./schema";
+import { useAdminUsers } from "./hooks/useAdminUsers";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -34,6 +35,9 @@ export function MentorForm({ mode, initial = {} }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<LifeCategory[]>([]);
+
+  // Load users and categories
+  const { data: users, isLoading: usersLoading } = useAdminUsers();
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -162,7 +166,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
     }
   }
 
-  if (loading) {
+  if (loading || usersLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-muted-foreground">Loading...</div>
@@ -200,25 +204,38 @@ export function MentorForm({ mode, initial = {} }: Props) {
       {/* Form */}
       <div className="grid gap-4 max-w-lg">
         <div>
-          <Label htmlFor="userId">User ID *</Label>
-          <Input
-            id="userId"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="Enter user ID"
-            required
-          />
+          <Label htmlFor="userId">User *</Label>
+          <Select value={userId} onValueChange={setUserId}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select a user" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
+              {users?.map((user) => (
+                <SelectItem key={user.user_id} value={user.user_id} className="bg-background hover:bg-muted">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{user.email}</span>
+                    <span className="text-xs text-muted-foreground">ID: {user.user_id.substring(0, 8)}...</span>
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!users?.length && (
+            <p className="text-xs text-muted-foreground">
+              No users found. Make sure users exist in the system.
+            </p>
+          )}
         </div>
 
         <div>
           <Label htmlFor="mentorType">Mentor Type</Label>
           <Select value={mentorType} onValueChange={setMentorType}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder="Select mentor type" />
             </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="mentor">Mentor</SelectItem>
-              <SelectItem value="coach">Coach</SelectItem>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
+              <SelectItem value="mentor" className="bg-background hover:bg-muted">Mentor</SelectItem>
+              <SelectItem value="coach" className="bg-background hover:bg-muted">Coach</SelectItem>
             </SelectContent>
           </Select>
         </div>
@@ -226,12 +243,12 @@ export function MentorForm({ mode, initial = {} }: Props) {
         <div>
           <Label htmlFor="primaryCategory">Primary Category</Label>
           <Select value={primaryCategoryId} onValueChange={setPrimaryCategoryId}>
-            <SelectTrigger>
+            <SelectTrigger className="bg-background">
               <SelectValue placeholder="Select primary category" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
               {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id}>
+                <SelectItem key={category.id} value={category.id} className="bg-background hover:bg-muted">
                   {category.name}
                 </SelectItem>
               ))}
