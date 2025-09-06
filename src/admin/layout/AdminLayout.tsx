@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
-import AdminMenu from '../components/AdminMenu';
+import { AdminSidebar } from '@/components/navigation/AdminSidebar';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -17,6 +17,21 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     if (pathSegments.length > 1) {
       const section = pathSegments[1];
       switch (section) {
+        case 'ambassadors':
+          breadcrumbs.push({ label: 'Ambassadors', href: '/admin/ambassadors' });
+          if (pathSegments[2] === 'deals') {
+            breadcrumbs.push({ label: 'Deals Verification', href: '/admin/ambassadors/deals' });
+          }
+          break;
+        case 'battles':
+          breadcrumbs.push({ label: 'Battles', href: '/admin/battles' });
+          if (pathSegments[2]) {
+            breadcrumbs.push({ label: 'Battle Detail', href: null });
+          }
+          break;
+        case 'payouts':
+          breadcrumbs.push({ label: 'Payouts', href: '/admin/payouts' });
+          break;
         case 'exercises':
           breadcrumbs.push({ label: 'Exercises', href: '/admin/exercises' });
           break;
@@ -53,30 +68,39 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <main className="container py-6">
-      <Breadcrumb className="mb-6">
-        <BreadcrumbList>
-          {breadcrumbs.map((crumb, index) => (
-            <div key={index} className="flex items-center">
-              {index > 0 && <BreadcrumbSeparator />}
-              <BreadcrumbItem>
-                {crumb.href && index < breadcrumbs.length - 1 ? (
-                  <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
-                ) : (
-                  <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
-                )}
-              </BreadcrumbItem>
-            </div>
-          ))}
-        </BreadcrumbList>
-      </Breadcrumb>
+    <div className="flex min-h-screen">
+      {/* Admin Sidebar */}
+      <aside className="w-64 bg-muted/40 border-r border-border p-6">
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold">Admin Panel</h2>
+        </div>
+        <AdminSidebar />
+      </aside>
       
-      <AdminMenu />
-      
-      <div className="mt-6">
-        {children}
-      </div>
-    </main>
+      {/* Main Content */}
+      <main className="flex-1 p-6">
+        <Breadcrumb className="mb-6">
+          <BreadcrumbList>
+            {breadcrumbs.map((crumb, index) => (
+              <div key={index} className="flex items-center">
+                {index > 0 && <BreadcrumbSeparator />}
+                <BreadcrumbItem>
+                  {crumb.href && index < breadcrumbs.length - 1 ? (
+                    <BreadcrumbLink href={crumb.href}>{crumb.label}</BreadcrumbLink>
+                  ) : (
+                    <BreadcrumbPage>{crumb.label}</BreadcrumbPage>
+                  )}
+                </BreadcrumbItem>
+              </div>
+            ))}
+          </BreadcrumbList>
+        </Breadcrumb>
+        
+        <div>
+          {children}
+        </div>
+      </main>
+    </div>
   );
 };
 

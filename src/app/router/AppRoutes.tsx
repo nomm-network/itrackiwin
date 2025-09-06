@@ -216,12 +216,8 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Admin routes - delegated to admin feature */}
-          <Route path={`${Paths.admin.root}/*`} element={
-            <ProtectedMobileLayout>
-              <AdminRoutes />
-            </ProtectedMobileLayout>
-          } />
+          {/* Admin routes - without mobile layout for better admin experience */}
+          <Route path={`${Paths.admin.root}/*`} element={<AdminRoutes />} />
 
           {/* 404 catch-all */}
           <Route path="*" element={<NotFound />} />

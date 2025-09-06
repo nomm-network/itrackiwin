@@ -1,12 +1,13 @@
 import React, { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { Menu, X, Home, TrendingUp, BookOpen, Target, User, Settings, Dumbbell, Users, Award } from "lucide-react";
+import { Menu, X, Home, TrendingUp, BookOpen, Target, User, Settings, Dumbbell, Users, Award, Grid, Compass, Building, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
+import { ProfileAvatarMenu } from "@/components/navigation/ProfileAvatarMenu";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -17,13 +18,19 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const location = useLocation();
   const { t } = useTranslation();
 
-  const navigation = [
-    { name: t('dashboard'), href: "/dashboard", icon: Home },
+  const mainNavigation = [
+    { name: "Training", href: "/dashboard", icon: Home },
+    { name: "Programs", href: "/app/programs", icon: Grid },
+    { name: "Discover", href: "/marketplace", icon: Compass },
+    { name: "Gyms", href: "/gyms", icon: Building },
+  ];
+
+  const bottomNavigation = [
+    { name: "Training", href: "/dashboard", icon: Home },
     { name: "Social", href: "/social", icon: Users },
     { name: "AI Coach", href: "/ai-coach", icon: Target },
     { name: "Achievements", href: "/achievements", icon: Award },
-    { name: t('progress'), href: "/progress", icon: TrendingUp },
-    { name: t('profile'), href: "/profile", icon: User },
+    { name: "Profile", href: "/profile", icon: User },
   ];
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(href + "/");
@@ -43,7 +50,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             <SheetContent side="left" className="w-72 p-0">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b">
-                  <h2 className="text-lg font-semibold">iTrack.iWin.</h2>
+                  <h2 className="text-lg font-semibold">iT.iW</h2>
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -54,7 +61,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                 </div>
                 <nav className="flex-1 p-4">
                   <ul className="space-y-2">
-                    {navigation.map((item) => {
+                    {mainNavigation.map((item) => {
                       const Icon = item.icon;
                       return (
                         <li key={item.name}>
@@ -75,6 +82,38 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                       );
                     })}
                   </ul>
+                  
+                  <div className="mt-8">
+                    <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                      Other
+                    </h3>
+                    <ul className="space-y-2">
+                      {[
+                        { name: "Progress", href: "/progress", icon: TrendingUp },
+                        { name: "Insights", href: "/insights", icon: Target },
+                        { name: "Analytics", href: "/analytics", icon: Award },
+                      ].map((item) => {
+                        const Icon = item.icon;
+                        return (
+                          <li key={item.name}>
+                            <Link
+                              to={item.href}
+                              onClick={() => setSidebarOpen(false)}
+                              className={cn(
+                                "flex items-center gap-3 px-3 py-2 text-sm rounded-md transition-colors",
+                                isActive(item.href)
+                                  ? "bg-primary text-primary-foreground"
+                                  : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              <Icon className="h-4 w-4" />
+                              {item.name}
+                            </Link>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </div>
                 </nav>
                 <div className="border-t p-4">
                   <div className="flex items-center justify-between">
@@ -87,15 +126,14 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </Sheet>
           
           <div className="flex-1 flex justify-center">
-            <h1 className="text-lg font-semibold">iTrack.iWin.</h1>
+            <h1 className="text-lg font-semibold">iT.iW</h1>
           </div>
           
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" asChild className="hidden md:flex">
-              <Link to="/profile">
-                <User className="h-5 w-5" />
-              </Link>
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+              <Bell className="h-4 w-4" />
             </Button>
+            <ProfileAvatarMenu />
           </div>
         </div>
       </header>
@@ -104,11 +142,11 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
-            <h2 className="text-xl font-bold">iTrack.iWin.</h2>
+            <h2 className="text-xl font-bold">iT.iW</h2>
           </div>
           <div className="mt-5 flex-1 flex flex-col">
             <nav className="flex-1 px-2 pb-4 space-y-1">
-              {navigation.map((item) => {
+              {mainNavigation.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -126,6 +164,34 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   </Link>
                 );
               })}
+              
+              <div className="pt-4">
+                <h3 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2 px-2">
+                  Other
+                </h3>
+                {[
+                  { name: "Progress", href: "/progress", icon: TrendingUp },
+                  { name: "Insights", href: "/insights", icon: Target },
+                  { name: "Analytics", href: "/analytics", icon: Award },
+                ].map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <Link
+                      key={item.name}
+                      to={item.href}
+                      className={cn(
+                        "group flex items-center px-2 py-2 text-sm rounded-md transition-colors",
+                        isActive(item.href)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                      )}
+                    >
+                      <Icon className="mr-3 h-4 w-4 flex-shrink-0" />
+                      {item.name}
+                    </Link>
+                  );
+                })}
+              </div>
             </nav>
             <div className="border-t p-4">
               <div className="flex items-center justify-between">
@@ -147,7 +213,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       {/* Mobile Bottom Navigation */}
       <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
         <nav className="flex justify-around py-2">
-          {navigation.slice(0, 5).map((item) => {
+          {bottomNavigation.map((item) => {
             const Icon = item.icon;
             return (
               <Link
