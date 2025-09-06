@@ -33,6 +33,9 @@ export default function AdminMentorEditPage() {
   const { id } = useParams<{ id: string }>();
   const isNew = id === 'new';
   const navigate = useNavigate();
+  
+  // Debug logging
+  console.log('🐛 AdminMentorEditPage - id:', id, 'isNew:', isNew);
 
   const [loading, setLoading] = useState(true);
   const [row, setRow] = useState<ViewRow | null>(null);
@@ -54,18 +57,25 @@ export default function AdminMentorEditPage() {
     let cancelled = false;
 
     const load = async () => {
+      console.log('🐛 AdminMentorEditPage - Loading started, isNew:', isNew, 'id:', id);
       setLoading(true);
       setError(null);
 
       // load categories
+      console.log('🐛 AdminMentorEditPage - Loading categories...');
       const { data: cats, error: catErr } = await supabase
         .from('life_categories')
         .select('id, slug, name')
         .order('name', { ascending: true });
 
       if (!cancelled) {
-        if (catErr) setError(catErr.message);
-        else setCategories(cats || []);
+        if (catErr) {
+          console.error('🐛 AdminMentorEditPage - Categories error:', catErr);
+          setError(catErr.message);
+        } else {
+          console.log('🐛 AdminMentorEditPage - Categories loaded:', cats?.length);
+          setCategories(cats || []);
+        }
       }
 
       if (!isNew) {
@@ -90,6 +100,7 @@ export default function AdminMentorEditPage() {
       }
 
       if (isNew) {
+        console.log('🐛 AdminMentorEditPage - Setting up new mentor defaults');
         // defaults for create
         setRow(null);
         setUserId('');
@@ -193,7 +204,7 @@ export default function AdminMentorEditPage() {
 
         {loading ? (
           <div className="p-4 bg-blue-50 border border-blue-200 rounded">
-            <p className="text-blue-800">Loading…</p>
+            <p className="text-blue-800">Loading… (isNew: {isNew ? 'true' : 'false'})</p>
           </div>
         ) : (
           <div className="space-y-6">

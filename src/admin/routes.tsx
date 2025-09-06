@@ -40,6 +40,7 @@ export function AdminRoutes() {
               <Route path="users" element={<AdminUsersListPage />} />
               <Route path="users/:id" element={<AdminUserDetailPage />} />
               <Route path="mentors" element={<AdminMentorsListPage />} />
+              <Route path="mentors/new" element={<AdminMentorEditPage />} />
               <Route path="mentors/:id" element={<AdminMentorEditPage />} />
               
               {/* Setup Flow Routes */}
