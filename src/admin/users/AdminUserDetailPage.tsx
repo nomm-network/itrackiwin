@@ -69,13 +69,12 @@ export default function AdminUserDetailPage() {
     );
   }
 
-  // Get current coach assignments
-  const coachAssignments = Array.isArray(user.assignments) ? 
-    user.assignments.filter((a: any) => a.mentor_type === 'coach') : [];
+  // Since the user data doesn't have assignments anymore, we'll work with roles
+  const userRoles = user.roles || [];
+  const isCoach = userRoles.includes('coach');
   
   // Get available categories for assignment
-  const assignedCategoryIds = coachAssignments.map((a: any) => a.life_category_id);
-  const availableCategories = categories?.filter(cat => !assignedCategoryIds.includes(cat.id)) || [];
+  const availableCategories = categories || [];
 
   return (
     <main className="container py-12">
@@ -85,11 +84,20 @@ export default function AdminUserDetailPage() {
       <div className="space-y-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{user.name}</h1>
-            <p className="text-muted-foreground">{user.email}</p>
+            <h1 className="text-2xl font-bold">{user.email}</h1>
+            <p className="text-muted-foreground">Email: {user.email}</p>
             <p className="text-sm text-muted-foreground">
               User ID: {user.user_id}
             </p>
+            <p className="text-sm text-muted-foreground">
+              Created: {new Date(user.created_at).toLocaleDateString()}
+            </p>
+            <div className="flex gap-2 mt-2">
+              {user.roles?.map((role: string) => (
+                <Badge key={role} variant="secondary">{role}</Badge>
+              ))}
+              {user.is_pro && <Badge variant="default">Pro User</Badge>}
+            </div>
           </div>
           <Button asChild variant="outline">
             <Link to="/admin/users">Back to Users</Link>
@@ -101,68 +109,50 @@ export default function AdminUserDetailPage() {
             <CardTitle>Coach Assignments</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Current assignments */}
-            {coachAssignments.length > 0 ? (
+            {/* Current role information */}
+            <div className="space-y-2">
+              <h4 className="font-medium">User Information</h4>
               <div className="space-y-2">
-                <h4 className="font-medium">Current Assignments</h4>
-                <div className="space-y-2">
-                  {coachAssignments.map((assignment: any) => {
-                    const category = categories?.find(c => c.id === assignment.life_category_id);
-                    return (
-                      <div key={assignment.life_category_id} className="flex items-center justify-between p-3 border rounded">
-                        <div className="flex items-center gap-2">
-                          <Badge variant="secondary">Coach</Badge>
-                          <span>{category?.name || category?.slug || 'Unknown Category'}</span>
-                        </div>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          onClick={() => handleToggleCoach(assignment.life_category_id, true)}
-                          disabled={settingCoach}
-                        >
-                          Remove
-                        </Button>
-                      </div>
-                    );
-                  })}
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Roles:</span>
+                    <div className="flex gap-1">
+                      {user.roles?.length > 0 ? (
+                        user.roles.map((role: string) => (
+                          <Badge key={role} variant="secondary">{role}</Badge>
+                        ))
+                      ) : (
+                        <span className="text-muted-foreground">No roles assigned</span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Pro Status:</span>
+                    <Badge variant={user.is_pro ? "default" : "outline"}>
+                      {user.is_pro ? "Pro User" : "Regular User"}
+                    </Badge>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded">
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">Last Sign In:</span>
+                    <span className="text-muted-foreground">
+                      {user.last_sign_in_at ? new Date(user.last_sign_in_at).toLocaleString() : 'Never'}
+                    </span>
+                  </div>
                 </div>
               </div>
-            ) : (
-              <p className="text-muted-foreground">No coach assignments</p>
-            )}
+            </div>
 
-            {/* Add new assignment */}
-            {availableCategories.length > 0 && (
-              <div className="space-y-2 pt-4 border-t">
-                <h4 className="font-medium">Add Coach Assignment</h4>
-                <div className="flex gap-2">
-                  <Select value={selectedCategoryId} onValueChange={setSelectedCategoryId}>
-                    <SelectTrigger className="flex-1">
-                      <SelectValue placeholder="Select category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {availableCategories.map((category) => (
-                        <SelectItem key={category.id} value={category.id}>
-                          {category.name || category.slug}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    onClick={handleAddCoachAssignment}
-                    disabled={!selectedCategoryId || settingCoach}
-                  >
-                    Add Coach
-                  </Button>
-                </div>
-              </div>
-            )}
-
-            {availableCategories.length === 0 && coachAssignments.length > 0 && (
-              <p className="text-sm text-muted-foreground pt-4 border-t">
-                User is already assigned as coach to all available categories
+            {/* Role management could be added here in the future */}
+            <div className="space-y-2 pt-4 border-t">
+              <h4 className="font-medium">Admin Actions</h4>
+              <p className="text-sm text-muted-foreground">
+                Role management and other admin actions will be available here.
               </p>
-            )}
+            </div>
           </CardContent>
         </Card>
       </div>

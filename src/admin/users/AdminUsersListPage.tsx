@@ -38,31 +38,36 @@ export default function AdminUsersListPage() {
             <table className="w-full">
               <thead className="bg-muted">
                 <tr>
-                  <th className="text-left p-4 font-medium">Name</th>
+                  <th className="text-left p-4 font-medium">User ID</th>
                   <th className="text-left p-4 font-medium">Email</th>
                   <th className="text-left p-4 font-medium">Created</th>
-                  <th className="text-left p-4 font-medium">Assignments</th>
+                  <th className="text-left p-4 font-medium">Roles & Status</th>
                   <th className="text-left p-4 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {users?.map((user: any) => (
                   <tr key={user.user_id} className="border-t hover:bg-muted/50">
-                    <td className="p-4 font-medium">{user.name}</td>
+                    <td className="p-4 font-medium text-xs">{user.user_id?.substring(0, 8)}...</td>
                     <td className="p-4 text-muted-foreground">{user.email}</td>
                     <td className="p-4 text-muted-foreground">
                       {new Date(user.created_at).toLocaleDateString()}
                     </td>
                     <td className="p-4">
                       <div className="flex gap-1 flex-wrap">
-                        {user.assignments?.map((assignment: any, index: number) => (
+                        {user.roles?.map((role: string, index: number) => (
                           <span
                             key={index}
                             className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-primary/10 text-primary"
                           >
-                            {assignment.mentor_type}
+                            {role}
                           </span>
                         ))}
+                        {user.is_pro && (
+                          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                            Pro
+                          </span>
+                        )}
                       </div>
                     </td>
                     <td className="p-4">
