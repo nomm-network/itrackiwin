@@ -21,7 +21,7 @@ const AdminCoachLogs = lazy(() => import("./pages/AdminCoachLogs"));
 const AdminAttributeSchemas = lazy(() => import("./pages/AdminAttributeSchemas"));
 const AdminNamingTemplates = lazy(() => import("./pages/AdminNamingTemplates"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
-const AdminUsersManagement = lazy(() => import("./pages/AdminUsersManagement"));
+
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
