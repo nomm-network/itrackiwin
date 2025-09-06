@@ -25,7 +25,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const AdminMentorEditPage = lazy(() => import("@/features/mentors/admin/AdminMentorEditPage"));
+const AdminMentorEditPageSimple = lazy(() => import("@/features/mentors/admin/AdminMentorEditPageSimple"));
 
 export function AdminRoutes() {
   return (
@@ -40,8 +40,8 @@ export function AdminRoutes() {
               <Route path="users" element={<AdminUsersListPage />} />
               <Route path="users/:id" element={<AdminUserDetailPage />} />
               <Route path="mentors" element={<AdminMentorsListPage />} />
-              <Route path="mentors/new" element={<AdminMentorEditPage />} />
-              <Route path="mentors/:id" element={<AdminMentorEditPage />} />
+              <Route path="mentors/new" element={<AdminMentorEditPageSimple />} />
+              <Route path="mentors/:id" element={<AdminMentorEditPageSimple />} />
               
               {/* Setup Flow Routes */}
               <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
