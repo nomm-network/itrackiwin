@@ -4,7 +4,9 @@
 - **Database Type**: PostgreSQL with PostGIS extensions
 - **Schema**: Public schema with Row-Level Security (RLS) enabled
 - **Authentication**: Supabase Auth integration
-- **Total Tables**: 126+ public schema tables
+- **Total Tables**: 156 public schema tables
+- **Total Functions**: 877 public schema functions
+- **Total Views**: Multiple materialized and regular views
 
 ## Table Schema Details
 
@@ -307,6 +309,17 @@
 - **tags** | ARRAY | NULLABLE | DEFAULT: '{}'::text[]
 - **created_at** | timestamp with time zone | NOT NULL | DEFAULT: now()
 
+### mentor_category_assignments
+**Description**: Links users to life categories as coaches or mentors
+- **id** | uuid | NOT NULL | DEFAULT: gen_random_uuid()
+- **mentor_user_id** | uuid | NOT NULL (references users.id)
+- **life_category_id** | uuid | NOT NULL (references life_categories.id)
+- **mentor_type** | text | NOT NULL (CHECK: 'coach' or 'mentor')
+- **is_active** | boolean | NOT NULL | DEFAULT: true
+- **notes** | text | NULLABLE
+- **created_at** | timestamp with time zone | NOT NULL | DEFAULT: now()
+- **created_by** | uuid | NULLABLE | DEFAULT: auth.uid()
+
 ## Additional Schema Information
 
 **User-Defined Types:**
@@ -330,4 +343,17 @@
 - Validation triggers for data integrity
 - Audit logging triggers
 
-This schema represents a comprehensive fitness tracking application with support for exercises, workouts, equipment, user management, coaching features, and more.
+
+## Recent Database Functions
+
+### Admin Functions for User Management
+- **admin_get_users_overview()**: Returns user data with coach assignments (Admin only)
+- **admin_set_coach(user_id, category_id, is_coach)**: Toggle coach assignments (Admin only)
+- **admin_list_categories()**: Get available life categories for assignment (Admin only)
+
+### Database Indexes
+- **idx_mca_user**: Index on mentor_category_assignments(mentor_user_id)
+- **idx_mca_cat**: Index on mentor_category_assignments(life_category_id)
+- **uq_mca_unique**: Unique constraint on (mentor_user_id, life_category_id, mentor_type)
+
+This schema represents a comprehensive fitness tracking application with support for exercises, workouts, equipment, user management, coaching features, mentor-client relationships, and administrative user management.
