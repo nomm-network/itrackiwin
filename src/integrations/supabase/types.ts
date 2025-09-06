@@ -2404,6 +2404,13 @@ export type Database = {
             referencedRelation: "mentors"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mentor_clients_mentor_id_fkey"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_admin_mentors_overview"
+            referencedColumns: ["id"]
+          },
         ]
       }
       mentor_profiles: {
@@ -6563,6 +6570,60 @@ export type Database = {
           },
         ]
       }
+      v_admin_mentors_overview: {
+        Row: {
+          bio: string | null
+          created_at: string | null
+          display_name: string | null
+          hourly_rate: number | null
+          id: string | null
+          is_public: boolean | null
+          mentor_type: Database["public"]["Enums"]["mentor_type"] | null
+          primary_category_id: string | null
+          updated_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string | null
+          display_name?: never
+          hourly_rate?: number | null
+          id?: string | null
+          is_public?: boolean | null
+          mentor_type?: Database["public"]["Enums"]["mentor_type"] | null
+          primary_category_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string | null
+          display_name?: never
+          hourly_rate?: number | null
+          id?: string | null
+          is_public?: boolean | null
+          mentor_type?: Database["public"]["Enums"]["mentor_type"] | null
+          primary_category_id?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_mentors_life_category"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentors_life_category"
+            columns: ["primary_category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_body_parts_with_translations: {
         Row: {
           created_at: string | null
@@ -7322,6 +7383,16 @@ export type Database = {
               use_typmod?: boolean
             }
         Returns: string
+      }
+      admin_delete_mentor: {
+        Args: { p_id: string }
+        Returns: boolean
+      }
+      admin_upsert_mentor: {
+        Args: { p_payload: Json }
+        Returns: {
+          id: string
+        }[]
       }
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
