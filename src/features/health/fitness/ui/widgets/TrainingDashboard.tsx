@@ -10,7 +10,8 @@ import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.ap
 import { useActiveWorkout } from '@/features/workouts/hooks';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
 import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
-import { useStartWorkout, useEndWorkout } from '@/features/workouts';
+import { useStartWorkout } from '@/features/workouts';
+import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useToast } from '@/hooks/use-toast';
 
 const TrainingDashboard: React.FC = () => {
@@ -20,7 +21,7 @@ const TrainingDashboard: React.FC = () => {
   const { checkAndRedirect } = useFitnessProfileCheck();
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
   const startWorkout = useStartWorkout();
-  const endWorkout = useEndWorkout();
+  const deleteWorkout = useDeleteWorkout();
   const { toast } = useToast();
   
   const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
@@ -49,19 +50,19 @@ const TrainingDashboard: React.FC = () => {
     }
   };
 
-  const handleEndWorkout = async () => {
+  const handleDeleteWorkout = async () => {
     if (!activeWorkout?.id) return;
     
     try {
-      await endWorkout.mutateAsync(activeWorkout.id);
+      await deleteWorkout.mutateAsync(activeWorkout.id);
       toast({
-        title: "Workout ended",
-        description: "Your workout has been completed successfully.",
+        title: "Workout deleted",
+        description: "Your workout has been permanently removed.",
       });
     } catch (error) {
-      console.error('Failed to end workout:', error);
+      console.error('Failed to delete workout:', error);
       toast({
-        title: "Failed to end workout",
+        title: "Failed to delete workout",
         description: "Please try again.",
         variant: "destructive",
       });
@@ -116,19 +117,19 @@ const TrainingDashboard: React.FC = () => {
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>End Workout?</AlertDialogTitle>
+                      <AlertDialogTitle>Delete Workout?</AlertDialogTitle>
                       <AlertDialogDescription>
-                        Are you sure you want to end your current workout? This will save all your progress and mark the workout as complete.
+                        Are you sure you want to permanently delete your current workout? This action cannot be undone and all progress will be lost.
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
                       <AlertDialogCancel>Cancel</AlertDialogCancel>
                       <AlertDialogAction
-                        onClick={handleEndWorkout}
-                        disabled={endWorkout.isPending}
+                        onClick={handleDeleteWorkout}
+                        disabled={deleteWorkout.isPending}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        {endWorkout.isPending ? 'Ending...' : 'End Workout'}
+                        {deleteWorkout.isPending ? 'Deleting...' : 'Delete Workout'}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
