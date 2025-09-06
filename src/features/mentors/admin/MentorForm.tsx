@@ -77,23 +77,36 @@ export function MentorForm({ mode, initial = {} }: Props) {
       async function loadMentor() {
         try {
           setLoading(true);
+          setError(null);
+          console.log('🔍 Loading mentor for edit:', id);
+          
           const { data, error } = await supabase
             .from('v_admin_mentors_overview')
             .select('*')
             .eq('id', id)
             .single();
           
-          if (error) throw new Error(error.message);
-          if (!data) throw new Error('Mentor not found');
+          if (error) {
+            console.error('❌ Error loading mentor:', error);
+            throw new Error(error.message);
+          }
+          if (!data) {
+            throw new Error('Mentor not found');
+          }
           
-          const mentor = normalizeMentor(data);
-          setUserId(mentor.userId);
-          setMentorType(mentor.type);
-          setPrimaryCategoryId(mentor.primaryCategoryId || "");
-          setIsActive(mentor.isActive);
-          setBio(mentor.bio || "");
-          setHourlyRate(mentor.hourlyRate?.toString() || "");
+          console.log('✅ Mentor data loaded:', data);
+          
+          // Set form fields with loaded data
+          setUserId(data.user_id);
+          setMentorType(data.mentor_type || "mentor");
+          setPrimaryCategoryId(data.primary_category_id || "");
+          setIsActive(data.is_active ?? true);
+          setBio(data.bio || "");
+          setHourlyRate(data.hourly_rate?.toString() || "");
+          // Note: gym_id would need to be added to the view if we want to load it
+          
         } catch (e: any) {
+          console.error('❌ Failed to load mentor:', e);
           setError(e.message);
         } finally {
           setLoading(false);
@@ -131,9 +144,8 @@ export function MentorForm({ mode, initial = {} }: Props) {
       
       toast({ title: `Mentor ${mode === "create" ? "created" : "updated"} successfully` });
       
-      if (mode === "create") {
-        navigate('/admin/mentors');
-      }
+      // Navigate back to mentors list after successful save
+      navigate('/admin/mentors');
     } catch (e: any) {
       setError(e.message);
       toast({ 
@@ -180,22 +192,21 @@ export function MentorForm({ mode, initial = {} }: Props) {
 
   return (
     <div className="space-y-6">
-      {/* Navigation */}
-      <div className="flex items-center justify-between">
-        <Button variant="outline" onClick={() => navigate('/admin/mentors')}>
-          ← Back to Mentors
-        </Button>
-        <div className="flex gap-2">
-          {mode === "edit" && (
-            <Button variant="destructive" onClick={onDelete} disabled={saving}>
-              Delete
-            </Button>
-          )}
-          <Button onClick={onSave} disabled={saving}>
-            {saving ? 'Saving...' : 'Save'}
+        <div className="flex items-center justify-between">
+          <Button variant="outline" onClick={() => navigate('/admin/mentors')}>
+            ← Back to Mentors
           </Button>
+          <div className="flex gap-2">
+            {mode === "edit" && (
+              <Button variant="destructive" onClick={onDelete} disabled={saving}>
+                Delete
+              </Button>
+            )}
+            <Button onClick={onSave} disabled={saving}>
+              {saving ? 'Saving...' : mode === "create" ? 'Create Mentor' : 'Update Mentor'}
+            </Button>
+          </div>
         </div>
-      </div>
 
       {/* Error display */}
       {error && (
@@ -329,6 +340,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
         <div className="space-y-1 text-sm text-green-700">
           <p><strong>Route ID:</strong> {id || 'new'}</p>
           <p><strong>Mode:</strong> {mode}</p>
+          <p><strong>Is Edit Mode:</strong> {mode === "edit" ? 'Yes' : 'No'}</p>
           <p><strong>Categories loaded:</strong> {categories.length}</p>
           <p><strong>Gyms loaded:</strong> {gyms?.length || 0}</p>
           <p><strong>Current URL:</strong> {window.location.href}</p>

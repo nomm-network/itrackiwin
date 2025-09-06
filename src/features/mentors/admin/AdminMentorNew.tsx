@@ -1,15 +1,21 @@
 import React from "react";
+import { useParams } from "react-router-dom";
 import { MentorForm } from "./MentorForm";
 import { AdminErrorBoundary } from "@/components/util/AdminErrorBoundary";
 
 export default function AdminMentorNew() {
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   try {
     return (
       <AdminErrorBoundary>
         <div className="container py-6">
           <div className="max-w-2xl">
-            <h1 className="text-2xl font-bold mb-6">Add New Mentor</h1>
-            <MentorForm mode="create" />
+            <h1 className="text-2xl font-bold mb-6">
+              {isEditMode ? "Edit Mentor" : "Add New Mentor"}
+            </h1>
+            <MentorForm mode={isEditMode ? "edit" : "create"} />
           </div>
         </div>
       </AdminErrorBoundary>
