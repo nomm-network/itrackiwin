@@ -123,7 +123,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
         gym_id: gymId === "none" ? null : gymId
       };
 
-      const { data, error } = await supabase.rpc('admin_upsert_mentor', {
+      const { data, error } = await supabase.rpc('admin_upsert_mentor_fixed', {
         p_payload: payload
       });
 
@@ -289,34 +289,6 @@ export function MentorForm({ mode, initial = {} }: Props) {
           )}
         </div>
 
-        <div>
-          <Label htmlFor="mentorType">Mentor Type</Label>
-          <Select value={mentorType} onValueChange={setMentorType}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Select mentor type" />
-            </SelectTrigger>
-            <SelectContent className="bg-background border border-border shadow-lg z-50">
-              <SelectItem value="mentor" className="bg-background hover:bg-muted">Mentor</SelectItem>
-              <SelectItem value="coach" className="bg-background hover:bg-muted">Coach</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div>
-          <Label htmlFor="primaryCategory">Primary Category</Label>
-          <Select value={primaryCategoryId} onValueChange={setPrimaryCategoryId}>
-            <SelectTrigger className="bg-background">
-              <SelectValue placeholder="Select primary category" />
-            </SelectTrigger>
-            <SelectContent className="bg-background border border-border shadow-lg z-50">
-              {categories.map((category) => (
-                <SelectItem key={category.id} value={category.id} className="bg-background hover:bg-muted">
-                  {category.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
         <div className="flex items-center space-x-2">
           <Checkbox

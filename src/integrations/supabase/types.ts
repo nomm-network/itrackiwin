@@ -7430,6 +7430,10 @@ export type Database = {
         Args: { p_payload: Json }
         Returns: string
       }
+      admin_upsert_mentor_fixed: {
+        Args: { p_payload: Json }
+        Returns: string
+      }
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
         Returns: boolean
