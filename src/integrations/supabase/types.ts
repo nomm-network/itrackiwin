@@ -6575,37 +6575,15 @@ export type Database = {
           bio: string | null
           created_at: string | null
           display_name: string | null
+          email: string | null
           hourly_rate: number | null
           id: string | null
-          is_public: boolean | null
+          is_active: boolean | null
           mentor_type: Database["public"]["Enums"]["mentor_type"] | null
           primary_category_id: string | null
+          primary_category_name: string | null
           updated_at: string | null
           user_id: string | null
-        }
-        Insert: {
-          bio?: string | null
-          created_at?: string | null
-          display_name?: never
-          hourly_rate?: number | null
-          id?: string | null
-          is_public?: boolean | null
-          mentor_type?: Database["public"]["Enums"]["mentor_type"] | null
-          primary_category_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
-        }
-        Update: {
-          bio?: string | null
-          created_at?: string | null
-          display_name?: never
-          hourly_rate?: number | null
-          id?: string | null
-          is_public?: boolean | null
-          mentor_type?: Database["public"]["Enums"]["mentor_type"] | null
-          primary_category_id?: string | null
-          updated_at?: string | null
-          user_id?: string | null
         }
         Relationships: [
           {
