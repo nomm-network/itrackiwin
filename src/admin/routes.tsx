@@ -27,6 +27,13 @@ const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
 const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorNew"));
 
+// Ambassador and Battle Management
+const AdminAmbassadorsPage = lazy(() => import("@/features/admin/ambassadors/AdminAmbassadorsPage"));
+const AdminDealsVerifyPage = lazy(() => import("@/features/admin/ambassadors/AdminDealsVerifyPage"));
+const AdminBattlesListPage = lazy(() => import("@/features/admin/battles/AdminBattlesListPage"));
+const AdminBattleDetailPage = lazy(() => import("@/features/admin/battles/AdminBattleDetailPage"));
+const AdminPayoutsPage = lazy(() => import("@/features/admin/ops/AdminPayoutsPage"));
+
 export function AdminRoutes() {
   console.log('🔍 AdminRoutes component rendered!');
   return (
@@ -79,9 +86,16 @@ export function AdminRoutes() {
       <Route path="naming-templates" element={<AdminNamingTemplates />} />
       <Route path="settings" element={<AdminSettings />} />
       <Route path="translations/*" element={<AdminTranslations />} />
-      <Route path="coach-logs" element={<AdminCoachLogs />} />
+          <Route path="coach-logs" element={<AdminCoachLogs />} />
           <Route path="category/:categoryId" element={<AdminCategoryPage />} />
           <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
+          
+          {/* Ambassador and Battle Management */}
+          <Route path="ambassadors" element={<AdminAmbassadorsPage />} />
+          <Route path="ambassadors/deals" element={<AdminDealsVerifyPage />} />
+          <Route path="battles" element={<AdminBattlesListPage />} />
+          <Route path="battles/:id" element={<AdminBattleDetailPage />} />
+          <Route path="payouts" element={<AdminPayoutsPage />} />
         </Routes>
       </Suspense>
     </AdminErrorBoundary>

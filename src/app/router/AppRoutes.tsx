@@ -43,6 +43,13 @@ const Orbits = lazy(() => import('@/pages/Orbits'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 
+// Ambassador and Marketplace
+const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/AmbassadorPanelPage'));
+const GymAdminPage = lazy(() => import('@/features/gyms/admin/GymAdminPage'));
+const MarketplacePage = lazy(() => import('@/features/marketplace/MarketplacePage'));
+const GymPublicPage = lazy(() => import('@/features/marketplace/GymPublicPage'));
+const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicPage'));
+
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
@@ -137,6 +144,35 @@ export function AppRoutes() {
           <Route path="/gyms" element={
             <ProtectedMobileLayout>
               <GymsListPage />
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Ambassador and User Routes */}
+          <Route path="/ambassador" element={
+            <ProtectedMobileLayout>
+              <AmbassadorPanelPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/gyms/:gymId/admin" element={
+            <ProtectedMobileLayout>
+              <GymAdminPage />
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Public Marketplace Routes */}
+          <Route path="/marketplace" element={
+            <ProtectedMobileLayout>
+              <MarketplacePage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/g/:slug" element={
+            <ProtectedMobileLayout>
+              <GymPublicPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/m/:slugOrId" element={
+            <ProtectedMobileLayout>
+              <MentorPublicPage />
             </ProtectedMobileLayout>
           } />
 
