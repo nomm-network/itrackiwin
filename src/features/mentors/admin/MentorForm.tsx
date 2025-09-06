@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { normalizeMentor, MentorModel } from "./schema";
 import { useAdminUsers } from "./hooks/useAdminUsers";
+import { useGyms } from "./hooks/useGyms";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
   const [isActive, setIsActive] = useState(initial.isActive ?? true);
   const [bio, setBio] = useState(initial.bio ?? "");
   const [hourlyRate, setHourlyRate] = useState<string>(initial.hourlyRate?.toString() ?? "");
+  const [gymId, setGymId] = useState<string>("");
 
   // UI state
   const [loading, setLoading] = useState(false);
@@ -36,8 +38,9 @@ export function MentorForm({ mode, initial = {} }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<LifeCategory[]>([]);
 
-  // Load users and categories
+  // Load users, gyms and categories
   const { data: users, isLoading: usersLoading } = useAdminUsers();
+  const { data: gyms, isLoading: gymsLoading } = useGyms();
 
   const navigate = useNavigate();
   const { id } = useParams();
@@ -112,11 +115,12 @@ export function MentorForm({ mode, initial = {} }: Props) {
       const payload = {
         id: mode === "edit" ? id : undefined,
         user_id: userId.trim(),
-        mentor_type: mentorType,
+        mentor_type: mentorType, // This will be cast to the enum type in the RPC
         primary_category_id: primaryCategoryId || null,
         is_active: isActive,
         bio: bio.trim() || null,
-        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null
+        hourly_rate: hourlyRate ? parseFloat(hourlyRate) : null,
+        gym_id: gymId || null
       };
 
       const { data, error } = await supabase.rpc('admin_upsert_mentor', {
@@ -166,7 +170,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
     }
   }
 
-  if (loading || usersLoading) {
+  if (loading || usersLoading || gymsLoading) {
     return (
       <div className="flex items-center justify-center py-12">
         <div className="text-muted-foreground">Loading...</div>
@@ -256,6 +260,64 @@ export function MentorForm({ mode, initial = {} }: Props) {
           </Select>
         </div>
 
+        <div>
+          <Label htmlFor="gym">Gym (Optional)</Label>
+          <Select value={gymId} onValueChange={setGymId}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select a gym (optional)" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
+              <SelectItem value="" className="bg-background hover:bg-muted">
+                <span className="text-muted-foreground">No gym selected</span>
+              </SelectItem>
+              {gyms?.map((gym) => (
+                <SelectItem key={gym.id} value={gym.id} className="bg-background hover:bg-muted">
+                  <div className="flex flex-col">
+                    <span className="font-medium">{gym.name}</span>
+                    {gym.address && (
+                      <span className="text-xs text-muted-foreground">{gym.address}</span>
+                    )}
+                  </div>
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          {!gyms?.length && (
+            <p className="text-xs text-muted-foreground">
+              No gyms found in the system.
+            </p>
+          )}
+        </div>
+
+        <div>
+          <Label htmlFor="mentorType">Mentor Type</Label>
+          <Select value={mentorType} onValueChange={setMentorType}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select mentor type" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
+              <SelectItem value="mentor" className="bg-background hover:bg-muted">Mentor</SelectItem>
+              <SelectItem value="coach" className="bg-background hover:bg-muted">Coach</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div>
+          <Label htmlFor="primaryCategory">Primary Category</Label>
+          <Select value={primaryCategoryId} onValueChange={setPrimaryCategoryId}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select primary category" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border border-border shadow-lg z-50">
+              {categories.map((category) => (
+                <SelectItem key={category.id} value={category.id} className="bg-background hover:bg-muted">
+                  {category.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
         <div className="flex items-center space-x-2">
           <Checkbox
             id="isActive"
@@ -296,8 +358,9 @@ export function MentorForm({ mode, initial = {} }: Props) {
           <p><strong>Route ID:</strong> {id || 'new'}</p>
           <p><strong>Mode:</strong> {mode}</p>
           <p><strong>Categories loaded:</strong> {categories.length}</p>
+          <p><strong>Gyms loaded:</strong> {gyms?.length || 0}</p>
           <p><strong>Current URL:</strong> {window.location.href}</p>
-          <p><strong>Form State:</strong> userId="{userId}", type="{mentorType}", active={isActive.toString()}</p>
+          <p><strong>Form State:</strong> userId="{userId}", type="{mentorType}", active={isActive.toString()}, gym="{gymId}"</p>
         </div>
       </div>
     </div>
