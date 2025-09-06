@@ -2330,6 +2330,89 @@ export type Database = {
           },
         ]
       }
+      mentor_areas: {
+        Row: {
+          life_category_id: string
+          mentor_id: string
+        }
+        Insert: {
+          life_category_id: string
+          mentor_id: string
+        }
+        Update: {
+          life_category_id?: string
+          mentor_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_mentor_areas_life_cat"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentor_areas_life_cat"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentor_areas_mentor"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentor_areas_mentor"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_mentors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      mentor_clients: {
+        Row: {
+          client_id: string
+          ended_at: string | null
+          mentor_id: string
+          notes: string | null
+          started_at: string
+        }
+        Insert: {
+          client_id: string
+          ended_at?: string | null
+          mentor_id: string
+          notes?: string | null
+          started_at?: string
+        }
+        Update: {
+          client_id?: string
+          ended_at?: string | null
+          mentor_id?: string
+          notes?: string | null
+          started_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fk_mc_mentor"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "mentor_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mc_mentor"
+            columns: ["mentor_id"]
+            isOneToOne: false
+            referencedRelation: "v_public_mentors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       mentor_profiles: {
         Row: {
           accepts_clients: boolean
@@ -2340,10 +2423,12 @@ export type Database = {
           headline: string | null
           hourly_rate_cents: number | null
           id: string
+          is_active: boolean
           is_approved: boolean
           is_public: boolean
           life_category_id: string
           role_key: string
+          type: Database["public"]["Enums"]["mentor_type"]
           updated_at: string
           user_id: string
         }
@@ -2356,10 +2441,12 @@ export type Database = {
           headline?: string | null
           hourly_rate_cents?: number | null
           id?: string
+          is_active?: boolean
           is_approved?: boolean
           is_public?: boolean
           life_category_id: string
           role_key: string
+          type: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id: string
         }
@@ -2372,10 +2459,12 @@ export type Database = {
           headline?: string | null
           hourly_rate_cents?: number | null
           id?: string
+          is_active?: boolean
           is_approved?: boolean
           is_public?: boolean
           life_category_id?: string
           role_key?: string
+          type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id?: string
         }
