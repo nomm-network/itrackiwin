@@ -539,60 +539,47 @@ export const useWorkoutDetail = (workoutId?: UUID) => {
         }
       }
 
-      // Add warmup suggestions for each exercise
+      // Add warmup suggestions for each exercise using smart calculation
       if (exercises?.length) {
+        // Get current user for warmup calculations
+        const { data: { user } } = await supabase.auth.getUser();
+        
         for (const workoutExercise of exercises) {
           try {
-            // Get the working weight from recent sets or exercise defaults
+            // Use smart warmup calculation service for consistency
+            const { smartWarmupCalculator } = await import('@/features/workouts/services/warmupCalculation');
+            const warmupSets = await smartWarmupCalculator.getWarmupSetsForHistory(
+              workoutExercise.id,
+              workoutExercise.exercise_id,
+              user?.id
+            );
+            
+            (workoutExercise as any).warmup_suggestion = {
+              warmup_sets: warmupSets
+            };
+            
+            console.log(`🔥 Smart warmup for ${getExerciseNameFromTranslations(workoutExercise.exercises?.translations)}:`, {
+              exercise_id: workoutExercise.exercise_id,
+              warmup_sets: warmupSets
+            });
+          } catch (error) {
+            console.error('Smart warmup calculation failed:', error);
+            // Fallback to simple calculation
             const exerciseSets = setsByWe[workoutExercise.id] || [];
             const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup' && set.weight);
             let workingWeight = workingSets.length > 0 ? workingSets[workingSets.length - 1].weight : undefined;
             
-            // For new exercises without weight history, use a default based on exercise type
             if (!workingWeight) {
-              workingWeight = 60; // Default weight for warmup calculation
+              workingWeight = 60;
             }
             
-            try {
-              const { data: warmupData, error: warmupError } = await supabase.rpc('fn_suggest_warmup', {
-                p_exercise_id: workoutExercise.exercise_id,
-                p_working_weight: workingWeight,
-                p_working_reps: 8
-              });
-              
-              console.log(`🔥 Warmup RPC call for ${getExerciseNameFromTranslations(workoutExercise.exercises?.translations)}:`, {
-                exercise_id: workoutExercise.exercise_id,
-                working_weight: workingWeight,
-                result: warmupData,
-                error: warmupError
-              });
-              
-              if (!warmupError && warmupData) {
-                (workoutExercise as any).warmup_suggestion = warmupData;
-              } else if (warmupError) {
-                console.error('Warmup suggestion error:', warmupError);
-                // For testing, add a mock warmup suggestion
-                (workoutExercise as any).warmup_suggestion = {
-                  warmup_sets: [
-                    { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
-                    { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
-                    { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
-                  ]
-                };
-              }
-            } catch (rpcError) {
-              console.error('RPC function call failed:', rpcError);
-              // Fallback to mock warmup
-              (workoutExercise as any).warmup_suggestion = {
-                warmup_sets: [
-                  { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
-                  { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
-                  { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
-                ]
-              };
-            }
-          } catch (error) {
-            console.warn(`⚠️ Failed to get warmup suggestion for exercise ${workoutExercise.exercise_id}:`, error);
+            (workoutExercise as any).warmup_suggestion = {
+              warmup_sets: [
+                { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
+                { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
+                { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
+              ]
+            };
           }
         }
       }
