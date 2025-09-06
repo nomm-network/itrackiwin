@@ -6605,12 +6605,14 @@ export type Database = {
       }
       v_admin_mentors_overview: {
         Row: {
+          bio: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
           hourly_rate: number | null
           id: string | null
           is_active: boolean | null
+          is_public: boolean | null
           mentor_type: Database["public"]["Enums"]["mentor_type"] | null
           primary_category_id: string | null
           user_id: string | null
