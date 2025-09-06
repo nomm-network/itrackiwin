@@ -42,6 +42,19 @@ export default function AdminMentorEditPage() {
   const [categories, setCategories] = useState<LifeCategory[]>([]);
   const [error, setError] = useState<string | null>(null);
 
+  // Timeout fallback to prevent infinite loading
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      if (loading) {
+        console.warn('🐛 AdminMentorEditPage - Loading timeout triggered');
+        setLoading(false);
+        setError('Loading timed out. Please try refreshing the page.');
+      }
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, [loading]);
+
   // form state
   const [userId, setUserId] = useState<string>('');
   const [mentorType, setMentorType] = useState<MentorType>('mentor');
@@ -61,34 +74,44 @@ export default function AdminMentorEditPage() {
       setLoading(true);
       setError(null);
 
-      // load categories
-      console.log('🐛 AdminMentorEditPage - Loading categories...');
-      const { data: cats, error: catErr } = await supabase
-        .from('life_categories')
-        .select('id, slug, name')
-        .order('name', { ascending: true });
+      try {
+        // load categories
+        console.log('🐛 AdminMentorEditPage - Loading categories...');
+        const { data: cats, error: catErr } = await supabase
+          .from('life_categories')
+          .select('id, slug, name')
+          .order('name', { ascending: true });
 
-      if (!cancelled) {
+        if (cancelled) return;
+
         if (catErr) {
           console.error('🐛 AdminMentorEditPage - Categories error:', catErr);
-          setError(catErr.message);
-        } else {
-          console.log('🐛 AdminMentorEditPage - Categories loaded:', cats?.length);
-          setCategories(cats || []);
+          setError(`Failed to load categories: ${catErr.message}`);
+          return;
         }
-      }
 
-      if (!isNew) {
-        const { data, error: vErr } = await supabase
-          .from('v_admin_mentors_overview')
-          .select('*')
-          .eq('id', id)
-          .maybeSingle();
+        console.log('🐛 AdminMentorEditPage - Categories loaded:', cats?.length);
+        setCategories(cats || []);
 
-        if (!cancelled) {
-          if (vErr) setError(vErr.message);
+        if (!isNew && id) {
+          console.log('🐛 AdminMentorEditPage - Loading existing mentor data for id:', id);
+          const { data, error: vErr } = await supabase
+            .from('v_admin_mentors_overview')
+            .select('*')
+            .eq('id', id)
+            .maybeSingle();
+
+          if (cancelled) return;
+
+          if (vErr) {
+            console.error('🐛 AdminMentorEditPage - Mentor data error:', vErr);
+            setError(`Failed to load mentor data: ${vErr.message}`);
+            return;
+          }
+
           setRow(data || null);
           if (data) {
+            console.log('🐛 AdminMentorEditPage - Mentor data loaded:', data);
             setUserId(data.user_id || '');
             setMentorType((data.mentor_type as MentorType) || 'mentor');
             setPrimaryCategoryId(data.primary_category_id || '');
@@ -96,22 +119,29 @@ export default function AdminMentorEditPage() {
             setBio(data.bio || '');
             setHourlyRate(data.hourly_rate?.toString() || '');
           }
+        } else if (isNew) {
+          console.log('🐛 AdminMentorEditPage - Setting up new mentor defaults');
+          // defaults for create
+          setRow(null);
+          setUserId('');
+          setMentorType('mentor');
+          setPrimaryCategoryId('');
+          setIsActive(true);
+          setBio('');
+          setHourlyRate('');
+        }
+
+        console.log('🐛 AdminMentorEditPage - Loading complete');
+      } catch (error) {
+        console.error('🐛 AdminMentorEditPage - Unexpected error:', error);
+        if (!cancelled) {
+          setError(`Unexpected error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
         }
       }
-
-      if (isNew) {
-        console.log('🐛 AdminMentorEditPage - Setting up new mentor defaults');
-        // defaults for create
-        setRow(null);
-        setUserId('');
-        setMentorType('mentor');
-        setPrimaryCategoryId('');
-        setIsActive(true);
-        setBio('');
-        setHourlyRate('');
-      }
-
-      if (!cancelled) setLoading(false);
     };
 
     load();
