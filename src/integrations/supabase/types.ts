@@ -2376,39 +2376,32 @@ export type Database = {
       }
       mentor_clients: {
         Row: {
-          client_id: string
-          ended_at: string | null
+          client_user_id: string
+          created_at: string
+          id: string
           mentor_id: string
-          notes: string | null
-          started_at: string
+          status: Database["public"]["Enums"]["mentor_client_status"]
         }
         Insert: {
-          client_id: string
-          ended_at?: string | null
+          client_user_id: string
+          created_at?: string
+          id?: string
           mentor_id: string
-          notes?: string | null
-          started_at?: string
+          status?: Database["public"]["Enums"]["mentor_client_status"]
         }
         Update: {
-          client_id?: string
-          ended_at?: string | null
+          client_user_id?: string
+          created_at?: string
+          id?: string
           mentor_id?: string
-          notes?: string | null
-          started_at?: string
+          status?: Database["public"]["Enums"]["mentor_client_status"]
         }
         Relationships: [
           {
-            foreignKeyName: "fk_mc_mentor"
+            foreignKeyName: "mentor_clients_mentor_id_fkey"
             columns: ["mentor_id"]
             isOneToOne: false
-            referencedRelation: "mentor_profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_mc_mentor"
-            columns: ["mentor_id"]
-            isOneToOne: false
-            referencedRelation: "v_public_mentors"
+            referencedRelation: "mentors"
             referencedColumns: ["id"]
           },
         ]
@@ -2428,7 +2421,6 @@ export type Database = {
           is_public: boolean
           life_category_id: string
           role_key: string
-          type: Database["public"]["Enums"]["mentor_type"]
           updated_at: string
           user_id: string
         }
@@ -2446,7 +2438,6 @@ export type Database = {
           is_public?: boolean
           life_category_id: string
           role_key: string
-          type: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id: string
         }
@@ -2464,7 +2455,6 @@ export type Database = {
           is_public?: boolean
           life_category_id?: string
           role_key?: string
-          type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id?: string
         }
@@ -2552,70 +2542,42 @@ export type Database = {
       }
       mentors: {
         Row: {
-          accepting_clients: boolean
           bio: string | null
           created_at: string
-          currency: string | null
           display_name: string | null
           hourly_rate: number | null
           id: string
-          is_active: boolean
+          is_public: boolean
           life_category_id: string | null
-          mentor_kind: Database["public"]["Enums"]["mentor_type"]
+          mentor_type: Database["public"]["Enums"]["mentor_type"]
           updated_at: string
           user_id: string
         }
         Insert: {
-          accepting_clients?: boolean
           bio?: string | null
           created_at?: string
-          currency?: string | null
           display_name?: string | null
           hourly_rate?: number | null
           id?: string
-          is_active?: boolean
+          is_public?: boolean
           life_category_id?: string | null
-          mentor_kind: Database["public"]["Enums"]["mentor_type"]
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id: string
         }
         Update: {
-          accepting_clients?: boolean
           bio?: string | null
           created_at?: string
-          currency?: string | null
           display_name?: string | null
           hourly_rate?: number | null
           id?: string
-          is_active?: boolean
+          is_public?: boolean
           life_category_id?: string | null
-          mentor_kind?: Database["public"]["Enums"]["mentor_type"]
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "fk_mentors_life_category_id"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "life_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_mentors_life_category_id"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_categories_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_mentors_user_id"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       mentorships: {
         Row: {
@@ -9624,7 +9586,7 @@ export type Database = {
         | "stack"
         | "bodyweight"
         | "fixed"
-      mentor_client_status: "invited" | "active" | "paused" | "ended"
+      mentor_client_status: "active" | "inactive" | "pending"
       mentor_type: "mentor" | "coach"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
@@ -9841,7 +9803,7 @@ export const Constants = {
         "bodyweight",
         "fixed",
       ],
-      mentor_client_status: ["invited", "active", "paused", "ended"],
+      mentor_client_status: ["active", "inactive", "pending"],
       mentor_type: ["mentor", "coach"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
