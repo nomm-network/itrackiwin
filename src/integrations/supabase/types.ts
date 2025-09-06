@@ -201,6 +201,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ambassador_commission_agreements_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       ambassador_gym_deals: {
@@ -259,6 +266,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "ambassador_gym_deals_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       ambassador_gym_visits: {
@@ -300,6 +314,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ambassador_gym_visits_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -816,6 +837,57 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "workout_templates"
             referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_client_links: {
+        Row: {
+          client_user_id: string
+          coach_user_id: string
+          created_at: string
+          decided_at: string | null
+          decided_by: string | null
+          gym_id: string | null
+          id: string
+          requested_by: string
+          status: string
+        }
+        Insert: {
+          client_user_id: string
+          coach_user_id: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id?: string | null
+          id?: string
+          requested_by: string
+          status?: string
+        }
+        Update: {
+          client_user_id?: string
+          coach_user_id?: string
+          created_at?: string
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id?: string | null
+          id?: string
+          requested_by?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_client_links_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_client_links_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -2073,6 +2145,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gym_admins_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       gym_aliases: {
@@ -2098,6 +2177,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_aliases_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -2139,6 +2225,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_coach_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
           {
             foreignKeyName: "gym_coach_memberships_mentor_id_fkey"
@@ -2255,6 +2348,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gym_equipment_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       gym_equipment_availability: {
@@ -2323,6 +2423,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gym_equipment_availability_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       gym_equipment_overrides: {
@@ -2385,6 +2492,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "gym_equipment_overrides_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       gym_observers: {
@@ -2413,6 +2527,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_observers_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -2445,6 +2566,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_plate_inventory_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -2597,6 +2725,57 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      join_codes: {
+        Row: {
+          coach_user_id: string | null
+          code: string
+          created_at: string | null
+          created_by: string
+          expires_at: string | null
+          gym_id: string | null
+          kind: string
+          max_uses: number
+          uses: number
+        }
+        Insert: {
+          coach_user_id?: string | null
+          code: string
+          created_at?: string | null
+          created_by: string
+          expires_at?: string | null
+          gym_id?: string | null
+          kind: string
+          max_uses?: number
+          uses?: number
+        }
+        Update: {
+          coach_user_id?: string | null
+          code?: string
+          created_at?: string | null
+          created_by?: string
+          expires_at?: string | null
+          gym_id?: string | null
+          kind?: string
+          max_uses?: number
+          uses?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "join_codes_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "join_codes_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+        ]
       }
       languages: {
         Row: {
@@ -3121,6 +3300,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentors_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -5319,6 +5505,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "user_gym_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       user_gym_miniweights: {
@@ -5479,6 +5672,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_visits_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -7133,6 +7333,13 @@ export type Database = {
             referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "mentors_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
         ]
       }
       v_body_parts_with_translations: {
@@ -7155,6 +7362,45 @@ export type Database = {
           translations: Json | null
         }
         Relationships: []
+      }
+      v_city_gyms_with_stats: {
+        Row: {
+          active_coaches: number | null
+          city: string | null
+          country: string | null
+          gym_id: string | null
+          members_count: number | null
+          name: string | null
+          photo_url: string | null
+        }
+        Relationships: []
+      }
+      v_coach_clients: {
+        Row: {
+          client_user_id: string | null
+          coach_user_id: string | null
+          created_at: string | null
+          gym_id: string | null
+          gym_name: string | null
+          id: string | null
+          status: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_client_links_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_client_links_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+        ]
       }
       v_current_workout: {
         Row: {
@@ -7197,6 +7443,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_equipment_overrides_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -7577,6 +7830,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "gyms"
             referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_memberships_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
           },
         ]
       }
@@ -8094,6 +8354,20 @@ export type Database = {
       create_gym: {
         Args: { p_city: string; p_country: string; p_name: string }
         Returns: string
+      }
+      create_join_code: {
+        Args: {
+          p_coach?: string
+          p_gym?: string
+          p_kind: string
+          p_max_uses?: number
+          p_ttl_hours?: number
+        }
+        Returns: string
+      }
+      decide_coach_client_link: {
+        Args: { p_action: string; p_gym?: string; p_link: string }
+        Returns: undefined
       }
       decide_gym_coach: {
         Args: { p_gym: string; p_mentor_id: string; p_status: string }
@@ -8989,6 +9263,10 @@ export type Database = {
       recalc_warmup_from_last_set: {
         Args: { p_workout_exercise_id: string }
         Returns: undefined
+      }
+      redeem_join_code: {
+        Args: { p_code: string }
+        Returns: string
       }
       refresh_exercise_views: {
         Args: { p_exercise_id: string; p_user_id: string }
