@@ -115,6 +115,7 @@ const AdminUsersManagement: React.FC = () => {
           .upsert({ 
             user_id: userId, 
             role_key: mentorType,
+            type: mentorType, // Add the required type field
             life_category_id: fitnessCategory?.id,
             bio: '',
             avatar_url: null,
