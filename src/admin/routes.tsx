@@ -26,36 +26,25 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const AdminMentorEditPageUltraSimple = lazy(() => import("@/features/mentors/admin/AdminMentorEditPageUltraSimple"));
+const HelloTestPage = lazy(() => import("@/features/mentors/admin/HelloTestPage"));
 
 export function AdminRoutes() {
   return (
     <Routes>
       <Route path="/*" element={
-        <SimpleErrorBoundary>
-          <SafeAdminGuard redirectOnUnauthorized={false}>
-            <AdminLayout>
+        <div style={{ padding: "24px", backgroundColor: "lightgreen" }}>
+          <h1>🔧 BASIC ADMIN SHELL TEST</h1>
+          <p>If you see this green box, the basic admin route is working!</p>
+          <AdminLayout>
               <Routes>
                 <Route index element={<AdminHomePage />} />
                 <Route path="exercises" element={<AdminExercisesManagement />} />
                 <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
                 <Route path="users" element={<AdminUsersListPage />} />
                 <Route path="users/:id" element={<AdminUserDetailPage />} />
-                <Route path="mentors" element={<AdminMentorsListPage />} />
-                <Route path="mentors/new" element={
-                  <SimpleErrorBoundary>
-                    <Suspense fallback={<div style={{ padding: 24 }}>Loading Add Mentor…</div>}>
-                      <AdminMentorEditPageUltraSimple />
-                    </Suspense>
-                  </SimpleErrorBoundary>
-                } />
-                <Route path="mentors/:id" element={
-                  <SimpleErrorBoundary>
-                    <Suspense fallback={<div style={{ padding: 24 }}>Loading Edit Mentor…</div>}>
-                      <AdminMentorEditPageUltraSimple />
-                    </Suspense>
-                  </SimpleErrorBoundary>
-                } />
+                <Route path="mentors" element={<HelloTestPage />} />
+                <Route path="mentors/new" element={<HelloTestPage />} />
+                <Route path="mentors/:id" element={<HelloTestPage />} />
                 
                 {/* Setup Flow Routes */}
                 <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
@@ -80,8 +69,8 @@ export function AdminRoutes() {
                 <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
               </Routes>
             </AdminLayout>
-          </SafeAdminGuard>
-        </SimpleErrorBoundary>
+          </div>
+        
       } />
     </Routes>
   );
