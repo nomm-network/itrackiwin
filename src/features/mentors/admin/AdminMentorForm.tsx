@@ -258,13 +258,14 @@ export default function AdminMentorForm() {
         </div>
 
         {/* Debug info */}
-        <div className="mt-8 p-4 bg-muted border border-border rounded">
-          <h3 className="font-bold text-lg mb-2 text-foreground">🐛 Debug Info</h3>
-          <div className="space-y-1 text-sm text-foreground">
-            <p>Route ID: {id}</p>
-            <p>Is New: {isNew ? 'true' : 'false'}</p>
-            <p>Categories loaded: {categories.length}</p>
-            <p>Current URL: {window.location.href}</p>
+        <div className="mt-8 p-4 bg-green-100 border border-green-200 rounded">
+          <h3 className="font-bold text-lg mb-2 text-green-800">🐛 Debug Info</h3>
+          <div className="space-y-1 text-sm text-green-700">
+            <p><strong>Route ID:</strong> {id}</p>
+            <p><strong>Is New:</strong> {isNew ? 'true' : 'false'}</p>
+            <p><strong>Categories loaded:</strong> {categories.length}</p>
+            <p><strong>Current URL:</strong> {window.location.href}</p>
+            <p><strong>Form State:</strong> userId="{userId}", type="{mentorType}", active={isActive.toString()}</p>
           </div>
         </div>
       </div>

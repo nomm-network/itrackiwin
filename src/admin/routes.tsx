@@ -24,17 +24,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const AdminMentorForm = () => {
-  console.log('🔥🔥🔥 AdminMentorForm component loaded! URL:', window.location.href);
-  return (
-    <div style={{backgroundColor: 'red', color: 'white', padding: '20px', fontSize: '18px', minHeight: '100vh'}}>
-      <h1>🔥 MENTOR FORM DEBUG - COMPONENT LOADED!</h1>
-      <p>Route: /admin/mentors/new</p>
-      <p>URL: {window.location.href}</p>
-      <p>Time: {new Date().toLocaleTimeString()}</p>
-    </div>
-  );
-};
+const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorForm"));
 
 export function AdminRoutes() {
   console.log('🔍 AdminRoutes component rendered!');
