@@ -1,3 +1,8 @@
+// Exercise hooks
+export * from '../../../hooks/useEffectiveMuscles';
+export * from '../../../hooks/useExerciseSearch';
+export * from '../../../hooks/useExerciseTranslations';
+
 import { useQuery } from '@tanstack/react-query';
 import { exercisesApi } from '../api/exercises.api';
 

@@ -1,2 +1,3 @@
 // Workouts API exports
-// Workout-specific API functions will be moved here
+export * from './workouts.api';
+export * from './warmup';

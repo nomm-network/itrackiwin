@@ -1,2 +1,4 @@
-// Export typed hooks only - Public API
+// Profile feature exports
+export * from './ui';
+export * from './api';
 export * from './hooks';

@@ -1,8 +1,7 @@
-// Export typed hooks only - Public API
+// Exercises feature exports
+export * from './ui';
+export * from './api';
 export * from './hooks';
-
-// Export reusable components for FlutterFlow compatibility
-export { default as GripChips } from './components/GripChips';
 
 // Export API for direct calls if needed
 export { exercisesApi } from './api/exercises.api';

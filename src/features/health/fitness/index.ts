@@ -1,3 +1,5 @@
+// Fitness feature exports - organized structure
+
 // Barrel exports for fitness feature - Public API only
 export { default as FitnessPage } from './pages/Fitness.page';
 export { default as ExercisesPage } from './pages/Exercises.page';

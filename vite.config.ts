@@ -17,6 +17,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
+      "@app": path.resolve(__dirname, "src/app"),
       "@core": path.resolve(__dirname, "src/core"),
       "@features": path.resolve(__dirname, "src/features"),
       "@components": path.resolve(__dirname, "src/components"),
@@ -33,6 +34,9 @@ export default defineConfig(({ mode }) => ({
       "@workouts": path.resolve(__dirname, "src/features/workouts"),
       "@social": path.resolve(__dirname, "src/features/social"),
       "@fitness": path.resolve(__dirname, "src/features/health/fitness"),
+      "@exercises": path.resolve(__dirname, "src/features/exercises"),
+      "@programs": path.resolve(__dirname, "src/features/programs"),
+      "@dashboard": path.resolve(__dirname, "src/features/dashboard"),
     },
   },
 }));

@@ -1,5 +1,4 @@
-// Export typed hooks only - Public API
+// Programs feature exports
+export * from './ui';
+export * from './api';
 export * from './hooks';
-
-// Export reusable components for FlutterFlow compatibility
-export { default as ProgramBuilder } from './components/ProgramBuilder';

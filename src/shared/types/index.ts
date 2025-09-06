@@ -1,3 +1,7 @@
+// Common TypeScript types
+export * from '../../types/domain';
+export * from '../../types/unilateral';
+
 // Shared types for the application
 export interface Workout {
   id: string;
