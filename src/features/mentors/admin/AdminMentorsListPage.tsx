@@ -18,7 +18,7 @@ const AdminMentorsListPage: React.FC = () => {
             Refresh
           </button>
           <button
-            onClick={() => navigate('/app/admin/mentors/new')}
+            onClick={() => navigate('/admin/mentors/new')}
             className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
           >
             New Mentor
@@ -50,7 +50,7 @@ const AdminMentorsListPage: React.FC = () => {
               {(mentors ?? []).map((m) => (
                 <tr
                   key={m.id}
-                  onClick={() => navigate(`/app/admin/mentors/${m.id}`)}
+                  onClick={() => navigate(`/admin/mentors/${m.id}`)}
                   className="hover:bg-muted/30 cursor-pointer"
                 >
                   <td className="px-3 py-2">{m.display_name ?? '—'}</td>

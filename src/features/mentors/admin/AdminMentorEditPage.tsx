@@ -126,14 +126,14 @@ export default function AdminMentorEditPage() {
 
     try {
       const newId = await upsertMentor(payload);
-      navigate(`/app/admin/mentors/${newId}`);
+      navigate(`/admin/mentors/${newId}`);
     } catch (e: any) {
       setError(e?.message || 'Failed to save mentor.');
     }
   };
 
   const onDelete = async () => {
-    if (isNew) return navigate('/app/admin/mentors');
+    if (isNew) return navigate('/admin/mentors');
     if (!id) return;
 
     if (!confirm('Delete this mentor profile? This cannot be undone.')) return;
@@ -141,7 +141,7 @@ export default function AdminMentorEditPage() {
     setError(null);
     try {
       await deleteMentor(id);
-      navigate('/app/admin/mentors');
+      navigate('/admin/mentors');
     } catch (e: any) {
       setError(e?.message || 'Failed to delete mentor.');
     }
@@ -153,7 +153,7 @@ export default function AdminMentorEditPage() {
         <h1 className="text-xl font-semibold">{title}</h1>
         <div className="flex gap-2">
           <button
-            onClick={() => navigate('/app/admin/mentors')}
+            onClick={() => navigate('/admin/mentors')}
             className="px-3 py-2 rounded border"
           >
             Back
