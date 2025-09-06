@@ -445,6 +445,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     navigate('/dashboard');
   };
 
+  // Get proper workout title based on source
+  const getWorkoutTitle = () => {
+    if (workout?.workout_template?.name) {
+      return workout.workout_template.name;
+    }
+    if (workout?.program_session?.title) {
+      return workout.program_session.title;
+    }
+    return workout?.title || workout?.name || 'Free Session';
+  };
+
   // Readiness check handlers
   const handleReadinessSubmit = async (enhancedReadinessData: EnhancedReadinessData) => {
     try {
@@ -606,7 +617,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               ← Back
             </Button>
             <h1 className="text-lg font-semibold">
-              {workout?.title || workout?.name || 'Free Session'}
+              {getWorkoutTitle()}
             </h1>
           </div>
           <div className="flex items-center gap-2">

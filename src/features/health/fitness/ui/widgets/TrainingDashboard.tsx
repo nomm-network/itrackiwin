@@ -15,6 +15,7 @@ import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api
 import { useToast } from '@/hooks/use-toast';
 import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
 import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
+import FavoritesDropdown from '@/features/health/fitness/components/FavoritesDropdown';
 
 const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -96,7 +97,7 @@ const TrainingDashboard: React.FC = () => {
               </p>
               <div className="flex gap-2">
                 <Button 
-                  onClick={handleStartTraining}
+                  onClick={() => navigate(`/app/workouts/${activeWorkout.id}`)}
                   className="flex-1 bg-primary hover:bg-primary/90"
                 >
                   <Clock className="h-4 w-4 mr-2" />
@@ -162,6 +163,7 @@ const TrainingDashboard: React.FC = () => {
                 Ready to begin your training?
               </p>
               <div className="flex gap-2">
+                <FavoritesDropdown />
                 <Button 
                   onClick={handleStartTraining}
                   className="flex-1 bg-primary hover:bg-primary/90"
