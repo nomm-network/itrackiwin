@@ -103,7 +103,7 @@ export function MentorForm({ mode, initial = {} }: Props) {
           setIsActive(data.is_active ?? true);
           setBio(data.bio || "");
           setHourlyRate(data.hourly_rate?.toString() || "");
-          // Note: gym_id would need to be added to the view if we want to load it
+          setGymId(data.gym_id || "none");
           
         } catch (e: any) {
           console.error('❌ Failed to load mentor:', e);
