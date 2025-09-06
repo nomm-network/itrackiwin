@@ -7368,9 +7368,7 @@ export type Database = {
       }
       admin_upsert_mentor: {
         Args: { p_payload: Json }
-        Returns: {
-          id: string
-        }[]
+        Returns: Json
       }
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
