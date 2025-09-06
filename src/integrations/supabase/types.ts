@@ -6572,7 +6572,6 @@ export type Database = {
       }
       v_admin_mentors_overview: {
         Row: {
-          bio: string | null
           created_at: string | null
           display_name: string | null
           email: string | null
@@ -6581,8 +6580,6 @@ export type Database = {
           is_active: boolean | null
           mentor_type: Database["public"]["Enums"]["mentor_type"] | null
           primary_category_id: string | null
-          primary_category_name: string | null
-          updated_at: string | null
           user_id: string | null
         }
         Relationships: [
@@ -7368,7 +7365,7 @@ export type Database = {
       }
       admin_upsert_mentor: {
         Args: { p_payload: Json }
-        Returns: Json
+        Returns: string
       }
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
