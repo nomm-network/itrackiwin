@@ -1053,6 +1053,54 @@ export type Database = {
         }
         Relationships: []
       }
+      equipment_defaults: {
+        Row: {
+          base_implement_kg: number | null
+          created_at: string | null
+          display_name: string
+          fixed_increment_kg: number | null
+          id: string
+          loading_mode: string
+          notes: string | null
+          plate_denoms_kg: number[] | null
+          slug: string
+          stack_increment_kg: number | null
+          stack_max_kg: number | null
+          stack_min_kg: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_implement_kg?: number | null
+          created_at?: string | null
+          display_name: string
+          fixed_increment_kg?: number | null
+          id?: string
+          loading_mode: string
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
+          slug: string
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          base_implement_kg?: number | null
+          created_at?: string | null
+          display_name?: string
+          fixed_increment_kg?: number | null
+          id?: string
+          loading_mode?: string
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
+          slug?: string
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       equipment_grip_defaults: {
         Row: {
           created_at: string | null
@@ -1317,6 +1365,49 @@ export type Database = {
             columns: ["grip_id"]
             isOneToOne: false
             referencedRelation: "grips"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_equipment_profiles: {
+        Row: {
+          created_at: string | null
+          equipment_slug: string
+          exercise_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          equipment_slug: string
+          exercise_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          equipment_slug?: string
+          exercise_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_equipment_profiles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: true
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_profiles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: true
+            referencedRelation: "v_admin_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_profiles_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: true
+            referencedRelation: "v_exercises_with_translations"
             referencedColumns: ["id"]
           },
         ]
