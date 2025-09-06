@@ -13,6 +13,8 @@ import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
 import { useStartWorkout } from '@/features/workouts';
 import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useToast } from '@/hooks/use-toast';
+import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
+import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
 
 const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ const TrainingDashboard: React.FC = () => {
   const startWorkout = useStartWorkout();
   const deleteWorkout = useDeleteWorkout();
   const { toast } = useToast();
+  const readinessCheckin = useReadinessCheckin();
   
   const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
 
@@ -37,14 +40,8 @@ const TrainingDashboard: React.FC = () => {
     if (!checkAndRedirect('start a workout')) return;
 
     if (nextBlock) {
-      // Start from program
-      try {
-        const result = await startWorkout.mutateAsync({ templateId: nextBlock.workout_template_id });
-        navigate(`/app/workouts/${result.workoutId}`);
-      } catch (error) {
-        console.error('Failed to start program workout:', error);
-        setShowWorkoutModal(true);
-      }
+      // Start readiness check for program workout
+      readinessCheckin.open(nextBlock.workout_template_id);
     } else {
       setShowWorkoutModal(true);
     }
@@ -188,6 +185,20 @@ const TrainingDashboard: React.FC = () => {
       <WorkoutSelectionModal 
         open={showWorkoutModal}
         onOpenChange={setShowWorkoutModal}
+      />
+      
+      <ReadinessDialog
+        isOpen={readinessCheckin.isOpen}
+        onClose={readinessCheckin.close}
+        onSubmit={async (data) => {
+          // Create workout first, then submit readiness
+          const result = await startWorkout.mutateAsync({ templateId: readinessCheckin.templateId! });
+          await readinessCheckin.submit({ data, workoutId: result.workoutId });
+          navigate(`/app/workouts/${result.workoutId}`);
+        }}
+        templateId={readinessCheckin.templateId}
+        workoutId={null} // Will be handled in onSubmit
+        isSubmitting={readinessCheckin.isSubmitting || startWorkout.isPending}
       />
     </>
   );

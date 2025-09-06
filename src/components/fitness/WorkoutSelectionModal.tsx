@@ -9,6 +9,8 @@ import { useTemplates } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStartWorkout } from '@/features/workouts';
+import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
+import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
 
 interface WorkoutSelectionModalProps {
   open: boolean;
@@ -30,6 +32,7 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
   const navigate = useNavigate();
   const { data: templates = [], isLoading } = useTemplates();
   const startWorkout = useStartWorkout();
+  const readinessCheckin = useReadinessCheckin();
 
   const filteredTemplates = useMemo(() => {
     let filtered = templates.filter(template => 
@@ -45,20 +48,10 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
     return filtered.slice(0, 12);
   }, [templates, searchQuery]);
 
-  const handleTemplateSelect = async (templateId: string) => {
+  const handleTemplateSelect = (templateId: string) => {
     if (isStarting) return;
-    setIsStarting(true);
-    
-    try {
-      const result = await startWorkout.mutateAsync({ templateId });
-      navigate(`/app/workouts/${result.workoutId}`);
-      onOpenChange(false);
-      toast.success('Training session started!');
-    } catch (error) {
-      console.error('Failed to start workout:', error);
-      toast.error('Failed to start training session');
-      setIsStarting(false);
-    }
+    onOpenChange(false);
+    readinessCheckin.open(templateId);
   };
 
   const handleCreateProgram = () => {
@@ -177,6 +170,25 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
           )}
         </div>
       </DialogContent>
+      
+      <ReadinessDialog
+        isOpen={readinessCheckin.isOpen}
+        onClose={readinessCheckin.close}
+        onSubmit={async (data) => {
+          try {
+            const result = await startWorkout.mutateAsync({ templateId: readinessCheckin.templateId! });
+            await readinessCheckin.submit({ data, workoutId: result.workoutId });
+            navigate(`/app/workouts/${result.workoutId}`);
+            toast.success('Training session started!');
+          } catch (error) {
+            console.error('Failed to start workout:', error);
+            toast.error('Failed to start training session');
+          }
+        }}
+        templateId={readinessCheckin.templateId}
+        workoutId={null}
+        isSubmitting={readinessCheckin.isSubmitting || startWorkout.isPending}
+      />
     </Dialog>
   );
 };
