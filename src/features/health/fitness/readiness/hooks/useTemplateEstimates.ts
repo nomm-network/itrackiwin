@@ -12,7 +12,6 @@ export function useTemplateEstimates(templateId?: string) {
     if (!templateId) return;
     (async () => {
       setLoading(true); setError(null);
-      // For now, return empty since the RPC doesn't exist yet
       try {
         const { data, error } = await supabase.from('template_exercises')
           .select(`
