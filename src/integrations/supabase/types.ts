@@ -2374,47 +2374,35 @@ export type Database = {
           },
         ]
       }
-      mentor_categories: {
+      mentor_clients: {
         Row: {
-          life_category_id: string
-          mentor_user_id: string
+          client_user_id: string
+          created_at: string
+          id: string
+          mentor_id: string
+          status: string
         }
         Insert: {
-          life_category_id: string
-          mentor_user_id: string
+          client_user_id: string
+          created_at?: string
+          id?: string
+          mentor_id: string
+          status?: string
         }
         Update: {
-          life_category_id?: string
-          mentor_user_id?: string
+          client_user_id?: string
+          created_at?: string
+          id?: string
+          mentor_id?: string
+          status?: string
         }
         Relationships: [
           {
-            foreignKeyName: "mentor_categories_life_category_id_fkey"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "life_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mentor_categories_life_category_id_fkey"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_categories_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "mentor_categories_mentor_user_id_fkey"
-            columns: ["mentor_user_id"]
+            foreignKeyName: "mentor_clients_mentor_id_fkey"
+            columns: ["mentor_id"]
             isOneToOne: false
             referencedRelation: "mentors"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "mentor_categories_mentor_user_id_fkey"
-            columns: ["mentor_user_id"]
-            isOneToOne: false
-            referencedRelation: "v_mentors_public"
-            referencedColumns: ["user_id"]
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -2501,39 +2489,6 @@ export type Database = {
           },
         ]
       }
-      mentor_rates: {
-        Row: {
-          currency: string
-          hourly_rate: number
-          mentor_user_id: string
-        }
-        Insert: {
-          currency?: string
-          hourly_rate?: number
-          mentor_user_id: string
-        }
-        Update: {
-          currency?: string
-          hourly_rate?: number
-          mentor_user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mentor_rates_mentor_user_id_fkey"
-            columns: ["mentor_user_id"]
-            isOneToOne: true
-            referencedRelation: "mentors"
-            referencedColumns: ["user_id"]
-          },
-          {
-            foreignKeyName: "mentor_rates_mentor_user_id_fkey"
-            columns: ["mentor_user_id"]
-            isOneToOne: true
-            referencedRelation: "v_mentors_public"
-            referencedColumns: ["user_id"]
-          },
-        ]
-      }
       mentor_roles: {
         Row: {
           key: string
@@ -2589,39 +2544,52 @@ export type Database = {
         Row: {
           bio: string | null
           created_at: string
-          is_active: boolean
+          display_name: string | null
+          hourly_rate: number | null
+          id: string
           is_public: boolean
-          tagline: string | null
-          type: Database["public"]["Enums"]["mentor_type"]
+          life_category_id: string | null
+          mentor_type: Database["public"]["Enums"]["mentor_type"]
           updated_at: string
           user_id: string
         }
         Insert: {
           bio?: string | null
           created_at?: string
-          is_active?: boolean
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string
           is_public?: boolean
-          tagline?: string | null
-          type: Database["public"]["Enums"]["mentor_type"]
+          life_category_id?: string | null
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id: string
         }
         Update: {
           bio?: string | null
           created_at?: string
-          is_active?: boolean
+          display_name?: string | null
+          hourly_rate?: number | null
+          id?: string
           is_public?: boolean
-          tagline?: string | null
-          type?: Database["public"]["Enums"]["mentor_type"]
+          life_category_id?: string | null
+          mentor_type?: Database["public"]["Enums"]["mentor_type"]
           updated_at?: string
           user_id?: string
         }
         Relationships: [
           {
-            foreignKeyName: "mentors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
+            foreignKeyName: "fk_mentors_life_category"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_mentors_life_category"
+            columns: ["life_category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -6878,25 +6846,6 @@ export type Database = {
           user_id: string | null
         }
         Relationships: []
-      }
-      v_mentors_public: {
-        Row: {
-          created_at: string | null
-          is_active: boolean | null
-          life_category_ids: string[] | null
-          tagline: string | null
-          type: Database["public"]["Enums"]["mentor_type"] | null
-          user_id: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "mentors_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: true
-            referencedRelation: "users"
-            referencedColumns: ["id"]
-          },
-        ]
       }
       v_muscle_groups_with_translations: {
         Row: {
