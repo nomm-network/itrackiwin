@@ -4,6 +4,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useTemplates } from '@/features/health/fitness/training/hooks/useTemplates';
 import { useNextProgramBlock } from '@/features/health/fitness/training/hooks/useNextProgramBlock';
 import { useActiveWorkout } from '@/features/health/fitness/training/hooks/useActiveWorkout';
+import { usePreCheckin, PreCheckinInput } from '@/features/health/fitness/readiness/hooks/usePreCheckin';
+import { PreWorkoutDialog } from '@/features/health/fitness/readiness/components/PreWorkoutDialog';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import {
@@ -24,38 +26,49 @@ const TrainingCenterCard: React.FC = () => {
   const { data: favoritesData, isLoading: tLoading } = useTemplates({ onlyFavorites: true });
   const { data: nextBlock, isLoading: bLoading } = useNextProgramBlock();
   const { active, isLoading: activeLoading, error: activeError } = useActiveWorkout();
+  const submitPreCheckin = usePreCheckin();
   const [rpcError, setRpcError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [showPreCheckin, setShowPreCheckin] = useState(false);
+  const [pendingTemplateId, setPendingTemplateId] = useState<string | null>(null);
 
   const canStartProgram = useMemo(
     () => !!nextBlock?.workout_template_id,
     [nextBlock]
   );
 
-  const startWorkout = async (templateId?: string) => {
+  const openPreCheckin = (templateId?: string) => {
+    setPendingTemplateId(templateId ?? null);
+    setShowPreCheckin(true);
+  };
+
+  const handlePreCheckinSubmit = async (input: PreCheckinInput) => {
     setPending(true);
     setRpcError(null);
     try {
-      const args = { p_template_id: templateId ?? null };
-      const { data, error } = await supabase.rpc('start_workout', args);
+      // First create the workout
+      const args = { p_template_id: pendingTemplateId };
+      const { data: workoutId, error } = await supabase.rpc('start_workout', args);
 
-      // Full error visibility
       if (error) {
         console.error('[start_workout][RPC ERROR]', { args, error });
         setRpcError(`${error.code ?? ''} ${error.message}`);
         toast.error(error.message);
         return;
       }
-      if (!data) {
+      if (!workoutId) {
         setRpcError('No workout id returned');
         console.error('[start_workout] No id returned');
         toast.error('Failed to start workout');
         return;
       }
 
+      // Then submit pre-checkin data
+      await submitPreCheckin(input, workoutId);
+
       toast.success('Workout started!');
-      navigate(`/app/workouts/${data}`);
+      navigate(`/app/workouts/${workoutId}`);
     } catch (e: any) {
       console.error('[start_workout][JS ERROR]', e);
       setRpcError(e?.message ?? 'Unknown error');
@@ -147,7 +160,7 @@ const TrainingCenterCard: React.FC = () => {
             <Button
               className="mt-3 w-full"
               disabled={!canStartProgram || pending}
-              onClick={() => startWorkout(nextBlock?.workout_template_id)}
+              onClick={() => openPreCheckin(nextBlock?.workout_template_id)}
             >
               {pending ? 'Starting…' : 'Start Program Session'}
             </Button>
@@ -194,7 +207,7 @@ const TrainingCenterCard: React.FC = () => {
                   <Button
                     className="flex-1"
                     disabled={!selectedTemplateId || pending}
-                    onClick={() => startWorkout(selectedTemplateId)}
+                    onClick={() => openPreCheckin(selectedTemplateId)}
                   >
                     {pending ? 'Starting…' : 'Start'}
                   </Button>
@@ -219,6 +232,12 @@ const TrainingCenterCard: React.FC = () => {
           Error: {rpcError}
         </div>
       )}
+
+      <PreWorkoutDialog
+        open={showPreCheckin}
+        onClose={() => setShowPreCheckin(false)}
+        onSubmit={handlePreCheckinSubmit}
+      />
     </div>
   );
 };

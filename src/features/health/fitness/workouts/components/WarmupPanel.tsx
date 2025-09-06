@@ -12,7 +12,7 @@ export default function WarmupPanel({
   compact = true,
 }: {
   topWeightKg: number | null;
-  warmupSteps: Step[];
+  warmupSteps?: Step[];
   workoutExerciseId?: string;
   attributeValuesJson?: any;
   onFeedbackSubmitted?: () => void;
@@ -34,57 +34,49 @@ export default function WarmupPanel({
           }
         })
         .eq('id', workoutExerciseId);
-    } finally {
+      
+      // Collapse panel immediately after feedback
+      setOpen(false);
       onFeedbackSubmitted?.();
+    } catch (error) {
+      console.error('Failed to save warmup feedback:', error);
     }
   };
 
   if (!steps.length && topWeightKg == null) return null;
 
   return (
-    <div className="mb-3 rounded-lg border border-emerald-900/30 bg-[#0f1f1b]">
-      <button
-        className="flex w-full items-center justify-between px-3 py-2 text-sm text-emerald-300"
-        onClick={() => setOpen(v => !v)}
-      >
-        <span>Warmup</span>
-        <span className="text-emerald-400/80">{open ? '−' : '+'}</span>
-      </button>
-
-      {open && (
-        <div className="px-3 pb-3 space-y-3">
-          <div className={`grid gap-2 ${compact ? 'grid-cols-3' : 'grid-cols-4'}`}>
-            {steps.map((s, i) => (
-              <div key={i} className="rounded-md bg-[#0b1714] px-2 py-2 text-center">
-                <div className="text-xs text-emerald-400/80">{Math.round((s.kg / (topWeightKg || s.kg))*100)}%</div>
-                <div className="text-sm text-emerald-200">{s.kg} kg</div>
-                <div className="text-[11px] text-emerald-400/70">{s.reps} reps • {s.rest_s}s</div>
-              </div>
-            ))}
+    <div className="space-y-3">
+      <div className={`grid gap-2 ${compact ? 'grid-cols-3' : 'grid-cols-4'}`}>
+        {steps.map((s, i) => (
+          <div key={i} className="rounded-md bg-[#0b1714] px-2 py-2 text-center">
+            <div className="text-xs text-emerald-400/80">{Math.round((s.kg / (topWeightKg || s.kg))*100)}%</div>
+            <div className="text-sm text-emerald-200">{s.kg} kg</div>
+            <div className="text-[11px] text-emerald-400/70">{s.reps} reps • {s.rest_s}s</div>
           </div>
-          
-          {workoutExerciseId && (
-            <div className="flex gap-2 justify-center">
-              <button 
-                onClick={() => handleFeedback('too_easy')}
-                className="px-2 py-1 text-xs bg-blue-700/70 text-white rounded hover:bg-blue-700"
-              >
-                Too Easy
-              </button>
-              <button 
-                onClick={() => handleFeedback('good')}
-                className="px-2 py-1 text-xs bg-emerald-700/70 text-white rounded hover:bg-emerald-700"
-              >
-                Good
-              </button>
-              <button 
-                onClick={() => handleFeedback('too_hard')}
-                className="px-2 py-1 text-xs bg-red-700/70 text-white rounded hover:bg-red-700"
-              >
-                Too Hard
-              </button>
-            </div>
-          )}
+        ))}
+      </div>
+      
+      {workoutExerciseId && (
+        <div className="flex gap-2 justify-center">
+          <button 
+            onClick={() => handleFeedback('too_easy')}
+            className="px-2 py-1 text-xs bg-blue-700/70 text-white rounded hover:bg-blue-700"
+          >
+            Too Easy
+          </button>
+          <button 
+            onClick={() => handleFeedback('good')}
+            className="px-2 py-1 text-xs bg-emerald-700/70 text-white rounded hover:bg-emerald-700"
+          >
+            Good
+          </button>
+          <button 
+            onClick={() => handleFeedback('too_hard')}
+            className="px-2 py-1 text-xs bg-red-700/70 text-white rounded hover:bg-red-700"
+          >
+            Too Hard
+          </button>
         </div>
       )}
     </div>

@@ -73,7 +73,7 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
 
       {/* COLLAPSIBLE PANELS */}
       {/* Warmup: auto-hide after feedback; Fire icon can re-open */}
-      {active === 'warmup' && !warmupDone && (
+      {active === 'warmup' && (
         <div className="mb-4 rounded-xl border border-emerald-900/30 bg-[#0f1f1b] p-3">
           <WarmupPanel
             topWeightKg={we.target_weight_kg ?? null}
@@ -81,8 +81,7 @@ export default function WorkoutExerciseCard({ we }: { we: WorkoutExercise }) {
             workoutExerciseId={we.id}
             attributeValuesJson={we.attribute_values_json}
             onFeedbackSubmitted={() => {
-              setWarmupDone(true);
-              setActive(null);
+              setActive(null); // Just close panel, don't prevent reopening
             }}
             compact
           />
