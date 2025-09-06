@@ -126,7 +126,7 @@ const AdminMentorsListPage: React.FC = () => {
                           </Badge>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 text-sm">
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 text-sm">
                           <div>
                             <span className="font-medium text-muted-foreground">Email:</span>
                             <p className="mt-1">{mentor.email || '—'}</p>
@@ -138,6 +138,10 @@ const AdminMentorsListPage: React.FC = () => {
                           <div>
                             <span className="font-medium text-muted-foreground">Hourly Rate:</span>
                             <p className="mt-1">{mentor.hourly_rate ? `$${mentor.hourly_rate}` : '—'}</p>
+                          </div>
+                          <div>
+                            <span className="font-medium text-muted-foreground">Gym:</span>
+                            <p className="mt-1">{mentor.gym_name || 'No gym assigned'}</p>
                           </div>
                           <div>
                             <span className="font-medium text-muted-foreground">Created:</span>

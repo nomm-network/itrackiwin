@@ -2585,6 +2585,7 @@ export type Database = {
           bio: string | null
           created_at: string
           display_name: string | null
+          gym_id: string | null
           hourly_rate: number | null
           id: string
           is_public: boolean
@@ -2597,6 +2598,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          gym_id?: string | null
           hourly_rate?: number | null
           id?: string
           is_public?: boolean
@@ -2609,6 +2611,7 @@ export type Database = {
           bio?: string | null
           created_at?: string
           display_name?: string | null
+          gym_id?: string | null
           hourly_rate?: number | null
           id?: string
           is_public?: boolean
@@ -2630,6 +2633,13 @@ export type Database = {
             columns: ["life_category_id"]
             isOneToOne: false
             referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentors_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
         ]
@@ -6609,6 +6619,8 @@ export type Database = {
           created_at: string | null
           display_name: string | null
           email: string | null
+          gym_id: string | null
+          gym_name: string | null
           hourly_rate: number | null
           id: string | null
           is_active: boolean | null
@@ -6630,6 +6642,13 @@ export type Database = {
             columns: ["primary_category_id"]
             isOneToOne: false
             referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "mentors_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
             referencedColumns: ["id"]
           },
         ]
