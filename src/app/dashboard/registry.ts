@@ -1,6 +1,6 @@
 import React from 'react';
 import type { DashboardWidget, QuickAction } from './types';
-import { Play, Target, Calendar, Settings, Repeat, Users } from 'lucide-react';
+import { Play, Target, Calendar, Settings, Repeat, Users, Dumbbell } from 'lucide-react';
 import { useActiveWorkout } from '@/features/workouts/hooks';
 
 // Fitness widgets - lazy loaded for performance
@@ -95,6 +95,15 @@ export const quickActions: QuickAction[] = [
     subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
     onClickPath: '/app/programs',
     order: 4
+  },
+  {
+    id: 'gyms.browse',
+    label: 'Gyms',
+    icon: React.createElement(Dumbbell, { className: 'h-4 w-4' }),
+    category: 'b54c368d-cd4f-4276-aa82-668da614e50d', // health category ID
+    subcategory: 'e13d15c9-85a7-41ec-bd4b-232a69fcb247', // fitness subcategory ID
+    onClickPath: '/gyms',
+    order: 5
   },
   {
     id: 'mentors.browse',

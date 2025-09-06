@@ -41,6 +41,7 @@ const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const Orbits = lazy(() => import('@/pages/Orbits'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
+const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
@@ -131,6 +132,11 @@ export function AppRoutes() {
           <Route path="/mentors" element={
             <ProtectedMobileLayout>
               <MentorsPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/gyms" element={
+            <ProtectedMobileLayout>
+              <GymsListPage />
             </ProtectedMobileLayout>
           } />
 
