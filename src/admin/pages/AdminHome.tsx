@@ -1,53 +1,75 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
-import PageNav from "@/components/PageNav";
-import { useTranslation } from "react-i18next";
-
-import AdminHeaderMenu from "@/admin/components/AdminHeaderMenu";
-import { useTranslations } from "@/hooks/useTranslations";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { 
+  Users, 
+  Dumbbell, 
+  Settings,
+  UserCheck,
+  Database
+} from "lucide-react";
 
 const AdminHome: React.FC = () => {
-  const { t } = useTranslation();
-  const { getTranslatedName, currentLanguage } = useTranslations();
-  
-  const { data: categories = [] } = useQuery({
-    queryKey: ["admin_categories_list", currentLanguage],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("v_categories_with_translations")
-        .select("id, slug, translations")
-        .order("display_order", { ascending: true });
-      if (error) throw error;
-      return (data ?? []) as Array<{ 
-        id: string; 
-        slug: string | null; 
-        translations: Record<string, { name: string; description?: string }> | null;
-      }>;
+  const adminSections = [
+    {
+      title: "Setup Flow",
+      description: "Configure body taxonomy, equipment, grips, and system setup",
+      path: "/admin/setup/body-taxonomy",
+      icon: Database,
     },
-  });
+    {
+      title: "Exercise Management",
+      description: "Manage exercises, equipment, and exercise configurations", 
+      path: "/admin/exercises",
+      icon: Dumbbell,
+    },
+    {
+      title: "User Management",
+      description: "Manage users, roles, and permissions",
+      path: "/admin/users",
+      icon: Users,
+    },
+    {
+      title: "Mentors Management", 
+      description: "Add and manage coaches and mentors",
+      path: "/admin/mentors",
+      icon: UserCheck,
+    }
+  ];
 
   return (
-    <main className="container py-6">
-      <PageNav current="Admin" />
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-foreground">Admin</h1>
+      </div>
       
-      <AdminHeaderMenu />
-      <h1 className="sr-only">Admin</h1>
-      <section className="space-y-4">
-        <h2 className="text-xl font-semibold">{t('navigation.categories')}</h2>
-        <nav className="grid gap-2 sm:grid-cols-2 md:grid-cols-3">
-          {categories.map((c) => (
-            <Link key={c.id} to={`/admin/category/${c.id}`} className="rounded-md border border-border bg-card p-3 hover:bg-accent transition-colors">
-              {getTranslatedName(c)}
-            </Link>
-          ))}
-          {categories.length === 0 && (
-            <p className="text-muted-foreground">{t('labels.no_categories')}</p>
-          )}
-        </nav>
-      </section>
-    </main>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {adminSections.map((section) => {
+          const Icon = section.icon;
+          return (
+            <Card key={section.path} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
+                <div className="flex items-center space-x-2">
+                  <Icon className="h-5 w-5 text-primary" />
+                  <CardTitle className="text-lg">{section.title}</CardTitle>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground mb-4">
+                  {section.description}
+                </p>
+                <Button asChild variant="outline" className="w-full">
+                  <Link to={section.path}>
+                    Open
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
+    </div>
   );
 };
 
