@@ -24,7 +24,7 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const AdminMentorForm = () => <div style={{backgroundColor: 'red', color: 'white', padding: '20px'}}>MENTOR FORM TEST - RED BOX</div>;
+const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorForm"));
 
 export function AdminRoutes() {
   return (
