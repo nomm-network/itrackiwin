@@ -1,57 +1,55 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
-export interface MentorOverview {
+export type MentorRow = {
   id: string;
   user_id: string;
-  display_name: string;
+  display_name: string | null;
+  email: string | null;
   mentor_type: 'mentor' | 'coach';
   primary_category_id: string | null;
-  is_public: boolean;
-  bio: string | null;
-  hourly_rate: number | null;
+  is_active: boolean;
   created_at: string;
-  updated_at: string;
-}
+  // Database also returns these fields
+  bio?: string | null;
+  hourly_rate?: number | null;
+  is_public?: boolean;
+  updated_at?: string;
+};
 
-export const useMentors = () => {
+const qk = {
+  all: ['admin','mentors'] as const,
+  one: (id: string) => ['admin','mentors',id] as const,
+};
+
+export function useMentors() {
   return useQuery({
-    queryKey: ['admin', 'mentors'],
-    queryFn: async (): Promise<MentorOverview[]> => {
+    queryKey: qk.all,
+    queryFn: async (): Promise<MentorRow[]> => {
       const { data, error } = await supabase
         .from('v_admin_mentors_overview')
         .select('*')
         .order('created_at', { ascending: false });
-
-      if (error) {
-        console.error('Error fetching mentors:', error);
-        throw error;
-      }
-
-      return data || [];
-    },
+      if (error) throw error;
+      return data as MentorRow[];
+    }
   });
-};
+}
 
-export const useMentor = (id: string | undefined) => {
+export function useMentor(id: string | undefined) {
   return useQuery({
-    queryKey: ['admin', 'mentor', id],
-    queryFn: async (): Promise<MentorOverview | null> => {
-      if (!id || id === 'new') return null;
-
+    enabled: !!id,
+    queryKey: id ? qk.one(id) : qk.all,
+    queryFn: async (): Promise<MentorRow | null> => {
+      if (!id) return null;
       const { data, error } = await supabase
         .from('v_admin_mentors_overview')
         .select('*')
         .eq('id', id)
+        .limit(1)
         .maybeSingle();
-
-      if (error) {
-        console.error('Error fetching mentor:', error);
-        throw error;
-      }
-
-      return data;
-    },
-    enabled: !!id,
+      if (error) throw error;
+      return data as MentorRow | null;
+    }
   });
-};
+}

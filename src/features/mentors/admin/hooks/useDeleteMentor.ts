@@ -1,44 +1,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-export const useDeleteMentor = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+export function useDeleteMentor() {
+  const qc = useQueryClient();
 
   return useMutation({
     mutationFn: async (id: string) => {
+      // If your RPC name differs, change it here:
       const { data, error } = await supabase.rpc('admin_delete_mentor', {
         p_id: id
       });
-
-      if (error) {
-        console.error('Error deleting mentor:', error);
-        throw error;
-      }
-
-      if (!data) {
-        throw new Error('Mentor not found or could not be deleted');
-      }
-
-      return data;
+      if (error) throw error;
+      return data as boolean;
     },
     onSuccess: () => {
-      // Invalidate mentors list
-      queryClient.invalidateQueries({ queryKey: ['admin', 'mentors'] });
-
-      toast({
-        title: "Success",
-        description: "Mentor deleted successfully",
-      });
+      toast.success('Mentor deleted');
+      qc.invalidateQueries({ queryKey: ['admin','mentors'] });
     },
-    onError: (error: any) => {
-      console.error('Mentor delete error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete mentor",
-        variant: "destructive",
-      });
-    },
+    onError: (e: any) => {
+      console.error('[admin_delete_mentor]', e);
+      toast.error(e?.message ?? 'Failed to delete mentor');
+    }
   });
-};
+}

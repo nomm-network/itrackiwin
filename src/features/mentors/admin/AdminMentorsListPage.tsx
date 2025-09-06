@@ -1,144 +1,75 @@
-import React from 'react';
+import * as React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Plus, User, Crown } from 'lucide-react';
 import { useMentors } from './hooks/useMentors';
-import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
-const AdminMentorsListPage = () => {
-  const navigate = useNavigate();
-  const { data: mentors, isLoading, error } = useMentors();
-
-  const handleRowClick = (id: string) => {
-    navigate(`/admin/mentors/${id}`);
-  };
-
-  const handleNewMentor = () => {
-    navigate('/admin/mentors/new');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="text-center">
-          <p className="text-destructive">Error loading mentors: {error.message}</p>
-        </div>
-      </div>
-    );
-  }
+export default function AdminMentorsListPage() {
+  const nav = useNavigate();
+  const { data, isLoading, error } = useMentors();
 
   return (
-    <div className="container mx-auto p-6 space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h1 className="text-3xl font-bold">Mentors Management</h1>
-          <p className="text-muted-foreground">Manage mentors and coaches in the system</p>
-        </div>
-        <Button onClick={handleNewMentor} className="flex items-center gap-2">
-          <Plus className="h-4 w-4" />
+    <div className="p-4 md:p-6">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">Mentors / Coaches</h1>
+        <button
+          onClick={() => nav('/app/admin/mentors/new')}
+          className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+        >
           New Mentor
-        </Button>
+        </button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Mentors ({mentors?.length || 0})</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead>Primary Category</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Hourly Rate</TableHead>
-                <TableHead>Created</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {mentors?.length ? (
-                mentors.map((mentor) => (
-                  <TableRow
-                    key={mentor.id}
-                    className="cursor-pointer hover:bg-muted/50"
-                    onClick={() => handleRowClick(mentor.id)}
-                  >
-                    <TableCell className="font-medium">
-                      <div className="flex items-center gap-2">
-                        <User className="h-4 w-4 text-muted-foreground" />
-                        {mentor.display_name}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center gap-2">
-                        {mentor.mentor_type === 'coach' && (
-                          <Crown className="h-4 w-4 text-yellow-500" />
-                        )}
-                        <Badge variant={mentor.mentor_type === 'coach' ? 'default' : 'secondary'}>
-                          {mentor.mentor_type}
-                        </Badge>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      {mentor.primary_category_id ? (
-                        <Badge variant="outline">Category Set</Badge>
-                      ) : (
-                        <span className="text-muted-foreground">No category</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={mentor.is_public ? 'default' : 'secondary'}>
-                        {mentor.is_public ? 'Public' : 'Private'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      {mentor.hourly_rate ? (
-                        <span className="font-medium">${mentor.hourly_rate}/hr</span>
-                      ) : (
-                        <span className="text-muted-foreground">Not set</span>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {format(new Date(mentor.created_at), 'MMM dd, yyyy')}
-                    </TableCell>
-                  </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={6} className="text-center py-8">
-                    <div className="text-muted-foreground">
-                      <User className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <p>No mentors found</p>
-                      <p className="text-sm">Create your first mentor to get started</p>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+      {isLoading && <div className="text-sm opacity-70">Loading…</div>}
+      {error && <div className="text-sm text-red-500">{(error as any)?.message}</div>}
+
+      <div className="overflow-auto rounded-md border border-zinc-800">
+        <table className="min-w-[720px] w-full text-sm">
+          <thead className="bg-zinc-900/50">
+            <tr>
+              <th className="px-3 py-2 text-left">Name</th>
+              <th className="px-3 py-2 text-left">Email</th>
+              <th className="px-3 py-2">Type</th>
+              <th className="px-3 py-2">Primary Category</th>
+              <th className="px-3 py-2">Active</th>
+              <th className="px-3 py-2">Created</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data?.map((r) => (
+              <tr
+                key={r.id}
+                onClick={() => nav(`/app/admin/mentors/${r.id}`)}
+                className={cn(
+                  'cursor-pointer hover:bg-emerald-500/5 border-t border-zinc-800'
+                )}
+              >
+                <td className="px-3 py-2">{r.display_name || r.user_id}</td>
+                <td className="px-3 py-2">{r.email || '-'}</td>
+                <td className="px-3 py-2 text-center">{r.mentor_type}</td>
+                <td className="px-3 py-2 text-center">{r.primary_category_id || '-'}</td>
+                <td className="px-3 py-2 text-center">
+                  {r.is_active ? 'Yes' : 'No'}
+                </td>
+                <td className="px-3 py-2 text-center">
+                  {new Date(r.created_at).toLocaleDateString()}
+                </td>
+              </tr>
+            ))}
+            {data?.length === 0 && (
+              <tr>
+                <td colSpan={6} className="px-3 py-6 text-center opacity-70">
+                  No mentors yet.
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
+      </div>
+
+      {/* tiny debug row */}
+      <div className="mt-3 text-xs opacity-60">
+        Source: <code>v_admin_mentors_overview</code>
+      </div>
     </div>
   );
-};
-
-export default AdminMentorsListPage;
+}

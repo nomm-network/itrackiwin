@@ -1,56 +1,36 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 
-export interface UpsertMentorPayload {
-  id?: string;
+type UpsertPayload = {
+  id?: string;                 // omit for new
   user_id: string;
   mentor_type: 'mentor' | 'coach';
-  primary_category_id?: string;
-  is_public?: boolean;
-  display_name?: string;
-  bio?: string;
-  hourly_rate?: number;
-}
+  primary_category_id?: string | null;
+  is_active?: boolean;
+  bio?: string | null;
+  hourly_rate?: number | null;
+};
 
-export const useUpsertMentor = () => {
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+export function useUpsertMentor() {
+  const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (payload: UpsertMentorPayload) => {
+    mutationFn: async (payload: UpsertPayload) => {
+      // If your RPC name differs, change it here:
       const { data, error } = await supabase.rpc('admin_upsert_mentor', {
-        p_payload: payload as any
+        p_payload: payload
       });
-
-      if (error) {
-        console.error('Error upserting mentor:', error);
-        throw error;
-      }
-
-      return data;
+      if (error) throw error;
+      return data as { id: string }[];
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch mentors list
-      queryClient.invalidateQueries({ queryKey: ['admin', 'mentors'] });
-      
-      // If we got an ID back, invalidate that specific mentor
-      if (data && data.length > 0) {
-        queryClient.invalidateQueries({ queryKey: ['admin', 'mentor', data[0].id] });
-      }
-
-      toast({
-        title: "Success",
-        description: "Mentor saved successfully",
-      });
+    onSuccess: () => {
+      toast.success('Mentor saved');
+      qc.invalidateQueries({ queryKey: ['admin','mentors'] });
     },
-    onError: (error: any) => {
-      console.error('Mentor upsert error:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save mentor",
-        variant: "destructive",
-      });
-    },
+    onError: (e: any) => {
+      console.error('[admin_upsert_mentor]', e);
+      toast.error(e?.message ?? 'Failed to save mentor');
+    }
   });
-};
+}

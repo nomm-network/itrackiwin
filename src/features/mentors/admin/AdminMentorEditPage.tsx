@@ -1,273 +1,167 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { ArrowLeft, Save, Trash2, User } from 'lucide-react';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
+import * as React from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
 import { useMentor } from './hooks/useMentors';
-import { useUpsertMentor, UpsertMentorPayload } from './hooks/useUpsertMentor';
+import { useUpsertMentor } from './hooks/useUpsertMentor';
 import { useDeleteMentor } from './hooks/useDeleteMentor';
+import { toast } from 'sonner';
 
-const AdminMentorEditPage = () => {
+export default function AdminMentorEditPage() {
+  const nav = useNavigate();
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const isNew = id === 'new';
 
-  const { data: mentor, isLoading } = useMentor(id);
-  const upsertMentor = useUpsertMentor();
-  const deleteMentor = useDeleteMentor();
+  const { data } = useMentor(!isNew ? id : undefined);
+  const upsert = useUpsertMentor();
+  const del = useDeleteMentor();
 
-  const [formData, setFormData] = useState<UpsertMentorPayload>({
-    user_id: '',
-    mentor_type: 'mentor',
-    primary_category_id: '',
-    is_public: true,
-    display_name: '',
-    bio: '',
-    hourly_rate: 0,
+  const [form, setForm] = React.useState({
+    id: isNew ? undefined : id,
+    user_id: data?.user_id ?? '',
+    mentor_type: (data?.mentor_type as 'mentor' | 'coach') ?? 'mentor',
+    primary_category_id: data?.primary_category_id ?? '',
+    is_active: data?.is_active ?? true,
+    bio: '' as string | null,
+    hourly_rate: undefined as number | undefined
   });
 
-  useEffect(() => {
-    if (mentor && !isNew) {
-      setFormData({
-        id: mentor.id,
-        user_id: mentor.user_id,
-        mentor_type: mentor.mentor_type,
-        primary_category_id: mentor.primary_category_id || '',
-        is_public: mentor.is_public,
-        display_name: mentor.display_name || '',
-        bio: mentor.bio || '',
-        hourly_rate: mentor.hourly_rate || 0,
-      });
+  React.useEffect(() => {
+    if (!data) return;
+    setForm((f) => ({
+      ...f,
+      id: data.id,
+      user_id: data.user_id,
+      mentor_type: data.mentor_type,
+      primary_category_id: data.primary_category_id ?? '',
+      is_active: data.is_active
+    }));
+  }, [data]);
+
+  const onSave = async () => {
+    if (!form.user_id) {
+      toast.error('Select a user_id (temporary requirement).');
+      return;
     }
-  }, [mentor, isNew]);
-
-  const handleSave = () => {
-    const payload = { ...formData };
-    
-    // Clean up empty values
-    if (!payload.primary_category_id) delete payload.primary_category_id;
-    if (!payload.bio) delete payload.bio;
-    if (!payload.hourly_rate) delete payload.hourly_rate;
-
-    upsertMentor.mutate(payload, {
-      onSuccess: (data) => {
-        if (isNew && data && data.length > 0) {
-          // Redirect to edit page with the new ID
-          navigate(`/admin/mentors/${data[0].id}`);
-        }
-      },
+    await upsert.mutateAsync({
+      ...form,
+      primary_category_id: form.primary_category_id || null,
+      bio: form.bio || null,
+      hourly_rate: form.hourly_rate ?? null
     });
+    nav('/app/admin/mentors');
   };
 
-  const handleDelete = () => {
-    if (mentor?.id) {
-      deleteMentor.mutate(mentor.id, {
-        onSuccess: () => {
-          navigate('/admin/mentors');
-        },
-      });
-    }
+  const onDelete = async () => {
+    if (!id || isNew) return;
+    await del.mutateAsync(id);
+    nav('/app/admin/mentors');
   };
-
-  const handleBack = () => {
-    navigate('/admin/mentors');
-  };
-
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-64">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
 
   return (
-    <div className="container mx-auto p-6 max-w-2xl space-y-6">
-      <div className="flex items-center gap-4">
-        <Button variant="ghost" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4" />
-        </Button>
-        <div>
-          <h1 className="text-3xl font-bold">
-            {isNew ? 'New Mentor' : 'Edit Mentor'}
-          </h1>
-          <p className="text-muted-foreground">
-            {isNew ? 'Create a new mentor profile' : 'Modify mentor details'}
-          </p>
+    <div className="p-4 md:p-6 max-w-2xl">
+      <div className="flex items-center justify-between mb-4">
+        <h1 className="text-xl font-semibold">
+          {isNew ? 'New Mentor' : 'Edit Mentor'}
+        </h1>
+        <div className="flex gap-2">
+          {!isNew && (
+            <button
+              onClick={onDelete}
+              className="px-3 py-2 rounded-md bg-red-600 text-white hover:bg-red-700"
+            >
+              Delete
+            </button>
+          )}
+          <button
+            onClick={() => nav('/app/admin/mentors')}
+            className="px-3 py-2 rounded-md border border-zinc-700 hover:bg-zinc-900"
+          >
+            Back
+          </button>
+          <button
+            onClick={onSave}
+            className="px-3 py-2 rounded-md bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            Save
+          </button>
         </div>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <User className="h-5 w-5" />
-            Mentor Details
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="user_id">User ID *</Label>
-              <Input
-                id="user_id"
-                value={formData.user_id}
-                onChange={(e) => setFormData(prev => ({ ...prev, user_id: e.target.value }))}
-                placeholder="Enter user UUID"
-                disabled={!isNew}
-              />
-              {!isNew && (
-                <p className="text-xs text-muted-foreground">User ID cannot be changed after creation</p>
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="mentor_type">Type *</Label>
-              <Select 
-                value={formData.mentor_type} 
-                onValueChange={(value: 'mentor' | 'coach') => 
-                  setFormData(prev => ({ ...prev, mentor_type: value }))
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="mentor">Mentor</SelectItem>
-                  <SelectItem value="coach">Coach</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="display_name">Display Name</Label>
-            <Input
-              id="display_name"
-              value={formData.display_name}
-              onChange={(e) => setFormData(prev => ({ ...prev, display_name: e.target.value }))}
-              placeholder="Enter display name"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="primary_category_id">Primary Category ID</Label>
-            <Input
-              id="primary_category_id"
-              value={formData.primary_category_id}
-              onChange={(e) => setFormData(prev => ({ ...prev, primary_category_id: e.target.value }))}
-              placeholder="Enter life category UUID (optional)"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="bio">Bio</Label>
-            <Textarea
-              id="bio"
-              value={formData.bio}
-              onChange={(e) => setFormData(prev => ({ ...prev, bio: e.target.value }))}
-              placeholder="Enter mentor bio (optional)"
-              rows={4}
-            />
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="hourly_rate">Hourly Rate ($)</Label>
-            <Input
-              id="hourly_rate"
-              type="number"
-              step="0.01"
-              min="0"
-              value={formData.hourly_rate || ''}
-              onChange={(e) => setFormData(prev => ({ 
-                ...prev, 
-                hourly_rate: e.target.value ? parseFloat(e.target.value) : 0 
-              }))}
-              placeholder="0.00"
-            />
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="is_public"
-              checked={formData.is_public}
-              onCheckedChange={(checked) => 
-                setFormData(prev => ({ ...prev, is_public: !!checked }))
-              }
-            />
-            <Label htmlFor="is_public">Public Profile</Label>
-          </div>
-        </CardContent>
-      </Card>
-
-      <div className="flex justify-between">
+      {/* Minimal form; replace user_id with a proper user picker later */}
+      <div className="space-y-4">
         <div>
-          {!isNew && (
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button variant="destructive" className="flex items-center gap-2">
-                  <Trash2 className="h-4 w-4" />
-                  Delete
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Mentor</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this mentor? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction 
-                    onClick={handleDelete}
-                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                  >
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
-          )}
+          <label className="block text-sm mb-1">User ID</label>
+          <input
+            value={form.user_id}
+            onChange={(e) => setForm((f) => ({ ...f, user_id: e.target.value }))}
+            className="w-full px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800"
+            placeholder="uuid-of-user"
+          />
+          <p className="text-xs opacity-60 mt-1">
+            (Temporary) paste a user UUID; we'll add a proper picker later.
+          </p>
         </div>
 
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={handleBack}>
-            Cancel
-          </Button>
-          <Button 
-            onClick={handleSave} 
-            disabled={!formData.user_id || upsertMentor.isPending}
-            className="flex items-center gap-2"
+        <div>
+          <label className="block text-sm mb-1">Type</label>
+          <select
+            value={form.mentor_type}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, mentor_type: e.target.value as 'mentor' | 'coach' }))
+            }
+            className="w-full px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800"
           >
-            <Save className="h-4 w-4" />
-            {upsertMentor.isPending ? 'Saving...' : 'Save'}
-          </Button>
+            <option value="mentor">mentor</option>
+            <option value="coach">coach</option>
+          </select>
         </div>
+
+        <div>
+          <label className="block text-sm mb-1">Primary Category ID</label>
+          <input
+            value={form.primary_category_id ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, primary_category_id: e.target.value }))}
+            className="w-full px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800"
+            placeholder="uuid-of-life-category (optional)"
+          />
+        </div>
+
+        <div className="flex items-center gap-2">
+          <input
+            id="is_active"
+            type="checkbox"
+            checked={form.is_active}
+            onChange={(e) => setForm((f) => ({ ...f, is_active: e.target.checked }))}
+          />
+          <label htmlFor="is_active" className="text-sm">Active</label>
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">Bio (optional)</label>
+          <textarea
+            value={form.bio ?? ''}
+            onChange={(e) => setForm((f) => ({ ...f, bio: e.target.value }))}
+            className="w-full px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800 min-h-[80px]"
+            placeholder="Short bio…"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm mb-1">Hourly Rate (optional)</label>
+          <input
+            type="number"
+            value={form.hourly_rate ?? ''}
+            onChange={(e) =>
+              setForm((f) => ({ ...f, hourly_rate: e.target.value ? Number(e.target.value) : undefined }))
+            }
+            className="w-full px-3 py-2 rounded-md bg-zinc-900 border border-zinc-800"
+            placeholder="e.g., 50"
+          />
+        </div>
+      </div>
+
+      <div className="mt-4 text-xs opacity-60">
+        Uses RPC: <code>admin_upsert_mentor</code>, <code>admin_delete_mentor</code> · View: <code>v_admin_mentors_overview</code>
       </div>
     </div>
   );
-};
-
-export default AdminMentorEditPage;
+}
