@@ -2526,32 +2526,56 @@ export type Database = {
       gym_equipment_overrides: {
         Row: {
           bar_weight_kg: number | null
+          base_implement_kg: number | null
           created_at: string | null
           equipment_id: string
+          equipment_slug: string | null
+          fixed_increment_kg: number | null
           gym_id: string
           id: string
+          notes: string | null
+          plate_denoms_kg: number[] | null
           side_min_plate_kg: number | null
           single_min_increment_kg: number | null
+          stack_increment_kg: number | null
+          stack_max_kg: number | null
+          stack_min_kg: number | null
           updated_at: string | null
         }
         Insert: {
           bar_weight_kg?: number | null
+          base_implement_kg?: number | null
           created_at?: string | null
           equipment_id: string
+          equipment_slug?: string | null
+          fixed_increment_kg?: number | null
           gym_id: string
           id?: string
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
           side_min_plate_kg?: number | null
           single_min_increment_kg?: number | null
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
           updated_at?: string | null
         }
         Update: {
           bar_weight_kg?: number | null
+          base_implement_kg?: number | null
           created_at?: string | null
           equipment_id?: string
+          equipment_slug?: string | null
+          fixed_increment_kg?: number | null
           gym_id?: string
           id?: string
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
           side_min_plate_kg?: number | null
           single_min_increment_kg?: number | null
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -7514,6 +7538,48 @@ export type Database = {
         }
         Relationships: []
       }
+      v_effective_equipment: {
+        Row: {
+          base_implement_kg: number | null
+          display_name: string | null
+          fixed_increment_kg: number | null
+          gym_id: string | null
+          loading_mode: string | null
+          notes: string | null
+          plate_denoms_kg: number[] | null
+          slug: string | null
+          stack_increment_kg: number | null
+          stack_max_kg: number | null
+          stack_min_kg: number | null
+        }
+        Insert: {
+          base_implement_kg?: number | null
+          display_name?: string | null
+          fixed_increment_kg?: number | null
+          gym_id?: never
+          loading_mode?: string | null
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
+          slug?: string | null
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
+        }
+        Update: {
+          base_implement_kg?: number | null
+          display_name?: string | null
+          fixed_increment_kg?: number | null
+          gym_id?: never
+          loading_mode?: string | null
+          notes?: string | null
+          plate_denoms_kg?: number[] | null
+          slug?: string | null
+          stack_increment_kg?: number | null
+          stack_max_kg?: number | null
+          stack_min_kg?: number | null
+        }
+        Relationships: []
+      }
       v_equipment_effective: {
         Row: {
           bar_weight_kg: number | null
@@ -8823,6 +8889,19 @@ export type Database = {
         Args: { p_equipment_id: string; p_movement_id: string }
         Returns: Json
       }
+      get_effective_equipment_profile: {
+        Args: { p_exercise: string; p_gym?: string }
+        Returns: {
+          base_implement_kg: number
+          fixed_increment_kg: number
+          loading_mode: string
+          plate_denoms_kg: number[]
+          slug: string
+          stack_increment_kg: number
+          stack_max_kg: number
+          stack_min_kg: number
+        }[]
+      }
       get_effective_muscles: {
         Args: {
           _equipment_id?: string
@@ -9370,6 +9449,10 @@ export type Database = {
       request_gym_coach: {
         Args: { p_gym: string; p_mentor_id: string }
         Returns: undefined
+      }
+      round_load_for_exercise: {
+        Args: { p_exercise: string; p_gym: string; p_target_kg: number }
+        Returns: number
       }
       run_data_quality_check: {
         Args: Record<PropertyKey, never>
@@ -10510,6 +10593,18 @@ export type Database = {
           p_user_id: string
         }
         Returns: undefined
+      }
+      suggest_loads: {
+        Args: {
+          p_estimated_1rm: number
+          p_exercise: string
+          p_gym: string
+          p_percentages?: number[]
+        }
+        Returns: {
+          pct: number
+          suggested_kg: number
+        }[]
       }
       text: {
         Args: { "": unknown }
