@@ -26,15 +26,12 @@ const AdminSettings = lazy(() => import("./pages/AdminSettings"));
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
 const AdminMentorsListPage = lazy(() => import("@/features/mentors/admin/AdminMentorsListPage"));
-const HelloTestPage = lazy(() => import("@/features/mentors/admin/HelloTestPage"));
+const AdminMentorForm = lazy(() => import("@/features/mentors/admin/AdminMentorForm"));
 
 export function AdminRoutes() {
   return (
     <Routes>
       <Route path="/*" element={
-        <div style={{ padding: "24px", backgroundColor: "lightgreen" }}>
-          <h1>🔧 BASIC ADMIN SHELL TEST</h1>
-          <p>If you see this green box, the basic admin route is working!</p>
           <AdminLayout>
               <Routes>
                 <Route index element={<AdminHomePage />} />
@@ -42,9 +39,9 @@ export function AdminRoutes() {
                 <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
                 <Route path="users" element={<AdminUsersListPage />} />
                 <Route path="users/:id" element={<AdminUserDetailPage />} />
-                <Route path="mentors" element={<HelloTestPage />} />
-                <Route path="mentors/new" element={<HelloTestPage />} />
-                <Route path="mentors/:id" element={<HelloTestPage />} />
+                <Route path="mentors" element={<AdminMentorsListPage />} />
+                <Route path="mentors/new" element={<AdminMentorForm />} />
+                <Route path="mentors/:id" element={<AdminMentorForm />} />
                 
                 {/* Setup Flow Routes */}
                 <Route path="setup/body-taxonomy" element={<AdminMusclesManagement />} />
@@ -69,7 +66,6 @@ export function AdminRoutes() {
                 <Route path="category/:categoryId/sub/:subcategoryId" element={<AdminSubcategoryPage />} />
               </Routes>
             </AdminLayout>
-          </div>
         
       } />
     </Routes>
