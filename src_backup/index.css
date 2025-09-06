@@ -1,0 +1,310 @@
+@import './app/theme/tokens.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+All colors MUST be HSL.
+*/
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+
+    --primary: 152 76% 40%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 47% 11%;
+
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 45%;
+
+    --accent: 217 91% 66%;
+    --accent-foreground: 215 25% 10%;
+
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 217 91% 66%;
+
+    --radius: 0.75rem;
+
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 152 76% 40%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 214 32% 91%;
+    --sidebar-ring: 217 91% 66%;
+
+    /* Extras */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(160 84% 39%));
+    --gradient-subtle: linear-gradient(180deg, hsl(0 0% 100%), hsl(210 40% 98%));
+    --shadow-elegant: 0 10px 30px -10px hsl(var(--accent) / 0.25);
+    --shadow-glow: 0 0 40px hsl(var(--primary) / 0.3);
+
+    /* Mobile-first responsive design tokens */
+    --fluid-space-3xs: clamp(0.25rem, 0.23rem + 0.11vw, 0.3125rem);
+    --fluid-space-2xs: clamp(0.5rem, 0.46rem + 0.22vw, 0.625rem);
+    --fluid-space-xs: clamp(0.75rem, 0.68rem + 0.33vw, 0.9375rem);
+    --fluid-space-s: clamp(1rem, 0.91rem + 0.43vw, 1.25rem);
+    --fluid-space-m: clamp(1.5rem, 1.37rem + 0.65vw, 1.875rem);
+    --fluid-space-l: clamp(2rem, 1.83rem + 0.87vw, 2.5rem);
+    --fluid-space-xl: clamp(3rem, 2.74rem + 1.3vw, 3.75rem);
+    --fluid-space-2xl: clamp(4rem, 3.65rem + 1.74vw, 5rem);
+
+    /* Fluid typography */
+    --fluid-text-sm: clamp(0.875rem, 0.84rem + 0.17vw, 0.9375rem);
+    --fluid-text-base: clamp(1rem, 0.96rem + 0.22vw, 1.125rem);
+    --fluid-text-lg: clamp(1.125rem, 1.07rem + 0.28vw, 1.25rem);
+    --fluid-text-xl: clamp(1.25rem, 1.17rem + 0.43vw, 1.5rem);
+    --fluid-text-2xl: clamp(1.5rem, 1.37rem + 0.65vw, 1.875rem);
+    --fluid-text-3xl: clamp(1.875rem, 1.71rem + 0.87vw, 2.25rem);
+    --fluid-text-4xl: clamp(2.25rem, 2.05rem + 1.09vw, 2.75rem);
+
+    /* Mobile touch targets */
+    --touch-target-min: 44px;
+    --touch-target-comfortable: 48px;
+  }
+
+  .dark {
+    --background: 215 25% 7%;
+    --foreground: 210 20% 98%;
+
+    --card: 215 23% 10%;
+    --card-foreground: 210 20% 98%;
+
+    --popover: 215 23% 10%;
+    --popover-foreground: 210 20% 98%;
+
+    --primary: 152 76% 66%;
+    --primary-foreground: 216 28% 7%;
+
+    --secondary: 217 32% 17%;
+    --secondary-foreground: 210 20% 96%;
+
+    --muted: 217 24% 18%;
+    --muted-foreground: 215 20% 65%;
+
+    --accent: 217 91% 66%;
+    --accent-foreground: 215 25% 10%;
+
+    --destructive: 0 90% 72%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 217 19% 24%;
+    --input: 217 19% 24%;
+    --ring: 217 91% 66%;
+
+    --sidebar-background: 215 23% 10%;
+    --sidebar-foreground: 210 20% 96%;
+    --sidebar-primary: 152 76% 66%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217 32% 17%;
+    --sidebar-accent-foreground: 210 20% 96%;
+    --sidebar-border: 217 19% 24%;
+    --sidebar-ring: 217 91% 66%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    /* Mobile-first optimizations */
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    font-size: var(--fluid-text-base);
+    line-height: 1.6;
+  }
+
+  /* Ensure proper mobile viewport handling */
+  html {
+    height: 100%;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  /* Responsive typography using fluid tokens */
+  h1 { font-size: var(--fluid-text-3xl); font-weight: 700; }
+  h2 { font-size: var(--fluid-text-2xl); font-weight: 600; }
+  h3 { font-size: var(--fluid-text-xl); font-weight: 600; }
+  h4 { font-size: var(--fluid-text-lg); font-weight: 500; }
+  .text-fluid-sm { font-size: var(--fluid-text-sm); }
+  .text-fluid-base { font-size: var(--fluid-text-base); }
+  .text-fluid-lg { font-size: var(--fluid-text-lg); }
+  .text-fluid-xl { font-size: var(--fluid-text-xl); }
+  .text-fluid-2xl { font-size: var(--fluid-text-2xl); }
+}
+
+@layer components {
+  /* Underline animation */
+  .story-link { position: relative; display: inline-block; }
+  .story-link::after {
+    content: ""; position: absolute; width: 100%; transform: scaleX(0); height: 2px; bottom: 0; left: 0;
+    background: hsl(var(--primary)); transform-origin: bottom right; transition: transform 0.3s;
+  }
+  .story-link:hover::after { transform: scaleX(1); transform-origin: bottom left; }
+
+  /* Hover scale */
+  .hover-scale { transition: transform 0.2s; }
+  .hover-scale:hover { transform: scale(1.05); }
+
+  /* Pulse utility */
+  .pulse { animation: pulse 2s cubic-bezier(0.4,0,0.6,1) infinite; }
+
+  /* Mobile-first utilities */
+  .touch-manipulation { touch-action: manipulation; }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  
+  /* Better touch targets */
+  .touch-target {
+    min-height: var(--touch-target-min);
+    min-width: var(--touch-target-min);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .touch-target-comfortable {
+    min-height: var(--touch-target-comfortable);
+    min-width: var(--touch-target-comfortable);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Fluid spacing utilities */
+  .space-fluid-3xs { gap: var(--fluid-space-3xs); }
+  .space-fluid-2xs { gap: var(--fluid-space-2xs); }
+  .space-fluid-xs { gap: var(--fluid-space-xs); }
+  .space-fluid-s { gap: var(--fluid-space-s); }
+  .space-fluid-m { gap: var(--fluid-space-m); }
+  .space-fluid-l { gap: var(--fluid-space-l); }
+  .space-fluid-xl { gap: var(--fluid-space-xl); }
+
+  .p-fluid-3xs { padding: var(--fluid-space-3xs); }
+  .p-fluid-2xs { padding: var(--fluid-space-2xs); }
+  .p-fluid-xs { padding: var(--fluid-space-xs); }
+  .p-fluid-s { padding: var(--fluid-space-s); }
+  .p-fluid-m { padding: var(--fluid-space-m); }
+  .p-fluid-l { padding: var(--fluid-space-l); }
+
+  .m-fluid-3xs { margin: var(--fluid-space-3xs); }
+  .m-fluid-2xs { margin: var(--fluid-space-2xs); }
+  .m-fluid-xs { margin: var(--fluid-space-xs); }
+  .m-fluid-s { margin: var(--fluid-space-s); }
+  .m-fluid-m { margin: var(--fluid-space-m); }
+  .m-fluid-l { margin: var(--fluid-space-l); }
+
+  /* CSS Grid responsive utilities */
+  .grid-auto-fit { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--fluid-space-m);
+  }
+  
+  .grid-auto-fill { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--fluid-space-s);
+  }
+
+  .grid-mobile-stack {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--fluid-space-s);
+  }
+
+  @media (min-width: 768px) {
+    .grid-mobile-stack {
+      grid-template-columns: repeat(2, 1fr);
+      gap: var(--fluid-space-m);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    .grid-mobile-stack {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  /* Smooth scrolling for mobile */
+  .smooth-scroll {
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+  }
+
+  /* Sticky elements for mobile */
+  .sticky-mobile {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    background: hsl(var(--background) / 0.95);
+    backdrop-filter: blur(8px);
+  }
+
+  /* Enhanced swipe gestures */
+  .swipe-container {
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
+  }
+
+  /* Mobile-optimized animations */
+  @media (prefers-reduced-motion: reduce) {
+    .smooth-scroll { scroll-behavior: auto; }
+    .hover-scale:hover { transform: none; }
+    .story-link::after { transition: none; }
+    * { animation-duration: 0.01ms !important; }
+  }
+
+  /* Better mobile focus styles */
+  .focus-ring:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+    border-radius: var(--radius);
+  }
+
+  /* Mobile viewport specific styles */
+  @media (max-width: 359px) {
+    .ultra-compact {
+      padding: var(--fluid-space-2xs);
+      font-size: var(--fluid-text-sm);
+    }
+  }
+
+  @media (min-width: 360px) and (max-width: 374px) {
+    .compact-mobile {
+      padding: var(--fluid-space-xs);
+    }
+  }
+
+  @media (min-width: 375px) and (max-width: 413px) {
+    .standard-mobile {
+      padding: var(--fluid-space-s);
+    }
+  }
+
+  @media (min-width: 414px) and (max-width: 767px) {
+    .large-mobile {
+      padding: var(--fluid-space-m);
+    }
+  }
+}

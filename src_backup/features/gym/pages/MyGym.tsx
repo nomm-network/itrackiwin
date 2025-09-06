@@ -1,0 +1,1 @@
+export { default } from '../../../features/health/fitness/pages/MyGym.page';
