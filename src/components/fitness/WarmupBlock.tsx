@@ -306,14 +306,14 @@ export function WarmupBlock({
               
               if (actualTopWeight > 0 && stepPercentage > 0) {
                 // s.pct is already a decimal (0.4, 0.6, 0.8), not a percentage
-                stepWeight = Math.round((actualTopWeight * stepPercentage) * 4) / 4; // Round to nearest 0.25kg
+                stepWeight = Math.round(actualTopWeight * stepPercentage); // Use same rounding as history page
               } else if (s.targetWeight && s.targetWeight > 0) {
                 stepWeight = s.targetWeight;
               } else {
                 // Fallback: use common warmup percentages as decimals
                 const fallbackPercentages = [0.4, 0.6, 0.8]; // 40%, 60%, 80% for typical 3-step warmup
                 if (actualTopWeight > 0 && index < fallbackPercentages.length) {
-                  stepWeight = Math.round((actualTopWeight * fallbackPercentages[index]) * 4) / 4;
+                  stepWeight = Math.round(actualTopWeight * fallbackPercentages[index]); // Use same rounding as history page
                 }
               }
 
