@@ -3593,6 +3593,7 @@ export type Database = {
       }
       template_exercises: {
         Row: {
+          attribute_values_json: Json
           backoff_percent: number | null
           backoff_sets: number | null
           created_at: string | null
@@ -3622,6 +3623,7 @@ export type Database = {
           weight_unit: string
         }
         Insert: {
+          attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
@@ -3651,6 +3653,7 @@ export type Database = {
           weight_unit?: string
         }
         Update: {
+          attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
           created_at?: string | null
@@ -4272,6 +4275,39 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_favorite_templates: {
+        Row: {
+          created_at: string
+          template_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          template_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          template_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_favorite_templates_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
             referencedColumns: ["id"]
           },
         ]
@@ -5008,6 +5044,7 @@ export type Database = {
           id: string
           injuries: string[] | null
           preferred_session_minutes: number | null
+          readiness_data: Json | null
           sex: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at: string | null
@@ -5025,6 +5062,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
           updated_at?: string | null
@@ -5042,6 +5080,7 @@ export type Database = {
           id?: string
           injuries?: string[] | null
           preferred_session_minutes?: number | null
+          readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal?: string
           updated_at?: string | null
@@ -5442,6 +5481,7 @@ export type Database = {
       }
       workout_exercises: {
         Row: {
+          attribute_values_json: Json | null
           bar_type_id: string | null
           display_name: string | null
           exercise_id: string
@@ -5456,6 +5496,7 @@ export type Database = {
           notes: string | null
           order_index: number
           per_side_weight: number | null
+          readiness_adjusted_from: string | null
           rest_seconds: number | null
           selected_bar_id: string | null
           target_origin: string | null
@@ -5474,6 +5515,7 @@ export type Database = {
           workout_id: string
         }
         Insert: {
+          attribute_values_json?: Json | null
           bar_type_id?: string | null
           display_name?: string | null
           exercise_id: string
@@ -5488,6 +5530,7 @@ export type Database = {
           notes?: string | null
           order_index: number
           per_side_weight?: number | null
+          readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
@@ -5506,6 +5549,7 @@ export type Database = {
           workout_id: string
         }
         Update: {
+          attribute_values_json?: Json | null
           bar_type_id?: string | null
           display_name?: string | null
           exercise_id?: string
@@ -5520,6 +5564,7 @@ export type Database = {
           notes?: string | null
           order_index?: number
           per_side_weight?: number | null
+          readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
           target_origin?: string | null
@@ -6075,6 +6120,7 @@ export type Database = {
       workout_templates: {
         Row: {
           created_at: string
+          favorite: boolean
           id: string
           is_public: boolean
           name: string | null
@@ -6083,6 +6129,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          favorite?: boolean
           id?: string
           is_public?: boolean
           name?: string | null
@@ -6091,6 +6138,7 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          favorite?: boolean
           id?: string
           is_public?: boolean
           name?: string | null
@@ -6137,6 +6185,7 @@ export type Database = {
           id: string
           notes: string | null
           perceived_exertion: number | null
+          readiness_score: number | null
           session_unit: string
           started_at: string
           template_id: string | null
@@ -6151,6 +6200,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          readiness_score?: number | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
@@ -6165,6 +6215,7 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          readiness_score?: number | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
@@ -6647,6 +6698,21 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_latest_readiness: {
+        Row: {
+          alcohol: boolean | null
+          created_at: string | null
+          energy: number | null
+          illness: boolean | null
+          sleep_hours: number | null
+          sleep_quality: number | null
+          soreness: number | null
+          stress: number | null
+          supplements: Json | null
+          user_id: string | null
+        }
+        Relationships: []
       }
       v_muscle_groups_with_translations: {
         Row: {
@@ -7222,6 +7288,31 @@ export type Database = {
         Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
       }
+      compute_readiness_for_user: {
+        Args: { p_user_id: string }
+        Returns: number
+      }
+      compute_readiness_for_user_at: {
+        Args: { p_at: string; p_user_id: string }
+        Returns: number
+      }
+      compute_readiness_score: {
+        Args: {
+          p_alcohol: boolean
+          p_energy: number
+          p_illness: boolean
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+          p_supplements: Json
+        }
+        Returns: number
+      }
+      compute_targets_for_workout: {
+        Args: { p_workout_id: string }
+        Returns: undefined
+      }
       compute_total_weight: {
         Args: {
           p_bar_weight: number
@@ -7348,6 +7439,10 @@ export type Database = {
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
+        Returns: Json
+      }
+      generate_warmup_steps: {
+        Args: { p_top_kg: number }
         Returns: Json
       }
       geography: {
@@ -7599,6 +7694,31 @@ export type Database = {
           primary_muscle: boolean
         }[]
       }
+      get_last_sets_for_exercises: {
+        Args: { p_exercise_ids: string[] }
+        Returns: {
+          base_weight_kg: number
+          exercise_id: string
+          prev_date: string
+          prev_reps: number
+          prev_weight_kg: number
+          readiness_multiplier: number
+        }[]
+      }
+      get_latest_readiness: {
+        Args: { p_user_id: string; p_workout_started_at?: string }
+        Returns: {
+          alcohol: boolean
+          created_at: string
+          energy: number
+          illness: boolean
+          sleep_hours: number
+          sleep_quality: number
+          soreness: number
+          stress: number
+          supplements: number
+        }[]
+      }
       get_life_categories_i18n: {
         Args: { lang_code: string }
         Returns: {
@@ -7737,6 +7857,10 @@ export type Database = {
         Args: { p_workout_exercise_id: string }
         Returns: undefined
       }
+      initialize_warmups_for_workout: {
+        Args: { p_workout_id: string }
+        Returns: number
+      }
       is_admin: {
         Args: { _user_id: string }
         Returns: boolean
@@ -7790,6 +7914,38 @@ export type Database = {
           p_success?: boolean
           p_user_id: string
         }
+        Returns: string
+      }
+      log_set_with_grip_aware_constraint: {
+        Args: {
+          p_grip_key?: string
+          p_reps: number
+          p_rest_seconds?: number
+          p_rpe?: number
+          p_set_index: number
+          p_set_kind?: string
+          p_weight_kg: number
+          p_workout_exercise_id: string
+        }
+        Returns: string
+      }
+      log_simple_workout_set: {
+        Args:
+          | {
+              p_grip_key?: string
+              p_is_completed?: boolean
+              p_reps: number
+              p_set_index: number
+              p_weight_kg: number
+              p_workout_exercise_id: string
+            }
+          | {
+              p_reps: number
+              p_set_index: number
+              p_set_kind?: string
+              p_weight_kg: number
+              p_workout_exercise_id: string
+            }
         Returns: string
       }
       log_workout_set: {
@@ -7882,6 +8038,10 @@ export type Database = {
       pgis_geometry_union_parallel_serialfn: {
         Args: { "": unknown }
         Returns: string
+      }
+      pick_base_load: {
+        Args: { p_exercise: string; p_user: string }
+        Returns: number
       }
       plan_next_prescription: {
         Args: {
@@ -8037,6 +8197,10 @@ export type Database = {
         Args: { _user_id: string }
         Returns: undefined
       }
+      readiness_multiplier: {
+        Args: { p_score: number }
+        Returns: number
+      }
       recalc_warmup_from_last_set: {
         Args: { p_workout_exercise_id: string }
         Returns: undefined
@@ -8052,6 +8216,31 @@ export type Database = {
       run_data_quality_check: {
         Args: Record<PropertyKey, never>
         Returns: Json
+      }
+      save_readiness_checkin: {
+        Args:
+          | {
+              p_alcohol: boolean
+              p_energy: number
+              p_illness: boolean
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+              p_supplements: Json
+            }
+          | {
+              p_alcohol: boolean
+              p_energy: number
+              p_illness: boolean
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+              p_supplements: number
+              p_workout_id: string
+            }
+        Returns: string
       }
       set_limit: {
         Args: { "": number }
@@ -9147,6 +9336,10 @@ export type Database = {
         Returns: number
       }
       start_workout: {
+        Args: { p_template_id?: string }
+        Returns: string
+      }
+      start_workout_with_smart_targets: {
         Args: { p_template_id?: string }
         Returns: string
       }
