@@ -9557,6 +9557,7 @@ export type Database = {
         | "stack"
         | "bodyweight"
         | "fixed"
+      mentor_client_status: "invited" | "active" | "paused" | "ended"
       mentor_type: "mentor" | "coach"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
@@ -9773,6 +9774,7 @@ export const Constants = {
         "bodyweight",
         "fixed",
       ],
+      mentor_client_status: ["invited", "active", "paused", "ended"],
       mentor_type: ["mentor", "coach"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
