@@ -46,9 +46,16 @@ export function AdminRoutes() {
               </Suspense>
             </AdminErrorBoundary>
           } />
-          <Route path="mentors/:id" element={
+          <Route path="mentors/:id/edit" element={
             <AdminErrorBoundary>
               <Suspense fallback={<div className="container py-6"><p className="text-muted-foreground">Loading mentor form...</p></div>}>
+                <AdminMentorForm />
+              </Suspense>
+            </AdminErrorBoundary>
+          } />
+          <Route path="mentors/:id" element={
+            <AdminErrorBoundary>
+              <Suspense fallback={<div className="container py-6"><p className="text-muted-foreground">Loading mentor details...</p></div>}>
                 <AdminMentorForm />
               </Suspense>
             </AdminErrorBoundary>

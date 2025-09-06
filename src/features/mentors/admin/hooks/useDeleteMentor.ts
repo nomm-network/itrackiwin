@@ -6,17 +6,15 @@ export function useDeleteMentor() {
   const qc = useQueryClient();
 
   return useMutation({
-    mutationFn: async (id: string) => {
-      console.log('🔍 [useDeleteMentor] Calling admin_delete_mentor...', id);
-      const { data, error } = await supabase.rpc('admin_delete_mentor', {
-        p_id: id
-      });
+    mutationFn: async (mentorId: string) => {
+      console.log('🔍 [useDeleteMentor] Deleting mentor:', mentorId);
+      const { error } = await supabase.rpc('admin_delete_mentor', { p_id: mentorId });
       if (error) {
         console.error('❌ [useDeleteMentor] Error:', error);
         throw error;
       }
-      console.log('✅ [useDeleteMentor] Success:', data);
-      return data as boolean;
+      console.log('✅ [useDeleteMentor] Success');
+      return true;
     },
     onSuccess: () => {
       toast({ title: 'Mentor deleted successfully' });
