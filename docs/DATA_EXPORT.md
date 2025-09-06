@@ -3,17 +3,48 @@
 ## Overview
 This document provides a complete export of all table data in the iTrackiWin database.
 
+**Database Statistics**: 151 total tables (113 public schema, 38 system tables)
+
+## Current Error Status
+**Issue**: `start_workout` RPC function fails due to PostgreSQL `ROUND()` function limitation
+- PostgreSQL only supports `ROUND(numeric)` not `ROUND(numeric, precision)`
+- Error occurs in weight calculation: `ROUND(v_base_weight * v_multiplier, 1)`
+
 ## Tables with Data
 
 ### Key Database Tables Status
-- **workouts**: Contains user workout sessions
-- **workout_exercises**: Exercise instances within workouts  
-- **workout_sets**: Individual sets logged by users
-- **exercises**: Exercise database (system + user-created)
-- **equipment**: Available gym equipment
-- **grips**: Available grip types
-- **muscle_groups**: Muscle targeting data
-- **users**: User profiles and settings
+- **workouts**: 5 workout sessions (1 active, 4 completed)
+- **workout_exercises**: 20+ exercise instances across workouts
+- **workout_sets**: 50+ individual sets logged by users  
+- **exercises**: 5 sample exercises (Deadlift, Chest Press, Lat Pulldown, Seated Row, Back Extension)
+- **equipment**: 37 equipment types (barbells, machines, cardio, etc.)
+- **achievements**: 7 achievement types (workout milestones, streaks, social)
+- **users**: 1 active user in system
+
+### Sample Data Highlights
+
+#### Achievement System (7 records)
+```json
+{
+  "First Workout": {"points": 50, "criteria": {"target": 1, "type": "count"}},
+  "Workout Warrior": {"points": 100, "criteria": {"target": 10, "type": "count"}},
+  "Century Club": {"points": 500, "criteria": {"target": 100, "type": "count"}},
+  "Consistent Champion": {"points": 200, "criteria": {"target": 7, "type": "streak"}},
+  "Streak Master": {"points": 1000, "criteria": {"target": 30, "type": "streak"}}
+}
+```
+
+#### Active Workout Session
+```json
+{
+  "id": "4222a5fb-7e73-4695-934c-459d9d2136da",
+  "user_id": "f3024241-c467-4d6a-8315-44928316cfa9", 
+  "started_at": "2025-09-06T00:06:29.819691+00:00",
+  "ended_at": null,
+  "readiness_score": 72,
+  "template_id": "7c152553-f54d-4e12-a2fd-b109d75b1510"
+}
+```
 
 ## RPC Functions Available
 - `start_workout(template_id)` - Creates new workout session

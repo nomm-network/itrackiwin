@@ -3,6 +3,14 @@
 ## Overview
 This document contains the complete database schema for the iTrackiWin fitness tracking application, including all tables, columns, foreign keys, and Row Level Security (RLS) policies.
 
+**Database Stats**: 113 public tables with comprehensive RLS policies
+
+## Error Report
+**Current Issue**: PostgreSQL function `start_workout` has error:
+- **Error**: `function round(numeric, numeric) does not exist`
+- **Location**: Line calling `ROUND(v_base_weight * v_multiplier, 1)`
+- **Fix Needed**: Use `ROUND(v_base_weight * v_multiplier)` (integer rounding only)
+
 ## Table Structure
 
 ### achievements

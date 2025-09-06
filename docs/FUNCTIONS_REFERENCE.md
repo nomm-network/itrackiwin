@@ -1,5 +1,13 @@
 # COMPLETE FUNCTION REFERENCE - DATABASE AND EDGE FUNCTIONS
 
+**Total Database Functions**: 366 functions including PostGIS, trigram, and custom RPC functions
+
+## Error Report
+**Current Issue**: `start_workout` function fails with:
+- **Error**: `function round(numeric, numeric) does not exist`  
+- **Location**: `ROUND(v_base_weight * v_multiplier, 1)` in start_workout
+- **PostgreSQL Limitation**: Only `ROUND(numeric)` exists (rounds to integer)
+
 ## Database RPC Functions (Critical for Workout Flow)
 
 ### Workout Management Functions
