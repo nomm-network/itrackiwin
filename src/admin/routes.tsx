@@ -39,8 +39,9 @@ export function AdminRoutes() {
   return (
     <AdminErrorBoundary>
       <Suspense fallback={<div className="container py-12"><p className="text-muted-foreground">Loading admin...</p></div>}>
-        <Routes>
-          <Route index element={<AdminHomePage />} />
+        <AdminLayout>
+          <Routes>
+            <Route index element={<AdminHomePage />} />
           <Route path="exercises" element={<AdminExercisesManagement />} />
           <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
           <Route path="users" element={<AdminUsersListPage />} />
@@ -96,7 +97,8 @@ export function AdminRoutes() {
           <Route path="battles" element={<AdminBattlesListPage />} />
           <Route path="battles/:id" element={<AdminBattleDetailPage />} />
           <Route path="payouts" element={<AdminPayoutsPage />} />
-        </Routes>
+          </Routes>
+        </AdminLayout>
       </Suspense>
     </AdminErrorBoundary>
   );
