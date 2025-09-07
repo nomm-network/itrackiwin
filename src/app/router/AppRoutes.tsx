@@ -44,10 +44,12 @@ const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 
 // Ambassador and Marketplace
-const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/AmbassadorPanelPage'));
 const GymAdminPage = lazy(() => import('@/features/gyms/admin/GymAdminPage'));
 const MarketplacePage = lazy(() => import('@/features/marketplace/MarketplacePage'));
 const GymPublicPage = lazy(() => import('@/features/marketplace/GymPublicPage'));
+const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/pages/AmbassadorPanelPage'));
+const RequireGymAdmin = lazy(() => import('@/components/guards/RequireGymAdmin'));
+const SafeAdminGuard = lazy(() => import('@/components/guards/SafeAdminGuard'));
 const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicPage'));
 
 // Fitness & Programs

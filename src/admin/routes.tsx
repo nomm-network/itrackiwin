@@ -13,7 +13,7 @@ const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManage
 const AdminEquipmentGripCompatibility = lazy(() => import("./pages/AdminEquipmentGripCompatibility"));
 const AdminTemporaryDisabled = lazy(() => import("./pages/AdminTemporaryDisabled"));
 const AdminTagsAliasesManagement = lazy(() => import("./pages/AdminTagsAliasesManagement"));
-const AdminGymsManagement = lazy(() => import("./pages/AdminGymsManagement"));
+
 const AdminTranslations = lazy(() => import("./pages/AdminTranslations"));
 const AdminCategoryPage = lazy(() => import("./pages/AdminCategoryPage"));
 const AdminSubcategoryPage = lazy(() => import("./pages/AdminSubcategoryPage"));
@@ -80,7 +80,7 @@ export function AdminRoutes() {
       <Route path="muscles" element={<AdminMusclesManagement />} />
       <Route path="others/equipment" element={<AdminEquipmentManagement />} />
       <Route path="others/grips" element={<AdminGripsManagement />} />
-      <Route path="others/gyms" element={<AdminGymsManagement />} />
+      
       
       <Route path="attribute-schemas" element={<AdminAttributeSchemas />} />
       <Route path="naming-templates" element={<AdminNamingTemplates />} />

@@ -1,212 +1,148 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useGyms, useCreateGym } from '@/hooks/useGyms';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle, 
-  DialogTrigger 
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { MapPin, Plus, Building2, Users } from 'lucide-react';
-import PageNav from '@/components/PageNav';
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Building2, Users, Plus, QrCode } from "lucide-react";
 
 export default function GymsListPage() {
-  const navigate = useNavigate();
-  const { data: gyms, isLoading, error } = useGyms();
-  const createGym = useCreateGym();
-  
-  const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
-  const [formData, setFormData] = useState({
-    name: '',
-    city: '',
-    country: ''
-  });
+  const [userGyms, setUserGyms] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleCreateGym = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const gymId = await createGym.mutateAsync(formData);
-      setIsCreateDialogOpen(false);
-      setFormData({ name: '', city: '', country: '' });
-      navigate(`/gyms/${gymId}`);
-    } catch (error) {
-      console.error('Failed to create gym:', error);
-    }
-  };
+  useEffect(() => {
+    async function loadUserGyms() {
+      try {
+        const { data: user } = await supabase.auth.getUser();
+        if (!user.user) return;
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+        const { data } = await supabase
+          .from("user_gym_memberships")
+          .select(`
+            id,
+            role,
+            status,
+            gyms!inner(
+              id,
+              name,
+              city,
+              country,
+              address
+            )
+          `)
+          .eq("user_id", user.user.id);
+
+        setUserGyms(data ?? []);
+      } catch (error) {
+        console.error("Error loading user gyms:", error);
+      } finally {
+        setLoading(false);
+      }
     }
-  };
+
+    loadUserGyms();
+  }, []);
+
+  if (loading) {
+    return (
+      <main className="container py-12">
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+          <span className="ml-2">Loading your gyms...</span>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="container py-12">
-      <PageNav current="Gyms" />
-      
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Gym Management</h1>
-            <p className="text-muted-foreground mt-1">Manage gyms, coaches, and equipment</p>
-          </div>
-          
-          <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex items-center gap-2">
-                <Plus className="h-4 w-4" />
-                Create Gym
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Create New Gym</DialogTitle>
-              </DialogHeader>
-              <form onSubmit={handleCreateGym} className="space-y-4">
-                <div>
-                  <Label htmlFor="name">Gym Name</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="Enter gym name"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                    placeholder="Enter city"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="country">Country</Label>
-                  <Input
-                    id="country"
-                    value={formData.country}
-                    onChange={(e) => setFormData({ ...formData, country: e.target.value })}
-                    placeholder="Enter country"
-                    required
-                  />
-                </div>
-                <div className="flex justify-end gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setIsCreateDialogOpen(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button type="submit" disabled={createGym.isPending}>
-                    {createGym.isPending ? 'Creating...' : 'Create Gym'}
-                  </Button>
-                </div>
-              </form>
-            </DialogContent>
-          </Dialog>
+      <div className="flex justify-between items-center mb-8">
+        <div>
+          <h1 className="text-3xl font-bold">My Gyms</h1>
+          <p className="text-muted-foreground mt-2">
+            Manage your gym memberships and discover new ones
+          </p>
         </div>
+        <div className="flex gap-2">
+          <Button variant="outline" asChild>
+            <Link to="/marketplace">
+              <Building2 className="h-4 w-4 mr-2" />
+              Discover Gyms
+            </Link>
+          </Button>
+          <Button variant="outline">
+            <QrCode className="h-4 w-4 mr-2" />
+            Join via QR
+          </Button>
+        </div>
+      </div>
 
-        {isLoading && (
-          <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-2">Loading gyms...</span>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {error && (
-          <Card className="border-red-200">
-            <CardHeader>
-              <CardTitle className="text-red-800">Error Loading Gyms</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-red-700">
-                {error instanceof Error ? error.message : "Unknown error"}
-              </p>
-            </CardContent>
-          </Card>
-        )}
-
-        {!isLoading && !error && gyms && (
-          <>
-            <div className="grid gap-4">
-              {gyms.map((gym) => (
-                <Card key={gym.id} className="hover:shadow-md transition-shadow cursor-pointer"
-                      onClick={() => navigate(`/gyms/${gym.id}`)}>
-                  <CardContent className="p-6">
-                    <div className="flex items-start justify-between">
-                      <div className="space-y-3 flex-1">
-                        <div className="flex items-center gap-3">
-                          <Building2 className="h-5 w-5 text-muted-foreground" />
-                          <h3 className="text-lg font-semibold">{gym.name}</h3>
-                          <Badge variant="outline" className={getStatusColor(gym.status)}>
-                            {gym.status}
-                          </Badge>
-                        </div>
-                        
-                        <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                          {gym.city && gym.country && (
-                            <div className="flex items-center gap-1">
-                              <MapPin className="h-4 w-4" />
-                              <span>{gym.city}, {gym.country}</span>
-                            </div>
-                          )}
-                          <div className="flex items-center gap-1">
-                            <Users className="h-4 w-4" />
-                            <span>Created {new Date(gym.created_at).toLocaleDateString()}</span>
-                          </div>
-                        </div>
-
-                        {gym.address && (
-                          <div className="text-sm text-muted-foreground">
-                            <span className="font-medium">Address:</span> {gym.address}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+      {userGyms.length === 0 ? (
+        <Card className="text-center py-12">
+          <CardContent>
+            <Building2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-xl font-semibold mb-2">No gyms yet</h3>
+            <p className="text-muted-foreground mb-6">
+              You're not a member of any gyms. Discover gyms in your area or join with a QR code.
+            </p>
+            <div className="flex gap-2 justify-center">
+              <Button asChild>
+                <Link to="/marketplace">
+                  <Building2 className="h-4 w-4 mr-2" />
+                  Discover Gyms
+                </Link>
+              </Button>
+              <Button variant="outline">
+                <QrCode className="h-4 w-4 mr-2" />
+                Join via QR Code
+              </Button>
             </div>
-            
-            {gyms.length === 0 && (
-              <Card>
-                <CardContent className="p-12 text-center">
-                  <div className="space-y-3">
-                    <Building2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <h3 className="text-lg font-medium">No gyms yet</h3>
-                    <p className="text-muted-foreground">Get started by creating your first gym.</p>
-                    <Button onClick={() => setIsCreateDialogOpen(true)} className="mt-4">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create First Gym
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {userGyms.map((membership) => {
+            const gym = membership.gyms;
+            return (
+              <Card key={membership.id} className="hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <CardTitle className="text-lg">{gym.name}</CardTitle>
+                    <Badge variant={membership.status === 'active' ? 'default' : 'secondary'}>
+                      {membership.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    {gym.city && gym.country ? `${gym.city}, ${gym.country}` : gym.address || 'Location not specified'}
+                  </p>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center text-sm text-muted-foreground">
+                      <Users className="h-4 w-4 mr-1" />
+                      <span className="capitalize">{membership.role}</span>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button asChild className="flex-1">
+                      <Link to={`/gyms/${gym.id}`}>
+                        Open Gym
+                      </Link>
                     </Button>
+                    
+                    {membership.role === 'member' && (
+                      <Button variant="outline" size="sm">
+                        Leave
+                      </Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </>
-        )}
-      </div>
+            );
+          })}
+        </div>
+      )}
     </main>
   );
 }

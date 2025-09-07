@@ -31,13 +31,12 @@ export default function GymDetailPage() {
   if (error || !gym) {
     return (
       <main className="container py-12">
-        <Card className="border-red-200">
-          <CardHeader>
-            <CardTitle className="text-red-800">Error Loading Gym</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-red-700">
-              {error instanceof Error ? error.message : "Gym not found"}
+        <Card>
+          <CardContent className="text-center py-8">
+            <Building2 className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+            <h2 className="text-xl font-semibold mb-2">Gym not found</h2>
+            <p className="text-muted-foreground">
+              The gym you're looking for doesn't exist or you don't have access to it.
             </p>
           </CardContent>
         </Card>
@@ -45,103 +44,78 @@ export default function GymDetailPage() {
     );
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pending':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'inactive':
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
-    }
-  };
-
   return (
     <main className="container py-12">
       <PageNav current={`Gyms / ${gym.name}`} />
       
-      <div className="space-y-6">
-        {/* Gym Header */}
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-start justify-between">
-              <div className="space-y-3 flex-1">
-                <div className="flex items-center gap-3">
-                  <Building2 className="h-6 w-6 text-muted-foreground" />
-                  <h1 className="text-2xl font-bold">{gym.name}</h1>
-                  <Badge variant="outline" className={getStatusColor(gym.status)}>
-                    {gym.status}
-                  </Badge>
-                  {isAdmin && (
-                    <Badge variant="outline" className="bg-blue-100 text-blue-800 border-blue-200">
-                      Admin
-                    </Badge>
-                  )}
-                </div>
-                
-                <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                  {gym.city && gym.country && (
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-4 w-4" />
-                      <span>{gym.city}, {gym.country}</span>
-                    </div>
-                  )}
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>Created {new Date(gym.created_at).toLocaleDateString()}</span>
-                  </div>
-                </div>
-
-                {gym.address && (
-                  <div className="text-sm text-muted-foreground">
-                    <span className="font-medium">Address:</span> {gym.address}
-                  </div>
-                )}
-              </div>
+      <div className="mb-8">
+        <div className="flex items-start justify-between">
+          <div>
+            <h1 className="text-3xl font-bold mb-2">{gym.name}</h1>
+            <div className="flex items-center text-muted-foreground mb-4">
+              <MapPin className="h-4 w-4 mr-1" />
+              <span>
+                {gym.city && gym.country 
+                  ? `${gym.city}, ${gym.country}` 
+                  : gym.address || 'Location not specified'}
+              </span>
             </div>
-          </CardContent>
-        </Card>
-
-        {/* Gym Tabs */}
-        <Tabs defaultValue="overview" className="space-y-4">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="overview" className="flex items-center gap-2">
-              <Building2 className="h-4 w-4" />
-              Overview
-            </TabsTrigger>
-            <TabsTrigger value="admins" className="flex items-center gap-2">
-              <Settings className="h-4 w-4" />
-              Admins
-            </TabsTrigger>
-            <TabsTrigger value="coaches" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Coaches
-            </TabsTrigger>
-            <TabsTrigger value="equipment" className="flex items-center gap-2">
-              <Dumbbell className="h-4 w-4" />
-              Equipment
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="overview">
-            <GymOverviewTab gym={gym} isAdmin={isAdmin} />
-          </TabsContent>
-
-          <TabsContent value="admins">
-            <GymAdminsTab gymId={gym.id} isAdmin={isAdmin} />
-          </TabsContent>
-
-          <TabsContent value="coaches">
-            <GymCoachesTab gymId={gym.id} isAdmin={isAdmin} />
-          </TabsContent>
-
-          <TabsContent value="equipment">
-            <GymEquipmentTab gymId={gym.id} isAdmin={isAdmin} />
-          </TabsContent>
-        </Tabs>
+          </div>
+          <div className="flex gap-2">
+            {gym.verified && (
+              <Badge variant="secondary">
+                Verified
+              </Badge>
+            )}
+            {isAdmin && (
+              <Badge variant="default">
+                Admin
+              </Badge>
+            )}
+          </div>
+        </div>
       </div>
+
+      <Tabs defaultValue="overview" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="overview" className="flex items-center gap-2">
+            <Building2 className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="equipment" className="flex items-center gap-2">
+            <Dumbbell className="h-4 w-4" />
+            Equipment
+          </TabsTrigger>
+          {isAdmin && (
+            <>
+              <TabsTrigger value="admins" className="flex items-center gap-2">
+                <Settings className="h-4 w-4" />
+                Admins
+              </TabsTrigger>
+              <TabsTrigger value="coaches" className="flex items-center gap-2">
+                <Users className="h-4 w-4" />
+                Coaches
+              </TabsTrigger>
+            </>
+          )}
+        </TabsList>
+
+        <TabsContent value="overview">
+          <GymOverviewTab gym={gym} isAdmin={isAdmin} />
+        </TabsContent>
+
+        <TabsContent value="admins">
+          <GymAdminsTab gymId={gym.id} isAdmin={isAdmin} />
+        </TabsContent>
+
+        <TabsContent value="coaches">
+          <GymCoachesTab gymId={gym.id} isAdmin={isAdmin} />
+        </TabsContent>
+
+        <TabsContent value="equipment">
+          <GymEquipmentTab gymId={gym.id} isAdmin={isAdmin} />
+        </TabsContent>
+      </Tabs>
     </main>
   );
 }

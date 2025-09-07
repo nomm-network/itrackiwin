@@ -85,3 +85,5 @@ export function SafeAdminGuard({
 
   return <>{children}</>;
 }
+
+export default SafeAdminGuard;
