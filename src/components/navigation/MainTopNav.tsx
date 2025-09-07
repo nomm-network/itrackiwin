@@ -3,7 +3,7 @@ import { Dumbbell, Grid, Compass, Building } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { label: "Training", to: "/training", icon: Dumbbell },
+  { label: "Training", to: "/fitness", icon: Dumbbell },
   { label: "Programs", to: "/app/programs", icon: Grid },
   { label: "Discover", to: "/marketplace", icon: Compass },
   { label: "Gyms", to: "/gyms", icon: Building },
@@ -17,7 +17,7 @@ export function MainTopNav() {
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
         const isActive = location.pathname === item.to || 
-          (item.to === "/training" && location.pathname === "/");
+          (item.to === "/fitness" && location.pathname === "/");
         
         return (
           <Link
