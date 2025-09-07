@@ -2,6 +2,7 @@ import { ReactNode } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { AdminSidebar } from '@/components/navigation/AdminSidebar';
+import { AppHeader } from '@/components/navigation/AppHeader';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -68,17 +69,21 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
   const breadcrumbs = getBreadcrumbs();
 
   return (
-    <div className="flex min-h-screen">
-      {/* Admin Sidebar */}
-      <aside className="w-64 bg-muted/40 border-r border-border p-6">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold">Admin Panel</h2>
-        </div>
-        <AdminSidebar />
-      </aside>
+    <div className="min-h-screen">
+      {/* Main App Header */}
+      <AppHeader />
       
-      {/* Main Content */}
-      <main className="flex-1 p-6">
+      <div className="flex">
+        {/* Admin Sidebar */}
+        <aside className="w-64 bg-muted/40 border-r border-border p-6">
+          <div className="mb-6">
+            <h2 className="text-lg font-semibold">Admin Panel</h2>
+          </div>
+          <AdminSidebar />
+        </aside>
+        
+        {/* Main Content */}
+        <main className="flex-1 p-6">
         <Breadcrumb className="mb-6">
           <BreadcrumbList>
             {breadcrumbs.map((crumb, index) => (
@@ -96,10 +101,11 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
           </BreadcrumbList>
         </Breadcrumb>
         
-        <div>
-          {children}
-        </div>
-      </main>
+          <div>
+            {children}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };
