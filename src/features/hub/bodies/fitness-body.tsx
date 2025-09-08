@@ -1,14 +1,6 @@
-// src/features/hub/bodies/fitness-body.tsx
 import React from "react";
-
-// Try legacy components first (silently optional)
-let TrainingCenterCard: React.ComponentType | null = null;
-let QuickActionsRow: React.ComponentType | null = null;
-let FitnessDashboardLegacy: React.ComponentType | null = null;
-
-try { TrainingCenterCard = require("@/features/health/fitness/components/TrainingCenterCard").default; } catch {}
-try { QuickActionsRow     = require("@/features/health/fitness/components/QuickActionsRow").default; } catch {}
-try { FitnessDashboardLegacy = require("@/features/health/fitness/FitnessDashboardLegacy").default; } catch {}
+import TrainingCenterCard from "@/features/health/fitness/components/TrainingCenterCard";
+import QuickActionsRow from "@/features/health/fitness/components/QuickActionsRow";
 
 // Fallback Quick Actions that matches the old grid layout enough to unblock UI
 function InlineQuickActions() {
@@ -30,40 +22,10 @@ function InlineQuickActions() {
 }
 
 export default function FitnessBody() {
-  // 1) If you still have a single old dashboard, render it verbatim
-  if (FitnessDashboardLegacy) return <FitnessDashboardLegacy />;
-
-  // 2) If both classic blocks exist, render them
-  if (TrainingCenterCard && QuickActionsRow) {
-    return (
-      <>
-        <TrainingCenterCard />
-        <QuickActionsRow />
-      </>
-    );
-  }
-
-  // 3) If only Training Center exists, render it + our guaranteed Quick Actions
-  if (TrainingCenterCard) {
-    return (
-      <>
-        <TrainingCenterCard />
-        <InlineQuickActions />
-      </>
-    );
-  }
-
-  // 4) Last resort: explain what's missing (visible, not silent)
   return (
-    <div style={{ padding:16, border:"2px dashed #ff3b30", background:"#2b2b2b",
-      borderRadius:12, color:"#ffd6d6" }}>
-      <h3>Fitness body is wired, but legacy components weren't found.</h3>
-      <p>Wire one of the following so the page matches the old look:</p>
-      <ol>
-        <li><code>features/health/fitness/FitnessDashboardLegacy.tsx</code> (single component)</li>
-        <li><code>features/health/fitness/components/TrainingCenterCard.tsx</code> + <code>QuickActionsRow.tsx</code></li>
-      </ol>
-      <p>If paths differ, update the <code>require()</code> lines in this file to your exact files.</p>
-    </div>
+    <>
+      <TrainingCenterCard />
+      <QuickActionsRow />
+    </>
   );
 }

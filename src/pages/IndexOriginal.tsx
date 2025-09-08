@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import Orbits from "@/pages/Orbits";
+import Orbits from "@/features/planets/OrbitPlanetsPage";
 
 const Index: React.FC = () => {
   const [checked, setChecked] = useState(false);

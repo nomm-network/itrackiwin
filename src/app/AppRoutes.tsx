@@ -4,7 +4,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 // ✅ Canonical pages
 const HubPage = lazy(() => import("@/features/hub/HubPage"));
 const AdminPage = lazy(() => import("@/admin/routes").then(module => ({ default: module.AdminRoutes })));
-const PlanetsSmart = lazy(() => import("@/features/planets/PlanetsSmart"));
+const OrbitPlanetsPage = lazy(() => import("@/features/planets/OrbitPlanetsPage"));
 
 // ✅ Layout wrapper
 const ProtectedMobileLayout = lazy(() => import("@/components/layout/ProtectedMobileLayout"));
@@ -31,7 +31,7 @@ export default function AppRoutes() {
         {/* ======= Planets (both paths resolve) ======= */}
         <Route path="/discover/planets" element={
           <ProtectedMobileLayout>
-            <PlanetsSmart />
+            <OrbitPlanetsPage />
           </ProtectedMobileLayout>
         } />
         <Route path="/planets" element={<Navigate to="/discover/planets" replace />} />
