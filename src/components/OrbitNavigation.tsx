@@ -216,39 +216,9 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
           background: bg,
           boxShadow: shadow
         }} onClick={() => {
-          // Map subcategory names to category.subcategory format for dashboard
-          const categoryMap: Record<string, string> = {
-            "Fitness & exercise": "health.fitness",
-            "Fitness and Exercise": "health.fitness", 
-            "Sleep": "health.sleep",
-            "Nutrition": "health.nutrition",
-            "Long-term wealth building": "wealth",
-            "Romantic life": "relationships",
-            "Family": "relationships",
-            "Friends": "relationships"
-          };
-          
-          const categoryKey = categoryMap[s.name];
-          if (categoryKey) {
-            if (categoryKey === "health.fitness") {
-              navigate("/dashboard?cat=health.fitness&sub=training");
-            } else if (categoryKey === "health.nutrition") {
-              navigate("/dashboard?cat=health.nutrition&sub=log");
-            } else if (categoryKey === "health.sleep") {
-              navigate("/dashboard?cat=health.sleep&sub=overview");
-            } else if (categoryKey === "relationships") {
-              const subMap: Record<string, string> = {
-                "Romantic life": "love",
-                "Family": "family", 
-                "Friends": "friends"
-              };
-              const sub = subMap[s.name] || "friends";
-              navigate(`/dashboard?cat=relationships&sub=${sub}`);
-            } else {
-              navigate(`/dashboard?cat=${categoryKey}`);
-            }
+          if (s.name === "Fitness & exercise" || s.name === "Fitness and Exercise") {
+            navigate("/fitness");
           } else {
-            // Fallback to area selection for unmapped subcategories
             const area = areasArr.find(a => a.id === s.category_id) || null;
             setSelected(area);
           }
@@ -292,58 +262,13 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
         const labelTopOffset = y + size / 2 + 12;
         return <React.Fragment key={name}>
                 <button style={style} className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform" aria-label={`${name}`} onClick={() => {
-            // Map subcategory names to dashboard routes based on selected category
-            const categoryName = selected?.name;
-            
-            if (categoryName === "Health") {
-              if (name === "Fitness & exercise" || name === "Fitness and Exercise") {
-                navigate("/dashboard?cat=health.fitness&sub=training");
-              } else if (name === "Sleep") {
-                navigate("/dashboard?cat=health.sleep&sub=overview");
-              } else if (name === "Nutrition") {
-                navigate("/dashboard?cat=health.nutrition&sub=log");
-              }
-            } else if (categoryName === "Relationships") {
-              const subMap: Record<string, string> = {
-                "Romantic life": "love",
-                "Family": "family", 
-                "Friends": "friends"
-              };
-              const sub = subMap[name] || "friends";
-              navigate(`/dashboard?cat=relationships&sub=${sub}`);
-            } else if (categoryName === "Wealth") {
-              navigate("/dashboard?cat=wealth");
-            } else {
-              // Fallback for other categories
-              navigate("/dashboard");
+            if (name === "Fitness & exercise") {
+              navigate("/fitness");
             }
           }} onKeyDown={e => {
-            if (e.key === "Enter" || e.key === " ") {
+            if ((e.key === "Enter" || e.key === " ") && name === "Fitness & exercise") {
               e.preventDefault();
-              // Trigger same navigation as onClick
-              const categoryName = selected?.name;
-              
-              if (categoryName === "Health") {
-                if (name === "Fitness & exercise" || name === "Fitness and Exercise") {
-                  navigate("/dashboard?cat=health.fitness&sub=training");
-                } else if (name === "Sleep") {
-                  navigate("/dashboard?cat=health.sleep&sub=overview");
-                } else if (name === "Nutrition") {
-                  navigate("/dashboard?cat=health.nutrition&sub=log");
-                }
-              } else if (categoryName === "Relationships") {
-                const subMap: Record<string, string> = {
-                  "Romantic life": "love",
-                  "Family": "family", 
-                  "Friends": "friends"
-                };
-                const sub = subMap[name] || "friends";
-                navigate(`/dashboard?cat=relationships&sub=${sub}`);
-              } else if (categoryName === "Wealth") {
-                navigate("/dashboard?cat=wealth");
-              } else {
-                navigate("/dashboard");
-              }
+              navigate("/fitness");
             }
           }}>
                   <div className="grid place-items-center size-full">

@@ -29,11 +29,7 @@ const Orbits: React.FC = () => {
     if (session?.user) {
       // Authenticated users go to dashboard with category filter
       if (id === "health") {
-        navigate("/dashboard?cat=health.fitness&sub=training");
-      } else if (id === "relationships") {
-        navigate("/dashboard?cat=relationships&sub=friends");
-      } else if (id === "wealth") {
-        navigate("/dashboard?cat=wealth");
+        navigate("/dashboard?cat=health&sub=fitness");
       } else {
         navigate(`/dashboard?cat=${id}`);
       }
