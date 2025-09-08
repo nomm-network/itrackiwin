@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash, Repeat } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -12,15 +12,12 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import { useNextProgramBlock } from "@/hooks/useTrainingPrograms";
 import { useStartWorkout } from "@/features/workouts";
-import { useActiveWorkout } from '@/features/workouts/hooks';
-import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api';
-import { useToast } from '@/hooks/use-toast';
-import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
-import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
-import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { XCircle, Zap, Target } from 'lucide-react';
-import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
+import TouchOptimizedSetInput from "@/components/workout/TouchOptimizedSetInput";
+import SwipeableWorkoutCard from "@/components/workout/SwipeableWorkoutCard";
+import { BottomSheet, BottomSheetContent, BottomSheetHeader, BottomSheetTitle, BottomSheetTrigger } from "@/components/ui/bottom-sheet";
+import VoiceInput from "@/components/mobile/VoiceInput";
+import QuickEntryPad from "@/components/mobile/QuickEntryPad";
+import MetricVisualization from "@/components/mobile/MetricVisualization";
 
 export default function FitnessBodyStable() {
   const { t } = useTranslation();
@@ -28,66 +25,55 @@ export default function FitnessBodyStable() {
   const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
   const { data: defaultGym } = useDefaultGym();
   const { gym: selectedGym } = useMyGym();
-  const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
+  const { data: nextBlock } = useNextProgramBlock();
   const startWorkout = useStartWorkout();
-  const deleteWorkout = useDeleteWorkout();
-  const { toast } = useToast();
-  const readinessCheckin = useReadinessCheckin();
-  const { checkAndRedirect } = useFitnessProfileCheck();
-  
-  const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
-  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+  const [quickWeight, setQuickWeight] = useState<number | null>(null);
+  const [quickReps, setQuickReps] = useState<number | null>(null);
+  const [showQuickEntry, setShowQuickEntry] = useState(false);
   const [showGymDetection, setShowGymDetection] = useState(false);
 
-  const handleStartTraining = async () => {
-    // If there's an active workout, continue it
-    if (activeWorkout?.id) {
-      navigate(`/app/workouts/${activeWorkout.id}`);
+  // Mock data for metric visualization
+  const mockMetricData = [
+    { date: '1/15', value: 45 },
+    { date: '1/16', value: 47.5 },
+    { date: '1/18', value: 50 },
+    { date: '1/20', value: 52.5 },
+    { date: '1/22', value: 50 },
+    { date: '1/24', value: 55 },
+  ];
+
+  const handleQuickStart = async () => {
+    if (!defaultGym) {
+      setShowGymDetection(true);
       return;
     }
-    
-    // Check profile for new workouts
-    if (!checkAndRedirect('start a workout')) return;
 
-    if (nextBlock) {
-      // Start readiness check for program workout
-      readinessCheckin.open(nextBlock.workout_template_id);
-    } else {
-      setShowWorkoutModal(true);
+    try {
+      if (nextBlock) {
+        // Start from program
+        const result = await startWorkout.mutateAsync({ templateId: nextBlock?.workout_template_id });
+        navigate(`/app/workouts/${result.workoutId}`);
+      } else {
+        // Show template selection or start free workout
+        const result = await startWorkout.mutateAsync({});
+        navigate(`/app/workouts/${result.workoutId}`);
+      }
+    } catch (error) {
+      console.error('Failed to start workout:', error);
+      navigate("/fitness/session/new");
     }
   };
 
-  const handleDeleteWorkout = async () => {
-    if (!activeWorkout?.id) return;
-    
-    try {
-      await deleteWorkout.mutateAsync(activeWorkout.id);
-      toast({
-        title: "Workout deleted",
-        description: "Your workout has been permanently removed.",
-      });
-    } catch (error) {
-      console.error('Failed to delete workout:', error);
-      toast({
-        title: "Failed to delete workout",
-        description: "Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleGymSelected = () => {
+    handleQuickStart();
   };
 
   const quickActions = [
     {
-      label: 'Templates',
-      icon: Dumbbell,
-      href: "/fitness/templates",
-      color: "bg-blue-500 hover:bg-blue-600 text-white"
-    },
-    {
-      label: 'History',
-      icon: History,
-      href: "/fitness/history",
-      color: "bg-orange-500 hover:bg-orange-600 text-white"
+      label: nextBlock ? 'Start Program' : t('quickStart'),
+      icon: Play,
+      onClick: handleQuickStart,
+      color: nextBlock ? "bg-green-600 hover:bg-green-700 text-white" : "bg-green-500 hover:bg-green-600 text-white"
     },
     {
       label: 'Programs',
@@ -96,177 +82,280 @@ export default function FitnessBodyStable() {
       color: "bg-indigo-500 hover:bg-indigo-600 text-white"
     },
     {
-      label: 'Mentors',
-      icon: Target,
-      href: "/mentors",
-      color: "bg-purple-500 hover:bg-purple-600 text-white"
+      label: t('templates'),
+      icon: Dumbbell,
+      href: "/fitness/templates",
+      color: "bg-blue-500 hover:bg-blue-600 text-white"
+    },
+    {
+      label: t('history'),
+      icon: History,
+      href: "/fitness/history",
+      color: "bg-orange-500 hover:bg-orange-600 text-white"
     }
   ];
 
-  if (isLoadingProgram) {
-    return (
-      <div className="space-y-6">
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-          <CardContent className="pt-6">
-            <div className="animate-pulse space-y-3">
-              <div className="h-4 bg-muted rounded w-3/4"></div>
-              <div className="h-10 bg-muted rounded"></div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-    );
-  }
-
   return (
-    <div className="space-y-6">
-      {/* Training Center */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg flex items-center gap-2">
-            <Play className="h-5 w-5 text-primary" />
-            Training Center
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {activeWorkout ? (
-            <div className="space-y-3">
-              <p className="text-sm text-muted-foreground">
-                Continue your active training session
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleStartTraining}
-                  className="flex-1 bg-primary hover:bg-primary/90"
-                >
-                  <Clock className="h-4 w-4 mr-2" />
-                  Continue Training
-                </Button>
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      className="text-destructive border-destructive/20 hover:bg-destructive/5"
-                    >
-                      <XCircle className="h-4 w-4" />
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Workout?</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to permanently delete your current workout? This action cannot be undone and all progress will be lost.
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteWorkout}
-                        disabled={deleteWorkout.isPending}
-                        className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                      >
-                        {deleteWorkout.isPending ? 'Deleting...' : 'Delete Workout'}
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              </div>
-            </div>
-          ) : nextBlock ? (
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <Badge variant="default" className="bg-green-500">
-                  <Zap className="h-3 w-3 mr-1" />
-                  Program Ready
-                </Badge>
-              </div>
+    <div className="min-h-screen bg-background pb-20">
+      <div className="p-4 space-y-6">
+        {/* Current Gym Header */}
+        {selectedGym && (
+          <section>
+            <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg">
               <div>
-                <p className="font-medium text-sm">{nextBlock.template_name}</p>
-                <p className="text-xs text-muted-foreground">
-                  Block {nextBlock.order_index + 1} of {nextBlock.total_blocks} • Cycle {nextBlock.cycles_completed + 1}
-                </p>
+                <h3 className="font-semibold text-sm text-muted-foreground">Current Gym</h3>
+                <p className="font-medium">{selectedGym.name}</p>
               </div>
               <Button 
-                onClick={handleStartTraining}
-                className="w-full bg-primary hover:bg-primary/90"
-                disabled={startWorkout.isPending}
+                variant="outline" 
+                size="sm"
+                onClick={() => navigate('/fitness/configure')}
               >
-                <Play className="h-4 w-4 mr-2" />
-                {startWorkout.isPending ? 'Starting...' : 'Start Program Session'}
+                Change
               </Button>
             </div>
-          ) : (
-            <div className="space-y-2">
-              <p className="text-sm text-muted-foreground">
-                Ready to begin your training?
-              </p>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={handleStartTraining}
-                  className="flex-1 bg-primary hover:bg-primary/90"
-                >
-                  <Play className="h-4 w-4 mr-2" />
-                  Start
-                </Button>
+          </section>
+        )}
+        {/* Quick Actions Grid */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">{t('quickActions')}</h2>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return action.onClick ? (
                 <Button
-                  variant="outline"
-                  onClick={() => navigate('/app/programs')}
-                  className="px-3"
+                  key={action.label}
+                  onClick={action.onClick}
+                  className={`h-20 flex-col gap-2 touch-manipulation ${action.color}`}
                 >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Quick Actions */}
-      <section>
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 gap-3">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Button
-                key={action.label}
-                asChild
-                className={`h-20 flex-col gap-2 touch-manipulation ${action.color}`}
-              >
-                <Link to={action.href}>
                   <Icon className="h-6 w-6" />
                   <span className="text-sm font-medium">{action.label}</span>
+                </Button>
+              ) : (
+                <Button
+                  key={action.label}
+                  asChild
+                  className={`h-20 flex-col gap-2 touch-manipulation ${action.color}`}
+                >
+                  <Link to={action.href}>
+                    <Icon className="h-6 w-6" />
+                    <span className="text-sm font-medium">{action.label}</span>
+                  </Link>
+                </Button>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Enhanced Quick Entry */}
+        <div className="space-y-4">
+          <div className="flex gap-2">
+            <Button
+              variant={!showQuickEntry ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setShowQuickEntry(false)}
+            >
+              Quick Input
+            </Button>
+            <Button
+              variant={showQuickEntry ? "default" : "outline"}
+              className="flex-1"
+              onClick={() => setShowQuickEntry(true)}
+            >
+              Entry Pad
+            </Button>
+          </div>
+
+          {!showQuickEntry ? (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base">{t('quickLog')}</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <VoiceInput
+                  onResult={(text) => {
+                    import('@/lib/voiceParser').then(({ parseVoiceInput }) => {
+                      const parsed = parseVoiceInput(text);
+                      if (parsed.weight) setQuickWeight(parsed.weight);
+                      if (parsed.reps) setQuickReps(parsed.reps);
+                    });
+                  }}
+                  placeholder="Say: '10 reps at 50 kilos'"
+                />
+                
+                <div className="flex gap-3">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1 mb-2">
+                      <Weight className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-xs font-medium text-muted-foreground">Weight</span>
+                    </div>
+                    <TouchOptimizedSetInput
+                      value={quickWeight}
+                      onChange={setQuickWeight}
+                      suffix="kg"
+                      max={500}
+                      step={2.5}
+                      className="w-full"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-1 mb-2">
+                      <span className="text-xs font-medium text-muted-foreground"># Reps</span>
+                    </div>
+                    <TouchOptimizedSetInput
+                      value={quickReps}
+                      onChange={setQuickReps}
+                      max={100}
+                      className="w-full"
+                    />
+                  </div>
+                </div>
+                <Button 
+                  className="w-full h-12 touch-manipulation"
+                  disabled={!quickWeight || !quickReps}
+                  onClick={() => {
+                    console.log('Logging set:', quickWeight, quickReps);
+                    setQuickWeight(null);
+                    setQuickReps(null);
+                  }}
+                >
+                  {t('logSet')}
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <QuickEntryPad
+              onSubmit={(weight, reps) => {
+                console.log('Quick entry:', weight, reps);
+                setQuickWeight(weight);
+                setQuickReps(reps);
+              }}
+              lastWeight={quickWeight || 0}
+              lastReps={quickReps || 0}
+            />
+          )}
+        </div>
+
+        {/* Progress Metrics */}
+        <section>
+          <h2 className="text-lg font-semibold mb-4">Quick Stats</h2>
+          <div className="grid grid-cols-2 gap-3">
+            <MetricVisualization
+              title="Weight Progress"
+              data={mockMetricData}
+              unit="kg"
+              target={60}
+              type="line"
+            />
+            <MetricVisualization
+              title="Volume"
+              data={mockMetricData.map(d => ({ ...d, value: d.value * 8 }))}
+              unit="kg"
+              type="bar"
+            />
+          </div>
+        </section>
+
+        {/* Recent Workouts */}
+        <section>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold">{t('recentWorkouts')}</h2>
+            <Button variant="ghost" size="sm" asChild>
+              <Link to="/fitness/history">
+                {t('common.viewAll')}
+              </Link>
+            </Button>
+          </div>
+          
+          {isLoading ? (
+            <div className="space-y-3">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="h-20 bg-muted rounded-lg animate-pulse" />
+              ))}
+            </div>
+          ) : recentWorkouts.length > 0 ? (
+            <div className="space-y-3">
+              {recentWorkouts.map((workout) => (
+                <SwipeableWorkoutCard
+                  key={workout.id}
+                  onEdit={() => console.log('Edit workout', workout.id)}
+                  onDelete={() => console.log('Delete workout', workout.id)}
+                  isCompleted={!!workout.ended_at}
+                >
+                  <Link to={`/fitness/history/${workout.id}`} className="block">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="font-medium">
+                          {workout.title || t('workout')}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {new Date(workout.started_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <Badge variant={workout.ended_at ? "default" : "secondary"}>
+                          {workout.ended_at ? t('completed') : t('inProgress')}
+                        </Badge>
+                        {workout.ended_at && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {Math.round((new Date(workout.ended_at).getTime() - new Date(workout.started_at).getTime()) / 60000)}m
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </Link>
+                </SwipeableWorkoutCard>
+              ))}
+            </div>
+          ) : (
+            <Card>
+              <CardContent className="text-center py-8">
+                <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <p className="text-muted-foreground mb-4">{t('noWorkouts')}</p>
+                <Button asChild>
+                  <Link to="/fitness/session/new">
+                    {t('startFirstWorkout')}
+                  </Link>
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+        </section>
+
+        {/* Quick Settings */}
+        <BottomSheet>
+          <BottomSheetTrigger asChild>
+            <Button variant="outline" className="w-full h-12 touch-manipulation">
+              <Settings className="h-4 w-4 mr-2" />
+              {t('settings')}
+            </Button>
+          </BottomSheetTrigger>
+          <BottomSheetContent>
+            <BottomSheetHeader>
+              <BottomSheetTitle>{t('settings')}</BottomSheetTitle>
+            </BottomSheetHeader>
+            <div className="p-4 space-y-4">
+              <Button variant="ghost" className="w-full justify-start h-12" asChild>
+                <Link to="/fitness/configure">
+                  <Settings className="h-4 w-4 mr-2" />
+                  Configure
                 </Link>
               </Button>
-            );
-          })}
-        </div>
-      </section>
-
-      <WorkoutSelectionModal 
-        open={showWorkoutModal}
-        onOpenChange={setShowWorkoutModal}
-      />
-
-      <ReadinessDialog
-        isOpen={readinessCheckin.isOpen}
-        onClose={readinessCheckin.close}
-        onSubmit={async (data) => {
-          // Create workout first, then submit readiness
-          const result = await startWorkout.mutateAsync({ templateId: readinessCheckin.templateId! });
-          await readinessCheckin.submit({ data, workoutId: result.workoutId });
-          navigate(`/app/workouts/${result.workoutId}`);
-        }}
-        templateId={readinessCheckin.templateId}
-        workoutId={null} // Will be handled in onSubmit
-        isSubmitting={readinessCheckin.isSubmitting || startWorkout.isPending}
-      />
+              <Button variant="ghost" className="w-full justify-start h-12" asChild>
+                <Link to="/profile">
+                  <Settings className="h-4 w-4 mr-2" />
+                  {t('profile')}
+                </Link>
+              </Button>
+            </div>
+          </BottomSheetContent>
+        </BottomSheet>
+      </div>
 
       <GymDetectionDialog
         open={showGymDetection}
         onOpenChange={setShowGymDetection}
-        onGymSelected={() => {}}
+        onGymSelected={handleGymSelected}
       />
     </div>
   );
