@@ -107,20 +107,20 @@ export default function OrbitPlanetsPage() {
   };
   
   return (
-    <div className="container mx-auto p-4 pb-20">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold mb-2">Life Planets Hub</h1>
-        <p className="text-muted-foreground">
+    <div className="space-y-6">
+      <div className="text-center">
+        <h1 className="text-2xl sm:text-3xl font-bold mb-2">Life Planets Hub</h1>
+        <p className="text-muted-foreground text-sm">
           Explore all {TARGETS.length} areas of life. Tap any planet to jump to its dashboard.
         </p>
       </div>
       
       {Object.entries(targetsByCategory).map(([category, targets]) => (
-        <div key={category} className="mb-8">
-          <h2 className="text-xl font-semibold mb-4 text-center">
+        <div key={category} className="space-y-4">
+          <h2 className="text-lg font-semibold text-center">
             {categoryNames[category as keyof typeof categoryNames]} ({targets.length})
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
             {targets.map((t) => {
               const IconComponent = t.icon;
               return (
@@ -134,7 +134,7 @@ export default function OrbitPlanetsPage() {
                   className="h-20 flex flex-col items-center gap-2 p-3 hover:scale-105 transition-transform"
                 >
                   <IconComponent 
-                    className={`w-6 h-6 ${t.color || 'text-primary'}`} 
+                    className={`w-5 h-5 ${t.color || 'text-primary'}`} 
                   />
                   <span className="text-xs leading-tight text-center font-medium">
                     {t.label}
@@ -146,8 +146,8 @@ export default function OrbitPlanetsPage() {
         </div>
       ))}
       
-      <div className="mt-8 text-center">
-        <p className="text-sm text-muted-foreground">
+      <div className="text-center pt-4">
+        <p className="text-xs text-muted-foreground">
           Complete coverage: {TARGETS.length} life areas across 6 categories
         </p>
       </div>
