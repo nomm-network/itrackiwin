@@ -21,6 +21,7 @@ export interface ReadinessData {
   soreness: number;
   stress: number;
   illness: boolean;
+  energisers_taken: boolean;
   alcohol: boolean;
   supplements: string[];
   notes: string;
@@ -58,6 +59,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       soreness: 3,
       stress: 3,
       illness: false,
+      energisers_taken: false,
       alcohol: false,
       supplements: [],
       notes: ""
@@ -246,6 +248,16 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     onCheckedChange={(checked) => setValue("illness", checked)}
                   />
                   <Label htmlFor="illness">Feeling unwell or sick</Label>
+                </div>
+
+                {/* Energisers */}
+                <div className="flex items-center space-x-2">
+                  <Switch
+                    id="energisers_taken"
+                    checked={watchedValues.energisers_taken}
+                    onCheckedChange={(checked) => setValue("energisers_taken", checked)}
+                  />
+                  <Label htmlFor="energisers_taken">Creatine/PreWorkout taken</Label>
                 </div>
 
                 {/* Alcohol */}
