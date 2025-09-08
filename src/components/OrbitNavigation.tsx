@@ -74,6 +74,7 @@ const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): {
     "Family": "family-relationships",
     "Romantic life": "romantic-life", 
     "Friends": "friendships",
+    "Friendships": "friendships", // Added this mapping
     "Community": "community-social-skills",
     "Networking": "networking-collaboration",
     
@@ -100,8 +101,12 @@ const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): {
     "Legacy": "legacy-projects"
   };
 
+  console.log('🔍 getCategoryAndSubSlug called with:', { categoryName, subcategoryName });
+  
   const cat = categoryMap[categoryName] || "health";
   const sub = subcategoryMap[subcategoryName] || (cat === "health" ? "fitness-exercise" : "configure");
+  
+  console.log('🔍 getCategoryAndSubSlug result:', { cat, sub, foundInMap: !!subcategoryMap[subcategoryName] });
   
   return { cat, sub };
 };
