@@ -41,6 +41,8 @@ import { getExerciseDisplayName } from '../utils/exerciseName';
 import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
 import { recomputeWarmupPlan } from '../warmup/recalc';
 import { submitWarmupFeedback } from '../warmup/feedback';
+import { SessionHeaderMeta } from './SessionHeaderMeta';
+import { useWarmupSessionState } from '../state/warmupSessionState';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -74,6 +76,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(workout?.id);
   
+  // Warmup session state for managing which warmups have been shown
+  const { warmupsShown, setWarmupShown } = useWarmupSessionState();
+  
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(
     workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null
   );
@@ -84,6 +89,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [warmupCompleted, setWarmupCompleted] = useState(false);
   const [hasExistingWarmupData, setHasExistingWarmupData] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
+  const [readinessScore, setReadinessScore] = useState<number | undefined>();
 
   // Grip selection state - per exercise
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
@@ -116,6 +122,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Get exercise estimate for current exercise - moved after currentExercise definition
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
   const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
+
+  // Calculate sets data early so it can be used in useEffect
+  const sets = currentExercise?.sets || [];
+  const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   
 
   // Check if warmup feedback was already given when exercise changes
@@ -139,6 +149,28 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     };
     checkWarmupFeedback();
   }, [currentExercise]);
+
+  // Trigger warmup modal for first set if conditions are met
+  useEffect(() => {
+    if (!currentExercise) return;
+    
+    const weId = resolveWorkoutExerciseId(currentExercise);
+    const hasTarget = currentExercise?.target_weight_kg || currentExercise?.target_reps || currentExerciseEstimate?.estimated_weight;
+    const hasWarmupPlan = currentExercise?.warmup_plan;
+    const hasBeenShown = warmupsShown[weId];
+    const isFirstSet = completedSetsCount === 0;
+    
+    // Show warmup modal if:
+    // 1. This is the first set for this exercise
+    // 2. We have a target or estimate to work with
+    // 3. There's a warmup plan available
+    // 4. We haven't shown it for this exercise yet in this session
+    // 5. User hasn't given feedback yet
+    if (isFirstSet && hasTarget && hasWarmupPlan && !hasBeenShown && !warmupCompleted) {
+      setWarmupShown(weId);
+      // The warmup will be shown by the existing WarmupBlock component
+    }
+  }, [currentExercise, completedSetsCount, warmupsShown, warmupCompleted, currentExerciseEstimate, setWarmupShown]);
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
   
@@ -207,8 +239,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     return `Exercise ${exerciseId?.slice(0, 8) || 'Unknown'}`;
   };
   
-  const sets = currentExercise?.sets || [];
-  const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   const targetSetsCount = sets.length || 3;
   const currentSetNumber = completedSetsCount + 1;
   
@@ -455,6 +485,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       // Calculate a simple readiness score (0-10 based on answers)
       const score = calculateReadinessScore(readiness);
       
+      // Store readiness score for header display
+      setReadinessScore(score);
+      
       await createCheckin.mutateAsync({
         answers: readiness,
         readiness_score: score
@@ -606,10 +639,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               ← Back
             </Button>
             <h1 className="text-lg font-semibold">
-              {workout?.title || workout?.name || 'Free Session'}
+              {workout?.template?.name || workout?.title || workout?.name || 'Free Session'}
             </h1>
           </div>
           <div className="flex items-center gap-2">
+            <SessionHeaderMeta 
+              readiness={readinessScore}
+              startedAt={workout?.started_at}
+              endedAt={workout?.ended_at}
+            />
             <Badge variant="secondary">
               🏋️ {(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) + 1}/{workout?.exercises?.length || 0}
             </Badge>
