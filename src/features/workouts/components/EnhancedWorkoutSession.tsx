@@ -150,27 +150,28 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     checkWarmupFeedback();
   }, [currentExercise]);
 
-  // Trigger warmup modal for first set if conditions are met
+  // Trigger warmup display immediately when exercise loads (before any sets)
   useEffect(() => {
     if (!currentExercise) return;
     
     const weId = resolveWorkoutExerciseId(currentExercise);
     const hasTarget = currentExercise?.target_weight_kg || currentExercise?.target_reps || currentExerciseEstimate?.estimated_weight;
-    const hasWarmupPlan = currentExercise?.warmup_plan;
     const hasBeenShown = warmupsShown[weId];
-    const isFirstSet = completedSetsCount === 0;
     
-    // Show warmup modal if:
-    // 1. This is the first set for this exercise
-    // 2. We have a target or estimate to work with
-    // 3. There's a warmup plan available
-    // 4. We haven't shown it for this exercise yet in this session
-    // 5. User hasn't given feedback yet
-    if (isFirstSet && hasTarget && hasWarmupPlan && !hasBeenShown && !warmupCompleted) {
+    console.log('🔍 Checking warmup conditions on exercise load:', {
+      weId, hasTarget, hasBeenShown, warmupCompleted
+    });
+    
+    // Show warmup immediately when exercise loads if:
+    // 1. We have a target weight/reps available (from template or estimate)  
+    // 2. It hasn't been shown for this exercise yet in this session
+    // 3. Warmup isn't marked as completed
+    if (hasTarget && !hasBeenShown && !warmupCompleted) {
+      console.log('✅ Triggering warmup display for exercise:', weId);
       setWarmupShown(weId);
       // The warmup will be shown by the existing WarmupBlock component
     }
-  }, [currentExercise, completedSetsCount, warmupsShown, warmupCompleted, currentExerciseEstimate, setWarmupShown]);
+  }, [currentExercise, warmupsShown, warmupCompleted, currentExerciseEstimate, setWarmupShown]);
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
   
