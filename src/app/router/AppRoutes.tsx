@@ -8,8 +8,10 @@ import { AdminRoutes } from '@/admin';
 import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
-// Dashboard
+// Dashboard - now using Hub system
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const HubPage = lazy(() => import('@/features/hub/HubPage'));
+const OrbitPlanetsPage = lazy(() => import('@/features/discover/planets/OrbitView'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
@@ -82,15 +84,22 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Main Dashboard */}
+          {/* Main Dashboard - now hub-driven */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <HubPage />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.dashboard} element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <HubPage />
+            </ProtectedMobileLayout>
+          } />
+
+          {/* Explore by Planets */}
+          <Route path="/discover/planets" element={
+            <ProtectedMobileLayout>
+              <OrbitPlanetsPage />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.progress} element={

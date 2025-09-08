@@ -1,0 +1,41 @@
+import React from "react";
+import { useNavigate } from "react-router-dom";
+import { Button } from '@/components/ui/button';
+import { Settings } from 'lucide-react';
+import { useUserRole } from '@/hooks/useUserRole';
+
+export default function HeaderRow() {
+  const navigate = useNavigate();
+  const { isSuperAdmin } = useUserRole();
+
+  return (
+    <div className="space-y-1 sm:space-y-2">
+      {/* Keep the exact markup/classes v64 uses for "Dashboard" + Admin + Explore by Planets */}
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
+        <div className="flex items-center gap-2">
+          {isSuperAdmin && (
+            <Button 
+              variant="default" 
+              onClick={() => navigate('/admin')}
+              className="text-sm"
+            >
+              <Settings className="w-4 h-4 mr-2" />
+              Admin
+            </Button>
+          )}
+          <Button 
+            variant="outline" 
+            onClick={() => navigate("/discover/planets")}
+            className="text-sm"
+          >
+            Explore by Planets
+          </Button>
+        </div>
+      </div>
+      <p className="text-sm sm:text-base text-muted-foreground">
+        Track your progress across all areas of life.
+      </p>
+    </div>
+  );
+}
