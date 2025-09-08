@@ -9,7 +9,6 @@ import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard - now using Hub system
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const HubPage = lazy(() => import('@/features/hub/HubPage'));
 
 // Public pages
