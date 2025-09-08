@@ -14,7 +14,7 @@ export default function HeaderRow({ hub }: { hub?: HubMeta }) {
     <div className="space-y-1 sm:space-y-2">
       {/* Keep the exact markup/classes v64 uses for "Dashboard" + Admin + Explore by Planets */}
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl sm:text-3xl font-bold">{hub?.name || "Dashboard"}</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">{hub?.name ? `${hub.name} Hub` : "Dashboard"}</h1>
         <div className="flex items-center gap-2">
           {isSuperAdmin && (
             <Button 
@@ -22,7 +22,6 @@ export default function HeaderRow({ hub }: { hub?: HubMeta }) {
               onClick={() => navigate('/admin')}
               className="text-sm"
             >
-              <Settings className="w-4 h-4 mr-2" />
               Admin
             </Button>
           )}
@@ -31,7 +30,7 @@ export default function HeaderRow({ hub }: { hub?: HubMeta }) {
             onClick={() => navigate("/explore")}
             className="text-sm"
           >
-            Explore by Planets
+            All Categories
           </Button>
         </div>
       </div>
