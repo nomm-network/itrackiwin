@@ -265,8 +265,26 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   const currentCat = searchParams.get('cat');
   const currentSub = searchParams.get('sub');
   
+  // Also try getting from window.location as fallback
+  const urlParams = new URLSearchParams(window.location.search);
+  const fallbackCat = urlParams.get('cat');
+  const fallbackSub = urlParams.get('sub');
+  
+  // Use the working method
+  const activeCat = currentCat || fallbackCat;
+  const activeSub = currentSub || fallbackSub;
+  
   // Debug current URL state
-  console.log('🔍 OrbitNavigation current URL params:', { currentCat, currentSub });
+  console.log('🔍 OrbitNavigation URL detection:', { 
+    currentCat, 
+    currentSub, 
+    fallbackCat, 
+    fallbackSub, 
+    activeCat, 
+    activeSub,
+    fullUrl: window.location.href 
+  });
+  
   useEffect(() => {
     supabase.auth.getUser().then(({
       data
@@ -439,7 +457,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
         const { cat: slugCat, sub: slugSub } = getCategoryAndSubSlug(categoryName, s.name);
         
         // Check if this item is currently active based on URL params
-        const isActive = currentCat === slugCat && currentSub === slugSub;
+        const isActive = activeCat === slugCat && activeSub === slugSub;
         
         // Debug logging
         console.log('🔍 OrbitNavigation pinned item check:', {
@@ -447,8 +465,8 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
           categoryName,
           slugCat,
           slugSub,
-          currentCat,
-          currentSub,
+          activeCat,
+          activeSub,
           isActive
         });
         
