@@ -1,9 +1,15 @@
+import { useSearchParams } from "react-router-dom";
 import { TIPS_BY_SLUG } from "./tips-data";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TipsBody({ slug }: { slug?: string }) {
-  // Handle case where slug might be undefined
-  if (!slug) {
+  const [searchParams] = useSearchParams();
+  
+  // If no slug is provided, get it from URL
+  const effectiveSlug = slug || searchParams.get("sub") || "";
+  
+  // Handle case where slug might be undefined or empty
+  if (!effectiveSlug) {
     return (
       <div className="container mx-auto p-2 sm:p-6 space-y-4">
         <Card>
@@ -18,7 +24,7 @@ export default function TipsBody({ slug }: { slug?: string }) {
     );
   }
 
-  const entry = TIPS_BY_SLUG[slug.toLowerCase()];
+  const entry = TIPS_BY_SLUG[effectiveSlug.toLowerCase()];
   
   if (!entry) {
     return (
