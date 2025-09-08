@@ -20,11 +20,13 @@ export function useHubMeta(categorySlugOrId?: string) {
 
     (async () => {
       try {
-        // 1) load the category by slug or id
+        // 1) load the category by slug (most common case) or id (if it's a valid UUID)
+        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wanted);
+        
         const { data: catRow, error: catErr } = await supabase
           .from("v_categories_with_translations")
           .select("id, slug, translations")
-          .or(`slug.eq.${wanted},id.eq.${wanted}`)
+          .eq(isUUID ? "id" : "slug", wanted)
           .maybeSingle();
 
         if (catErr || !catRow) {
