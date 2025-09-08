@@ -8,8 +8,8 @@ import { AdminRoutes } from '@/admin';
 import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
-// Dashboard
-const Dashboard = lazy(() => import('@/pages/Dashboard'));
+// Dashboard - using new HubPage
+const Dashboard = lazy(() => import('@/features/hub/HubPage'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
