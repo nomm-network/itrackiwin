@@ -27,10 +27,51 @@ export function resolveBodyByCategory(
   const cat = (categorySlug || "health").toLowerCase();
   const sub = (subSlug || "").toLowerCase();
 
+  // Health category has specific bodies
   if (cat === "health") {
-    return HEALTH[sub] ?? FitnessBody;     // OK: Health-only fallback
+    return HEALTH[sub] ?? FitnessBody;
   }
+
+  // All other categories use TipsBody with category-specific titles
+  const categoryTitles: Record<string, Record<string, string>> = {
+    wealth: {
+      "income-career-growth": "Wealth · Income & Career",
+      "saving-investing": "Wealth · Saving & Investing", 
+      "budgeting-debt": "Wealth · Budgeting & Debt",
+      "financial-education": "Wealth · Financial Education",
+      "wealth-building": "Wealth · Building"
+    },
+    relationships: {
+      "family-relationships": "Relationships · Family",
+      "romantic-life": "Relationships · Romantic Life",
+      "friendships": "Relationships · Friendships", 
+      "community-social-skills": "Relationships · Community",
+      "networking-collaboration": "Relationships · Networking"
+    },
+    mind: {
+      "stress-management": "Mind · Stress Management",
+      "mindfulness-meditation": "Mind · Mindfulness",
+      "self-awareness": "Mind · Self-Awareness",
+      "emotional-regulation": "Mind · Emotional Regulation", 
+      "therapy-mental-health": "Mind · Mental Health"
+    },
+    purpose: {
+      "career-purpose-or-calling": "Purpose · Career & Purpose",
+      "skill-development": "Purpose · Skill Development",
+      "hobbies-creativity": "Purpose · Hobbies & Creativity",
+      "continuous-learning": "Purpose · Continuous Learning",
+      "goal-setting": "Purpose · Goal Setting"
+    },
+    lifestyle: {
+      "time-productivity": "Lifestyle · Time & Productivity",
+      "environment-organization": "Lifestyle · Environment & Organization",
+      "minimalism-sustainability": "Lifestyle · Minimalism & Sustainability", 
+      "volunteering-giving-back": "Lifestyle · Volunteering & Giving",
+      "legacy-projects": "Lifestyle · Legacy Projects"
+    }
+  };
+
+  const title = categoryTitles[cat]?.[sub] || `${cat} · ${sub}`;
   
-  // All other categories: use Tips body (or their real bodies when you add them)
-  return (props: any) => <TipsBody category={cat} subSlug={sub} {...props} />;
+  return (props: any) => <TipsBody category={title} subSlug={sub} {...props} />;
 }
