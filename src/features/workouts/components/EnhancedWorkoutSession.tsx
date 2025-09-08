@@ -157,21 +157,23 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     const weId = resolveWorkoutExerciseId(currentExercise);
     const hasTarget = currentExercise?.target_weight_kg || currentExercise?.target_reps || currentExerciseEstimate?.estimated_weight;
     const hasBeenShown = warmupsShown[weId];
+    const hasNoCompletedSets = completedSetsCount === 0;
     
     console.log('🔍 Checking warmup conditions on exercise load:', {
-      weId, hasTarget, hasBeenShown, warmupCompleted
+      weId, hasTarget, hasBeenShown, warmupCompleted, hasNoCompletedSets, completedSetsCount
     });
     
     // Show warmup immediately when exercise loads if:
     // 1. We have a target weight/reps available (from template or estimate)  
     // 2. It hasn't been shown for this exercise yet in this session
     // 3. Warmup isn't marked as completed
-    if (hasTarget && !hasBeenShown && !warmupCompleted) {
+    // 4. This is before the first set is completed
+    if (hasTarget && !hasBeenShown && !warmupCompleted && hasNoCompletedSets) {
       console.log('✅ Triggering warmup display for exercise:', weId);
       setWarmupShown(weId);
       // The warmup will be shown by the existing WarmupBlock component
     }
-  }, [currentExercise, warmupsShown, warmupCompleted, currentExerciseEstimate, setWarmupShown]);
+  }, [currentExercise, warmupsShown, warmupCompleted, currentExerciseEstimate, completedSetsCount, setWarmupShown]);
   const totalExercises = workout?.exercises?.length || 0;
   const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
   
@@ -680,8 +682,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Show warmup if we have a plan and haven't completed it yet */}
-                {!warmupCompleted && currentExercise?.warmup_plan && (
+                {/* Show warmup if conditions are met and it should be displayed */}
+                {!warmupCompleted && warmupsShown[resolveWorkoutExerciseId(currentExercise)] && (
                     <WarmupBlock
                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                      unit="kg"
