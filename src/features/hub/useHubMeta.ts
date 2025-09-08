@@ -13,41 +13,32 @@ export function useHubMeta(targetHubSlug = "health") {
     let active = true;
     (async () => {
       const { data, error } = await supabase
-        .from("v_categories_with_translations")
+        .from("v_health_subs")
         .select("*")
-        .eq("slug", targetHubSlug);
+        .order("display_order");
 
       if (!active) return;
 
       if (error || !data?.length) {
-        setData({ slug: targetHubSlug, label: "Dashboard", subs: [] });
+        setData({ slug: targetHubSlug, label: "Health", subs: [{ slug: "configure", label: "Configure" }] });
         return;
       }
 
-      // Get subcategories for this hub
-      const { data: subData, error: subError } = await supabase
-        .from("v_subcategories_with_translations")
-        .select("*")
-        .eq("category_id", data[0].id);
-
-      if (subError || !subData) {
-        setData({ slug: targetHubSlug, label: "Dashboard", subs: [] });
-        return;
-      }
-
-      const parentLabel = (data[0].translations as any)?.en?.name || "Dashboard";
-      const subs: Sub[] = subData
-        .map((r: any) => ({
-          slug: r.slug?.toLowerCase() || r.id,
-          label: FIRST_WORD((r.translations as any)?.en?.name || r.slug || r.id),
-          icon: r.icon
-        }));
+      const subs: Sub[] = data.map((r: any) => ({
+        slug: String(r.sub_slug).toLowerCase(),
+        label: FIRST_WORD(String(r.sub_label || r.sub_slug)),
+        icon: r.icon || null
+      }));
 
       // Ensure Configure appears LAST (even if not in DB)
-      const hasConfigure = subs.some(s => s.slug.includes("configure"));
+      const hasConfigure = subs.some(s => s.slug === "configure");
       if (!hasConfigure) subs.push({ slug: "configure", label: "Configure" });
 
-      setData({ slug: targetHubSlug, label: parentLabel, subs });
+      setData({ 
+        slug: targetHubSlug, 
+        label: String(data[0]?.hub_label || "Health"), 
+        subs 
+      });
     })();
 
     return () => { active = false; };
