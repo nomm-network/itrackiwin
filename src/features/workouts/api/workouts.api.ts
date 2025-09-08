@@ -65,6 +65,8 @@ export const useGetWorkout = (workoutId?: string) => {
           started_at,
           ended_at,
           user_id,
+          template_id,
+          template:workout_templates(id, name),
           exercises:workout_exercises(
             id,
             exercise_id,
