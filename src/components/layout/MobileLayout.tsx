@@ -126,7 +126,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </Sheet>
           
           <div className="flex-1 flex justify-center">
-            <h1 className="text-2xl font-bold text-primary">iTrack.iWin.</h1>
+            <h1 className="text-3xl font-bold text-primary">iTrack.iWin.</h1>
           </div>
           
           <div className="flex items-center gap-2">

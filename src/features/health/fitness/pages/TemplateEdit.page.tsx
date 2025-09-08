@@ -6,7 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import PageNav from "@/components/PageNav";
-import { ArrowLeft, Plus, Save, Trash2, GripVertical, Search, Globe } from "lucide-react";
+import { ArrowLeft, Plus, Save, Trash2, GripVertical, Search, Globe, Star } from "lucide-react";
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "sonner";
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
@@ -24,6 +24,7 @@ import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ExerciseNameDisplay } from "../components/ExerciseNameDisplay";
 import { useTranslation } from 'react-i18next';
+import { useFavoriteTemplate, useToggleFavoriteTemplate } from '@/features/training/hooks';
 
 interface Exercise {
   id: string;
@@ -61,6 +62,10 @@ export default function TemplateEdit() {
   const updateTemplate = useUpdateTemplate();
   const deleteTemplate = useDeleteTemplate();
   const addExerciseToTemplate = useAddExerciseToTemplate();
+
+  // Favorite functionality
+  const { data: isFavorite, isLoading: favoriteLoading } = useFavoriteTemplate(templateId);
+  const toggleFavorite = useToggleFavoriteTemplate();
 
   // Fetch muscle groups
   const { data: muscleGroups = [] } = useQuery({
@@ -308,6 +313,19 @@ export default function TemplateEdit() {
           </div>
           
           <div className="flex gap-2">
+            {/* Favorite Button */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => templateId && toggleFavorite.mutate({ 
+                templateId, 
+                isFavorite: isFavorite || false 
+              })}
+              disabled={favoriteLoading || toggleFavorite.isPending}
+              className={isFavorite ? "text-yellow-500 border-yellow-500" : ""}
+            >
+              <Star className={`h-4 w-4 ${isFavorite ? 'fill-current' : ''}`} />
+            </Button>
             {isEditing ? (
               <>
                 <Button variant="outline" onClick={() => setIsEditing(false)}>

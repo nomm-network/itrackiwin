@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search } from 'lucide-react';
 import { toast } from 'sonner';
+import { FavoriteTemplateButton } from '@/features/training/components';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
@@ -141,6 +142,7 @@ const TemplatesPage = () => {
                 </Button>
               </div>
             )}
+            <FavoriteTemplateButton templateId={template.id} />
           </div>
         </CardHeader>
         <CardContent>
