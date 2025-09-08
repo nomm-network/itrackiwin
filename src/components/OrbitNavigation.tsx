@@ -20,24 +20,82 @@ const categoryIcon = (name: string): string => {
 };
 const subcategoryIcon = (name: string): string => {
   const map: Record<string, string> = {
+    // Health
     "Fitness & exercise": "🏋️",
-    "Fitness and Exercise": "🏋️",
-    "Sleep": "🛌",
+    "Fitness and Exercise": "🏋️", 
+    "Nutrition & hydration": "🍎",
     "Nutrition": "🍎",
-    "Meditation": "🧘",
-    "Learning": "📚",
-    "Finance": "📈",
-    "Long-term wealth building": "🏦",
+    "Sleep quality": "🛌",
+    "Sleep": "🛌",
+    "Medical checkups": "🩺",
+    "Medical": "🩺",
+    "Energy levels": "⚡",
+    "Energy": "⚡",
+    
+    // Wealth
+    "Income & career growth": "💼",
+    "Income": "💼",
     "Career": "💼",
+    "Saving & investing": "💰",
+    "Saving": "💰",
+    "Investing": "💰",
+    "Budgeting & debt": "💳",
+    "Budgeting": "💳",
+    "Financial education": "📊",
+    "Finance": "📊",
+    "Wealth building": "🏦",
+    "Long-term wealth building": "🏦",
+    
+    // Relationships
+    "Family relationships": "👨‍👩‍👧‍👦",
     "Family": "👨‍👩‍👧‍👦",
-    "Friends": "🤝",
     "Romantic life": "💞",
-    "Hobbies": "🎨",
-    "Contribution": "🤲",
-    "Travel": "✈️",
-    "Growth": "🌱",
+    "Friendships": "🤝",
+    "Friends": "🤝",
+    "Community & social skills": "🌍",
+    "Community": "🌍",
+    "Networking & collaboration": "🤝‍",
+    "Networking": "🔗",
+    
+    // Mind & Emotions
+    "Stress management": "🧘‍♀️",
+    "Stress": "🧘‍♀️",
+    "Mindfulness & meditation": "🧘",
+    "Mindfulness": "🧘",
+    "Meditation": "🧘",
+    "Self-awareness": "🪞",
+    "Emotional regulation": "😌",
+    "Emotions": "💭",
+    "Therapy & mental health": "🧠",
+    "Therapy": "🧠",
+    
+    // Purpose & Growth
+    "Career purpose or calling": "🎯",
     "Purpose": "🎯",
-    "Emotions": "💬"
+    "Skill development": "🛠️",
+    "Skills": "🛠️",
+    "Hobbies & creativity": "🎨",
+    "Hobbies": "🎨",
+    "Continuous learning": "📚",
+    "Learning": "📚",
+    "Goal setting": "🏆",
+    "Goals": "🏆",
+    
+    // Lifestyle
+    "Time & productivity": "⏰",
+    "Time": "⏰",
+    "Environment & organization": "🏠",
+    "Environment": "🏠",
+    "Minimalism & sustainability": "🌱",
+    "Minimalism": "🌱",
+    "Volunteering & giving back": "🤲",
+    "Volunteering": "🤲",
+    "Contribution": "🤲",
+    "Legacy projects": "📜",
+    "Legacy": "📜",
+    "Fun, travel & leisure": "✈️",
+    "Travel": "✈️",
+    "Growth": "🌱"
   };
   return map[name] ?? "🔹";
 };
