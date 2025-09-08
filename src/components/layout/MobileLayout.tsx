@@ -27,9 +27,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       { name: "Discover", href: "/marketplace", icon: Compass },
     ];
 
-    // Get pinned subcategories, excluding fitness slug since we always show it as base
+    // Get pinned subcategories, excluding fitness-exercise slug since we always show it as base
     const nonFitnessPins = pinnedSubcategories.filter(pin => 
-      pin.subcategory?.slug !== "fitness"
+      pin.subcategory?.slug !== "fitness-exercise"
     );
 
     // Add up to 2 pinned subcategories
