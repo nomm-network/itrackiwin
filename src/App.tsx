@@ -4,7 +4,8 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { Toaster } from '@/components/ui/toaster';
 import { Toaster as Sonner } from '@/components/ui/sonner';
 import { SecurityProvider } from '@/components/security/SecurityProvider';
-import { AppRoutes } from '@/app/router/AppRoutes';
+import { BrowserRouter } from 'react-router-dom';
+import AppRoutes from '@/app/AppRoutes';
 import { queryClient } from '@/app/providers/QueryClientProvider';
 
 export default function App() {
@@ -52,9 +53,11 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <SecurityProvider>
         <TooltipProvider>
-          <Toaster />
-          <Sonner />
-          <AppRoutes />
+          <BrowserRouter>
+            <Toaster />
+            <Sonner />
+            <AppRoutes />
+          </BrowserRouter>
         </TooltipProvider>
       </SecurityProvider>
     </QueryClientProvider>
