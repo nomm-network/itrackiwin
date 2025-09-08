@@ -38,6 +38,8 @@ const SubcategoryPage: React.FC = () => {
       // Redirect to dashboard with proper category and subcategory filters
       const categorySlug = subcategory.life_categories.slug;
       
+      console.log('SubcategoryPage: Redirecting', { slug, categorySlug, subcategory });
+      
       if (categorySlug === 'health' && slug === 'fitness-exercise') {
         // Special case: fitness-exercise redirects to main dashboard
         navigate('/dashboard');
