@@ -7,6 +7,8 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { saveTodayReadiness } from "@/lib/readiness";
+import { toast } from "sonner";
 
 export interface ReadinessData {
   energy: number;
@@ -187,6 +189,24 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
               type="submit"
               className="w-full"
               disabled={isLoading}
+              onClick={handleSubmit(async (data) => {
+                try {
+                  const score = await saveTodayReadiness({
+                    energy: data.energy,
+                    sleepQuality: data.sleep_quality,
+                    sleepHours: data.sleep_hours,
+                    soreness: data.soreness,
+                    stress: data.stress,
+                    preworkout: data.energisers_taken,
+                  });
+                  
+                  toast.success(`Readiness logged: ${score}/100`);
+                  onSubmit(data);
+                } catch (error) {
+                  console.error('Error saving readiness:', error);
+                  toast.error('Failed to save readiness data');
+                }
+              })}
             >
               {isLoading ? "Starting..." : "Start Workout"}
             </Button>

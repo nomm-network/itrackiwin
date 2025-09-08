@@ -1,92 +1,122 @@
 import { supabase } from '@/integrations/supabase/client';
+import { computeReadinessScore, type ReadinessInput } from './readiness/calc';
+import { useReadinessStore, type ReadinessState } from '@/stores/readinessStore';
 
-export type ReadinessInputs = {
-  energy: number;          // 0..10
-  sleepQuality: number;    // 0..10
-  sleepHours: number;      // e.g., 0..14
-  soreness: number;        // 0..10 (higher worse)
-  stress: number;          // 0..10 (higher worse)
-  isSick?: boolean;
-  hadAlcohol24h?: boolean;
-  energizers?: boolean;    // creatine / preworkout taken
-};
+export type ReadinessInputs = ReadinessInput;
 
-const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
-const norm01 = (x: number) => clamp(x / 10);
-const inv01  = (x: number) => 1 - norm01(x);
-
-// Triangular scoring: peak at 8h, down to 0 at ±4h from 8
-const sleepTri01 = (hours: number) => clamp(1 - Math.abs(hours - 8) / 4);
-
-export function computeReadiness(inputs: ReadinessInputs) {
-  const e = norm01(inputs.energy);
-  const q = norm01(inputs.sleepQuality);
-  const h = sleepTri01(inputs.sleepHours);
-  const sInv = inv01(inputs.soreness);
-  const stInv = inv01(inputs.stress);
-
-  // Base weighted average (0..1)
-  const base =
-      0.25 * e +
-      0.20 * q +
-      0.15 * h +
-      0.15 * sInv +
-      0.15 * stInv;
-
-  let score = base * 100;             // 0..100
-  if (inputs.energizers) score += 3;  // small boost
-
-  if (inputs.isSick)       score -= 20;
-  if (inputs.hadAlcohol24h) score -= 10;
-
-  score = clamp(score, 0, 100);
-  return {
-    score,           // number 0..100
-    breakdown: { e, q, h, sInv, stInv, base },
-  };
-}
+// Re-export the main calculator
+export { computeReadinessScore } from './readiness/calc';
 
 /**
- * Compute readiness score for a specific check-in
+ * Save today's readiness data and computed score
  */
-export async function computeReadinessScore(checkinId: string, persist: boolean = true): Promise<number> {
-  const { data, error } = await supabase.rpc('fn_compute_readiness_score_v1', {
-    p_checkin_id: checkinId,
-    p_persist: persist,
-  });
-  
-  if (error) {
-    console.error('Error computing readiness score:', error);
-    throw error;
-  }
-  
-  return Number(data || 65); // Default moderate score if null
-}
-
-/**
- * Get the current user's latest readiness score
- */
-export async function getCurrentUserReadinessScore(): Promise<number> {
+export async function saveTodayReadiness(input: ReadinessInput): Promise<number> {
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
     throw new Error('User not authenticated');
   }
 
-  const { data, error } = await supabase.rpc('compute_readiness_for_user', {
-    p_user_id: user.id,
-  });
-  
+  const score = computeReadinessScore(input);
+  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+
+  // Save to database
+  const { error } = await supabase
+    .from('readiness_checkins')
+    .upsert({
+      user_id: user.id,
+      checkin_at: new Date().toISOString(),
+      energy: input.energy,
+      sleep_quality: input.sleepQuality,
+      sleep_hours: input.sleepHours,
+      soreness: input.soreness,
+      stress: input.stress,
+      energizers: input.preworkout, // Use 'energizers' field
+      score,
+      computed_at: new Date().toISOString()
+    }, { 
+      onConflict: 'user_id,checkin_at',
+      ignoreDuplicates: false 
+    });
+
   if (error) {
-    console.error('Error getting user readiness score:', error);
+    console.error('Error saving readiness data:', error);
     throw error;
   }
-  
-  return Number(data || 65); // Default moderate score if null
+
+  // Update store immediately
+  useReadinessStore.getState().setReadiness({
+    date: today,
+    score,
+    energy: input.energy,
+    sleepQuality: input.sleepQuality,
+    sleepHours: input.sleepHours,
+    soreness: input.soreness,
+    stress: input.stress,
+    preworkout: input.preworkout,
+  });
+
+  return score;
 }
 
 /**
- * Get the latest readiness check-in with computed score for a user
+ * Load today's readiness data for the current user
+ */
+export async function loadTodayReadiness(): Promise<ReadinessState | null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return null;
+  }
+
+  const today = new Date().toISOString().slice(0, 10);
+  
+  const { data, error } = await supabase
+    .from('readiness_checkins')
+    .select('*')
+    .eq('user_id', user.id)
+    .gte('checkin_at', `${today}T00:00:00.000Z`)
+    .lt('checkin_at', `${today}T23:59:59.999Z`)
+    .order('checkin_at', { ascending: false })
+    .limit(1)
+    .maybeSingle();
+
+  if (error) {
+    console.error('Error loading readiness data:', error);
+    return null;
+  }
+
+  if (!data) {
+    return null;
+  }
+
+  const readinessState: ReadinessState = {
+    date: today,
+    score: Number(data.score) || 0,
+    energy: Number(data.energy) || 0,
+    sleepQuality: Number(data.sleep_quality) || 0,
+    sleepHours: Number(data.sleep_hours) || 0,
+    soreness: Number(data.soreness) || 0,
+    stress: Number(data.stress) || 0,
+    preworkout: Boolean(data.energizers),
+  };
+
+  // Update store
+  useReadinessStore.getState().setReadiness(readinessState);
+
+  return readinessState;
+}
+
+/**
+ * Get the current user's latest readiness score (legacy function for compatibility)
+ */
+export async function getCurrentUserReadinessScore(): Promise<number> {
+  const readiness = await loadTodayReadiness();
+  return readiness?.score || 0; // Return 0 instead of 65 fallback
+}
+
+/**
+ * Get the latest readiness check-in with computed score for a user (legacy function)
  */
 export async function getLatestReadinessCheckin(userId?: string) {
   let userIdToUse = userId;

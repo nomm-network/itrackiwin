@@ -514,7 +514,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       let realScore = 65; // Default fallback
       try {
         if (checkinResponse?.id) {
-          realScore = await computeReadinessScore(checkinResponse.id, true);
+          realScore = await getCurrentUserReadinessScore();
           console.log('📊 Computed readiness score:', realScore);
         }
       } catch (scoreError) {

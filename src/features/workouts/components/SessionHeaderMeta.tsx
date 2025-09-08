@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { getReadinessScoreColor, getReadinessScoreDescription } from '@/lib/readiness';
+import { useReadinessStore } from '@/stores/readinessStore';
 
 interface SessionHeaderMetaProps {
   readiness?: number;
@@ -8,11 +9,15 @@ interface SessionHeaderMetaProps {
 }
 
 export function SessionHeaderMeta({
-  readiness,
+  readiness: propReadiness,
   startedAt,
   endedAt,
 }: SessionHeaderMetaProps) {
   const [now, setNow] = useState(Date.now());
+  const { score: storeReadiness } = useReadinessStore();
+  
+  // Use store readiness if available, otherwise fall back to prop
+  const readiness = storeReadiness || propReadiness;
   
   useEffect(() => {
     if (!startedAt || endedAt) return;
@@ -27,10 +32,10 @@ export function SessionHeaderMeta({
 
   return (
     <div className="flex items-center gap-2">
-      {typeof readiness === 'number' && (
+      {typeof readiness === 'number' && readiness > 0 ? (
         <div className="relative w-9 h-9 rounded-full grid place-items-center"
-             aria-label={`Readiness ${readiness}/10 - ${getReadinessScoreDescription(readiness)}`}
-             title={`Readiness: ${getReadinessScoreDescription(readiness)} (${Math.round(readiness)}/10)`}>
+             aria-label={`Readiness ${readiness}/100 - ${getReadinessScoreDescription(readiness)}`}
+             title={`Readiness: ${getReadinessScoreDescription(readiness)} (${Math.round(readiness)}/100)`}>
           {/* Circular progress ring */}
           <svg viewBox="0 0 36 36" className="absolute inset-0 w-9 h-9">
             <circle 
@@ -59,6 +64,10 @@ export function SessionHeaderMeta({
           <span className={`text-xs font-semibold relative z-10 ${getReadinessScoreColor(readiness)}`}>
             {Math.round(readiness)}
           </span>
+        </div>
+      ) : (
+        <div className="px-2 py-1 rounded-md text-sm bg-muted/50 text-muted-foreground border">
+          📋 --/100
         </div>
       )}
       <div className="px-2 py-1 rounded-md text-sm bg-muted/50 text-muted-foreground border">
