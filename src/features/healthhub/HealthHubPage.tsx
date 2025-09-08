@@ -168,7 +168,7 @@ export default function HealthHubPage() {
           </div>
         </div>
       }
-      CategoryGrid={<HubCategoryGrid />}
+      CategoryGrid={<HubCategoryGrid hub={hub} activeSub={subSlug} />}
       Submenu={<Submenu hub={hub} activeSub={subSlug} />}
       KPIs={<PlaceholderKPIs hubSlug={hub.slug} />}
       Primary={
