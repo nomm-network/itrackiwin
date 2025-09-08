@@ -9,7 +9,7 @@ import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard
-const Dashboard = lazy(() => import('@/pages/MobileFitness'));
+const Dashboard = lazy(() => import('@/pages/Dashboard'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
