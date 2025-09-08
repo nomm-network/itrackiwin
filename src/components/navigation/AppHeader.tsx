@@ -8,7 +8,7 @@ export function AppHeader() {
     <header className="border-b border-border bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-14 items-center justify-between">
         <div className="flex items-center space-x-4">
-          <h1 className="text-lg font-semibold">iT.iW</h1>
+          <h1 className="text-2xl font-bold text-primary">iTrack.iWin.</h1>
           <MainTopNav />
         </div>
         

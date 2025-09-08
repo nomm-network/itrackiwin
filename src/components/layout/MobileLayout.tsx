@@ -50,7 +50,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
             <SheetContent side="left" className="w-72 p-0">
               <div className="flex flex-col h-full">
                 <div className="flex items-center justify-between p-4 border-b">
-                  <h2 className="text-lg font-semibold">iT.iW</h2>
+                  <h2 className="text-xl font-bold text-primary">iTrack.iWin.</h2>
                   <Button 
                     variant="ghost" 
                     size="icon" 
@@ -126,7 +126,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
           </Sheet>
           
           <div className="flex-1 flex justify-center">
-            <h1 className="text-lg font-semibold">iT.iW</h1>
+            <h1 className="text-2xl font-bold text-primary">iTrack.iWin.</h1>
           </div>
           
           <div className="flex items-center gap-2">
@@ -142,7 +142,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       <div className="hidden md:fixed md:inset-y-0 md:flex md:w-64 md:flex-col">
         <div className="flex flex-col flex-grow pt-5 bg-card border-r overflow-y-auto">
           <div className="flex items-center flex-shrink-0 px-4">
-            <h2 className="text-xl font-bold">iT.iW</h2>
+            <h2 className="text-2xl font-bold text-primary">iTrack.iWin.</h2>
           </div>
           <div className="mt-5 flex-1 flex flex-col">
             <nav className="flex-1 px-2 pb-4 space-y-1">

@@ -32,7 +32,7 @@ export default function GymAdminLayout({ children, currentTab = "dashboard" }: G
             </div>
           </div>
           <p className="text-sm text-muted-foreground">
-            Global iT.iW Administration (not per-gym) - Manage this specific gym's operations
+            Global iTrack.iWin. Administration (not per-gym) - Manage this specific gym's operations
           </p>
         </div>
 
