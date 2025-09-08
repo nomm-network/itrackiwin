@@ -1,2 +1,7 @@
-import TipsBody from "../../TipsBody";
-export default function EnergyBody(){ return <TipsBody slug="energy-levels" />; }
+import TipsBody from "../common/TipsBody";
+
+type Props = { category: string; subSlug: string };
+
+export default function EnergyBody({ category, subSlug }: Props) {
+  return <TipsBody category={category} subSlug={subSlug} />;
+}

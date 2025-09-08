@@ -1,86 +1,77 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type HubSubcategory = { slug: string; label: string; icon?: string | null };
-export type HubMeta = { slug: string; name: string; subs: HubSubcategory[] };
+export type HubSub = { slug: string; label: string };
+export type HubMeta = { slug: string; name: string; subs: HubSub[] };
 
-const FIRST_WORD = (s: string) => {
-  const cleaned = (s || "").trim();
-  // Handle cases like "Fitness & exercise" -> "Fitness", "Medical check-ups & prevention" -> "Medical"
-  const firstWord = cleaned.split(/[\s&-]+/)[0];
-  return firstWord || cleaned;
-};
+function firstWord(s: string) {
+  const t = String(s || "").trim();
+  return t.split(/\s+/)[0] || t;
+}
 
-export function useHubMeta(categorySlugOrId?: string) {
-  const [hub, setHub] = useState<HubMeta | null>(null);
-  const wanted = (categorySlugOrId || "health").toLowerCase();
+export function useHubMeta(categorySlug: string): HubMeta | null {
+  const [meta, setMeta] = useState<HubMeta | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
+    async function run() {
+      // Adjust table / column names to your schema
+      const { data: cat, error } = await supabase
+        .from("v_categories_with_translations")
+        .select("id, slug, translations")
+        .eq("slug", categorySlug)
+        .single();
 
-    (async () => {
-      try {
-        // 1) load the category by slug (most common case) or id (if it's a valid UUID)
-        const isUUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(wanted);
-        
-        const { data: catRow, error: catErr } = await supabase
-          .from("v_categories_with_translations")
-          .select("id, slug, translations")
-          .eq(isUUID ? "id" : "slug", wanted)
-          .maybeSingle();
-
-        if (catErr || !catRow) {
-          console.error("Category fetch error:", catErr);
-          if (!cancelled) setHub(null);
-          return;
-        }
-
-        // 2) load its subcategories with translations (ordered)
-        const { data: subsRows, error: subsErr } = await supabase
-          .from("v_subcategories_with_translations")
-          .select("slug, translations, display_order")
-          .eq("category_id", catRow.id)
-          .order("display_order", { ascending: true });
-
-        if (subsErr) {
-          console.error("Subcategories fetch error:", subsErr);
-          if (!cancelled) setHub(null);
-          return;
-        }
-
-        // 3) map to chip model and append Configure at the end
-        const subs: HubSubcategory[] = (subsRows || []).map((r) => {
-          const translations = r.translations as any;
-          const fullName = translations?.en?.name || r.slug || "";
-          const firstWord = FIRST_WORD(fullName);
-          
-          return {
-            slug: String(r.slug || "").toLowerCase(),         // <- DB slug drives URL (e.g., "fitness-exercise")
-            label: firstWord, // <- first word for chip (e.g., "Fitness" from "Fitness & exercise")
-          };
-        });
-
-        if (!subs.some((s) => s.slug === "configure")) {
-          subs.push({ slug: "configure", label: "Configure" });
-        }
-
-        if (!cancelled) {
-          const catTranslations = catRow.translations as any;
-          const categoryName = catTranslations?.en?.name || catRow.slug || "Dashboard";
-          setHub({
-            slug: String(catRow.slug || catRow.id).toLowerCase(),
-            name: categoryName,
-            subs,
+      if (error || !cat) {
+        // minimal fallback so UI never breaks
+        if (alive)
+          setMeta({
+            slug: "health",
+            name: "Health",
+            subs: [
+              { slug: "fitness-exercise", label: "Fitness" },
+              { slug: "nutrition-hydration", label: "Nutrition" },
+              { slug: "sleep-quality", label: "Sleep" },
+              { slug: "medical-checkups", label: "Medical" },
+              { slug: "energy-levels", label: "Energy" },
+              { slug: "configure", label: "Configure" },
+            ],
           });
-        }
-      } catch (error) {
-        console.error("useHubMeta error:", error);
-        if (!cancelled) setHub(null);
+        return;
       }
-    })();
 
-    return () => { cancelled = true; };
-  }, [wanted]);
+      // Get subcategories
+      const { data: subcategories } = await supabase
+        .from("v_subcategories_with_translations")
+        .select("slug, translations, display_order")
+        .eq("category_id", cat.id)
+        .order("display_order", { ascending: true });
 
-  return hub;
+      const subs =
+        (subcategories || [])
+          .map((s: any) => {
+            const translations = s.translations as any;
+            const fullName = translations?.en?.name || s.slug || "";
+            return {
+              slug: (s.slug || "").toLowerCase(),
+              label: firstWord(fullName),
+            };
+          }) ?? [];
+
+      if (!subs.some((s: HubSub) => s.slug === "configure")) {
+        subs.push({ slug: "configure", label: "Configure" });
+      }
+
+      const catTranslations = cat.translations as any;
+      const categoryName = catTranslations?.en?.name || cat.slug || "Dashboard";
+
+      if (alive) setMeta({ slug: cat.slug, name: categoryName, subs });
+    }
+    run();
+    return () => {
+      alive = false;
+    };
+  }, [categorySlug]);
+
+  return meta;
 }

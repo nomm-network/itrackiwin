@@ -1,2 +1,7 @@
-import TipsBody from "../../TipsBody";
-export default function SleepBody(){ return <TipsBody slug="sleep-quality" />; }
+import TipsBody from "../common/TipsBody";
+
+type Props = { category: string; subSlug: string };
+
+export default function SleepBody({ category, subSlug }: Props) {
+  return <TipsBody category={category} subSlug={subSlug} />;
+}
