@@ -7,21 +7,7 @@ import HubCategoryGrid from "./components/HubCategoryGrid";
 import { useHubCategories, findHub, getDefaultSubcategory } from "./useHubCategories";
 import { resolveView } from "./moduleMap";
 import { useUserRole } from "@/hooks/useUserRole";
-
-function PlaceholderQuick() {
-  return (
-    <Card>
-      <CardContent className="pt-3 sm:pt-6">
-        <h3 className="text-lg font-semibold mb-2 sm:mb-4">Quick Actions</h3>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-          <Button variant="outline" className="h-12 flex items-center gap-2">
-            <span className="text-xs">Coming Soon</span>
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
-  );
-}
+import QuickActionsRow from "./fitness/QuickActionsRow";
 
 export default function HealthHubPage() {
   const { data: hubs, isLoading, error } = useHubCategories();
@@ -110,7 +96,7 @@ export default function HealthHubPage() {
           <View />
         </Suspense>
       }
-      Quick={<PlaceholderQuick />}
+      Quick={<QuickActionsRow />}
     />
   );
 }
