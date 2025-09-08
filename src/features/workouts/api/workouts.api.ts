@@ -144,14 +144,34 @@ export const useStartWorkout = () => {
   const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (options: { templateId?: string } = {}) => {
+    mutationFn: async (options: { templateId?: string; templateName?: string } = {}) => {
       if (!user?.id) throw new Error('Not authenticated');
+      
+      // If we have a template, fetch its name to stamp on the workout
+      let templateName = options.templateName;
+      if (options.templateId && !templateName) {
+        const { data: templateData } = await supabase
+          .from('workout_templates')
+          .select('name')
+          .eq('id', options.templateId)
+          .single();
+        templateName = templateData?.name;
+      }
       
       const { data, error } = await supabase.rpc('start_workout', {
         p_template_id: options.templateId || null
       });
       
       if (error) throw error;
+      
+      // Stamp the template name on the workout if available
+      if (templateName && data) {
+        await supabase
+          .from('workouts')
+          .update({ title: templateName })
+          .eq('id', data);
+      }
+      
       return { workoutId: data };
     },
     onSuccess: () => {
