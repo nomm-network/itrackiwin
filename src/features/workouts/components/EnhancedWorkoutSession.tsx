@@ -615,6 +615,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <EnhancedReadinessCheckIn
             workoutId={workout.id}
             onSubmit={handleReadinessSubmit}
+            onAbort={handleAbortWorkout}
             isLoading={createCheckin.isPending}
           />
         </main>
