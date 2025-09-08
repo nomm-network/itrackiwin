@@ -1,20 +1,32 @@
 import { TIPS_BY_SLUG } from "./tips-data";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function TipsBody({ slug }: { slug: string }) {
   const entry = TIPS_BY_SLUG[slug.toLowerCase()];
   if (!entry) return null;
 
   return (
-    <div style={{marginTop:16}}>
-      <div style={{padding:"12px 16px", background:"#fff8e1", border:"1px solid #ffe08a", borderRadius:8, marginBottom:12}}>
-        <strong>{entry.title}</strong>
-        <div>This module is under construction, but here are Top 10 best practices you can use right away.</div>
-      </div>
-      <ol style={{paddingLeft:20}}>
-        {entry.tips.map((t,i)=>(
-          <li key={i} style={{margin:"8px 0"}}>{t}</li>
-        ))}
-      </ol>
+    <div className="container mx-auto p-2 sm:p-6 space-y-4">
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg sm:text-xl">{entry.title}</CardTitle>
+          <p className="text-muted-foreground">
+            This module is under construction, but here are the top 10 best practices you can start using right away.
+          </p>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {entry.tips.map((tip, index) => (
+              <div key={index} className="flex gap-3 p-3 rounded-lg bg-muted/50">
+                <div className="flex-shrink-0 w-6 h-6 rounded-full bg-primary text-primary-foreground text-sm font-semibold flex items-center justify-center">
+                  {index + 1}
+                </div>
+                <p className="text-sm leading-relaxed">{tip}</p>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
