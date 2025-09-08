@@ -43,6 +43,27 @@ const MinimalBody    = React.lazy(() => import("./bodies/lifestyle/MinimalismSus
 const VolunteerBody  = React.lazy(() => import("./bodies/lifestyle/VolunteeringGivingBackBody"));
 const LegacyBody     = React.lazy(() => import("./bodies/lifestyle/LegacyProjectsBody"));
 
+// Generic tips body for other categories
+const TipsBody = React.lazy(() => import("./TipsBody"));
+
+const HEALTH: Record<string, React.ComponentType> = {
+  "fitness-exercise": FitnessBody, // 🔒 frozen legacy UI
+  "nutrition-hydration": NutritionBody,
+  "sleep-quality": SleepBody,
+  "medical-checkups": MedicalBody,
+  "energy-levels": EnergyBody,
+  "configure": ConfigureBody,
+};
+
+// For categories other than health we render the generated tips body.
+// It reads cat/sub from URL to pick the right content.
+export function resolveBodyByCategory(cat: string, sub: string): React.ComponentType {
+  if (cat === "health") {
+    return HEALTH[sub] ?? FitnessBody;
+  }
+  return TipsBody;
+}
+
 export function resolveBody(subSlug: string) {
   const s = (subSlug || "").toLowerCase();
 

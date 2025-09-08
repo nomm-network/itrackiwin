@@ -1,44 +1,67 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 
-type HubMeta = { slug: string; name: string; chips: {slug:string;label:string}[] };
+export type HubSubcategory = { slug: string; label: string; icon?: string | null };
+export type HubMeta = { slug: string; name: string; subs: HubSubcategory[] };
 
-// Use DB; fall back to safe constant if query not wired
-const FALLBACK: HubMeta = {
-  slug: "health",
-  name: "Health",
-  chips: [
-    { slug: "fitness-exercise",    label: "Fitness"   },
-    { slug: "nutrition-hydration", label: "Nutrition" },
-    { slug: "sleep-quality",       label: "Sleep"     },
-    { slug: "medical-checkups",    label: "Medical"   },
-    { slug: "energy-levels",       label: "Energy"    },
-    { slug: "configure",           label: "Configure" },
-  ],
-};
+const FIRST_WORD = (s: string) => (s || "").split(/\s+/)[0];
 
-export function useHubMeta(categorySlug: string): HubMeta {
-  const [meta, setMeta] = useState<HubMeta>(FALLBACK);
+export function useHubMeta(categorySlugOrId?: string) {
+  const [hub, setHub] = useState<HubMeta | null>(null);
+  const wanted = (categorySlugOrId || "health").toLowerCase();
 
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
       try {
-        // TODO: replace with your real client/tables (e.g., supabase)
-        // Expected tables (based on your data dump):
-        // - categories: slug 'health'
-        // - subcategories with slugs:
-        //   fitness-exercise, nutrition-hydration, sleep-quality, medical-checkups, energy-levels
-        // Keep first word label and append Configure.
-        // If your DB hook is not ready, FALLBACK already matches the exact UI.
-        if (!cancelled) setMeta(FALLBACK);
+        // 1) load the category by slug or id
+        const { data: catRow, error: catErr } = await supabase
+          .from("life_categories")
+          .select("id, slug, name")
+          .or(`slug.eq.${wanted},id.eq.${wanted}`)
+          .maybeSingle();
+
+        if (catErr || !catRow) {
+          if (!cancelled) setHub(null);
+          return;
+        }
+
+        // 2) load its subcategories with translations (ordered)
+        const { data: subsRows } = await supabase
+          .from("v_subcategories_with_translations")
+          .select("slug, translations, display_order")
+          .eq("category_id", catRow.id)
+          .order("display_order", { ascending: true });
+
+        // 3) map to chip model and append Configure at the end
+        const subs: HubSubcategory[] = (subsRows || []).map((r) => {
+          const translations = r.translations as any;
+          const name = translations?.en?.name || r.slug || "";
+          return {
+            slug: String(r.slug || "").toLowerCase(),         // <- DB slug drives URL
+            label: FIRST_WORD(String(name)), // <- first word for chip
+          };
+        });
+
+        if (!subs.some((s) => s.slug === "configure")) {
+          subs.push({ slug: "configure", label: "Configure" });
+        }
+
+        if (!cancelled) {
+          setHub({
+            slug: String(catRow.slug || catRow.id).toLowerCase(),
+            name: catRow.name,
+            subs,
+          });
+        }
       } catch {
-        if (!cancelled) setMeta(FALLBACK);
+        if (!cancelled) setHub(null);
       }
     })();
 
     return () => { cancelled = true; };
-  }, [categorySlug]);
+  }, [wanted]);
 
-  return meta;
+  return hub;
 }
