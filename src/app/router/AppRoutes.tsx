@@ -39,6 +39,7 @@ const Achievements = lazy(() => import('@/pages/Achievements'));
 const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
+const SubcategoryPage = lazy(() => import('@/features/subcategory/SubcategoryPage'));
 const Orbits = lazy(() => import('@/pages/Orbits'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
@@ -143,6 +144,11 @@ export function AppRoutes() {
           <Route path={Paths.area()} element={
             <ProtectedMobileLayout>
               <AreaDetail />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/subcategory/:slug" element={
+            <ProtectedMobileLayout>
+              <SubcategoryPage />
             </ProtectedMobileLayout>
           } />
           <Route path="/mentors" element={

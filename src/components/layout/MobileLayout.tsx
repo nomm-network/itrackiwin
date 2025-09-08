@@ -36,7 +36,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       .slice(0, 2)
       .map(pin => ({
         name: pin.subcategory?.translations?.find(t => t.language_code === "en")?.name || pin.subcategory?.slug || "Unknown",
-        href: `/life/health/${pin.subcategory?.slug}`,
+        href: `/subcategory/${pin.subcategory?.slug}`,
         icon: Target, // Use a generic icon, can be customized per subcategory later
       }));
 
