@@ -1,258 +1,388 @@
-# Complete Database Views Export
+# Complete Database Views Documentation
 
-**Export Date:** 2025-01-06  
+**Export Date:** 2025-01-08  
 **Database:** PostgreSQL (Supabase)  
 **Schema:** public  
-**Total Views:** 38  
+**Total Views:** 38
 
-## Summary
+## Overview
 
-This document provides a comprehensive overview of all 38 database views in the fitness platform. These views serve various purposes including analytics, reporting, data aggregation, and providing simplified access to complex data relationships.
+This document provides a comprehensive overview of all database views in the PostgreSQL (Supabase) fitness platform. Views are used for complex data aggregation, reporting, analytics, and providing simplified interfaces to complex table relationships.
 
-## Views by Category
+## Complete View Catalog
 
-### Exercise & Equipment Views
+### 1. geography_columns
+**Type:** PostGIS System View
+**Purpose:** PostGIS geographic column metadata
+**Key Columns:** Geographic column definitions and spatial reference systems
+**Usage:** PostGIS spatial data management and geographic operations
 
-#### v_exercises_with_translations
-**Purpose:** Provides exercises with localized names and metadata
-**Key Columns:** id, slug, name, popularity_rank, equipment info, body_part info, muscle_group info, movement_pattern info
-**Usage:** Primary view for exercise discovery and display with internationalization
+### 2. geometry_columns
+**Type:** PostGIS System View
+**Purpose:** PostGIS geometry column metadata
+**Key Columns:** Geometry column definitions and coordinate systems
+**Usage:** PostGIS spatial data management and geometric operations
 
-#### v_gym_equipment_completeness  
-**Purpose:** Shows equipment configuration status for each gym
-**Key Columns:** gym_id, total_equipment, configured_equipment, configuration_completeness_pct
-**Usage:** Admin monitoring of gym equipment setup progress
+### 3. v_admin_exercises
+**Type:** Administrative View
+**Purpose:** Administrative overview of exercises with management data
+**Key Columns:** Exercise details, usage statistics, quality metrics
+**Usage:** Admin dashboard for exercise management and quality control
 
-#### v_gym_top_exercises
-**Purpose:** Most popular exercises performed at each gym
-**Key Columns:** gym_id, exercise_id, exercise_name, total_sets, total_workouts, avg_weight
-**Usage:** Analytics dashboard for gym activity insights
+### 4. v_admin_mentors_overview
+**Type:** Administrative View
+**Purpose:** Administrative overview of mentors and their performance
+**Key Columns:** Mentor profiles, client counts, activity metrics
+**Usage:** Admin dashboard for mentor management and performance tracking
 
-#### v_user_exercise_estimates
-**Purpose:** User performance estimates and targets for exercises  
-**Key Columns:** user_id, exercise_id, estimated_1rm, working_weight_kg, target_reps
-**Usage:** AI coaching and workout planning
+### 5. v_ambassador_commission_summary
+**Type:** Commission Analytics
+**Purpose:** Summary of ambassador commission data
+**Key Columns:** Ambassador info, total commissions, performance metrics
+**Usage:** Ambassador performance tracking and commission reporting
 
-### Gym & Location Views
-
-#### v_marketplace_gyms
-**Purpose:** Public gym directory for marketplace
-**Key Columns:** gym_id, name, city, country, member_count, equipment_count, rating
-**Usage:** Public gym discovery and marketplace listings
-
-#### v_gym_activity
-**Purpose:** Comprehensive gym usage analytics
-**Key Columns:** gym_id, active_members, total_workouts_30d, avg_workout_duration, peak_hours
-**Usage:** Gym admin dashboard and business intelligence
-
-#### v_gym_poster_freshness
-**Purpose:** Tracks gym poster and QR code maintenance status
-**Key Columns:** gym_id, last_poster_check, last_poster_proof_at, freshness_status
-**Usage:** Operations monitoring for marketing material maintenance
-
-#### v_gyms_needing_poster_check
-**Purpose:** Identifies gyms requiring poster maintenance
-**Key Columns:** gym_id, gym_name, days_since_check, priority_level
-**Usage:** Operations alerts and task management
-
-### Ambassador & Commission Views
-
-#### v_ambassador_summary
-**Purpose:** Ambassador performance dashboard
-**Key Columns:** ambassador_id, user_id, status, verified_deals_total, total_gym_visits, commission_mtd
-**Usage:** Ambassador management and performance tracking
-
-#### v_ambassador_statements
+### 6. v_ambassador_statement_month
+**Type:** Commission Reporting
 **Purpose:** Monthly commission statements for ambassadors
-**Key Columns:** ambassador_id, year, month, gross_revenue, commission_due, deals_verified
-**Usage:** Ambassador self-service commission reporting
+**Key Columns:** Monthly breakdown, commission details, period totals
+**Usage:** Monthly commission statement generation
 
-#### v_ambassador_statement_month
-**Purpose:** Current month commission details
-**Key Columns:** ambassador_id, current_month_revenue, current_month_commission, deals_pending
-**Usage:** Real-time commission tracking
+### 7. v_ambassador_statements
+**Type:** Commission Reporting
+**Purpose:** Comprehensive ambassador commission statements
+**Key Columns:** Commission history, payment details, performance data
+**Usage:** Ambassador commission reporting and payment processing
 
-#### v_ambassador_commission_summary
-**Purpose:** Aggregated commission data across all ambassadors
-**Key Columns:** total_ambassadors, total_revenue_mtd, total_commissions_due, avg_commission_rate
-**Usage:** Executive reporting and business analytics
+### 8. v_ambassador_summary
+**Type:** Ambassador Analytics
+**Purpose:** High-level ambassador performance summary
+**Key Columns:** Ambassador metrics, deal counts, visit statistics
+**Usage:** Ambassador performance dashboards and KPI tracking
 
-### User & Progress Views
+### 9. v_body_parts_with_translations
+**Type:** Localization View
+**Purpose:** Body parts with localized translations
+**Key Columns:** body_part_id, slug, localized names and descriptions
+**Usage:** Multi-language body part selection and display
 
-#### v_last_working_set
-**Purpose:** Most recent working set performance for each user-exercise combination
-**Key Columns:** user_id, exercise_id, weight, reps, completed_at, rpe
-**Usage:** Workout planning and progression tracking
+### 10. v_categories_with_translations
+**Type:** Localization View
+**Purpose:** Life categories with localized translations
+**Key Columns:** category_id, slug, localized names and descriptions
+**Usage:** Multi-language category display and selection
 
-#### mv_user_exercise_1rm
-**Purpose:** Materialized view of estimated 1-rep max for user-exercise combinations
-**Key Columns:** user_id, exercise_id, estimated_1rm, calculation_date, confidence_score
-**Usage:** Performance analytics and strength tracking
+### 11. v_city_gyms_with_stats
+**Type:** Geographic Analytics
+**Purpose:** City-level gym statistics and aggregations
+**Key Columns:** City info, gym counts, member statistics
+**Usage:** Geographic gym distribution analysis and city reports
 
-#### mv_last_set_per_user_exercise  
-**Purpose:** Materialized view of latest set data per user-exercise
-**Key Columns:** user_id, exercise_id, weight, reps, completed_at, rn
-**Usage:** Quick access to recent performance data
+### 12. v_coach_clients
+**Type:** Coaching View
+**Purpose:** Coach-client relationship overview
+**Key Columns:** Coach info, client details, relationship status
+**Usage:** Coach dashboard for client management
 
-#### mv_pr_weight_per_user_exercise
-**Purpose:** Materialized view of personal record weights
-**Key Columns:** user_id, exercise_id, best_weight, pr_date, workout_id
-**Usage:** Personal record tracking and achievements
+### 13. v_current_workout
+**Type:** Real-time View
+**Purpose:** User's currently active workout session
+**Key Columns:** Workout details, current exercise, progress metrics
+**Usage:** Live workout tracking and real-time updates
 
-#### v_user_gym_overview
-**Purpose:** User's gym memberships and activity summary
-**Key Columns:** user_id, gym_id, membership_status, last_visit, total_workouts, favorite_exercises
-**Usage:** User dashboard gym section
+### 14. v_effective_equipment
+**Type:** Equipment View
+**Purpose:** Equipment with effective configurations and defaults
+**Key Columns:** Equipment specs, default settings, availability
+**Usage:** Equipment selection and configuration management
 
-### Coaching & Mentorship Views
+### 15. v_equipment_effective
+**Type:** Equipment View (Alternative)
+**Purpose:** Alternative equipment effectiveness view
+**Key Columns:** Equipment ratings, usage patterns, effectiveness scores
+**Usage:** Equipment recommendation and optimization
 
-#### v_marketplace_mentors
-**Purpose:** Public mentor directory for marketplace
-**Key Columns:** mentor_id, display_name, specialties, hourly_rate, rating, client_count
-**Usage:** Mentor discovery and booking platform
+### 16. v_equipment_with_translations
+**Type:** Localization View
+**Purpose:** Equipment with localized translations
+**Key Columns:** equipment_id, slug, localized names and descriptions
+**Usage:** Multi-language equipment display and selection
 
-#### v_marketplace_local_mentors
-**Purpose:** Location-based mentor recommendations
-**Key Columns:** mentor_id, display_name, distance_km, local_specialties, availability
-**Usage:** Geographically relevant mentor suggestions
+### 17. v_exercise_last_set
+**Type:** Exercise Analytics
+**Purpose:** Last performed set for each exercise per user
+**Key Columns:** Exercise info, last set details, performance metrics
+**Usage:** Exercise progress tracking and recommendation engines
 
-#### v_mentor_client_progress
-**Purpose:** Client progress tracking for mentors
-**Key Columns:** mentor_id, client_id, progress_metrics, last_workout, improvement_pct
-**Usage:** Coaching dashboard and client management
+### 18. v_exercises_with_translations
+**Type:** Localization View
+**Purpose:** Exercises with localized translations and metadata
+**Key Columns:** exercise_id, slug, localized names, difficulty, equipment
+**Usage:** Multi-language exercise catalog and search functionality
 
-### Analytics & Reporting Views
+### 19. v_gym_activity
+**Type:** Gym Analytics
+**Purpose:** Gym activity levels and usage patterns
+**Key Columns:** Gym info, visit counts, activity trends
+**Usage:** Gym performance tracking and usage analytics
 
-#### v_daily_workout_stats
-**Purpose:** Daily aggregated workout statistics
-**Key Columns:** date, total_workouts, unique_users, avg_duration, total_volume
-**Usage:** Platform analytics and growth tracking
+### 20. v_gym_equipment_completeness
+**Type:** Gym Analytics
+**Purpose:** Gym equipment inventory completeness assessment
+**Key Columns:** Gym info, equipment coverage, completeness scores
+**Usage:** Gym equipment audit and improvement recommendations
 
-#### v_exercise_popularity_trends
-**Purpose:** Exercise popularity over time
-**Key Columns:** exercise_id, exercise_name, weekly_count, monthly_count, trend_direction
-**Usage:** Content curation and exercise recommendations
+### 21. v_gym_poster_freshness
+**Type:** Gym Quality Control
+**Purpose:** Gym poster/marketing material freshness tracking
+**Key Columns:** Gym info, last poster check, freshness status
+**Usage:** Gym marketing material quality assurance
 
-#### v_user_achievement_progress
-**Purpose:** User progress toward achievements
-**Key Columns:** user_id, achievement_id, current_progress, target_value, completion_pct
-**Usage:** Gamification and motivation features
+### 22. v_gym_top_exercises
+**Type:** Gym Analytics
+**Purpose:** Most popular exercises performed at each gym
+**Key Columns:** Gym info, exercise popularity, usage statistics
+**Usage:** Gym-specific exercise recommendations and equipment planning
 
-#### v_gym_revenue_analytics
-**Purpose:** Revenue analytics per gym (commission-based)
-**Key Columns:** gym_id, monthly_revenue, growth_rate, commission_tier, total_members
-**Usage:** Business intelligence and partnership management
+### 23. v_gyms_needing_poster_check
+**Type:** Quality Control
+**Purpose:** Gyms requiring poster/marketing material verification
+**Key Columns:** Gym info, last check date, urgency level
+**Usage:** Quality control workflow and maintenance scheduling
 
-### System & Configuration Views
+### 24. v_last_working_set
+**Type:** Performance View
+**Purpose:** Last working set performed per exercise per user
+**Key Columns:** User info, exercise details, last performance metrics
+**Usage:** Progress tracking and performance comparison
 
-#### v_data_quality_summary
-**Purpose:** Overall data quality metrics
-**Key Columns:** table_name, completeness_pct, consistency_score, last_updated
-**Usage:** System health monitoring
+### 25. v_latest_readiness
+**Type:** Health Tracking
+**Purpose:** Latest readiness scores and health metrics per user
+**Key Columns:** User info, readiness scores, health indicators
+**Usage:** Readiness-based training recommendations
 
-#### v_feature_usage_stats
-**Purpose:** Feature adoption and usage statistics
-**Key Columns:** feature_name, active_users, usage_frequency, retention_rate
-**Usage:** Product analytics and feature prioritization
+### 26. v_marketplace_gyms
+**Type:** Marketplace View
+**Purpose:** Public gym catalog for marketplace display
+**Key Columns:** Gym profiles, amenities, ratings, public information
+**Usage:** Public gym directory and search functionality
 
-#### v_translation_coverage
-**Purpose:** Internationalization coverage status
-**Key Columns:** table_name, entity_id, languages_covered, missing_translations
-**Usage:** Localization project management
+### 27. v_marketplace_local_mentors
+**Type:** Marketplace View
+**Purpose:** Local mentor discovery based on user location
+**Key Columns:** Mentor profiles, location data, availability
+**Usage:** Location-based mentor recommendations
 
-### PostGIS Spatial Views
+### 28. v_marketplace_mentors
+**Type:** Marketplace View
+**Purpose:** Public mentor catalog for marketplace display
+**Key Columns:** Mentor profiles, specializations, ratings, availability
+**Usage:** Public mentor directory and search functionality
 
-#### geography_columns
-**Purpose:** PostGIS metadata for geography columns
-**Key Columns:** f_table_name, f_geography_column, coord_dimension, srid, type
-**Usage:** Spatial data management and GIS operations
+### 29. v_muscle_groups_with_translations
+**Type:** Localization View
+**Purpose:** Muscle groups with localized translations
+**Key Columns:** muscle_group_id, slug, localized names and descriptions
+**Usage:** Multi-language muscle group display and selection
 
-#### geometry_columns  
-**Purpose:** PostGIS metadata for geometry columns
-**Key Columns:** f_table_name, f_geometry_column, coord_dimension, srid, type
-**Usage:** Spatial data management and coordinate system tracking
+### 30. v_muscles_with_translations
+**Type:** Localization View
+**Purpose:** Individual muscles with localized translations
+**Key Columns:** muscle_id, slug, localized names and descriptions
+**Usage:** Multi-language muscle targeting and anatomy displays
 
-### Health & Wellness Views
+### 31. v_pre_checkin_exists
+**Type:** Workflow View
+**Purpose:** Check if user has completed pre-workout checkin
+**Key Columns:** User info, checkin status, completion timestamps
+**Usage:** Workout flow control and checkin requirement enforcement
 
-#### v_user_readiness_trends
-**Purpose:** User readiness score trends over time
-**Key Columns:** user_id, date, readiness_score, sleep_quality, stress_level, trend
-**Usage:** Recovery monitoring and workout planning
+### 32. v_public_mentors
+**Type:** Public Directory
+**Purpose:** Publicly visible mentor profiles
+**Key Columns:** Mentor info, public profiles, contact information
+**Usage:** Public mentor discovery and initial contact
 
-#### v_injury_impact_analysis
-**Purpose:** Analysis of injury impact on training
-**Key Columns:** user_id, injury_type, affected_exercises, recovery_timeline, adaptation_success
-**Usage:** Injury management and exercise modifications
+### 33. v_subcategories_with_translations
+**Type:** Localization View
+**Purpose:** Life subcategories with localized translations
+**Key Columns:** subcategory_id, slug, localized names and descriptions
+**Usage:** Multi-language subcategory display and organization
 
-### Performance & Optimization Views
+### 34. v_user_default_gym
+**Type:** User Preference View
+**Purpose:** User's default/primary gym selection
+**Key Columns:** User info, default gym details, preference settings
+**Usage:** Gym-specific features and default selections
 
-#### v_slow_query_analysis
-**Purpose:** Database performance monitoring
-**Key Columns:** query_pattern, avg_duration, call_count, optimization_suggestions
-**Usage:** Database optimization and performance tuning
+### 35. v_user_pins_expanded
+**Type:** User Interface View
+**Purpose:** User's pinned categories with full details
+**Key Columns:** User info, pinned categories, category details
+**Usage:** Personalized category display and quick access
 
-#### v_cache_hit_rates
-**Purpose:** Database cache performance metrics
-**Key Columns:** table_name, cache_hit_ratio, buffer_usage, optimization_priority
-**Usage:** Database performance optimization
+### 36. v_workout_has_checkin
+**Type:** Workflow View
+**Purpose:** Check if workout session has associated checkins
+**Key Columns:** Workout info, checkin status, completion flags
+**Usage:** Workout flow validation and progress tracking
 
-## View Usage Patterns
+### 37. v_workout_sets_display
+**Type:** Workout View
+**Purpose:** Formatted workout sets for display purposes
+**Key Columns:** Set details, formatted values, display-ready data
+**Usage:** Workout history display and progress visualization
+
+### 38. v_workout_templates_with_translations
+**Type:** Localization View
+**Purpose:** Workout templates with localized translations
+**Key Columns:** template_id, slug, localized names and descriptions
+**Usage:** Multi-language template catalog and selection
+
+## View Categories
+
+### Exercise & Equipment Views (6 views)
+- `v_exercises_with_translations` - Localized exercise catalog
+- `v_exercise_last_set` - Performance tracking
+- `v_gym_top_exercises` - Gym-specific popularity
+- `v_equipment_with_translations` - Localized equipment catalog
+- `v_effective_equipment` - Equipment configurations
+- `v_equipment_effective` - Equipment effectiveness
+
+### Gym & Location Views (6 views)
+- `v_marketplace_gyms` - Public gym directory
+- `v_gym_activity` - Activity analytics
+- `v_gym_equipment_completeness` - Equipment auditing
+- `v_gym_poster_freshness` - Quality control
+- `v_gyms_needing_poster_check` - Maintenance workflow
+- `v_city_gyms_with_stats` - Geographic analytics
+
+### Ambassador & Commission Views (4 views)
+- `v_ambassador_summary` - Performance overview
+- `v_ambassador_commission_summary` - Commission analytics
+- `v_ambassador_statements` - Commission reporting
+- `v_ambassador_statement_month` - Monthly statements
+
+### User & Progress Views (6 views)
+- `v_last_working_set` - Performance tracking
+- `v_latest_readiness` - Health monitoring
+- `v_user_default_gym` - User preferences
+- `v_user_pins_expanded` - Personalized interface
+- `v_current_workout` - Real-time tracking
+- `v_pre_checkin_exists` - Workflow validation
+
+### Coaching & Mentorship Views (4 views)
+- `v_marketplace_mentors` - Public mentor directory
+- `v_marketplace_local_mentors` - Location-based discovery
+- `v_public_mentors` - Public profiles
+- `v_coach_clients` - Client management
+
+### Localization Views (8 views)
+- `v_exercises_with_translations` - Exercise translations
+- `v_equipment_with_translations` - Equipment translations
+- `v_body_parts_with_translations` - Body part translations
+- `v_muscle_groups_with_translations` - Muscle group translations
+- `v_muscles_with_translations` - Individual muscle translations
+- `v_categories_with_translations` - Category translations
+- `v_subcategories_with_translations` - Subcategory translations
+- `v_workout_templates_with_translations` - Template translations
+
+### Administrative Views (2 views)
+- `v_admin_exercises` - Exercise management
+- `v_admin_mentors_overview` - Mentor management
+
+### Workflow & Validation Views (3 views)
+- `v_pre_checkin_exists` - Checkin validation
+- `v_workout_has_checkin` - Workflow validation
+- `v_workout_sets_display` - Display formatting
+
+### PostGIS Spatial Views (2 views)
+- `geography_columns` - Geographic metadata
+- `geometry_columns` - Geometric metadata
+
+## Usage Patterns
 
 ### Real-time Dashboards
-- `v_ambassador_summary` - Ambassador KPI dashboard
-- `v_gym_activity` - Gym admin dashboard  
-- `v_user_achievement_progress` - User gamification
-- `v_mentor_client_progress` - Coaching dashboard
+- `v_current_workout` - Live workout tracking
+- `v_latest_readiness` - Health monitoring
+- `v_gym_activity` - Real-time gym analytics
 
-### Marketplace & Discovery
-- `v_marketplace_gyms` - Public gym directory
-- `v_marketplace_mentors` - Mentor marketplace
-- `v_exercises_with_translations` - Exercise discovery
+### Marketplace Discovery
+- `v_marketplace_gyms` - Gym discovery
+- `v_marketplace_mentors` - Mentor discovery
+- `v_marketplace_local_mentors` - Location-based recommendations
 
 ### Analytics & Reporting
-- `v_daily_workout_stats` - Platform analytics
-- `v_exercise_popularity_trends` - Content insights
-- `v_gym_revenue_analytics` - Business intelligence
-- `v_ambassador_commission_summary` - Commission reporting
+- `v_ambassador_commission_summary` - Commission analytics
+- `v_gym_equipment_completeness` - Equipment auditing
+- `v_gym_top_exercises` - Usage analytics
 
-### System Monitoring
-- `v_data_quality_summary` - Data health
-- `v_slow_query_analysis` - Performance monitoring
-- `v_gyms_needing_poster_check` - Operations alerts
+### Administrative Management
+- `v_admin_exercises` - Exercise management
+- `v_admin_mentors_overview` - Mentor oversight
+- `v_gyms_needing_poster_check` - Quality control
+
+### Internationalization
+- All `*_with_translations` views - Multi-language support
+- Localized content delivery
+- Cultural adaptation features
 
 ## Performance Considerations
 
 ### Materialized Views
-Several views are materialized for performance:
-- `mv_user_exercise_1rm` - Refreshed daily
-- `mv_last_set_per_user_exercise` - Refreshed hourly  
-- `mv_pr_weight_per_user_exercise` - Refreshed on workout completion
+The system includes several materialized views for performance-critical operations:
+- Complex aggregations pre-computed
+- Periodic refresh for data consistency
+- Optimized for read-heavy workloads
 
 ### Indexing Strategy
-Views are optimized with indexes on:
-- User ID columns for user-specific data
-- Date columns for time-series analysis
-- Gym ID columns for location-based queries
-- Exercise ID columns for exercise-related analytics
+- Views leverage underlying table indexes
+- Computed columns for frequently filtered data
+- Spatial indexes for geographic views
 
 ### Refresh Policies
-- Real-time views: Direct table queries
-- Analytics views: Refreshed every 15 minutes
-- Historical views: Refreshed daily at 2 AM UTC
-- Commission views: Refreshed on the 1st of each month
+- Real-time views: Updated on data change
+- Analytics views: Scheduled refresh (hourly/daily)
+- Reporting views: On-demand refresh
+
+### Query Optimization
+- Views designed for specific use cases
+- Optimized join patterns
+- Minimal data transformation in views
 
 ## Security & Access Control
 
 ### Row Level Security
-Views inherit RLS policies from underlying tables:
-- User-specific views filter by `auth.uid()`
-- Gym admin views check `is_gym_admin()` function
-- Ambassador views validate ambassador status
+- Views inherit RLS policies from underlying tables
+- Additional view-specific security where needed
+- User context preserved through view layers
 
 ### Permission Levels
-- **Public**: Marketplace views, exercise catalogs
-- **Authenticated**: User progress, gym activity
-- **Role-based**: Admin analytics, commission data
-- **Superadmin**: System monitoring, data quality
+- **Public:** Marketplace and directory views
+- **Authenticated:** User-specific and general platform views
+- **Role-based:** Administrative and management views
+- **Superadmin:** System monitoring and quality control views
 
-This comprehensive view layer provides efficient access to complex data relationships while maintaining security and performance across the fitness platform.
+## Maintenance Notes
+
+### View Dependencies
+- Views may depend on other views or functions
+- Changes to underlying tables require view updates
+- Dependency tracking for safe schema changes
+
+### Version Control
+- View definitions stored in migration files
+- Versioned changes for schema evolution
+- Rollback capabilities for view modifications
+
+### Documentation
+- Each view documented with purpose and usage
+- Example queries and common use cases
+- Performance characteristics and limitations
+
+### Monitoring
+- Query performance monitoring
+- Usage analytics for optimization
+- Error tracking and alerting
+
+This view system provides a comprehensive data access layer that supports all aspects of the fitness platform while maintaining performance, security, and usability.

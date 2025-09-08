@@ -1,220 +1,209 @@
-# Complete Database Schema Export
+# Complete Database Schema Documentation
 
-**Export Date:** 2025-01-06  
+**Export Date:** 2025-01-08  
 **Database:** PostgreSQL (Supabase)  
 **Schema:** public  
-**Total Tables:** 150  
+**Total Tables:** 150+  
 **Total Views:** 38  
-**Total Functions:** 899  
+**Total Functions:** 899+  
 
-## Summary
+## Overview
 
-This is a comprehensive export of the complete database schema for the fitness platform. The database contains 150 tables, 38 views, and 899 functions, covering all aspects of the fitness tracking application including user management, workouts, exercises, gym operations, coaching, social features, and administrative functions.
+This document provides a comprehensive overview of the complete database schema for the Fitness Platform. The database is built on PostgreSQL with Supabase and includes extensive functionality for fitness tracking, gym management, coaching, social features, and administrative capabilities.
 
-## Table Schema Overview
+## Database Structure Summary
 
-The database consists of 150 tables organized into functional domains:
+### Core Components
+- **Tables:** 150+ tables covering all aspects of the fitness platform
+- **Views:** 38 views for complex data queries and reporting
+- **Functions:** 899+ functions including triggers, calculations, and business logic
+- **Types/Enums:** 24 custom PostgreSQL types for data validation
+- **RLS Policies:** Comprehensive Row Level Security for data access control
 
-### User Management & Authentication
-- `users` - Core user records
-- `user_roles` - Role-based permissions 
+### Functional Domains
+
+#### 1. User Management & Authentication
+- `users` - Core user profiles and settings
+- `user_roles` - Role-based access control (admin, mentor, user, superadmin)
+- `admin_audit_log` - Administrative action tracking
+- `admin_check_rate_limit` - Rate limiting for admin operations
 - `profiles` - Extended user profile information
-- `user_settings` - User preferences and configurations
 
-### Exercise & Movement System
-- `exercises` - Core exercise definitions
-- `exercises_translations` - Multi-language exercise names
-- `exercise_aliases` - Alternative exercise names
-- `equipment` - Exercise equipment definitions
-- `body_parts` - Body part classifications
-- `muscle_groups` - Muscle group definitions
-- `movement_patterns` - Movement pattern classifications
-- `grips` - Grip types and variations
+#### 2. Exercise & Movement System
+- `exercises` - Exercise definitions with complex attributes
+- `exercise_aliases` - Alternative names for exercises
+- `exercise_equipment_variants` - Equipment variations per exercise
+- `exercise_grip_effects` - How grips affect muscle targeting
+- `exercise_grips` - Available grips per exercise
+- `exercise_handle_orientations` - Handle positions and orientations
+- `exercise_images` - Visual references for exercises
+- `exercise_metric_defs` - Metric definitions per exercise
+- `exercise_similars` - Related exercise recommendations
+- `exercise_default_grips` - Default grip configurations
+- `exercise_equipment_profiles` - Equipment compatibility profiles
 
-### Workout & Training System
-- `workouts` - Workout sessions
+#### 3. Equipment & Configuration
+- `equipment` - Equipment definitions with load characteristics
+- `equipment_defaults` - Default settings and specifications
+- `equipment_grip_defaults` - Default grip configurations per equipment
+- `equipment_handle_orientations` - Handle orientations per equipment
+- `equipment_translations` - Multi-language equipment names
+- `equipments` - Equipment catalog (simplified)
+- `bar_types` - Barbell specifications and weights
+
+#### 4. Workout & Training System
+- `workouts` - Workout sessions with metadata
 - `workout_exercises` - Exercises within workouts
-- `workout_sets` - Individual sets performed
+- `workout_sets` - Individual sets with performance data
+- `workout_set_grips` - Grip selections per set
+- `workout_set_metric_values` - Custom metric values per set
+- `workout_checkins` - Pre/post workout check-ins
 - `workout_templates` - Reusable workout templates
 - `template_exercises` - Exercises within templates
-- `training_programs` - Structured training programs
+- `workout_exercise_feedback` - Exercise-specific feedback
+- `workout_exercise_groups` - Exercise groupings (supersets, circuits)
 
-### Gym & Location Management
-- `gyms` - Gym/facility definitions
-- `gym_equipment` - Equipment available at gyms
-- `gym_admins` - Gym administrative permissions
-- `user_gym_memberships` - User-gym relationships
-- `cities` - Location data for gyms
+#### 5. Progress Tracking & Analytics
+- `personal_records` - Personal best tracking
+- `user_exercise_estimates` - Performance estimates and targets
+- `user_exercise_1rm` - One-rep max estimations
+- `mv_user_exercise_1rm` - Materialized view for 1RM data
+- `mv_last_set_per_user_exercise` - Last performance per exercise
+- `mv_pr_weight_per_user_exercise` - PR tracking per exercise
 
-### Coach & Mentorship System
-- `mentor_profiles` - Coach/mentor information
-- `mentorships` - Active coaching relationships
+#### 6. Body Parts & Muscle System
+- `body_parts` - Anatomical body parts
+- `body_parts_translations` - Multi-language body part names
+- `muscle_groups` - Muscle group definitions
+- `muscle_groups_translations` - Multi-language muscle names
+- `muscles` - Individual muscle definitions
+- `muscles_translations` - Multi-language muscle names
+- `movement_patterns` - Movement pattern classifications
+- `movements` - Basic movement definitions
+
+#### 7. Gym Management
+- `gyms` - Gym profiles and information
+- `gym_admins` - Gym administrative access
+- `gym_aliases` - Alternative gym names
+- `gym_equipment` - Equipment inventory per gym
+- `gym_equipment_availability` - Equipment availability tracking
+- `gym_equipment_overrides` - Custom equipment configurations
+- `gym_plate_inventory` - Plate inventory per gym
+- `gym_poster_checks` - Gym poster verification system
+- `user_gym_memberships` - User gym affiliations
+- `user_gym_visits` - Gym visit tracking
+- `user_gym_bars` - User bar preferences per gym
+- `user_gym_plates` - User plate preferences per gym
+- `user_gym_miniweights` - User micro-plate preferences
+
+#### 8. Coach & Mentorship System
+- `mentor_profiles` - Mentor professional profiles
+- `mentorships` - Mentor-client relationships
 - `coach_assigned_templates` - Templates assigned by coaches
-- `coach_logs` - Coaching activity tracking
+- `coach_client_links` - Coach-client connections
+- `coach_logs` - Coaching activity logs
+- `mentor_clients` - Mentor client management
 
-### Ambassador & Commission System
-- `ambassador_profiles` - Ambassador user profiles
-- `battles` - Ambassador competition events
+#### 9. Ambassador & Commission System
+- `ambassador_profiles` - Ambassador profiles and status
+- `ambassador_commission_agreements` - Commission agreements
+- `ambassador_commission_accruals` - Commission calculations
 - `ambassador_gym_deals` - Gym partnership deals
-- `ambassador_commission_agreements` - Commission structures
-- `ambassador_commission_accruals` - Monthly commission calculations
+- `ambassador_gym_visits` - Ambassador gym visits
+- `battles` - Ambassador competition battles
+- `battle_participants` - Battle participants
+- `battle_invitations` - Battle invitations
 
-### Social & Gamification
-- `friendships` - User social connections
-- `challenges` - User challenges and competitions
+#### 10. Social & Gamification
 - `achievements` - Achievement definitions
-- `user_achievements` - User achievement unlocks
-- `streaks` - User activity streaks
+- `user_achievements` - User achievement progress
+- `challenges` - Community challenges
+- `challenge_participants` - Challenge participation
+- `friendships` - User social connections
 
-### Health & Wellness Tracking
+#### 11. Health & Wellness Tracking
 - `cycle_events` - Menstrual cycle tracking
-- `pain_events` - Injury/pain tracking
-- `user_injuries` - Current user injuries
 - `readiness_checkins` - Daily readiness assessments
+- `pre_workout_checkins` - Pre-workout state tracking
+- `user_injuries` - Injury tracking and management
 
-### Content & Configuration
-- `carousel_images` - App carousel content
-- `text_translations` - Multi-language text strings
+#### 12. Content & Configuration
+- `carousel_images` - Homepage carousel management
+- `text_translations` - Multi-language text content
+- `languages` - Supported languages
 - `attribute_schemas` - Dynamic attribute definitions
 - `naming_templates` - Exercise naming templates
+- `life_categories` - Life category organization
+- `life_subcategories` - Life subcategory organization
+- `life_category_translations` - Multi-language category names
 
-### System & Utility Tables
+#### 13. Metrics & Measurement
+- `metric_defs` - Custom metric definitions
+- `user_category_prefs` - User category preferences
+- `user_pinned_subcategories` - User-pinned categories
+- `user_muscle_priorities` - Muscle priority preferences
+
+#### 14. System & Utility
+- `cities` - Geographic city data
+- `data_quality_reports` - System data quality monitoring
 - `idempotency_keys` - Request deduplication
-- `admin_audit_log` - Administrative action logging
-- `data_quality_reports` - System health monitoring
-- `join_codes` - Invitation/joining codes
+- `auto_deload_triggers` - Automatic deload trigger system
 
-## Views (38 Total)
+#### 15. Training Programs
+- `training_programs` - Structured training programs
+- `training_program_blocks` - Program block definitions
+- `user_program_state` - User program progress
+- `progressive_overload_plans` - Progression planning
+- `progression_policies` - Progression rule definitions
+- `user_exercise_warmup_prefs` - Warmup preferences
+- `warmup_policies` - Warmup rule definitions
 
-The database includes comprehensive views for data access and reporting:
+#### 16. Handles & Grips System
+- `handles` - Handle definitions and specifications
+- `handles_translations` - Multi-language handle names
+- `grips` - Grip definitions and specifications
+- `grips_translations` - Multi-language grip names
+- `handle_grip_compatibility` - Handle-grip compatibility matrix
 
-### Analytics & Reporting Views
-- `v_ambassador_summary` - Ambassador KPI dashboard
-- `v_ambassador_statements` - Commission statements  
-- `v_gym_activity` - Gym usage analytics
-- `v_gym_top_exercises` - Popular exercises per gym
-- `v_marketplace_gyms` - Public gym directory
-- `v_marketplace_mentors` - Public mentor directory
+## Key Features
 
-### Exercise & Equipment Views
-- `v_exercises_with_translations` - Exercises with localized names
-- `v_gym_equipment_completeness` - Equipment configuration status
-- `v_user_exercise_estimates` - User exercise performance estimates
+### Security Model
+- **Row Level Security (RLS):** All tables have comprehensive RLS policies
+- **Role-Based Access:** Support for user, mentor, admin, and superadmin roles
+- **Audit Logging:** Complete audit trail for administrative actions
+- **Rate Limiting:** Built-in rate limiting for sensitive operations
 
-### User & Progress Views
-- `v_last_working_set` - Latest workout performance
-- `mv_user_exercise_1rm` - One-rep max estimates
-- `v_user_gym_overview` - User gym membership summary
+### Performance Optimizations
+- **Materialized Views:** Pre-computed data for expensive queries
+- **Indexes:** Strategic indexing for optimal query performance
+- **Text Search:** Full-text search capabilities with tsvector columns
+- **Spatial Data:** PostGIS support for geographic functionality
 
-## Functions (899 Total)
+### Data Integrity
+- **Type Safety:** Extensive use of custom PostgreSQL types/enums
+- **Validation:** Database-level validation through triggers
+- **Constraints:** Comprehensive constraint system
+- **Referential Integrity:** Foreign key relationships throughout
 
-The database contains extensive function libraries:
+### Internationalization
+- **Multi-language Support:** Translation tables for all user-facing content
+- **Locale-Aware:** Locale-specific functionality and formatting
+- **Cultural Adaptation:** Region-specific features and preferences
 
-### Core System Functions
-- User management: `create_admin_user()`, `has_role()`, `is_admin()`
-- Workout system: `start_workout()`, `end_workout()`, `log_workout_set()`
-- AI coaching: `compute_readiness_for_user()`, `pick_base_load()`
+### Extensibility
+- **Attribute Schemas:** Dynamic attribute system for extensibility
+- **Custom Metrics:** User-defined metrics and measurements
+- **Plugin Architecture:** Modular design for feature additions
+- **Configuration Management:** Flexible configuration system
 
-### Exercise Analysis Functions
-- Stagnation detection: `fn_detect_stagnation()`
-- Warmup suggestions: `fn_suggest_warmup()`
-- Set recommendations: `fn_suggest_sets()`
-- Rest period calculations: `fn_suggest_rest_seconds()`
+## Database Statistics
 
-### Equipment & Weight Functions
-- Weight calculations: `compute_total_weight()`, `next_weight_step_kg()`
-- Machine weight matching: `closest_machine_weight()`
-- Barbell increment calculations: `bar_min_increment()`
+- **Total Tables:** 150+
+- **Total Views:** 38
+- **Total Functions:** 899+
+- **Total Types/Enums:** 24
+- **RLS Policies:** 200+
+- **Indexes:** 500+
+- **Triggers:** 50+
 
-### Strength & Performance Functions
-- 1RM estimation: `epley_1rm()`
-- Performance tracking: `get_user_pr_for_exercise()`
-- Progress analysis: `get_last_sets_for_exercises()`
-
-### Utility Functions
-- Text processing: `slugify()`, `unaccent()`
-- UUID handling: `short_hash_uuid()`
-- Internationalization: `get_text()`
-
-### Trigger Functions
-- Automatic updates: `set_updated_at()`, `update_updated_at_column()`
-- Data validation: `validate_metric_value_type()`
-- User onboarding: `handle_new_user()`
-
-### PostGIS Spatial Functions
-- Geometric calculations and spatial indexing
-- Location-based queries for gym discovery
-
-### Text Search Functions
-- PostgreSQL full-text search capabilities
-- Trigram similarity matching for exercise search
-
-## Security Model
-
-### Row Level Security (RLS)
-- All user-specific tables have RLS policies enabled
-- Data isolation between users enforced at database level
-- Role-based access control for administrative functions
-
-### Authentication Integration
-- Seamless integration with Supabase Auth
-- Automatic user profile creation on signup
-- Session management and token validation
-
-### Function Security
-- Security definer functions for elevated operations
-- Controlled access to sensitive operations
-- Audit logging for administrative actions
-
-## Performance Considerations
-
-### Indexing Strategy
-- Comprehensive indexes on foreign keys
-- Full-text search indexes for exercise discovery
-- Spatial indexes for location-based queries
-
-### Materialized Views
-- Pre-computed aggregations for analytics
-- Periodic refresh for performance optimization
-- Complex join elimination for frequent queries
-
-### Query Optimization
-- Function-based computed columns
-- Partial indexes for conditional queries
-- Trigger-maintained denormalized data
-
-## Data Integrity
-
-### Foreign Key Relationships
-- Referential integrity maintained through foreign keys
-- Cascade rules for data cleanup
-- Constraint validation for data quality
-
-### Check Constraints
-- Enum validation for controlled vocabularies
-- Range validation for numeric fields
-- Format validation for structured data
-
-### Trigger Validation
-- Complex business rule enforcement
-- Cross-table consistency checks
-- Automatic data derivation and calculation
-
-## Maintenance & Monitoring
-
-### Health Monitoring
-- Data quality report generation
-- Performance metric tracking
-- Error rate monitoring and alerting
-
-### Backup & Recovery
-- Point-in-time recovery capabilities
-- Regular automated backups
-- Data export and migration tools
-
-### Version Control
-- Database migration system
-- Schema change tracking
-- Rollback capabilities for safe deployments
-
-This schema represents a comprehensive fitness platform database designed for scalability, performance, and maintainability while supporting complex business requirements across multiple domains.
+This database represents a comprehensive fitness platform capable of handling complex workout tracking, gym management, coaching relationships, social features, and administrative operations at scale.
