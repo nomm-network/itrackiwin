@@ -17,22 +17,29 @@ export function useHubMeta(categorySlugOrId?: string) {
       try {
         // 1) load the category by slug or id
         const { data: catRow, error: catErr } = await supabase
-          .from("life_categories")
-          .select("id, slug, name")
+          .from("v_categories_with_translations")
+          .select("id, slug, translations")
           .or(`slug.eq.${wanted},id.eq.${wanted}`)
           .maybeSingle();
 
         if (catErr || !catRow) {
+          console.error("Category fetch error:", catErr);
           if (!cancelled) setHub(null);
           return;
         }
 
         // 2) load its subcategories with translations (ordered)
-        const { data: subsRows } = await supabase
+        const { data: subsRows, error: subsErr } = await supabase
           .from("v_subcategories_with_translations")
           .select("slug, translations, display_order")
           .eq("category_id", catRow.id)
           .order("display_order", { ascending: true });
+
+        if (subsErr) {
+          console.error("Subcategories fetch error:", subsErr);
+          if (!cancelled) setHub(null);
+          return;
+        }
 
         // 3) map to chip model and append Configure at the end
         const subs: HubSubcategory[] = (subsRows || []).map((r) => {
@@ -49,9 +56,11 @@ export function useHubMeta(categorySlugOrId?: string) {
         }
 
         if (!cancelled) {
+          const catTranslations = catRow.translations as any;
+          const categoryName = catTranslations?.en?.name || catRow.slug || "Dashboard";
           setHub({
             slug: String(catRow.slug || catRow.id).toLowerCase(),
-            name: catRow.name,
+            name: categoryName,
             subs,
           });
         }
