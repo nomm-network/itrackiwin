@@ -1,5 +1,5 @@
-import { Suspense } from "react";
-import { useSearchParams } from "react-router-dom";
+import { Suspense, useEffect } from "react";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import HeaderRow from "./HeaderRow";
 import SubcategoryChips from "./SubcategoryChips";
 import { useHubMeta } from "./useHubMeta";
@@ -7,6 +7,7 @@ import { resolveBodyByCategory } from "./bodyResolver";
 
 export default function HubPage() {
   const [sp] = useSearchParams();
+  const navigate = useNavigate();
   const cat = (sp.get("cat") || "health").toLowerCase();
   const urlSub = (sp.get("sub") || "").toLowerCase();
 
@@ -17,7 +18,14 @@ export default function HubPage() {
   const validSubs = new Set(hub.subs.map((s) => s.slug));
   const activeSub = validSubs.has(urlSub)
     ? urlSub
-    : (hub.subs[0]?.slug || "fitness-exercise");
+    : (hub.subs[0]?.slug || "");
+
+  // Redirect to correct subcategory if current one is invalid
+  useEffect(() => {
+    if (urlSub && !validSubs.has(urlSub) && hub.subs[0]?.slug) {
+      navigate(`/dashboard?cat=${cat}&sub=${hub.subs[0].slug}`, { replace: true });
+    }
+  }, [urlSub, validSubs, cat, hub.subs, navigate]);
 
   // category-aware body resolver
   const Body = resolveBodyByCategory(hub.slug, activeSub);
