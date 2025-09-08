@@ -107,7 +107,22 @@ const FitnessAdapter: Adapter = {
     );
   },
 
-  QuickStartWidget: () => null, // Use registry widgets instead
+  QuickStartWidget: () => {
+    const categoryId = "b54c368d-cd4f-4276-aa82-668da614e50d"; // health category ID
+    const subcategoryId = "e13d15c9-85a7-41ec-bd4b-232a69fcb247"; // fitness subcategory ID
+    const widgets = getWidgetsByCategory(categoryId, subcategoryId);
+
+    // Find the QuickStart widget (TrainingDashboard)
+    const quickStartWidget = widgets.find(w => w.id === 'fitness.quickstart');
+    
+    if (!quickStartWidget) return null;
+
+    return (
+      <React.Suspense fallback={<WidgetSkeleton />}>
+        <quickStartWidget.Component />
+      </React.Suspense>
+    );
+  },
 
   QuickActions: () => {
     const categoryId = "b54c368d-cd4f-4276-aa82-668da614e50d"; // health category ID
@@ -115,28 +130,25 @@ const FitnessAdapter: Adapter = {
     const quickActions = useDynamicQuickActions(categoryId, subcategoryId);
 
     return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {quickActions.map((action) => (
-          <Card key={action.id}>
-            <CardContent className="pt-6">
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  {action.icon}
-                  <h4 className="font-medium">{action.label}</h4>
-                </div>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={action.onClick}
-                  className="w-full"
-                >
-                  {action.label}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+      <Card>
+        <CardContent className="pt-6">
+          <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+          <div className="grid grid-cols-2 gap-3">
+            {quickActions.map((action) => (
+              <Button
+                key={action.id}
+                variant="outline"
+                size="sm"
+                onClick={action.onClick}
+                className="flex items-center gap-2 h-auto p-3"
+              >
+                {action.icon}
+                <span className="text-sm">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
     );
   },
 
@@ -145,13 +157,16 @@ const FitnessAdapter: Adapter = {
     const subcategoryId = "e13d15c9-85a7-41ec-bd4b-232a69fcb247"; // fitness subcategory ID
     const widgets = getWidgetsByCategory(categoryId, subcategoryId);
 
-    if (widgets.length === 0) {
+    // Filter out QuickStart widget since it has its own slot
+    const otherWidgets = widgets.filter(w => w.id !== 'fitness.quickstart');
+
+    if (otherWidgets.length === 0) {
       return <EmptyCategory category="health.fitness" />;
     }
 
     return (
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {widgets.map((widget) => (
+        {otherWidgets.map((widget) => (
           <React.Suspense key={widget.id} fallback={<WidgetSkeleton />}>
             <widget.Component />
           </React.Suspense>
