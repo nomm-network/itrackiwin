@@ -1,5 +1,51 @@
 import { supabase } from '@/integrations/supabase/client';
 
+export type ReadinessInputs = {
+  energy: number;          // 0..10
+  sleepQuality: number;    // 0..10
+  sleepHours: number;      // e.g., 0..14
+  soreness: number;        // 0..10 (higher worse)
+  stress: number;          // 0..10 (higher worse)
+  isSick?: boolean;
+  hadAlcohol24h?: boolean;
+  energizers?: boolean;    // creatine / preworkout taken
+};
+
+const clamp = (v: number, lo = 0, hi = 1) => Math.max(lo, Math.min(hi, v));
+const norm01 = (x: number) => clamp(x / 10);
+const inv01  = (x: number) => 1 - norm01(x);
+
+// Triangular scoring: peak at 8h, down to 0 at ±4h from 8
+const sleepTri01 = (hours: number) => clamp(1 - Math.abs(hours - 8) / 4);
+
+export function computeReadiness(inputs: ReadinessInputs) {
+  const e = norm01(inputs.energy);
+  const q = norm01(inputs.sleepQuality);
+  const h = sleepTri01(inputs.sleepHours);
+  const sInv = inv01(inputs.soreness);
+  const stInv = inv01(inputs.stress);
+
+  // Base weighted average (0..1)
+  const base =
+      0.25 * e +
+      0.20 * q +
+      0.15 * h +
+      0.15 * sInv +
+      0.15 * stInv;
+
+  let score = base * 100;             // 0..100
+  if (inputs.energizers) score += 3;  // small boost
+
+  if (inputs.isSick)       score -= 20;
+  if (inputs.hadAlcohol24h) score -= 10;
+
+  score = clamp(score, 0, 100);
+  return {
+    score,           // number 0..100
+    breakdown: { e, q, h, sInv, stInv, base },
+  };
+}
+
 /**
  * Compute readiness score for a specific check-in
  */

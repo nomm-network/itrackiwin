@@ -142,7 +142,7 @@ export const PerformanceMetrics = ({ timeframe }: PerformanceMetricsProps) => {
               <span className="text-sm">Readiness Score</span>
               <div className="flex items-center gap-2">
                 <Progress value={mockMetrics.recovery.readinessScore * 10} className="w-16 h-2" />
-                <span className="text-sm font-medium">{mockMetrics.recovery.readinessScore}/10</span>
+                <span className="text-sm font-medium">{mockMetrics.recovery.readinessScore}/100</span>
               </div>
             </div>
             

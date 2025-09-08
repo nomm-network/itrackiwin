@@ -532,7 +532,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       toastUtils({
         title: "Check-in complete",
-        description: `Readiness score: ${Math.round(realScore)}/10${Object.keys(estimates).length > 0 ? ` • ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
+        description: `Readiness score: ${Math.round(realScore)}/100${Object.keys(estimates).length > 0 ? ` • ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
@@ -573,7 +573,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       toastUtils({
         title: "Check-in skipped",
-        description: `Using baseline readiness (${Math.round(defaultScore)}/10).`
+        description: `Using baseline readiness (${Math.round(defaultScore)}/100).`
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup

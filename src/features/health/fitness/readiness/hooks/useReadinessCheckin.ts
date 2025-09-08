@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { computeReadiness } from '@/lib/readiness';
 
 export interface ReadinessData {
   energy: number;
@@ -23,14 +24,19 @@ export function useReadinessCheckin() {
     mutationFn: async ({ data, workoutId }: { data: ReadinessData; workoutId: string }) => {
       if (!user?.id) throw new Error('Not authenticated');
 
-      // Calculate readiness score (simple weighted average)
-      const score = Math.round(
-        (data.energy * 0.3 + 
-         data.sleep_quality * 0.25 + 
-         Math.min(data.sleep_hours / 8, 1) * 100 * 0.2 + 
-         (100 - data.soreness) * 0.15 + 
-         (100 - data.stress) * 0.1)
-      );
+      // Calculate readiness score using the new 0-100 model
+      const readinessResult = computeReadiness({
+        energy: data.energy,
+        sleepQuality: data.sleep_quality,
+        sleepHours: data.sleep_hours,
+        soreness: data.soreness,
+        stress: data.stress,
+        isSick: false, // Add illness field to ReadinessData if needed
+        hadAlcohol24h: false, // Add alcohol field to ReadinessData if needed
+        energizers: data.supplements.length > 0
+      });
+      
+      const score = Math.round(readinessResult.score);
 
       // Insert readiness checkin
       const { error: checkinError } = await supabase
