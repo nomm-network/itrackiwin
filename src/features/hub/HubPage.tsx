@@ -13,13 +13,21 @@ export default function HubPage() {
   const urlSub = (sp.get("sub") || "").toLowerCase();
   const valid = new Set(hub.subs.map(s => s.slug.toLowerCase()));
   const active = valid.has(urlSub) ? urlSub : (hub.subs[0]?.slug?.toLowerCase() || "fitness-exercise");
+  console.debug("[HubPage] active sub =", active);
   const Body = resolveHealthBody(active);
 
   return (
     <HubLayout
       Header={<HeaderRow />}
       SubMenu={<SubcategoryMenu hub={hub} />}
-      Body={<Body />}
+      Body={
+        <>
+          <div id="hub-header-probe" style={{margin:'8px 0',opacity:.6}}>
+            HEADER PROBE — Dashboard header should be above; chips below.
+          </div>
+          <Body />
+        </>
+      }
     />
   );
 }

@@ -1,10 +1,9 @@
-import React from "react";
-import TrainingDashboard from "@/features/health/fitness/ui/widgets/TrainingDashboard";
-
 export default function FitnessBodyStable() {
-  // Only render the original Training Center + Quick Actions - no gym switcher or new tiles
-  if (!TrainingDashboard) {
-    throw new Error("FitnessBodyStable missing TrainingDashboard component. Check imports/paths.");
-  }
-  return <TrainingDashboard />;
+  console.debug("[fitness-body] MOUNTED");
+  return (
+    <div id="fitness-body-probe" style={{padding:16, border:'3px solid #ff3b30', background:'#ffecec', borderRadius:12}}>
+      <h2>TEST MESSAGE — fitness-body.tsx is loading</h2>
+      <p>If you see this, the Fitness body file is correctly wired.</p>
+    </div>
+  );
 }
