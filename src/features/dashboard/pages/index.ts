@@ -1,3 +1,2 @@
-// Dashboard pages exports
-export { default as DashboardPage } from '../../../pages/Dashboard_OLD';
+// Dashboard pages exports - cleaned up
 export { default as UserDashboardPage } from '../../../pages/UserDashboard';
