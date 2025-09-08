@@ -1,1 +1,1 @@
-export { default } from '../../pages/HealthHub';
+export { default } from '../../pages/MobileFitness';
