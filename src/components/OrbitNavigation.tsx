@@ -49,56 +49,84 @@ const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): {
     "Relationships": "relationships",
     "Mind & Emotions": "mind",
     "Purpose & Growth": "purpose",
-    "Lifestyle & Contribution": "lifestyle"
+    "Lifestyle & Contribution": "lifestyle",
+    "Lifestyle": "lifestyle" // Added fallback for "Lifestyle"
   };
 
   const subcategoryMap: Record<string, string> = {
     // Health
     "Fitness & exercise": "fitness-exercise",
     "Fitness and Exercise": "fitness-exercise", 
+    "Fitness": "fitness-exercise",
     "Nutrition": "nutrition-hydration",
+    "Nutrition & hydration": "nutrition-hydration",
     "Sleep": "sleep-quality",
+    "Sleep quality": "sleep-quality",
     "Medical": "medical-checkups",
+    "Medical checkups": "medical-checkups",
     "Energy": "energy-levels",
+    "Energy levels": "energy-levels",
     
     // Wealth
     "Income": "income-career-growth",
+    "Income & career growth": "income-career-growth",
     "Career": "income-career-growth",
     "Saving": "saving-investing",
+    "Saving & investing": "saving-investing",
     "Investing": "saving-investing",
     "Long-term wealth building": "wealth-building",
+    "Wealth building": "wealth-building",
     "Budgeting": "budgeting-debt",
+    "Budgeting & debt": "budgeting-debt",
     "Finance": "financial-education",
+    "Financial education": "financial-education",
     
     // Relationships
     "Family": "family-relationships",
+    "Family relationships": "family-relationships",
     "Romantic life": "romantic-life", 
     "Friends": "friendships",
-    "Friendships": "friendships", // Added this mapping
+    "Friendships": "friendships",
     "Community": "community-social-skills",
+    "Community & social skills": "community-social-skills",
     "Networking": "networking-collaboration",
+    "Networking & collaboration": "networking-collaboration",
     
     // Mind & Emotions
     "Stress": "stress-management",
+    "Stress management": "stress-management",
     "Meditation": "mindfulness-meditation",
     "Mindfulness": "mindfulness-meditation",
+    "Mindfulness & meditation": "mindfulness-meditation",
     "Self-awareness": "self-awareness",
     "Emotions": "emotional-regulation",
+    "Emotional regulation": "emotional-regulation",
     "Therapy": "therapy-mental-health",
+    "Therapy & mental health": "therapy-mental-health",
     
     // Purpose & Growth  
     "Purpose": "career-purpose-or-calling",
+    "Career purpose or calling": "career-purpose-or-calling",
     "Skills": "skill-development",
+    "Skill development": "skill-development",
     "Hobbies": "hobbies-creativity",
+    "Hobbies & creativity": "hobbies-creativity",
     "Learning": "continuous-learning",
+    "Continuous learning": "continuous-learning",
     "Goals": "goal-setting",
+    "Goal setting": "goal-setting",
     
     // Lifestyle
     "Time": "time-productivity",
+    "Time & productivity": "time-productivity",
     "Environment": "environment-organization", 
+    "Environment & organization": "environment-organization",
     "Minimalism": "minimalism-sustainability",
+    "Minimalism & sustainability": "minimalism-sustainability",
     "Volunteering": "volunteering-giving-back",
-    "Legacy": "legacy-projects"
+    "Volunteering & giving back": "volunteering-giving-back",
+    "Legacy": "legacy-projects",
+    "Legacy projects": "legacy-projects"
   };
 
   console.log('🔍 getCategoryAndSubSlug called with:', { categoryName, subcategoryName });
