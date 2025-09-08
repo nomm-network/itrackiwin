@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { supabase } from '@/integrations/supabase/client';
-import Orbits from '@/pages/Orbits';
+import OrbitPlanetsPage from '@/features/planets/OrbitPlanetsPage';
 
 const FitnessFirstLanding: React.FC = () => {
   const navigate = useNavigate();
@@ -50,7 +50,7 @@ const FitnessFirstLanding: React.FC = () => {
   }, []);
 
   if (showOrbits) {
-    return <Orbits />;
+    return <OrbitPlanetsPage />;
   }
 
   return (

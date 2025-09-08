@@ -40,7 +40,7 @@ const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const SubcategoryPage = lazy(() => import('@/features/subcategory/SubcategoryPage'));
-const Orbits = lazy(() => import('@/pages/Orbits'));
+const OrbitPlanetsPage = lazy(() => import('@/features/planets/OrbitPlanetsPage'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 
@@ -79,7 +79,7 @@ export function AppRoutes() {
           {/* Public orbits page for authenticated users */}
           <Route path="/explore" element={
             <ProtectedMobileLayout>
-              <Orbits />
+              <OrbitPlanetsPage />
             </ProtectedMobileLayout>
           } />
 
