@@ -53,6 +53,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
 import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
+import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface WorkoutSessionProps {
   workout: any;
@@ -71,6 +72,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
+  
+  // Session timing for workout tracking
+  const { startSession } = useSessionTiming();
 
   // Robust readiness check using the auth hook
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
@@ -113,6 +117,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     };
     getUser();
   }, []);
+
+  // Start session timing when workout is active
+  React.useEffect(() => {
+    if (workout?.started_at && !workout?.ended_at) {
+      startSession();
+    }
+  }, [workout?.started_at, workout?.ended_at, startSession]);
 
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];

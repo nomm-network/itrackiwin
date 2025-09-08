@@ -14,6 +14,8 @@ import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/
 import { supabase } from '@/integrations/supabase/client';
 import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
 import { useGrips } from '@/hooks/useGrips';
+import RestTimerPill from './RestTimerPill';
+import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface SetData {
   weight: number;
@@ -82,6 +84,9 @@ export default function ImprovedWorkoutSession({
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
+  
+  // Session timing for rest tracking
+  const { startRest, stopRest } = useSessionTiming();
   
   // Use the new warmup hooks
   const warmupFeedbackMutation = useWarmupFeedback();
@@ -209,6 +214,9 @@ export default function ImprovedWorkoutSession({
   // Auto-advance to next set when current set is completed
   const handleSetSubmit = useCallback(async () => {
     if (currentSetData.weight > 0 && currentSetData.reps > 0) {
+      // Stop any current rest timer since we're starting the next set
+      stopRest();
+      
       // Create notes with feel information
       const notesWithFeel = currentSetData.feel ? `Feel: ${currentSetData.feel}${currentSetData.notes ? ` | ${currentSetData.notes}` : ''}` : currentSetData.notes;
       
@@ -243,13 +251,19 @@ export default function ImprovedWorkoutSession({
         notes: '',
         is_completed: false
       });
+
+      // Start rest timer for next set (if not the last set)
+      const isLastSet = currentSetNumber >= exercise.target_sets;
+      if (!isLastSet) {
+        startRest();
+      }
       
       // Auto-expand the just-completed set briefly
       const setIndex = exercise.completed_sets.length;
       setExpandedSet(setIndex);
       setTimeout(() => setExpandedSet(null), 2000);
     }
-  }, [currentSetData, onSetComplete, exercise.completed_sets.length, currentSetNumber, warmupFeedback]);
+  }, [currentSetData, onSetComplete, exercise.completed_sets.length, currentSetNumber, warmupFeedback, startRest, stopRest, exercise.target_sets]);
 
   // Handle Enter key for quick submission
   const handleKeyPress = useCallback((e: React.KeyboardEvent) => {
@@ -419,12 +433,16 @@ export default function ImprovedWorkoutSession({
       {!isLastSet && (
         <Card className="p-4 border-primary/20 bg-primary/5">
           <div className="space-y-4">
-            <div className="flex items-center gap-3">
-              <span className="font-medium">Set</span>
-              <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
-                {currentSetNumber}
-              </Badge>
-              <span className="font-medium">Current Set</span>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="font-medium">Set</span>
+                <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
+                  {currentSetNumber}
+                </Badge>
+                <span className="font-medium">Current Set</span>
+              </div>
+              {/* Show rest timer only for Set >= 2 */}
+              {currentSetNumber >= 2 && <RestTimerPill />}
             </div>
 
             {/* Previous Set and Target Display */}
