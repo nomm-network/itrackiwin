@@ -121,12 +121,14 @@ const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): {
     "Time & productivity": "time-productivity",
     "Environment": "environment-organization", 
     "Environment & organization": "environment-organization",
+    "Environment & home organization": "environment-organization",
     "Minimalism": "minimalism-sustainability",
     "Minimalism & sustainability": "minimalism-sustainability",
     "Volunteering": "volunteering-giving-back",
     "Volunteering & giving back": "volunteering-giving-back",
     "Legacy": "legacy-projects",
-    "Legacy projects": "legacy-projects"
+    "Legacy projects": "legacy-projects",
+    "Fun, travel & leisure": "hobbies-creativity", // Map to hobbies & creativity as it's leisure-related
   };
 
   console.log('🔍 getCategoryAndSubSlug called with:', { categoryName, subcategoryName });
