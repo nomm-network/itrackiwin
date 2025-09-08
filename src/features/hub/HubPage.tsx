@@ -4,7 +4,7 @@ import HubLayout from "./HubLayout";
 import HeaderRow from "./HeaderRow";
 import SubcategoryMenu from "./SubcategoryMenu";
 import { useHubMeta } from "./useHubMeta";
-import { resolveBody } from "./bodyResolver";
+import { resolveHealthBody } from "./bodyResolver";
 
 export default function HubPage() {
   const hub = useHubMeta("health");   // this page = Health hub
@@ -12,8 +12,8 @@ export default function HubPage() {
 
   if (!hub) return null;
 
-  const sub = (sp.get("sub") ?? hub.subs[0]?.slug ?? "").toLowerCase();
-  const Body = resolveBody(hub.slug, sub);
+  const active = (sp.get("sub") ?? hub.subs[0]?.slug ?? "").toLowerCase();
+  const Body = resolveHealthBody(active);
 
   return (
     <HubLayout
