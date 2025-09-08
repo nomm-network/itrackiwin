@@ -32,7 +32,7 @@ export default function HubPage() {
       {/* Title row */}
       <div className="space-y-1 sm:space-y-2">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">{hub.name}</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold">{hub.name} Hub</h1>
           <div className="flex items-center gap-2">
             {isSuperAdmin && (
               <Button 
@@ -40,7 +40,6 @@ export default function HubPage() {
                 onClick={() => nav('/admin')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
                 Admin
               </Button>
             )}
@@ -49,7 +48,7 @@ export default function HubPage() {
               onClick={() => nav("/explore")}
               className="text-sm"
             >
-              Explore by Planets
+              All Categories
             </Button>
           </div>
         </div>

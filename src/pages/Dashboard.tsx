@@ -85,7 +85,6 @@ const Dashboard: React.FC = () => {
                 onClick={() => navigate('/admin')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
                 Admin
               </Button>
             )}
@@ -94,7 +93,7 @@ const Dashboard: React.FC = () => {
               onClick={() => navigate('/explore')}
               className="text-sm"
             >
-              Explore by Planets
+              All Categories
             </Button>
           </div>
         </div>
