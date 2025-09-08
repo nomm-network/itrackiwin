@@ -1,8 +1,4 @@
-type Props = {
-  Header: React.ReactNode;      // title + Admin + Explore by Planets
-  SubMenu: React.ReactNode;     // subcategory chips (+ Configure)
-  Body: React.ReactNode;        // the main page content (big card, QA row, etc.)
-};
+type Props = { Header: React.ReactNode; SubMenu: React.ReactNode; Body: React.ReactNode; };
 
 export default function HubLayout({ Header, SubMenu, Body }: Props) {
   return (
