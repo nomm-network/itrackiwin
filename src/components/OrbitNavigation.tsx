@@ -420,7 +420,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
     return final;
   }, [pins, subById, subcategories, getTranslatedName]);
   return <div className="w-full">
-      <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2">
+      <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2 relative">
         {pinnedItems.map(s => {
         const cat = categories.find(c => c.id === s.category_id);
         const bg = cat?.color ? `hsl(${cat.color})` : 'hsl(var(--primary))';
@@ -439,6 +439,16 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
               {s.name}
             </button>;
       })}
+      
+      {/* Configure icon positioned above the row */}
+      <button 
+        className="absolute -top-6 right-0 size-8 rounded-full bg-muted/80 hover:bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
+        onClick={() => navigate('/profile')}
+        title="Configure categories"
+        aria-label="Configure categories"
+      >
+        ⚙️
+      </button>
       </div>
       <div className="relative mx-auto w-full max-w-[360px] sm:max-w-[720px] aspect-square">
       {/* Center avatar/logo or Back to main */}
