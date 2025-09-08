@@ -10,6 +10,8 @@ import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const HubPage = lazy(() => import('@/features/hub/HubPage'));
+const OrbitPlanetsPage = lazy(() => import('@/features/planets/OrbitPlanetsPage'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
@@ -85,12 +87,19 @@ export function AppRoutes() {
           {/* Main Dashboard */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <HubPage />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.dashboard} element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <HubPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          {/* Discover Planets */}
+          <Route path="/discover/planets" element={
+            <ProtectedMobileLayout>
+              <OrbitPlanetsPage />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.progress} element={
