@@ -3,60 +3,43 @@ import { useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslations } from "@/hooks/useTranslations";
-import { 
-  Dumbbell, 
-  Heart, 
-  DollarSign, 
-  Brain, 
-  Target, 
-  Home,
-  Stethoscope,
-  Apple,
-  Moon,
-  Zap,
-  PiggyBank,
-  Users,
-  Handshake
-} from "lucide-react";
 interface OrbitNavigationProps {
   centerImageSrc?: string;
 }
-const categoryIcon = (name: string): React.ReactNode => {
-  const iconProps = { size: 20, className: "text-white" };
-  const map: Record<string, React.ReactNode> = {
-    "Health": <Stethoscope {...iconProps} />,
-    "Mind & Emotions": <Brain {...iconProps} />,
-    "Relationships": <Heart {...iconProps} />,
-    "Wealth": <DollarSign {...iconProps} />,
-    "Purpose & Growth": <Target {...iconProps} />,
-    "Lifestyle & Contribution": <Home {...iconProps} />,
-    "Lifestyle": <Home {...iconProps} />
+const categoryIcon = (name: string): string => {
+  const map: Record<string, string> = {
+    "Health": "🩺",
+    "Mind & Emotions": "🧠",
+    "Relationships": "❤️",
+    "Wealth": "💰",
+    "Purpose & Growth": "🎯",
+    "Lifestyle & Contribution": "🌟",
+    "Lifestyle": "🌟"
   };
-  return map[name] ?? <Target {...iconProps} />;
+  return map[name] ?? "🪐";
 };
-const subcategoryIcon = (name: string): React.ReactNode => {
-  const iconProps = { size: 16, className: "text-white" };
-  const map: Record<string, React.ReactNode> = {
-    "Fitness & exercise": <Dumbbell {...iconProps} />,
-    "Fitness and Exercise": <Dumbbell {...iconProps} />,
-    "Sleep": <Moon {...iconProps} />,
-    "Nutrition": <Apple {...iconProps} />,
-    "Meditation": <Brain {...iconProps} />,
-    "Learning": <Target {...iconProps} />,
-    "Finance": <DollarSign {...iconProps} />,
-    "Long-term wealth building": <PiggyBank {...iconProps} />,
-    "Career": <Target {...iconProps} />,
-    "Family": <Heart {...iconProps} />,
-    "Friends": <Users {...iconProps} />,
-    "Romantic life": <Heart {...iconProps} />,
-    "Hobbies": <Target {...iconProps} />,
-    "Contribution": <Handshake {...iconProps} />,
-    "Travel": <Target {...iconProps} />,
-    "Growth": <Target {...iconProps} />,
-    "Purpose": <Target {...iconProps} />,
-    "Emotions": <Brain {...iconProps} />
+const subcategoryIcon = (name: string): string => {
+  const map: Record<string, string> = {
+    "Fitness & exercise": "🏋️",
+    "Fitness and Exercise": "🏋️",
+    "Sleep": "🛌",
+    "Nutrition": "🍎",
+    "Meditation": "🧘",
+    "Learning": "📚",
+    "Finance": "📈",
+    "Long-term wealth building": "🏦",
+    "Career": "💼",
+    "Family": "👨‍👩‍👧‍👦",
+    "Friends": "🤝",
+    "Romantic life": "💞",
+    "Hobbies": "🎨",
+    "Contribution": "🤲",
+    "Travel": "✈️",
+    "Growth": "🌱",
+    "Purpose": "🎯",
+    "Emotions": "💬"
   };
-  return map[name] ?? <Target {...iconProps} />;
+  return map[name] ?? "🔹";
 };
 
 // Map display names to dashboard category/subcategory slugs
@@ -173,7 +156,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   type OrbitArea = {
     id: string;
     name: string;
-    icon?: React.ReactNode;
+    icon?: string | null;
     color?: string | null; // HSL string like "152 76% 66%"
     subcategories: string[];
   };
@@ -278,7 +261,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       return {
         id: c.id,
         name,
-        icon: categoryIcon(name),
+        icon: c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(name),
         color: c.color ?? null,
         subcategories: subByCat[c.id] || []
       };
@@ -391,7 +374,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
             }
           }}>
                   <div className="grid place-items-center size-full">
-                    <div className="text-lg" aria-hidden>{subcategoryIcon(name)}</div>
+                    <div className="text-xs" aria-hidden>{subcategoryIcon(name)}</div>
                   </div>
                 </button>
                 <div className="absolute -translate-x-1/2 text-[10px] sm:text-xs text-muted-foreground pointer-events-none" style={{
@@ -431,7 +414,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
             }
           }}>
                 <div className="grid place-items-center size-full">
-                  <div className="text-xl" aria-hidden>{a.icon}</div>
+                  <div className="text-2xl" aria-hidden>{a.icon || "●"}</div>
                 </div>
               </button>
               <div className="absolute -translate-x-1/2 text-[10px] sm:text-xs text-muted-foreground pointer-events-none" style={{
