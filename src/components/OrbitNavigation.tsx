@@ -440,12 +440,12 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
             </button>;
       })}
       
-      {/* Configure icon positioned above the row */}
+      {/* Configure icon positioned close to subcategories */}
       <button 
-        className="absolute -top-6 right-0 size-8 rounded-full bg-muted/80 hover:bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring"
-        onClick={() => navigate('/profile')}
-        title="Configure categories"
-        aria-label="Configure categories"
+        className="absolute -top-2 right-0 size-6 rounded-full bg-muted/80 hover:bg-muted border border-border flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus:ring-2 focus:ring-ring text-xs"
+        onClick={() => navigate('/dashboard')}
+        title="Configure pinned subcategories"
+        aria-label="Configure pinned subcategories"
       >
         ⚙️
       </button>
