@@ -1,9 +1,39 @@
 import { TIPS_BY_SLUG } from "./tips-data";
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-export default function TipsBody({ slug }: { slug: string }) {
+export default function TipsBody({ slug }: { slug?: string }) {
+  // Handle case where slug might be undefined
+  if (!slug) {
+    return (
+      <div className="container mx-auto p-2 sm:p-6 space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl">Coming Soon</CardTitle>
+            <p className="text-muted-foreground">
+              This module is under construction. Check back soon for helpful tips and best practices.
+            </p>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
+
   const entry = TIPS_BY_SLUG[slug.toLowerCase()];
-  if (!entry) return null;
+  
+  if (!entry) {
+    return (
+      <div className="container mx-auto p-2 sm:p-6 space-y-4">
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg sm:text-xl">Coming Soon</CardTitle>
+            <p className="text-muted-foreground">
+              This module is under construction. Check back soon for helpful tips and best practices.
+            </p>
+          </CardHeader>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto p-2 sm:p-6 space-y-4">
