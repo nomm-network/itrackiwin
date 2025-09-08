@@ -39,12 +39,14 @@ export interface EnhancedReadinessData {
 interface EnhancedReadinessCheckInProps {
   workoutId: string;
   onSubmit: (data: EnhancedReadinessData) => void;
+  onAbort?: () => void;
   isLoading?: boolean;
 }
 
 const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({ 
   workoutId, 
   onSubmit, 
+  onAbort,
   isLoading = false 
 }) => {
   const { user } = useAuth();
@@ -323,11 +325,22 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
-              className="w-full"
+              className="flex-1"
               disabled={isLoading || !hasAllEstimates}
             >
               {isLoading ? "Starting..." : "Start Workout"}
             </Button>
+            {onAbort && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onAbort}
+                disabled={isLoading}
+                className="flex-1"
+              >
+                Abort Workout
+              </Button>
+            )}
           </div>
           
           {needsEstimates && !hasAllEstimates && (
