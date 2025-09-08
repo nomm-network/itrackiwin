@@ -51,6 +51,7 @@ const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/pages/Ambas
 const RequireGymAdmin = lazy(() => import('@/components/guards/RequireGymAdmin'));
 const SafeAdminGuard = lazy(() => import('@/components/guards/SafeAdminGuard'));
 const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicPage'));
+const PlanetsPage = lazy(() => import('@/features/planets/PlanetsPage'));
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
@@ -182,6 +183,14 @@ export function AppRoutes() {
               <MentorPublicPage />
             </ProtectedMobileLayout>
           } />
+
+          {/* Planets Route */}
+          <Route path="/discover/planets" element={
+            <ProtectedMobileLayout>
+              <PlanetsPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/planets" element={<Navigate to="/discover/planets" replace />} />
 
           {/* Demo and Development Routes */}
           <Route path="/translated-profile-demo" element={<TranslatedProfileDemo />} />
