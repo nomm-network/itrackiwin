@@ -92,6 +92,27 @@ export default function HubPage() {
 
       {/* Body component */}
       <Body category={cat} subSlug={activeSub} />
+      
+      {/* Debug info */}
+      <div className="mt-8 p-4 bg-gray-50 rounded border text-xs">
+        <h3 className="font-semibold mb-2">🐛 Debug Information:</h3>
+        <div className="space-y-1">
+          <div><strong>URL cat param:</strong> {sp.get("cat") || '(none)'}</div>
+          <div><strong>URL sub param:</strong> {sp.get("sub") || '(none)'}</div>
+          <div><strong>Resolved cat:</strong> {cat}</div>
+          <div><strong>Resolved sub:</strong> {sub}</div>
+          <div><strong>Hub found:</strong> {hub ? 'Yes' : 'No'}</div>
+          {hub && (
+            <>
+              <div><strong>Hub name:</strong> {hub.name}</div>
+              <div><strong>Available subs:</strong> {hub.subs.map(s => s.slug).join(', ')}</div>
+              <div><strong>Valid subs set:</strong> {Array.from(validSubs).join(', ')}</div>
+              <div><strong>Active sub:</strong> {activeSub}</div>
+              <div><strong>Sub is valid:</strong> {validSubs.has(sub) ? 'Yes' : 'No'}</div>
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
