@@ -1,5 +1,7 @@
-import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 import { Paths } from './paths';
 import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
@@ -39,7 +41,53 @@ const Achievements = lazy(() => import('@/pages/Achievements'));
 const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
-const SubcategoryPage = lazy(() => import('@/features/subcategory/SubcategoryPage'));
+// Inline component for subcategory redirects (no dynamic import to avoid build issues)
+const SubcategoryRedirect = () => {
+  const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
+
+  const { data: subcategory, isLoading } = useQuery({
+    queryKey: ['subcategory_by_slug', slug],
+    queryFn: async () => {
+      if (!slug) return null;
+      
+      const { data, error } = await supabase
+        .from('life_subcategories')
+        .select(`
+          slug,
+          life_categories!inner(slug)
+        `)
+        .eq('slug', slug)
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!slug,
+  });
+
+  React.useEffect(() => {
+    if (subcategory) {
+      const categorySlug = subcategory.life_categories.slug;
+      
+      if (categorySlug === 'health' && slug === 'fitness-exercise') {
+        navigate('/dashboard', { replace: true });
+      } else {
+        navigate(`/dashboard?cat=${categorySlug}&sub=${slug}`, { replace: true });
+      }
+    }
+  }, [subcategory, slug, navigate]);
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  return null;
+};
 const OrbitPlanetsPage = lazy(() => import('@/features/planets/OrbitPlanetsPage'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
@@ -148,7 +196,7 @@ export function AppRoutes() {
           } />
           <Route path="/subcategory/:slug" element={
             <ProtectedMobileLayout>
-              <SubcategoryPage />
+              <SubcategoryRedirect />
             </ProtectedMobileLayout>
           } />
           <Route path="/mentors" element={
