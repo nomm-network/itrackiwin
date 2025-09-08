@@ -110,7 +110,7 @@ const Dashboard: React.FC = () => {
         
         return (
           <div className="grid grid-cols-3 gap-2 sm:gap-3">
-            {subcategories.filter(sub => sub.name.toLowerCase() !== 'configure').map((sub) => (
+            {subcategories.slice(0, 5).map((sub) => (
               <Button
                 key={sub.id}
                 variant={currentSubcategory === sub.id ? "default" : "outline"}

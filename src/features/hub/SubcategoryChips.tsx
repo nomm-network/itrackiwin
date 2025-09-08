@@ -13,7 +13,7 @@ export default function SubcategoryChips({ hubSlug, chips }:{
 
   return (
     <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      {chips.map((c) => {
+      {chips.slice(0, 5).map((c) => {
         const slug = c.slug.toLowerCase();
         const isActive = slug === active;
         return (
