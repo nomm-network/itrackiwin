@@ -1,4 +1,4 @@
-import FitnessBody from "./bodies/fitness-body";
+import FitnessBodyStable from "./bodies/fitness-body";
 import NutritionBody from "./bodies/nutrition-body";
 import SleepBody from "./bodies/sleep-body";
 import MedicalBody from "./bodies/medical-body";
@@ -8,13 +8,13 @@ import ConfigureBody from "./bodies/configure-body";
 /** Health hub resolver — maps your real slugs to bodies */
 export function resolveHealthBody(subSlug: string) {
   switch (subSlug) {
-    case "fitness-exercise":    return FitnessBody;
+    case "fitness-exercise":    return FitnessBodyStable;
     case "nutrition-hydration": return NutritionBody;
     case "sleep-quality":       return SleepBody;
     case "medical-checkups":    return MedicalBody;
     case "energy-levels":       return EnergyBody;
     case "configure":           return ConfigureBody;
-    default:                    return FitnessBody;
+    default:                    return FitnessBodyStable;
   }
 }
 
