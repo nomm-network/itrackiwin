@@ -22,6 +22,9 @@ export function AdminTopBar() {
 
   const currentCategory = categoriesWithSubs?.find(cat => cat.slug === lifeCategory);
   const availableSubcategories = currentCategory?.subcategories ?? [];
+  
+  // Only show classes for health category since other categories don't have settings yet
+  const availableClasses = lifeCategory === "health" ? CLASSES : [];
 
   const handleLifeCategoryChange = (value: string) => {
     const newParams = new URLSearchParams(searchParams);
@@ -87,7 +90,7 @@ export function AdminTopBar() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            {CLASSES.map((cls) => (
+            {availableClasses.map((cls) => (
               <SelectItem key={cls.key} value={cls.key}>
                 {cls.label}
               </SelectItem>
