@@ -40,7 +40,7 @@ function UnderConstructionCard({ title, bullets }: { title: string; bullets: str
   );
 }
 
-/** FITNESS ADAPTER - Uses existing components and logic */
+/** FITNESS ADAPTER - Uses original dashboard registry system */
 const FitnessAdapter: Adapter = {
   Header: () => {
     const { isSuperAdmin } = useUserRole();
@@ -107,56 +107,12 @@ const FitnessAdapter: Adapter = {
     );
   },
 
-  QuickStartWidget: () => {
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const { hasProfile } = useFitnessProfileCheck();
-
-    if (!hasProfile) {
-      return (
-        <Card>
-          <CardContent className="pt-6">
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-lg font-semibold">Welcome to Fitness Tracking!</h3>
-                <p className="text-sm text-muted-foreground">
-                  Let's set up your fitness profile to get started.
-                </p>
-              </div>
-              <Button onClick={() => setIsModalOpen(true)} className="w-full">
-                Start First Workout
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return (
-      <Card>
-        <CardContent className="pt-6">
-          <div className="space-y-4">
-            <div>
-              <h3 className="text-lg font-semibold">Quick Start</h3>
-              <p className="text-sm text-muted-foreground">
-                Jump into your workout routine.
-              </p>
-            </div>
-            <Button onClick={() => setIsModalOpen(true)} className="w-full">
-              Start Workout
-            </Button>
-            <WorkoutSelectionModal 
-              open={isModalOpen} 
-              onOpenChange={setIsModalOpen} 
-            />
-          </div>
-        </CardContent>
-      </Card>
-    );
-  },
+  QuickStartWidget: () => null, // Use registry widgets instead
 
   QuickActions: () => {
-    const categorySlug = "health.fitness";
-    const quickActions = useDynamicQuickActions(categorySlug);
+    const categoryId = "b54c368d-cd4f-4276-aa82-668da614e50d"; // health category ID
+    const subcategoryId = "e13d15c9-85a7-41ec-bd4b-232a69fcb247"; // fitness subcategory ID
+    const quickActions = useDynamicQuickActions(categoryId, subcategoryId);
 
     return (
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -185,11 +141,12 @@ const FitnessAdapter: Adapter = {
   },
 
   OtherWidgets: () => {
-    const categorySlug = "health.fitness";
-    const widgets = getWidgetsByCategory(categorySlug);
+    const categoryId = "b54c368d-cd4f-4276-aa82-668da614e50d"; // health category ID  
+    const subcategoryId = "e13d15c9-85a7-41ec-bd4b-232a69fcb247"; // fitness subcategory ID
+    const widgets = getWidgetsByCategory(categoryId, subcategoryId);
 
     if (widgets.length === 0) {
-      return <EmptyCategory category={categorySlug} />;
+      return <EmptyCategory category="health.fitness" />;
     }
 
     return (
