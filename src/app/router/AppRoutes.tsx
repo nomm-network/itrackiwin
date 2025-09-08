@@ -93,6 +93,12 @@ export function AppRoutes() {
               <HubPage />
             </ProtectedMobileLayout>
           } />
+          
+          <Route path="/user-dashboard" element={
+            <ProtectedMobileLayout>
+              <UserDashboard />
+            </ProtectedMobileLayout>
+          } />
 
           <Route path={Paths.progress} element={
             <ProtectedMobileLayout>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { LogOut, User, Building, Shield, Crown } from "lucide-react";
+import { LogOut, User, Building, Shield, Crown, Settings } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -113,6 +113,13 @@ export function ProfileAvatarMenu() {
             </Link>
           </DropdownMenuItem>
         )}
+        
+        <DropdownMenuItem asChild>
+          <Link to="/user-dashboard" className="cursor-pointer">
+            <Settings className="mr-2 h-4 w-4" />
+            Configure
+          </Link>
+        </DropdownMenuItem>
         
         <DropdownMenuSeparator />
         <DropdownMenuItem onClick={handleSignOut} className="cursor-pointer">
