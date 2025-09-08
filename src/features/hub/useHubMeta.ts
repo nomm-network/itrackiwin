@@ -4,7 +4,12 @@ import { supabase } from "@/integrations/supabase/client";
 export type HubSubcategory = { slug: string; label: string; icon?: string | null };
 export type HubMeta = { slug: string; name: string; subs: HubSubcategory[] };
 
-const FIRST_WORD = (s: string) => (s || "").split(/\s+/)[0];
+const FIRST_WORD = (s: string) => {
+  const cleaned = (s || "").trim();
+  // Handle cases like "Fitness & exercise" -> "Fitness", "Medical check-ups & prevention" -> "Medical"
+  const firstWord = cleaned.split(/[\s&-]+/)[0];
+  return firstWord || cleaned;
+};
 
 export function useHubMeta(categorySlugOrId?: string) {
   const [hub, setHub] = useState<HubMeta | null>(null);
@@ -44,10 +49,12 @@ export function useHubMeta(categorySlugOrId?: string) {
         // 3) map to chip model and append Configure at the end
         const subs: HubSubcategory[] = (subsRows || []).map((r) => {
           const translations = r.translations as any;
-          const name = translations?.en?.name || r.slug || "";
+          const fullName = translations?.en?.name || r.slug || "";
+          const firstWord = FIRST_WORD(fullName);
+          
           return {
-            slug: String(r.slug || "").toLowerCase(),         // <- DB slug drives URL
-            label: FIRST_WORD(String(name)), // <- first word for chip
+            slug: String(r.slug || "").toLowerCase(),         // <- DB slug drives URL (e.g., "fitness-exercise")
+            label: firstWord, // <- first word for chip (e.g., "Fitness" from "Fitness & exercise")
           };
         });
 
@@ -64,7 +71,8 @@ export function useHubMeta(categorySlugOrId?: string) {
             subs,
           });
         }
-      } catch {
+      } catch (error) {
+        console.error("useHubMeta error:", error);
         if (!cancelled) setHub(null);
       }
     })();
