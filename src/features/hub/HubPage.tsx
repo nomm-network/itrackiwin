@@ -18,8 +18,8 @@ export default function HubPage() {
 
   return (
     <HubLayout
-      Header={<HeaderRow />}
-      SubMenu={<SubcategoryMenu hub={hub} />}
+      Header={<HeaderRow hub={hub} />}
+      SubMenu={null}
       Body={<Body />}
     />
   );
