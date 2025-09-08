@@ -12,11 +12,11 @@ export default function SubcategoryMenu({ hub }: { hub: HubMeta }) {
         <button
           key={s.slug || i}
           className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${
-            s.slug === activeSub 
+            s.slug.toLowerCase() === activeSub 
               ? "bg-primary text-primary-foreground" 
               : "bg-muted hover:bg-muted/80"
           }`}
-          onClick={() => nav(`/dashboard?sub=${s.slug}`)}
+          onClick={() => nav(`/dashboard?sub=${encodeURIComponent(s.slug)}`)}
         >
           {s.label}
         </button>

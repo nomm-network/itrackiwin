@@ -12,12 +12,14 @@ export default function HubPage() {
 
   if (!hub) return null;
 
-  const active = (sp.get("sub") ?? hub.subs[0]?.slug ?? "").toLowerCase();
+  const active = (sp.get("sub") ?? hub.subs[0]?.slug ?? "fitness-exercise").toLowerCase();
   console.log("🔍 Hub subs:", hub.subs);
   console.log("🔍 URL sub param:", sp.get("sub"));
   console.log("🔍 Active sub slug:", active);
   console.log("🔍 First sub slug:", hub.subs[0]?.slug);
   const Body = resolveHealthBody(active);
+  const __name = Body.name || "anonymous";
+  console.debug("[HubPage] Resolving to component:", __name);
 
   return (
     <HubLayout
