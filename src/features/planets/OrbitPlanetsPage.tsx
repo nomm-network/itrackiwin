@@ -127,7 +127,10 @@ export default function OrbitPlanetsPage() {
                 <Button
                   key={`${t.cat}:${t.sub}`}
                   variant="outline"
-                  onClick={() => nav(`/subcategory/${t.sub}`)}
+                  onClick={() => {
+                    console.log('🚀 OrbitPlanetsPage: Navigating to /subcategory/' + t.sub);
+                    nav(`/subcategory/${t.sub}`);
+                  }}
                   className="h-20 flex flex-col items-center gap-2 p-3 hover:scale-105 transition-transform"
                 >
                   <IconComponent 
