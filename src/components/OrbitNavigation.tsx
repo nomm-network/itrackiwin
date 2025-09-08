@@ -284,7 +284,8 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
           const category = categories.find(c => c.id === s.category_id);
           const categoryName = category ? getTranslatedName(category) : "Health";
           const { cat, sub } = getCategoryAndSubSlug(categoryName, s.name);
-          navigate(`/dashboard?cat=${cat}&sub=${sub}`);
+          console.log('🌍 OrbitNavigation: Navigating to /subcategory/' + sub);
+          navigate(`/subcategory/${sub}`);
         }}>
               <span className="mr-1" aria-hidden>{subcategoryIcon(s.name)}</span>
               {s.name}
@@ -326,12 +327,14 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
         return <React.Fragment key={name}>
                 <button style={style} className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform" aria-label={`${name}`} onClick={() => {
             const { cat, sub } = getCategoryAndSubSlug(selected.name, name);
-            navigate(`/dashboard?cat=${cat}&sub=${sub}`);
+            console.log('🌍 OrbitNavigation: Button click to /subcategory/' + sub);
+            navigate(`/subcategory/${sub}`);
           }} onKeyDown={e => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
               const { cat, sub } = getCategoryAndSubSlug(selected.name, name);
-              navigate(`/dashboard?cat=${cat}&sub=${sub}`);
+              console.log('🌍 OrbitNavigation: Keyboard nav to /subcategory/' + sub);
+              navigate(`/subcategory/${sub}`);
             }
           }}>
                   <div className="grid place-items-center size-full">
