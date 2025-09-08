@@ -16,7 +16,7 @@ export default function SubcategoryMenu({ hub }: { hub: HubMeta }) {
               ? "bg-primary text-primary-foreground" 
               : "bg-muted hover:bg-muted/80"
           }`}
-          onClick={() => nav(`/dashboard?cat=${hub.slug}&sub=${s.slug}`)}
+          onClick={() => nav(`/dashboard?sub=${s.slug}`)}
         >
           {s.label}
         </button>
