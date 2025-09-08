@@ -264,6 +264,9 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   // Get current URL parameters to track active state
   const currentCat = searchParams.get('cat');
   const currentSub = searchParams.get('sub');
+  
+  // Debug current URL state
+  console.log('🔍 OrbitNavigation current URL params:', { currentCat, currentSub });
   useEffect(() => {
     supabase.auth.getUser().then(({
       data
@@ -422,8 +425,12 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       final.push(s);
       if (final.length === 3) break;
     }
+    
+    console.log('🔍 OrbitNavigation pinnedItems:', final.map(item => item.name));
+    
     return final;
   }, [pins, subById, subcategories, getTranslatedName]);
+  
   return <div className="w-full">
       <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2 relative">
       {pinnedItems.map(s => {
@@ -434,17 +441,30 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
         // Check if this item is currently active based on URL params
         const isActive = currentCat === slugCat && currentSub === slugSub;
         
+        // Debug logging
+        console.log('🔍 OrbitNavigation pinned item check:', {
+          itemName: s.name,
+          categoryName,
+          slugCat,
+          slugSub,
+          currentCat,
+          currentSub,
+          isActive
+        });
+        
         const bg = isActive 
           ? (cat?.color ? `hsl(${cat.color})` : 'hsl(var(--primary))')
-          : 'hsl(var(--muted))';
-        const textColor = isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))';
+          : 'hsl(var(--muted) / 0.5)'; // More muted background for inactive items
+        const textColor = isActive 
+          ? 'hsl(var(--primary-foreground))' 
+          : 'hsl(var(--muted-foreground))'; // Clearly muted text for inactive items
         const shadow = isActive && cat?.color 
           ? `0 0 0 2px hsl(${cat.color} / 0.45), 0 0 28px hsl(${cat.color} / 0.6)` 
           : isActive 
           ? `0 0 0 2px hsl(var(--primary) / 0.45), 0 0 28px hsl(var(--primary) / 0.6)`
           : 'none';
         
-        return <button key={s.id} className="rounded-full px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80" style={{
+        return <button key={s.id} className="rounded-full px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 transition-all duration-200" style={{
           background: bg,
           color: textColor,
           boxShadow: shadow
