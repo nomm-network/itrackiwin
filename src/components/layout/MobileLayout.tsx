@@ -31,9 +31,17 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
       pin.subcategory?.slug !== "fitness-exercise"
     );
 
-    // Add up to 2 pinned subcategories
+    // Check if fitness-exercise is pinned
+    const fitnessIsPinned = pinnedSubcategories.some(pin => 
+      pin.subcategory?.slug === "fitness-exercise"
+    );
+
+    // If fitness is pinned, show 2 others. If not pinned, show all 3.
+    const maxPins = fitnessIsPinned ? 2 : 3;
+    
+    // Add pinned subcategories up to the limit
     const subcatNavigation = nonFitnessPins
-      .slice(0, 2)
+      .slice(0, maxPins)
       .map(pin => ({
         name: pin.subcategory?.translations?.find(t => t.language_code === "en")?.name || pin.subcategory?.slug || "Unknown",
         href: `/subcategory/${pin.subcategory?.slug}`,
