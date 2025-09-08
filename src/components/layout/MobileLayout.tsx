@@ -24,7 +24,6 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const getDynamicNavigation = () => {
     const baseNavigation = [
       { name: "Fitness", href: "/dashboard", icon: Home },
-      { name: "Discover", href: "/marketplace", icon: Compass },
     ];
 
     // Get pinned subcategories, excluding fitness-exercise slug since we always show it as base
@@ -41,7 +40,12 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         icon: Target, // Use a generic icon, can be customized per subcategory later
       }));
 
-    return [...baseNavigation, ...subcatNavigation];
+    // Add Discover as 4th item after subcategories
+    const discoverNavigation = [
+      { name: "Discover", href: "/marketplace", icon: Compass },
+    ];
+
+    return [...baseNavigation, ...subcatNavigation, ...discoverNavigation];
   };
 
   const mainNavigation = getDynamicNavigation();
