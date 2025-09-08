@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslations } from "@/hooks/useTranslations";
@@ -259,6 +259,11 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   const navigate = useNavigate();
   const { getTranslatedName } = useTranslations();
   const [userId, setUserId] = useState<string | null>(null);
+  const [searchParams] = useSearchParams();
+  
+  // Get current URL parameters to track active state
+  const currentCat = searchParams.get('cat');
+  const currentSub = searchParams.get('sub');
   useEffect(() => {
     supabase.auth.getUser().then(({
       data
@@ -421,16 +426,29 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   }, [pins, subById, subcategories, getTranslatedName]);
   return <div className="w-full">
       <div className="mx-auto max-w-[720px] mb-4 flex flex-wrap items-center justify-center gap-2 relative">
-        {pinnedItems.map(s => {
+      {pinnedItems.map(s => {
         const cat = categories.find(c => c.id === s.category_id);
-        const bg = cat?.color ? `hsl(${cat.color})` : 'hsl(var(--primary))';
-        const shadow = cat?.color ? `0 0 0 2px hsl(${cat.color} / 0.45), 0 0 28px hsl(${cat.color} / 0.6)` : `0 0 0 2px hsl(var(--primary) / 0.45), 0 0 28px hsl(var(--primary) / 0.6)`;
-        return <button key={s.id} className="rounded-full px-3 py-2 text-xs sm:text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80" style={{
+        const categoryName = cat ? getTranslatedName(cat) : "Health";
+        const { cat: slugCat, sub: slugSub } = getCategoryAndSubSlug(categoryName, s.name);
+        
+        // Check if this item is currently active based on URL params
+        const isActive = currentCat === slugCat && currentSub === slugSub;
+        
+        const bg = isActive 
+          ? (cat?.color ? `hsl(${cat.color})` : 'hsl(var(--primary))')
+          : 'hsl(var(--muted))';
+        const textColor = isActive ? 'hsl(var(--primary-foreground))' : 'hsl(var(--foreground))';
+        const shadow = isActive && cat?.color 
+          ? `0 0 0 2px hsl(${cat.color} / 0.45), 0 0 28px hsl(${cat.color} / 0.6)` 
+          : isActive 
+          ? `0 0 0 2px hsl(var(--primary) / 0.45), 0 0 28px hsl(var(--primary) / 0.6)`
+          : 'none';
+        
+        return <button key={s.id} className="rounded-full px-3 py-2 text-xs sm:text-sm font-medium ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80" style={{
           background: bg,
+          color: textColor,
           boxShadow: shadow
         }} onClick={() => {
-          const category = categories.find(c => c.id === s.category_id);
-          const categoryName = category ? getTranslatedName(category) : "Health";
           const { cat, sub } = getCategoryAndSubSlug(categoryName, s.name);
           console.log('🌍 OrbitNavigation: Navigating to /subcategory/' + sub);
           navigate(`/subcategory/${sub}`);
