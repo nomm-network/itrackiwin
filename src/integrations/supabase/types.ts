@@ -3233,6 +3233,92 @@ export type Database = {
           },
         ]
       }
+      gym_role_requests: {
+        Row: {
+          created_at: string | null
+          decided_at: string | null
+          decided_by: string | null
+          gym_id: string
+          id: string
+          message: string | null
+          role: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id: string
+          id?: string
+          message?: string | null
+          role: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          decided_at?: string | null
+          decided_by?: string | null
+          gym_id?: string
+          id?: string
+          message?: string | null
+          role?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_activity"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_equipment_completeness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_poster_freshness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gyms_needing_poster_check"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_role_requests_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_marketplace_gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       gyms: {
         Row: {
           address: string | null
@@ -9723,6 +9809,10 @@ export type Database = {
         Args: { p_gym: string; p_mentor_id: string; p_status: string }
         Returns: undefined
       }
+      decide_gym_role_request: {
+        Args: { p_action: string; p_req: string }
+        Returns: undefined
+      }
       declare_battle_winners: {
         Args: { p_battle: string }
         Returns: {
@@ -10650,6 +10740,10 @@ export type Database = {
       request_gym_coach: {
         Args: { p_gym: string; p_mentor_id: string }
         Returns: undefined
+      }
+      request_gym_role: {
+        Args: { p_gym: string; p_msg?: string; p_role: string }
+        Returns: string
       }
       round_load_for_exercise: {
         Args: { p_exercise: string; p_gym: string; p_target_kg: number }

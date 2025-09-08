@@ -3,6 +3,7 @@ import { useLocation } from 'react-router-dom';
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
 import { AdminSidebar } from '@/components/navigation/AdminSidebar';
 import { AppHeader } from '@/components/navigation/AppHeader';
+import { AdminTopBar } from '@/features/admin/components/AdminTopBar';
 
 interface AdminLayoutProps {
   children: ReactNode;
@@ -72,6 +73,9 @@ const AdminLayout = ({ children }: AdminLayoutProps) => {
     <div className="min-h-screen">
       {/* Main App Header */}
       <AppHeader />
+      
+      {/* Admin Category Bar */}
+      <AdminTopBar />
       
       <div className="flex">
         {/* Admin Sidebar */}

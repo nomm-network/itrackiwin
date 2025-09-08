@@ -1,4 +1,4 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useSearchParams } from "react-router-dom";
 import { Users, Check, Trophy, CreditCard, Settings, Dumbbell, UserCog, Globe, Wrench, FileText, Code, Activity, Cog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -10,48 +10,55 @@ interface SidebarItem {
   submenu?: SidebarItem[];
 }
 
-const ADMIN_SIDEBAR_ITEMS: SidebarItem[] = [
-  { type: "section", label: "System Management" },
-  { 
-    label: "Setup Flow", 
-    icon: Settings,
-    submenu: [
-      { label: "Body Taxonomy", to: "/admin/setup/body-taxonomy", icon: Users },
-      { label: "Equipment", to: "/admin/setup/equipment", icon: Dumbbell },
-      { label: "Grips", to: "/admin/setup/grips", icon: Settings },
-      { label: "Equipment-Grip Compatibility", to: "/admin/setup/equipment-grip-compatibility", icon: Wrench },
-      { label: "Movement Patterns", to: "/admin/setup/movement-patterns", icon: Activity },
-      { label: "Tags & Aliases", to: "/admin/setup/tags-aliases", icon: FileText },
-    ]
-  },
-  { label: "Exercise Management", to: "/admin/exercises", icon: Dumbbell },
-  { label: "User Management", to: "/admin/users", icon: UserCog },
-  { label: "Mentors Management", to: "/admin/mentors", icon: Users },
-  { label: "Translations", to: "/admin/translations", icon: Globe },
-  { 
-    label: "Tools", 
-    icon: Wrench,
-    submenu: [
-      { label: "Attribute Schemas", to: "/admin/attribute-schemas", icon: Code },
-      { label: "Naming Templates", to: "/admin/naming-templates", icon: FileText },
-      { label: "Coach Logs", to: "/admin/coach-logs", icon: Activity },
-      { label: "Settings", to: "/admin/settings", icon: Cog },
-    ]
-  },
-  
-  { type: "section", label: "Ambassadors" },
-  { label: "Overview", to: "/admin/ambassadors", icon: Users },
-  { label: "Deals Verification", to: "/admin/ambassadors/deals", icon: Check },
-  
-  { type: "section", label: "Battles" },
-  { label: "Battles", to: "/admin/battles", icon: Trophy },
-  
-  { type: "section", label: "Ops" },
-  { label: "Payouts", to: "/admin/payouts", icon: CreditCard },
-];
+const CATEGORY_ITEMS = {
+  ambassadors: [
+    { label: "Overview", to: "/admin/ambassadors?cat=ambassadors", icon: Users },
+    { label: "Deals Verification", to: "/admin/ambassadors/deals?cat=ambassadors", icon: Check },
+  ],
+  battles: [
+    { label: "Battles", to: "/admin/battles?cat=battles", icon: Trophy },
+  ],
+  ops: [
+    { label: "Payouts", to: "/admin/payouts?cat=ops", icon: CreditCard },
+  ],
+  gyms: [
+    { label: "Public Gyms (view)", to: "/marketplace?cat=gyms", icon: Globe },
+  ],
+  users: [
+    { label: "User Management", to: "/admin/users?cat=users", icon: UserCog },
+    { label: "Mentors Management", to: "/admin/mentors?cat=users", icon: Users },
+  ],
+  settings: [
+    { 
+      label: "System Management", 
+      icon: Settings,
+      submenu: [
+        { label: "Body Taxonomy", to: "/admin/setup/body-taxonomy?cat=settings", icon: Users },
+        { label: "Equipment", to: "/admin/setup/equipment?cat=settings", icon: Dumbbell },
+        { label: "Grips", to: "/admin/setup/grips?cat=settings", icon: Settings },
+        { label: "Movement Patterns", to: "/admin/setup/movement-patterns?cat=settings", icon: Activity },
+      ]
+    },
+    { label: "Exercise Management", to: "/admin/exercises?cat=settings", icon: Dumbbell },
+    { label: "Translations", to: "/admin/translations?cat=settings", icon: Globe },
+    { 
+      label: "Tools", 
+      icon: Wrench,
+      submenu: [
+        { label: "Attribute Schemas", to: "/admin/attribute-schemas?cat=settings", icon: Code },
+        { label: "Coach Logs", to: "/admin/coach-logs?cat=settings", icon: Activity },
+        { label: "Settings", to: "/admin/settings?cat=settings", icon: Cog },
+      ]
+    },
+  ],
+} as const;
 
 export function AdminSidebar() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const category = searchParams.get("cat") ?? "ambassadors";
+  
+  const items = CATEGORY_ITEMS[category as keyof typeof CATEGORY_ITEMS] ?? [];
 
   const renderItem = (item: SidebarItem, index: number, isSubmenu = false) => {
     if (item.type === "section") {
@@ -107,7 +114,7 @@ export function AdminSidebar() {
 
   return (
     <nav className="space-y-2 max-h-[calc(100vh-8rem)] overflow-y-auto">
-      {ADMIN_SIDEBAR_ITEMS.map((item, index) => renderItem(item, index))}
+      {items.map((item, index) => renderItem(item, index))}
     </nav>
   );
 }

@@ -148,6 +148,11 @@ export function AppRoutes() {
               <GymsListPage />
             </ProtectedMobileLayout>
           } />
+          <Route path="/gyms/:gymId" element={
+            <ProtectedMobileLayout>
+              <GymsListPage />
+            </ProtectedMobileLayout>
+          } />
 
           {/* Ambassador and User Routes */}
           <Route path="/ambassador" element={
