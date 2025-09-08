@@ -26,7 +26,7 @@ export default function HeaderRow() {
           )}
           <Button 
             variant="outline" 
-            onClick={() => navigate("/discover/planets")}
+            onClick={() => navigate("/explore")}
             className="text-sm"
           >
             Explore by Planets

@@ -11,7 +11,6 @@ import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 // Dashboard - now using Hub system
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
 const HubPage = lazy(() => import('@/features/hub/HubPage'));
-const OrbitPlanetsPage = lazy(() => import('@/features/discover/planets/OrbitView'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
@@ -96,12 +95,6 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
 
-          {/* Explore by Planets */}
-          <Route path="/discover/planets" element={
-            <ProtectedMobileLayout>
-              <OrbitPlanetsPage />
-            </ProtectedMobileLayout>
-          } />
           <Route path={Paths.progress} element={
             <ProtectedMobileLayout>
               <Progress />
