@@ -205,7 +205,7 @@ const Exercises: React.FC = () => {
               </NavLink>
             </NavigationMenuItem>
             <NavigationMenuItem>
-              <NavLink to="/fitness/configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
+              <NavLink to="/dashboard?cat=health&sub=configure" className={({ isActive }) => `${navigationMenuTriggerStyle()} ${isActive ? 'bg-accent/50' : ''}`}>
                 Configure
               </NavLink>
             </NavigationMenuItem>

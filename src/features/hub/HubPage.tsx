@@ -1,6 +1,7 @@
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useHubMeta } from "./useHubMeta";
 import { resolveBodyByCategory } from "./bodyResolver";
+import { resolveConfigureBody } from "./configureResolver";
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -21,7 +22,10 @@ export default function HubPage() {
     ? sub
     : hub.subs[0]?.slug || "fitness-exercise";
 
-  const Body = resolveBodyByCategory(cat, activeSub);
+  // Special case: configure
+  const Body = activeSub === "configure"
+    ? resolveConfigureBody(cat)
+    : resolveBodyByCategory(cat, activeSub);
 
   return (
     <div className="container mx-auto p-2 sm:p-6 space-y-2 sm:space-y-6 pb-20 md:pb-6">

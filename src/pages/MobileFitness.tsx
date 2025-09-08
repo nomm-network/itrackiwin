@@ -109,7 +109,7 @@ const MobileFitness: React.FC = () => {
               <Button 
                 variant="outline" 
                 size="sm"
-                onClick={() => navigate('/fitness/configure')}
+                onClick={() => navigate('/dashboard?cat=health&sub=configure')}
               >
                 Change
               </Button>
@@ -336,7 +336,7 @@ const MobileFitness: React.FC = () => {
             </BottomSheetHeader>
             <div className="p-4 space-y-4">
               <Button variant="ghost" className="w-full justify-start h-12" asChild>
-                <Link to="/fitness/configure">
+                <Link to="/dashboard?cat=health&sub=configure">
                   <Settings className="h-4 w-4 mr-2" />
                   Configure
                 </Link>

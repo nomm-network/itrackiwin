@@ -44,7 +44,7 @@ export const useFitnessProfileCheck = () => {
         description: `Please complete your fitness profile to ${action}.`,
         variant: "destructive"
       });
-      navigate('/fitness/configure?tab=profile');
+      navigate('/dashboard?cat=health&sub=configure&tab=profile');
       return false;
     }
     return true;

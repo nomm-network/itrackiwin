@@ -396,7 +396,7 @@ const WorkoutSession: React.FC = () => {
                 <Button 
                   variant="outline" 
                   size="icon"
-                  onClick={() => navigate('/fitness/configure')}
+                  onClick={() => navigate('/dashboard?cat=health&sub=configure')}
                   className="touch-target"
                 >
                   <Settings className="h-4 w-4" />

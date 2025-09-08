@@ -4,7 +4,6 @@ import NutritionBody from "@/features/hub/bodies/health/NutritionBody";
 import SleepBody from "@/features/hub/bodies/health/SleepBody";
 import MedicalBody from "@/features/hub/bodies/health/MedicalBody";
 import EnergyBody from "@/features/hub/bodies/health/EnergyBody";
-import ConfigureBody from "@/features/hub/bodies/health/ConfigureBody";
 
 // Generic "under construction" body (used by non-Health subs until you replace)
 import TipsBody from "@/features/hub/bodies/common/TipsBody";
@@ -17,7 +16,7 @@ const HEALTH: Record<string, BodyComp> = {
   "sleep-quality": SleepBody,
   "medical-checkups": MedicalBody,
   "energy-levels": EnergyBody,
-  "configure": ConfigureBody,
+  // configure is now handled by configureResolver
 };
 
 const MAP: Record<string, Record<string, BodyComp>> = {
@@ -30,7 +29,6 @@ const MAP: Record<string, Record<string, BodyComp>> = {
     "budgeting-debt": TipsBody,
     "financial-education": TipsBody,
     "wealth-building": TipsBody,
-    configure: TipsBody,
   },
   relationships: {
     "family-relationships": TipsBody,
@@ -38,7 +36,6 @@ const MAP: Record<string, Record<string, BodyComp>> = {
     friendships: TipsBody,
     "community-social-skills": TipsBody,
     "networking-collaboration": TipsBody,
-    configure: TipsBody,
   },
   mind: {
     "stress-management": TipsBody,
@@ -46,7 +43,6 @@ const MAP: Record<string, Record<string, BodyComp>> = {
     "self-awareness": TipsBody,
     "emotional-regulation": TipsBody,
     "therapy-mental-health": TipsBody,
-    configure: TipsBody,
   },
   purpose: {
     "career-purpose-or-calling": TipsBody,
@@ -54,7 +50,6 @@ const MAP: Record<string, Record<string, BodyComp>> = {
     "hobbies-creativity": TipsBody,
     "continuous-learning": TipsBody,
     "goal-setting": TipsBody,
-    configure: TipsBody,
   },
   lifestyle: {
     "time-productivity": TipsBody,
@@ -62,7 +57,6 @@ const MAP: Record<string, Record<string, BodyComp>> = {
     "minimalism-sustainability": TipsBody,
     "volunteering-giving-back": TipsBody,
     "legacy-projects": TipsBody,
-    configure: TipsBody,
   },
 };
 
@@ -75,6 +69,5 @@ export function resolveBodyByCategory(
   const table = MAP[cat];
 
   if (table && table[sub]) return table[sub];
-  if (table && table["configure"]) return table["configure"];
   return TipsBody; // safe fallback — always a valid component
 }

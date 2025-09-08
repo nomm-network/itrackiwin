@@ -131,7 +131,7 @@ const Dashboard: React.FC = () => {
             {/* Configure button as 6th item */}
             <Button
               variant="outline"
-              onClick={() => navigate('/fitness/configure')}
+              onClick={() => navigate('/dashboard?cat=health&sub=configure')}
               className="h-16 flex flex-col items-center gap-1 p-2"
             >
               <span className="text-lg">⚙️</span>
