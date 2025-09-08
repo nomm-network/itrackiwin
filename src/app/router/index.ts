@@ -1,3 +1,3 @@
 // Router exports
-export { default as AppRoutes } from '../AppRoutes';
+export { AppRoutes } from './AppRoutes';
 export { Paths } from './paths';

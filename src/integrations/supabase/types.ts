@@ -3659,13 +3659,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "life_category_translations_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
-          {
             foreignKeyName: "life_category_translations_language_code_fkey"
             columns: ["language_code"]
             isOneToOne: false
@@ -3720,13 +3713,6 @@ export type Database = {
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "life_subcategories_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
         ]
       }
       life_subcategory_translations: {
@@ -3776,13 +3762,6 @@ export type Database = {
             foreignKeyName: "life_subcategory_translations_subcategory_id_fkey"
             columns: ["subcategory_id"]
             isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["sub_id"]
-          },
-          {
-            foreignKeyName: "life_subcategory_translations_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
             referencedRelation: "v_subcategories_with_translations"
             referencedColumns: ["id"]
           },
@@ -3815,13 +3794,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_mentor_areas_life_cat"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
           },
           {
             foreignKeyName: "fk_mentor_areas_mentor"
@@ -4040,13 +4012,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "mentor_profiles_life_category_id_fkey"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
-          {
             foreignKeyName: "mentor_profiles_role_key_fkey"
             columns: ["role_key"]
             isOneToOne: false
@@ -4181,13 +4146,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "fk_mentors_life_category"
-            columns: ["life_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
           },
           {
             foreignKeyName: "mentors_gym_id_fkey"
@@ -5764,13 +5722,6 @@ export type Database = {
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "user_category_prefs_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
         ]
       }
       user_equipment_preferences: {
@@ -6867,13 +6818,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "life_subcategories"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["sub_id"]
           },
           {
             foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
@@ -8355,13 +8299,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_mentors_life_category"
-            columns: ["primary_category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
-          {
             foreignKeyName: "mentors_gym_id_fkey"
             columns: ["gym_id"]
             isOneToOne: false
@@ -9048,18 +8985,6 @@ export type Database = {
         }
         Relationships: []
       }
-      v_health_subs: {
-        Row: {
-          display_order: number | null
-          hub_id: string | null
-          hub_label: string | null
-          hub_slug: string | null
-          sub_id: string | null
-          sub_label: string | null
-          sub_slug: string | null
-        }
-        Relationships: []
-      }
       v_last_working_set: {
         Row: {
           completed_at: string | null
@@ -9291,13 +9216,6 @@ export type Database = {
             referencedRelation: "v_categories_with_translations"
             referencedColumns: ["id"]
           },
-          {
-            foreignKeyName: "life_subcategories_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
         ]
       }
       v_user_default_gym: {
@@ -9375,13 +9293,6 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "life_subcategories"
             referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
-            columns: ["subcategory_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["sub_id"]
           },
           {
             foreignKeyName: "user_pinned_subcategories_subcategory_id_fkey"
