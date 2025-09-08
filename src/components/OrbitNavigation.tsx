@@ -101,7 +101,7 @@ const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): {
   };
 
   const cat = categoryMap[categoryName] || "health";
-  const sub = subcategoryMap[subcategoryName] || "fitness-exercise";
+  const sub = subcategoryMap[subcategoryName] || (cat === "health" ? "fitness-exercise" : "configure");
   
   return { cat, sub };
 };
