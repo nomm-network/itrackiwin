@@ -7,6 +7,7 @@ import ConfigureBody from "./bodies/configure-body";
 
 /** Health hub resolver — maps your real slugs to bodies */
 export function resolveHealthBody(subSlug: string) {
+  console.log("🔍 Resolver received slug:", subSlug);
   switch (subSlug) {
     case "fitness-exercise":    return FitnessBodyStable;
     case "nutrition-hydration": return NutritionBody;
