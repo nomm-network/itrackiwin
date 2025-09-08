@@ -60,7 +60,7 @@ export default function HubPage() {
 
       {/* Chips from DB + Configure at the end */}
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        {hub.subs.slice(0, 5).map((s) => {
+        {hub.subs.map((s) => {
           const isActive = s.slug === activeSub;
           return (
             <Button
