@@ -4,26 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import HealthHubLayout from "./HealthHubLayout";
 import HubCategoryGrid from "./components/HubCategoryGrid";
-import Submenu from "./components/Submenu";
 import { useHubCategories, findHub, getDefaultSubcategory } from "./useHubCategories";
 import { resolveView } from "./moduleMap";
 import { useUserRole } from "@/hooks/useUserRole";
-
-// Placeholder components for KPIs and Quick Actions
-function PlaceholderKPIs({ hubSlug }: { hubSlug: string }) {
-  const kpiData = getKPIDataForHub(hubSlug);
-  
-  return (
-    <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-      {kpiData.map((kpi, index) => (
-        <div key={index} className="bg-card p-3 rounded-lg border">
-          <div className="text-sm text-muted-foreground">{kpi.label}</div>
-          <div className="text-lg font-semibold">{kpi.value}</div>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 function PlaceholderQuick() {
   return (
@@ -38,53 +21,6 @@ function PlaceholderQuick() {
       </CardContent>
     </Card>
   );
-}
-
-function getKPIDataForHub(hubSlug: string) {
-  switch (hubSlug) {
-    case 'health':
-      return [
-        { label: "Workouts (7d)", value: "5/7" },
-        { label: "Sleep Average", value: "7h 32m" },
-        { label: "Nutrition Score", value: "8.2/10" },
-        { label: "Energy Level", value: "Good" }
-      ];
-    case 'relationships':
-      return [
-        { label: "Connections/week", value: "12" },
-        { label: "Quality Time", value: "8h" },
-        { label: "Check-ins", value: "5/7" },
-        { label: "Relationship Health", value: "Strong" }
-      ];
-    case 'wealth':
-      return [
-        { label: "Monthly Savings", value: "$1,200" },
-        { label: "Investment Return", value: "+12.4%" },
-        { label: "Budget Status", value: "On Track" },
-        { label: "Financial Score", value: "8.5/10" }
-      ];
-    case 'mind':
-      return [
-        { label: "Learning Streak", value: "14 days" },
-        { label: "Books Read", value: "18/24" },
-        { label: "Skills Progress", value: "75%" },
-        { label: "Goal Achievement", value: "12/15" }
-      ];
-    case 'lifestyle':
-      return [
-        { label: "Habit Streaks", value: "4 active" },
-        { label: "Productivity", value: "85%" },
-        { label: "Mindfulness", value: "20 min/day" },
-        { label: "Life Balance", value: "Good" }
-      ];
-    default:
-      return [
-        { label: "Progress", value: "Coming Soon" },
-        { label: "Goals", value: "Set Up" },
-        { label: "Streak", value: "Start Today" },
-        { label: "Score", value: "Track More" }
-      ];
-  }
 }
 
 export default function HealthHubPage() {
@@ -169,8 +105,6 @@ export default function HealthHubPage() {
         </div>
       }
       CategoryGrid={<HubCategoryGrid hub={hub} activeSub={subSlug} />}
-      Submenu={<Submenu hub={hub} activeSub={subSlug} />}
-      KPIs={<PlaceholderKPIs hubSlug={hub.slug} />}
       Primary={
         <Suspense fallback={<Card><CardContent className="p-6">Loading…</CardContent></Card>}>
           <View />
