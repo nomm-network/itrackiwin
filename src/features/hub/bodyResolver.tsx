@@ -56,14 +56,15 @@ const HEALTH: Record<string, React.ComponentType> = {
 };
 
 // For categories other than health we render the generated tips body.
-// We create a wrapper that passes the subcategory slug to TipsBody
+// We create a wrapper component that passes the subcategory slug to TipsBody
 export function resolveBodyByCategory(cat: string, sub: string): React.ComponentType {
   if (cat === "health") {
     return HEALTH[sub] ?? FitnessBody;
   }
   
-  // Return a wrapper component that passes the subcategory slug to TipsBody
-  return () => React.createElement(TipsBody, { slug: sub });
+  // Return a proper wrapper component that passes the subcategory slug to TipsBody
+  const TipsBodyWrapper = () => <TipsBody slug={sub} />;
+  return TipsBodyWrapper;
 }
 
 export function resolveBody(subSlug: string) {
