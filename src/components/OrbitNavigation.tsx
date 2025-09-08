@@ -40,6 +40,71 @@ const subcategoryIcon = (name: string): string => {
   };
   return map[name] ?? "🔹";
 };
+
+// Map display names to dashboard category/subcategory slugs
+const getCategoryAndSubSlug = (categoryName: string, subcategoryName: string): { cat: string; sub: string } => {
+  const categoryMap: Record<string, string> = {
+    "Health": "health",
+    "Wealth": "wealth", 
+    "Relationships": "relationships",
+    "Mind & Emotions": "mind",
+    "Purpose & Growth": "purpose",
+    "Lifestyle & Contribution": "lifestyle"
+  };
+
+  const subcategoryMap: Record<string, string> = {
+    // Health
+    "Fitness & exercise": "fitness-exercise",
+    "Fitness and Exercise": "fitness-exercise", 
+    "Nutrition": "nutrition-hydration",
+    "Sleep": "sleep-quality",
+    "Medical": "medical-checkups",
+    "Energy": "energy-levels",
+    
+    // Wealth
+    "Income": "income-career-growth",
+    "Career": "income-career-growth",
+    "Saving": "saving-investing",
+    "Investing": "saving-investing",
+    "Long-term wealth building": "wealth-building",
+    "Budgeting": "budgeting-debt",
+    "Finance": "financial-education",
+    
+    // Relationships
+    "Family": "family-relationships",
+    "Romantic life": "romantic-life", 
+    "Friends": "friendships",
+    "Community": "community-social-skills",
+    "Networking": "networking-collaboration",
+    
+    // Mind & Emotions
+    "Stress": "stress-management",
+    "Meditation": "mindfulness-meditation",
+    "Mindfulness": "mindfulness-meditation",
+    "Self-awareness": "self-awareness",
+    "Emotions": "emotional-regulation",
+    "Therapy": "therapy-mental-health",
+    
+    // Purpose & Growth  
+    "Purpose": "career-purpose-or-calling",
+    "Skills": "skill-development",
+    "Hobbies": "hobbies-creativity",
+    "Learning": "continuous-learning",
+    "Goals": "goal-setting",
+    
+    // Lifestyle
+    "Time": "time-productivity",
+    "Environment": "environment-organization", 
+    "Minimalism": "minimalism-sustainability",
+    "Volunteering": "volunteering-giving-back",
+    "Legacy": "legacy-projects"
+  };
+
+  const cat = categoryMap[categoryName] || "health";
+  const sub = subcategoryMap[subcategoryName] || "fitness-exercise";
+  
+  return { cat, sub };
+};
 const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
   centerImageSrc
 }) => {
@@ -216,12 +281,10 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
           background: bg,
           boxShadow: shadow
         }} onClick={() => {
-          if (s.name === "Fitness & exercise" || s.name === "Fitness and Exercise") {
-            navigate("/fitness");
-          } else {
-            const area = areasArr.find(a => a.id === s.category_id) || null;
-            setSelected(area);
-          }
+          const category = categories.find(c => c.id === s.category_id);
+          const categoryName = category ? getTranslatedName(category) : "Health";
+          const { cat, sub } = getCategoryAndSubSlug(categoryName, s.name);
+          navigate(`/dashboard?cat=${cat}&sub=${sub}`);
         }}>
               <span className="mr-1" aria-hidden>{subcategoryIcon(s.name)}</span>
               {s.name}
@@ -262,13 +325,13 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
         const labelTopOffset = y + size / 2 + 12;
         return <React.Fragment key={name}>
                 <button style={style} className="absolute -translate-x-1/2 -translate-y-1/2 rounded-full text-sm font-medium text-[hsl(var(--primary-foreground))] ring-offset-background focus:outline-none focus:ring-2 focus:ring-ring/80 hover:scale-105 transition-transform" aria-label={`${name}`} onClick={() => {
-            if (name === "Fitness & exercise") {
-              navigate("/fitness");
-            }
+            const { cat, sub } = getCategoryAndSubSlug(selected.name, name);
+            navigate(`/dashboard?cat=${cat}&sub=${sub}`);
           }} onKeyDown={e => {
-            if ((e.key === "Enter" || e.key === " ") && name === "Fitness & exercise") {
+            if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
-              navigate("/fitness");
+              const { cat, sub } = getCategoryAndSubSlug(selected.name, name);
+              navigate(`/dashboard?cat=${cat}&sub=${sub}`);
             }
           }}>
                   <div className="grid place-items-center size-full">
