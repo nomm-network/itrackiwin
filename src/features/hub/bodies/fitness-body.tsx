@@ -1,34 +1,43 @@
 import React, { useState } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { Play, Clock, Target, Zap, Settings, XCircle, History, Users, BookOpen } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
-import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
-import { useRecentWorkouts } from '@/features/health/fitness/services/fitness.api';
+import { Link } from "react-router-dom";
+import { Plus, Clock, History, BarChart3, Settings, Play, Dumbbell, Weight, Hash, Repeat } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
+import { useDefaultGym } from "@/features/health/fitness/hooks/useGymDetection.hook";
+import { GymDetectionDialog } from "@/features/health/fitness/components/GymDetectionDialog";
+import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
+import { useTranslation } from "react-i18next";
+import { useNavigate } from "react-router-dom";
+import { useNextProgramBlock } from "@/hooks/useTrainingPrograms";
+import { useStartWorkout } from "@/features/workouts";
 import { useActiveWorkout } from '@/features/workouts/hooks';
-import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
-import { useNextProgramBlock } from '@/hooks/useTrainingPrograms';
-import { useStartWorkout } from '@/features/workouts';
 import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useToast } from '@/hooks/use-toast';
 import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
 import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
+import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { XCircle, Zap, Target } from 'lucide-react';
+import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
 
-// FROZEN COPY of current Fitness body - preserve exactly as-is
 export default function FitnessBodyStable() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
-  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
-  const { data: recentWorkouts } = useRecentWorkouts(5);
-  const { checkAndRedirect } = useFitnessProfileCheck();
+  const { data: recentWorkouts = [], isLoading } = useRecentWorkouts(5);
+  const { data: defaultGym } = useDefaultGym();
+  const { gym: selectedGym } = useMyGym();
   const { data: nextBlock, isLoading: isLoadingProgram } = useNextProgramBlock();
   const startWorkout = useStartWorkout();
   const deleteWorkout = useDeleteWorkout();
   const { toast } = useToast();
   const readinessCheckin = useReadinessCheckin();
+  const { checkAndRedirect } = useFitnessProfileCheck();
   
   const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
+  const [showWorkoutModal, setShowWorkoutModal] = useState(false);
+  const [showGymDetection, setShowGymDetection] = useState(false);
 
   const handleStartTraining = async () => {
     // If there's an active workout, continue it
@@ -70,34 +79,34 @@ export default function FitnessBodyStable() {
   const quickActions = [
     {
       label: 'Templates',
-      icon: BookOpen,
-      onClick: () => navigate('/app/templates'),
+      icon: Dumbbell,
+      href: "/fitness/templates",
       color: "bg-blue-500 hover:bg-blue-600 text-white"
     },
     {
       label: 'History',
       icon: History,
-      onClick: () => navigate('/app/history'),
-      color: "bg-purple-500 hover:bg-purple-600 text-white"
-    },
-    {
-      label: 'Programs',
-      icon: Target,
-      onClick: () => navigate('/app/programs'),
+      href: "/fitness/history",
       color: "bg-orange-500 hover:bg-orange-600 text-white"
     },
     {
+      label: 'Programs',
+      icon: Repeat,
+      href: "/app/programs",
+      color: "bg-indigo-500 hover:bg-indigo-600 text-white"
+    },
+    {
       label: 'Mentors',
-      icon: Users,
-      onClick: () => navigate('/app/mentors'),
-      color: "bg-teal-500 hover:bg-teal-600 text-white"
+      icon: Target,
+      href: "/mentors",
+      color: "bg-purple-500 hover:bg-purple-600 text-white"
     }
   ];
 
   if (isLoadingProgram) {
     return (
-      <>
-        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mb-6">
+      <div className="space-y-6">
+        <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
           <CardContent className="pt-6">
             <div className="animate-pulse space-y-3">
               <div className="h-4 bg-muted rounded w-3/4"></div>
@@ -105,33 +114,14 @@ export default function FitnessBodyStable() {
             </div>
           </CardContent>
         </Card>
-        
-        <section>
-          <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-          <div className="grid grid-cols-2 gap-3">
-            {quickActions.map((action) => {
-              const Icon = action.icon;
-              return (
-                <Button
-                  key={action.label}
-                  onClick={action.onClick}
-                  className={`h-16 flex flex-col gap-1 ${action.color}`}
-                >
-                  <Icon className="h-5 w-5" />
-                  <span className="text-xs">{action.label}</span>
-                </Button>
-              );
-            })}
-          </div>
-        </section>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      {/* Training Center Card */}
-      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 mb-6">
+    <div className="space-y-6">
+      {/* Training Center */}
+      <Card className="bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20">
         <CardHeader className="pb-3">
           <CardTitle className="text-lg flex items-center gap-2">
             <Play className="h-5 w-5 text-primary" />
@@ -231,7 +221,7 @@ export default function FitnessBodyStable() {
           )}
         </CardContent>
       </Card>
-      
+
       {/* Quick Actions */}
       <section>
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
@@ -241,22 +231,24 @@ export default function FitnessBodyStable() {
             return (
               <Button
                 key={action.label}
-                onClick={action.onClick}
-                className={`h-16 flex flex-col gap-1 ${action.color}`}
+                asChild
+                className={`h-20 flex-col gap-2 touch-manipulation ${action.color}`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="text-xs">{action.label}</span>
+                <Link to={action.href}>
+                  <Icon className="h-6 w-6" />
+                  <span className="text-sm font-medium">{action.label}</span>
+                </Link>
               </Button>
             );
           })}
         </div>
       </section>
-      
+
       <WorkoutSelectionModal 
         open={showWorkoutModal}
         onOpenChange={setShowWorkoutModal}
       />
-      
+
       <ReadinessDialog
         isOpen={readinessCheckin.isOpen}
         onClose={readinessCheckin.close}
@@ -270,6 +262,12 @@ export default function FitnessBodyStable() {
         workoutId={null} // Will be handled in onSubmit
         isSubmitting={readinessCheckin.isSubmitting || startWorkout.isPending}
       />
-    </>
+
+      <GymDetectionDialog
+        open={showGymDetection}
+        onOpenChange={setShowGymDetection}
+        onGymSelected={() => {}}
+      />
+    </div>
   );
 }
