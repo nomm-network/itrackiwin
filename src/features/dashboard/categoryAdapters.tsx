@@ -48,26 +48,31 @@ const FitnessAdapter: Adapter = {
 
     return (
       <div className="space-y-1 sm:space-y-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
-          <div className="flex items-center gap-2">
-            {isSuperAdmin && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+              Fitness Dashboard
+            </h1>
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="text-xs"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <Button 
-                variant="default" 
-                onClick={() => navigate('/admin')}
+                variant="outline" 
+                onClick={() => navigate('/explore')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
+                Explore by Planets
               </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/explore')}
-              className="text-sm"
-            >
-              Explore by Planets
-            </Button>
+            </div>
           </div>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -78,215 +83,130 @@ const FitnessAdapter: Adapter = {
   },
 
   SubcategoryNav: () => {
-    const [searchParams, setSearchParams] = useSearchParams();
-    const navigate = useNavigate();
+    const [searchParams] = useSearchParams();
     const { data: categories } = useLifeCategoriesWithSubcategories('en');
-    
-    const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d'; // health category ID
-    const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247'; // fitness subcategory ID
-    
-    const handleSubcategoryChange = (newSubcategory: string) => {
-      setSearchParams({ sub: newSubcategory });
-    };
+    const categorySlug = searchParams.get("cat") ?? "health.fitness";
+    const category = getCategoryBySlug(categories || [], categorySlug);
+    const subcategories = category?.subcategories || [];
 
-    const healthCategory = getCategoryBySlug(categories || [], currentCategory);
-    const subcategories = healthCategory?.subcategories || [];
-    
+    if (subcategories.length === 0) return null;
+
     return (
-      <div className="grid grid-cols-3 gap-2 sm:gap-3">
-        {subcategories.slice(0, 5).map((sub) => (
+      <div className="flex gap-2 overflow-x-auto pb-2">
+        {subcategories.map((subcategory) => (
           <Button
-            key={sub.id}
-            variant={currentSubcategory === sub.id ? "default" : "outline"}
-            onClick={() => handleSubcategoryChange(sub.id)}
-            className={`h-16 flex flex-col items-center gap-1 p-2 ${
-              (sub as any).isPlaceholder 
-                ? 'opacity-50 cursor-not-allowed' 
-                : ''
-            }`}
-            disabled={(sub as any).isPlaceholder}
+            key={subcategory.id}
+            variant="outline"
+            size="sm"
+            className="whitespace-nowrap"
           >
-            <span className="text-lg">{sub.icon || '📋'}</span>
-            <span className="text-xs leading-tight text-center">
-              {sub.name.split(' ')[0]}
-            </span>
+            {subcategory.name}
           </Button>
         ))}
-        <Button
-          variant="outline"
-          onClick={() => navigate('/fitness/configure')}
-          className="h-16 flex flex-col items-center gap-1 p-2"
-        >
-          <span className="text-lg">⚙️</span>
-          <span className="text-xs leading-tight text-center">
-            Configure
-          </span>
-        </Button>
       </div>
     );
   },
 
   QuickStartWidget: () => {
-    const [searchParams] = useSearchParams();
-    const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d';
-    const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247';
-    
-    const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
-    
-    const getWidgetGridClasses = (size: string) => {
-      switch (size) {
-        case 'sm': return 'col-span-2';
-        case 'md': return 'col-span-3';
-        case 'lg': return 'col-span-4';
-        case 'xl': return 'col-span-6';
-        default: return 'col-span-2';
-      }
-    };
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const { hasProfile } = useFitnessProfileCheck();
+
+    if (!hasProfile) {
+      return (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="space-y-4">
+              <div>
+                <h3 className="text-lg font-semibold">Welcome to Fitness Tracking!</h3>
+                <p className="text-sm text-muted-foreground">
+                  Let's set up your fitness profile to get started.
+                </p>
+              </div>
+              <Button onClick={() => setIsModalOpen(true)} className="w-full">
+                Start First Workout
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      );
+    }
 
     return (
-      <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
-        {visibleWidgets
-          .filter(widget => widget.id === 'fitness.quickstart')
-          .map((widget) => (
-          <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
-            <React.Suspense
-              fallback={
-                widget.loadingFallback || 
-                <WidgetSkeleton className="h-full" />
-              }
-            >
-              <widget.Component />
-            </React.Suspense>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-4">
+            <div>
+              <h3 className="text-lg font-semibold">Quick Start</h3>
+              <p className="text-sm text-muted-foreground">
+                Jump into your workout routine.
+              </p>
+            </div>
+            <Button onClick={() => setIsModalOpen(true)} className="w-full">
+              Start Workout
+            </Button>
+            <WorkoutSelectionModal 
+              open={isModalOpen} 
+              onOpenChange={setIsModalOpen} 
+            />
           </div>
-        ))}
-      </div>
+        </CardContent>
+      </Card>
     );
   },
 
   QuickActions: () => {
-    const [searchParams] = useSearchParams();
-    const [showTemplateDialog, setShowTemplateDialog] = useState(false);
-    const navigate = useNavigate();
-    const { checkAndRedirect } = useFitnessProfileCheck();
-    
-    const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d';
-    const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247';
-    
-    const actions = useDynamicQuickActions(currentCategory, currentSubcategory);
-
-    const handleActionClick = (action: any) => {
-      if (action.id.startsWith('fitness.')) {
-        if (!checkAndRedirect('access this feature')) return;
-      }
-      
-      if (action.id === 'fitness.start') {
-        setShowTemplateDialog(true);
-      } else if (action.onClickPath) {
-        navigate(action.onClickPath);
-      } else if (action.onClick) {
-        action.onClick();
-      }
-    };
-
-    if (actions.length === 0) return null;
+    const categorySlug = "health.fitness";
+    const quickActions = useDynamicQuickActions(categorySlug);
 
     return (
-      <>
-        <Card>
-          <CardContent className="pt-3 sm:pt-6">
-            <h3 className="text-lg font-semibold mb-2 sm:mb-4">Quick Actions</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
-              {actions.map((action) => (
-                <Button
-                  key={action.id}
-                  variant="outline"
-                  onClick={() => handleActionClick(action)}
-                  className="h-12 flex items-center gap-2"
-                >
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {quickActions.map((action) => (
+          <Card key={action.id}>
+            <CardContent className="pt-6">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
                   {action.icon}
-                  <span className="text-xs">{action.label}</span>
+                  <h4 className="font-medium">{action.label}</h4>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={action.onClick}
+                  className="w-full"
+                >
+                  {action.label}
                 </Button>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-        
-        <WorkoutSelectionModal 
-          open={showTemplateDialog}
-          onOpenChange={setShowTemplateDialog}
-        />
-      </>
-    );
-  },
-
-  OtherWidgets: () => {
-    const [searchParams] = useSearchParams();
-    const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d';
-    const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247';
-    
-    const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
-    
-    const getWidgetGridClasses = (size: string) => {
-      switch (size) {
-        case 'sm': return 'col-span-2';
-        case 'md': return 'col-span-3';
-        case 'lg': return 'col-span-4';
-        case 'xl': return 'col-span-6';
-        default: return 'col-span-2';
-      }
-    };
-
-    return (
-      <div className="grid auto-rows-[minmax(120px,auto)] grid-cols-2 md:grid-cols-6 gap-2 sm:gap-4">
-        {visibleWidgets
-          .filter(widget => widget.id !== 'fitness.quickstart')
-          .map((widget) => (
-          <div key={widget.id} className={getWidgetGridClasses(widget.size)}>
-            <React.Suspense
-              fallback={
-                widget.loadingFallback || 
-                <WidgetSkeleton className="h-full" />
-              }
-            >
-              <widget.Component />
-            </React.Suspense>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         ))}
       </div>
     );
   },
 
-  EmptyState: () => {
-    const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
-    const { data: categories } = useLifeCategoriesWithSubcategories('en');
-    
-    const currentCategory = 'b54c368d-cd4f-4276-aa82-668da614e50d';
-    const currentSubcategory = searchParams.get('sub') || 'e13d15c9-85a7-41ec-bd4b-232a69fcb247';
-    
-    const visibleWidgets = getWidgetsByCategory(currentCategory, currentSubcategory);
-    
-    const healthCategory = getCategoryBySlug(categories || [], currentCategory);
-    const currentSub = healthCategory?.subcategories?.find(s => s.id === currentSubcategory);
-    
-    if (visibleWidgets.length > 0) return null;
-    
+  OtherWidgets: () => {
+    const categorySlug = "health.fitness";
+    const widgets = getWidgetsByCategory(categorySlug);
+
+    if (widgets.length === 0) {
+      return <EmptyCategory category={categorySlug} />;
+    }
+
     return (
-      <EmptyCategory
-        category={healthCategory?.name || 'Health'}
-        subcategory={currentSub?.name}
-        icon={healthCategory?.icon || '🏥'}
-        onGetStarted={
-          currentSubcategory === 'e13d15c9-85a7-41ec-bd4b-232a69fcb247' // fitness subcategory
-            ? () => navigate('/fitness')
-            : undefined
-        }
-      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {widgets.map((widget) => (
+          <React.Suspense key={widget.id} fallback={<WidgetSkeleton />}>
+            <widget.Component />
+          </React.Suspense>
+        ))}
+      </div>
     );
-  }
+  },
+
+  EmptyState: () => null
 };
 
-/** NUTRITION ADAPTER - Coming soon placeholder */
+/** NUTRITION ADAPTER */
 const NutritionAdapter: Adapter = {
   Header: () => {
     const { isSuperAdmin } = useUserRole();
@@ -294,26 +214,31 @@ const NutritionAdapter: Adapter = {
 
     return (
       <div className="space-y-1 sm:space-y-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">Nutrition Dashboard</h1>
-          <div className="flex items-center gap-2">
-            {isSuperAdmin && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+              Nutrition Dashboard
+            </h1>
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="text-xs"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <Button 
-                variant="default" 
-                onClick={() => navigate('/admin')}
+                variant="outline" 
+                onClick={() => navigate('/explore')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
+                Explore by Planets
               </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/explore')}
-              className="text-sm"
-            >
-              Explore by Planets
-            </Button>
+            </div>
           </div>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -324,29 +249,53 @@ const NutritionAdapter: Adapter = {
   },
 
   SubcategoryNav: () => (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      <Button variant="default" className="h-16 flex flex-col items-center gap-1 p-2">
-        <span className="text-lg">🍽️</span>
-        <span className="text-xs leading-tight text-center">Meal Log</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">📊</span>
-        <span className="text-xs leading-tight text-center">Stats</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">📖</span>
-        <span className="text-xs leading-tight text-center">Recipes</span>
-      </Button>
+    <div className="flex gap-2 overflow-x-auto pb-2">
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Meal Log</Button>
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Macro Stats</Button>
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Recipes</Button>
     </div>
   ),
 
-  QuickStartWidget: () => <div></div>,
+  QuickStartWidget: () => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Quick Start</h3>
+            <p className="text-sm text-muted-foreground">
+              Log your first meal to get started.
+            </p>
+          </div>
+          <Button className="w-full">Log Meal</Button>
+        </div>
+      </CardContent>
+    </Card>
+  ),
 
-  QuickActions: () => <div></div>,
+  QuickActions: () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">Log Meal</h4>
+            <Button variant="outline" size="sm" className="w-full">Add Food</Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">View Stats</h4>
+            <Button variant="outline" size="sm" className="w-full">Macro Stats</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ),
 
   OtherWidgets: () => (
     <UnderConstructionCard
-      title="Nutrition Best Practices"
+      title="Nutrition · Best practices"
       bullets={[
         "Log meals as you go; photos help accuracy.",
         "Center whole foods; limit ultra-processed items.",
@@ -360,7 +309,7 @@ const NutritionAdapter: Adapter = {
   EmptyState: () => null
 };
 
-/** RELATIONSHIPS ADAPTER - Coming soon placeholder */
+/** RELATIONSHIPS ADAPTER */
 const RelationshipsAdapter: Adapter = {
   Header: () => {
     const { isSuperAdmin } = useUserRole();
@@ -368,26 +317,31 @@ const RelationshipsAdapter: Adapter = {
 
     return (
       <div className="space-y-1 sm:space-y-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">Relationships Dashboard</h1>
-          <div className="flex items-center gap-2">
-            {isSuperAdmin && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+              Relationships Dashboard
+            </h1>
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="text-xs"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <Button 
-                variant="default" 
-                onClick={() => navigate('/admin')}
+                variant="outline" 
+                onClick={() => navigate('/explore')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
+                Explore by Planets
               </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/explore')}
-              className="text-sm"
-            >
-              Explore by Planets
-            </Button>
+            </div>
           </div>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -398,35 +352,59 @@ const RelationshipsAdapter: Adapter = {
   },
 
   SubcategoryNav: () => (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      <Button variant="default" className="h-16 flex flex-col items-center gap-1 p-2">
-        <span className="text-lg">👥</span>
-        <span className="text-xs leading-tight text-center">Friends</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">👨‍👩‍👧‍👦</span>
-        <span className="text-xs leading-tight text-center">Family</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">💕</span>
-        <span className="text-xs leading-tight text-center">Love</span>
-      </Button>
+    <div className="flex gap-2 overflow-x-auto pb-2">
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Friends</Button>
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Family</Button>
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Love</Button>
     </div>
   ),
 
-  QuickStartWidget: () => <div></div>,
+  QuickStartWidget: () => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Quick Start</h3>
+            <p className="text-sm text-muted-foreground">
+              Reach out to someone special today.
+            </p>
+          </div>
+          <Button className="w-full">Send Message</Button>
+        </div>
+      </CardContent>
+    </Card>
+  ),
 
-  QuickActions: () => <div></div>,
+  QuickActions: () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">Check In</h4>
+            <Button variant="outline" size="sm" className="w-full">Message Friend</Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">Plan Time</h4>
+            <Button variant="outline" size="sm" className="w-full">Schedule Hangout</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ),
 
   OtherWidgets: () => (
     <UnderConstructionCard
-      title="Relationships Best Practices"
+      title="Relationships · Best practices"
       bullets={[
-        "Show up consistently; schedule small rituals.",
-        "Active listening and quick repairs after missteps.",
-        "Celebrate wins; support during setbacks.",
+        "Show up consistently; regular contact predicts friendship strength.",
         "Assume people like you; reduce social anxiety.",
-        "Time budget: friendships need calendar time."
+        "Schedule standing rituals; habits beat intentions.",
+        "Practice active listening and quick repairs.",
+        "Periodically audit your calendar — friendships need time."
       ]}
     />
   ),
@@ -434,7 +412,7 @@ const RelationshipsAdapter: Adapter = {
   EmptyState: () => null
 };
 
-/** Sleep adapter - Coming soon placeholder */
+/** SLEEP ADAPTER */
 const SleepAdapter: Adapter = {
   Header: () => {
     const { isSuperAdmin } = useUserRole();
@@ -442,26 +420,31 @@ const SleepAdapter: Adapter = {
 
     return (
       <div className="space-y-1 sm:space-y-2">
-        <div className="flex items-center justify-between">
-          <h1 className="text-2xl sm:text-3xl font-bold">Sleep Dashboard</h1>
-          <div className="flex items-center gap-2">
-            {isSuperAdmin && (
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 sm:gap-4">
+          <div className="space-y-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground">
+              Sleep Dashboard
+            </h1>
+            <div className="flex items-center gap-2">
+              {isSuperAdmin && (
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => navigate('/admin')}
+                  className="text-xs"
+                >
+                  <Settings className="w-4 h-4 mr-2" />
+                  Admin
+                </Button>
+              )}
               <Button 
-                variant="default" 
-                onClick={() => navigate('/admin')}
+                variant="outline" 
+                onClick={() => navigate('/explore')}
                 className="text-sm"
               >
-                <Settings className="w-4 h-4 mr-2" />
-                Admin
+                Explore by Planets
               </Button>
-            )}
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/explore')}
-              className="text-sm"
-            >
-              Explore by Planets
-            </Button>
+            </div>
           </div>
         </div>
         <p className="text-sm sm:text-base text-muted-foreground">
@@ -472,31 +455,54 @@ const SleepAdapter: Adapter = {
   },
 
   SubcategoryNav: () => (
-    <div className="grid grid-cols-3 gap-2 sm:gap-3">
-      <Button variant="default" className="h-16 flex flex-col items-center gap-1 p-2">
-        <span className="text-lg">🌙</span>
-        <span className="text-xs leading-tight text-center">Overview</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">📊</span>
-        <span className="text-xs leading-tight text-center">Log</span>
-      </Button>
-      <Button variant="outline" className="h-16 flex flex-col items-center gap-1 p-2 opacity-50 cursor-not-allowed" disabled>
-        <span className="text-lg">⚙️</span>
-        <span className="text-xs leading-tight text-center">Settings</span>
-      </Button>
+    <div className="flex gap-2 overflow-x-auto pb-2">
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Overview</Button>
+      <Button variant="outline" size="sm" className="whitespace-nowrap">Sleep Log</Button>
     </div>
   ),
 
-  QuickStartWidget: () => <div></div>,
+  QuickStartWidget: () => (
+    <Card>
+      <CardContent className="pt-6">
+        <div className="space-y-4">
+          <div>
+            <h3 className="text-lg font-semibold">Quick Start</h3>
+            <p className="text-sm text-muted-foreground">
+              Log your sleep from last night.
+            </p>
+          </div>
+          <Button className="w-full">Log Sleep</Button>
+        </div>
+      </CardContent>
+    </Card>
+  ),
 
-  QuickActions: () => <div></div>,
+  QuickActions: () => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">Log Sleep</h4>
+            <Button variant="outline" size="sm" className="w-full">Add Entry</Button>
+          </div>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <h4 className="font-medium">View Trends</h4>
+            <Button variant="outline" size="sm" className="w-full">Sleep Stats</Button>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  ),
 
   OtherWidgets: () => (
     <UnderConstructionCard
-      title="Sleep Best Practices"
+      title="Sleep · Best practices"
       bullets={[
-        "Consistent sleep/wake time (even weekends).",
+        "Consistent sleep/wake time; even weekends.",
         "Wind-down routine; dim lights; no late screens.",
         "Cool, dark, quiet room; comfy bedding.",
         "Limit caffeine after mid-afternoon; alcohol near bed.",
