@@ -53,6 +53,9 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
 import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
+
+// Import readiness scoring utilities
+import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
 import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface WorkoutSessionProps {
@@ -496,20 +499,40 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       console.log('🔍 EnhancedWorkoutSession: Processing readiness and estimates:', { readiness, estimates });
       
-      // Calculate a simple readiness score (0-10 based on answers)
-      const score = calculateReadinessScore(readiness);
+      // Create the readiness checkin record first
+      const checkinResponse = await createCheckin.mutateAsync({
+        answers: {
+          ...readiness,
+          energizers: readiness.energisers_taken // Map to database column name
+        },
+        readiness_score: null // Will be computed by the trigger
+      });
+      
+      console.log('✅ Readiness checkin created:', checkinResponse);
+      
+      // The database trigger will compute the score automatically, but let's also get it for the UI
+      let realScore = 65; // Default fallback
+      try {
+        if (checkinResponse?.id) {
+          realScore = await computeReadinessScore(checkinResponse.id, true);
+          console.log('📊 Computed readiness score:', realScore);
+        }
+      } catch (scoreError) {
+        console.warn('⚠️ Could not compute readiness score, using fallback:', scoreError);
+        // Try to get the user's overall readiness instead
+        try {
+          realScore = await getCurrentUserReadinessScore();
+        } catch {
+          // Keep fallback value
+        }
+      }
       
       // Store readiness score for header display
-      setReadinessScore(score);
-      
-      await createCheckin.mutateAsync({
-        answers: readiness,
-        readiness_score: score
-      });
+      setReadinessScore(realScore);
       
       toastUtils({
         title: "Check-in complete",
-        description: `Readiness recorded${Object.keys(estimates).length > 0 ? ` and ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
+        description: `Readiness score: ${Math.round(realScore)}/10${Object.keys(estimates).length > 0 ? ` • ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
@@ -529,26 +552,28 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     }
   };
 
-  // Simple readiness score calculation
-  const calculateReadinessScore = (readinessData: any): number => {
-    let score = 10;
-    if (readinessData.illness) score -= 3;
-    if (readinessData.sleep_quality < 5) score -= 2;
-    if (readinessData.energy < 5) score -= 2;
-    return Math.max(0, Math.min(10, score));
-  };
-
   const handleSkipReadiness = async () => {
     try {
+      // Get user's baseline readiness score or use default
+      let defaultScore = 65; // Moderate default
+      try {
+        defaultScore = await getCurrentUserReadinessScore();
+      } catch {
+        // Keep default if can't get current score
+      }
+      
       // Create a special "skipped" checkin to prevent showing again
       await createCheckin.mutateAsync({ 
         answers: { skipped: true } as any, 
-        readiness_score: 5 // neutral score for skipped
+        readiness_score: defaultScore
       });
+      
+      // Set readiness score for display
+      setReadinessScore(defaultScore);
       
       toastUtils({
         title: "Check-in skipped",
-        description: "Proceeding to workout."
+        description: `Using baseline readiness (${Math.round(defaultScore)}/10).`
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
