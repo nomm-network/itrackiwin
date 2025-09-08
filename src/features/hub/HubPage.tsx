@@ -20,14 +20,7 @@ export default function HubPage() {
     <HubLayout
       Header={<HeaderRow />}
       SubMenu={<SubcategoryMenu hub={hub} />}
-      Body={
-        <>
-          <div id="hub-header-probe" style={{margin:'8px 0',opacity:.6}}>
-            HEADER PROBE — Dashboard header should be above; chips below.
-          </div>
-          <Body />
-        </>
-      }
+      Body={<Body />}
     />
   );
 }

@@ -6,6 +6,9 @@ const HubPage = lazy(() => import("@/features/hub/HubPage"));
 const AdminPage = lazy(() => import("@/admin/routes").then(module => ({ default: module.AdminRoutes })));
 const PlanetsPage = lazy(() => import("@/features/planets/PlanetsPage"));
 
+// ✅ Layout wrapper
+const ProtectedMobileLayout = lazy(() => import("@/components/layout/ProtectedMobileLayout"));
+
 // ✅ Auth Guard (simplified)
 const AuthGuard = ({ children }: any) => children; // replace with real guard if needed
 
@@ -16,7 +19,14 @@ export default function AppRoutes() {
 
         {/* ======= Public canonical ======= */}
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<HubPage />} />
+        <Route 
+          path="/dashboard" 
+          element={
+            <ProtectedMobileLayout>
+              <HubPage />
+            </ProtectedMobileLayout>
+          } 
+        />
 
         {/* ======= Planets (both paths resolve) ======= */}
         <Route path="/discover/planets" element={<PlanetsPage />} />
