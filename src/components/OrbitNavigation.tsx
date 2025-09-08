@@ -20,82 +20,136 @@ const categoryIcon = (name: string): string => {
 };
 const subcategoryIcon = (name: string): string => {
   const map: Record<string, string> = {
-    // Health
+    // Health subcategories
     "Fitness & exercise": "🏋️",
-    "Fitness and Exercise": "🏋️", 
+    "Fitness and Exercise": "🏋️",
+    "Fitness": "🏋️",
+    "Exercise": "🏋️",
     "Nutrition & hydration": "🍎",
     "Nutrition": "🍎",
+    "Hydration": "💧",
     "Sleep quality": "🛌",
     "Sleep": "🛌",
     "Medical checkups": "🩺",
     "Medical": "🩺",
+    "Checkups": "🩺",
     "Energy levels": "⚡",
     "Energy": "⚡",
     
-    // Wealth
+    // Wealth subcategories (exact from store)
     "Income & career growth": "💼",
     "Income": "💼",
     "Career": "💼",
+    "Career growth": "📈",
     "Saving & investing": "💰",
     "Saving": "💰",
-    "Investing": "💰",
+    "Investing": "📊",
+    "Investment": "📊",
+    "Budgeting & debt management": "💳", // exact from store
     "Budgeting & debt": "💳",
     "Budgeting": "💳",
-    "Financial education": "📊",
+    "Debt": "💳",
+    "Debt management": "💳",
+    "Financial education": "📚",
     "Finance": "📊",
+    "Financial literacy": "📚",
+    "Long-term wealth building": "🏦", // exact from store
     "Wealth building": "🏦",
-    "Long-term wealth building": "🏦",
+    "Wealth management": "🏦",
     
-    // Relationships
-    "Family relationships": "👨‍👩‍👧‍👦",
+    // Relationships subcategories (exact from store)
+    "Family relationships": "👨‍👩‍👧‍👦", // exact from store
     "Family": "👨‍👩‍👧‍👦",
-    "Romantic life": "💞",
-    "Friendships": "🤝",
+    "Romantic life": "💞", // exact from store
+    "Romance": "💞",
+    "Dating": "💞",
+    "Friendships": "🤝", // exact from store
     "Friends": "🤝",
-    "Community & social skills": "🌍",
+    "Friendship": "🤝",
+    "Community & social skills": "🌍", // exact from store
     "Community": "🌍",
-    "Networking & collaboration": "🤝‍",
+    "Social skills": "🤝",
+    "Social": "🤝",
+    "Networking & collaboration": "🔗", // exact from store
     "Networking": "🔗",
+    "Collaboration": "🤝",
+    "Professional networking": "🔗",
     
-    // Mind & Emotions
-    "Stress management": "🧘‍♀️",
+    // Mind & Emotions subcategories (exact from store)
+    "Stress management": "🧘‍♀️", // exact from store
     "Stress": "🧘‍♀️",
-    "Mindfulness & meditation": "🧘",
+    "Mindfulness & meditation": "🧘", // exact from store
     "Mindfulness": "🧘",
     "Meditation": "🧘",
-    "Self-awareness": "🪞",
-    "Emotional regulation": "😌",
+    "Self-awareness": "🪞", // exact from store
+    "Self awareness": "🪞",
+    "Awareness": "🪞",
+    "Emotional regulation": "😌", // exact from store
+    "Emotional intelligence": "😌",
     "Emotions": "💭",
-    "Therapy & mental health": "🧠",
+    "Mental health": "🧠",
+    "Therapy & mental health": "🧠", // exact from store
     "Therapy": "🧠",
+    "Counseling": "🧠",
+    "Psychology": "🧠",
     
-    // Purpose & Growth
-    "Career purpose or calling": "🎯",
+    // Purpose & Growth subcategories (exact from store)
+    "Career purpose or calling": "🎯", // exact from store
     "Purpose": "🎯",
-    "Skill development": "🛠️",
+    "Calling": "🎯",
+    "Life purpose": "🎯",
+    "Skill development": "🛠️", // exact from store
     "Skills": "🛠️",
-    "Hobbies & creativity": "🎨",
+    "Development": "🛠️",
+    "Personal development": "🛠️",
+    "Hobbies & creativity": "🎨", // exact from store
     "Hobbies": "🎨",
-    "Continuous learning": "📚",
+    "Creativity": "🎨",
+    "Creative pursuits": "🎨",
+    "Continuous learning": "📚", // exact from store
     "Learning": "📚",
+    "Education": "📚",
+    "Study": "📚",
+    "Setting & achieving goals": "🏆", // exact from store
     "Goal setting": "🏆",
     "Goals": "🏆",
+    "Objectives": "🏆",
+    "Achievement": "🏆",
     
-    // Lifestyle
+    // Lifestyle subcategories (exact from store)
+    "Fun, travel & leisure": "✈️", // exact from store
+    "Environment & home organization": "🏠", // exact from store
+    "Minimalism & sustainability": "🌱", // exact from store
+    "Volunteering & giving back": "🤲", // exact from store
+    "Legacy projects": "📜", // exact from store
+    
+    // Additional variations
     "Time & productivity": "⏰",
     "Time": "⏰",
+    "Productivity": "⚡",
+    "Time management": "⏰",
     "Environment & organization": "🏠",
     "Environment": "🏠",
-    "Minimalism & sustainability": "🌱",
+    "Organization": "📋",
+    "Home organization": "🏠",
     "Minimalism": "🌱",
-    "Volunteering & giving back": "🤲",
+    "Sustainability": "♻️",
+    "Eco-friendly": "🌱",
     "Volunteering": "🤲",
-    "Contribution": "🤲",
-    "Legacy projects": "📜",
+    "Giving back": "🤲",
+    "Charity": "💝",
+    "Community service": "🤲",
     "Legacy": "📜",
-    "Fun, travel & leisure": "✈️",
+    "Fun": "🎉",
     "Travel": "✈️",
-    "Growth": "🌱"
+    "Leisure": "🏖️",
+    "Recreation": "🎉",
+    "Entertainment": "🎭",
+    "Growth": "🌱",
+    "Personal growth": "🌱",
+    "Professional growth": "📈",
+    "Contribution": "🤲",
+    "Service": "🤲"
   };
   return map[name] ?? "🔹";
 };
