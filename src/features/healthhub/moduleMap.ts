@@ -4,7 +4,7 @@ import React, { lazy } from "react";
 const UnderConstruction = lazy(() => import("./modules/common/UnderConstruction"));
 
 // Health modules (real/working)
-const FitnessTrainingView = lazy(() => import("./modules/fitness/FitnessTrainingView"));
+const TrainingDashboard = lazy(() => import("@/features/health/fitness/ui/widgets/TrainingDashboard"));
 
 // Health modules (placeholders)
 const MealLogView = lazy(() => import("./modules/nutrition/MealLogView"));
@@ -44,8 +44,9 @@ const MindfulnessView = lazy(() => import("./modules/lifestyle/MindfulnessView")
  * If no mapping exists, falls back to UnderConstruction.
  */
 export const MODULE_MAP: Record<string, React.ComponentType<any>> = {
-  // Health modules
-  "health.fitness": FitnessTrainingView,
+  // Health modules - fitness with real training dashboard
+  "health.fitness": TrainingDashboard,
+  "health.fitness_and_exercise": TrainingDashboard,
   "health.nutrition": MealLogView,
   "health.sleep": SleepOverview,
   "health.medical": MedicalOverview,
