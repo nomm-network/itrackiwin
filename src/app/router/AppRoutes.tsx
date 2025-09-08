@@ -10,6 +10,7 @@ import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard
 const Dashboard = lazy(() => import('@/pages/Dashboard'));
+const DynamicDashboardPage = lazy(() => import('@/features/dashboard/DynamicDashboardPage'));
 
 // Public pages
 const Index = lazy(() => import('@/pages/Index'));
@@ -85,12 +86,17 @@ export function AppRoutes() {
           {/* Main Dashboard */}
           <Route path="/dashboard" element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <DynamicDashboardPage />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.dashboard} element={
             <ProtectedMobileLayout>
-              <Dashboard />
+              <DynamicDashboardPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/user-dashboard" element={
+            <ProtectedMobileLayout>
+              <UserDashboard />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.progress} element={
