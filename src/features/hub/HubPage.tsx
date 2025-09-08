@@ -20,7 +20,7 @@ export default function HubPage() {
   const validSubs = new Set(hub.subs.map((s) => s.slug));
   const activeSub = validSubs.has(sub)
     ? sub
-    : hub.subs[0]?.slug || "fitness-exercise";
+    : hub.subs[0]?.slug || "configure";
 
   // Special case: configure
   const Body = activeSub === "configure"
