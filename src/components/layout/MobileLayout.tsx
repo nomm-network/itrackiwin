@@ -8,6 +8,7 @@ import ThemeToggle from "@/components/ThemeToggle";
 import LanguageToggle from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import { ProfileAvatarMenu } from "@/components/navigation/ProfileAvatarMenu";
+import { usePinnedSubcategories } from "@/hooks/usePinnedSubcategories";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -17,13 +18,29 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const { t } = useTranslation();
+  const { data: pinnedSubcategories = [] } = usePinnedSubcategories();
 
-  const mainNavigation = [
-    { name: "Training", href: "/dashboard", icon: Home },
-    { name: "Programs", href: "/app/programs", icon: Grid },
-    { name: "Discover", href: "/marketplace", icon: Compass },
-    { name: "Gyms", href: "/gyms", icon: Building },
-  ];
+  // Create dynamic navigation based on pinned subcategories
+  const getDynamicNavigation = () => {
+    const baseNavigation = [
+      { name: "Fitness", href: "/dashboard", icon: Home },
+      { name: "Discover", href: "/marketplace", icon: Compass },
+    ];
+
+    // Add pinned subcategories (max 3, excluding fitness if already pinned)
+    const subcatNavigation = pinnedSubcategories
+      .filter(pin => pin.subcategory?.slug !== "fitness") // Exclude fitness since we have it as base
+      .slice(0, 2) // Max 2 additional since fitness is always there
+      .map(pin => ({
+        name: pin.subcategory?.translations?.find(t => t.language_code === "en")?.name || pin.subcategory?.slug || "Unknown",
+        href: `/life/health/${pin.subcategory?.slug}`,
+        icon: Target, // Use a generic icon, can be customized per subcategory later
+      }));
+
+    return [...baseNavigation, ...subcatNavigation];
+  };
+
+  const mainNavigation = getDynamicNavigation();
 
   const bottomNavigation = [
     { name: "Training", href: "/dashboard", icon: Home },
