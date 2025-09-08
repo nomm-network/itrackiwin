@@ -1,1 +1,1 @@
-export { default } from '../../pages/UserDashboard';
+export { default } from '../../features/hub/HubPage';
