@@ -34,8 +34,8 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
       energy: 7,
       sleep_quality: 7,
       sleep_hours: 8,
-      soreness: 3,
-      stress: 3,
+      soreness: 0,
+      stress: 0,
       illness: false,
       alcohol: false,
       energisers_taken: false,
@@ -69,7 +69,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 value={[watchedValues.energy]}
                 onValueChange={(value) => setValue("energy", value[0])}
                 max={10}
-                min={1}
+                min={0}
                 step={1}
                 className="w-full"
               />
@@ -86,7 +86,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 value={[watchedValues.sleep_quality]}
                 onValueChange={(value) => setValue("sleep_quality", value[0])}
                 max={10}
-                min={1}
+                min={0}
                 step={1}
                 className="w-full"
               />
@@ -116,7 +116,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 value={[watchedValues.soreness]}
                 onValueChange={(value) => setValue("soreness", value[0])}
                 max={10}
-                min={1}
+                min={0}
                 step={1}
                 className="w-full"
               />
@@ -133,7 +133,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                 value={[watchedValues.stress]}
                 onValueChange={(value) => setValue("stress", value[0])}
                 max={10}
-                min={1}
+                min={0}
                 step={1}
                 className="w-full"
               />
