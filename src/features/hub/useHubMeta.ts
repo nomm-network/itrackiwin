@@ -23,20 +23,82 @@ export function useHubMeta(categorySlug: string): HubMeta | null {
         .single();
 
       if (error || !cat) {
-        // minimal fallback so UI never breaks
-        if (alive)
-          setMeta({
+        // Category-specific fallback so UI never breaks
+        const fallbacks = {
+          health: {
             slug: "health",
-            name: "Health",
+            name: "Health", 
             subs: [
               { slug: "fitness-exercise", label: "Fitness" },
               { slug: "nutrition-hydration", label: "Nutrition" },
               { slug: "sleep-quality", label: "Sleep" },
               { slug: "medical-checkups", label: "Medical" },
               { slug: "energy-levels", label: "Energy" },
-              { slug: "configure", label: "Configure" },
             ],
-          });
+          },
+          wealth: {
+            slug: "wealth",
+            name: "Wealth",
+            subs: [
+              { slug: "income-career-growth", label: "Income" },
+              { slug: "saving-investing", label: "Saving" },
+              { slug: "budgeting-debt", label: "Budgeting" },
+              { slug: "financial-education", label: "Education" },
+              { slug: "wealth-building", label: "Building" },
+            ],
+          },
+          relationships: {
+            slug: "relationships", 
+            name: "Relationships",
+            subs: [
+              { slug: "family-relationships", label: "Family" },
+              { slug: "romantic-life", label: "Romance" },
+              { slug: "friendships", label: "Friends" },
+              { slug: "community-social-skills", label: "Community" },
+              { slug: "networking-collaboration", label: "Network" },
+            ],
+          },
+          mind: {
+            slug: "mind",
+            name: "Mind & Emotions",
+            subs: [
+              { slug: "stress-management", label: "Stress" },
+              { slug: "mindfulness-meditation", label: "Mindfulness" },
+              { slug: "self-awareness", label: "Awareness" },
+              { slug: "emotional-regulation", label: "Emotions" },
+              { slug: "therapy-mental-health", label: "Mental" },
+            ],
+          },
+          purpose: {
+            slug: "purpose",
+            name: "Purpose & Growth", 
+            subs: [
+              { slug: "career-purpose-or-calling", label: "Career" },
+              { slug: "skill-development", label: "Skills" },
+              { slug: "hobbies-creativity", label: "Hobbies" },
+              { slug: "continuous-learning", label: "Learning" },
+              { slug: "goal-setting", label: "Goals" },
+            ],
+          },
+          lifestyle: {
+            slug: "lifestyle",
+            name: "Lifestyle",
+            subs: [
+              { slug: "time-productivity", label: "Time" },
+              { slug: "environment-organization", label: "Environment" },
+              { slug: "minimalism-sustainability", label: "Minimalism" },
+              { slug: "volunteering-giving-back", label: "Volunteer" },
+              { slug: "legacy-projects", label: "Legacy" },
+            ],
+          },
+        };
+
+        const fallback = fallbacks[categorySlug as keyof typeof fallbacks] || fallbacks.health;
+        if (!fallback.subs.some(s => s.slug === "configure")) {
+          fallback.subs.push({ slug: "configure", label: "Configure" });
+        }
+        
+        if (alive) setMeta(fallback);
         return;
       }
 
