@@ -25,14 +25,15 @@ export function useHubMeta(targetHubSlug = "health") {
       }
 
       const subs: Sub[] = data.map((r: any) => ({
-        slug: String(r.sub_slug).toLowerCase(),
+        slug: String(r.sub_slug).toLowerCase(),     // ✅ keep DB slug AS-IS
         label: FIRST_WORD(String(r.sub_label || r.sub_slug)),
         icon: r.icon || null
       }));
 
-      // Ensure Configure appears LAST (even if not in DB)
-      const hasConfigure = subs.some(s => s.slug === "configure");
-      if (!hasConfigure) subs.push({ slug: "configure", label: "Configure" });
+      // append Configure last (do not alter others):
+      if (!subs.some(s => s.slug === "configure")) {
+        subs.push({ slug: "configure", label: "Configure" });
+      }
 
       setData({ 
         slug: targetHubSlug, 

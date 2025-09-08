@@ -7,19 +7,22 @@ import { useHubMeta } from "./useHubMeta";
 import { resolveHealthBody } from "./bodyResolver";
 
 export default function HubPage() {
-  const hub = useHubMeta("health");   // this page = Health hub
+  const hub = useHubMeta("health");               // loads Health + subs from DB
   const [sp] = useSearchParams();
-
   if (!hub) return null;
 
-  const active = (sp.get("sub") ?? hub.subs[0]?.slug ?? "fitness-exercise").toLowerCase();
-  console.log("🔍 Hub subs:", hub.subs);
-  console.log("🔍 URL sub param:", sp.get("sub"));
-  console.log("🔍 Active sub slug:", active);
-  console.log("🔍 First sub slug:", hub.subs[0]?.slug);
+  // pick from URL; if invalid, fall back to first sub; if still nothing, default to 'fitness-exercise'
+  const urlSub = (sp.get("sub") || "").toLowerCase();
+  const validSet = new Set(hub.subs.map(s => s.slug.toLowerCase()));
+  const active = validSet.has(urlSub)
+    ? urlSub
+    : (hub.subs[0]?.slug?.toLowerCase() || "fitness-exercise");
+
   const Body = resolveHealthBody(active);
-  const __name = Body.name || "anonymous";
-  console.debug("[HubPage] Resolving to component:", __name);
+
+  if (process.env.NODE_ENV !== "production") {
+    console.debug("[HubPage] active =", active, "valid =", [...validSet]);
+  }
 
   return (
     <HubLayout
