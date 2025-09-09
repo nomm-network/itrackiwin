@@ -10,11 +10,13 @@ import { Switch } from '@/components/ui/switch';
 import { Dumbbell, Plus, Edit, Trash2, Play, Globe, Lock, Search } from 'lucide-react';
 import { toast } from 'sonner';
 import { FavoriteTemplateButton } from '@/features/training/components';
+import { TemplateGeneratorDialog } from '../components/TemplateGeneratorDialog';
 
 const TemplatesPage = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [showOnlyMyTemplates, setShowOnlyMyTemplates] = useState(false);
+  const [isGeneratorOpen, setIsGeneratorOpen] = useState(false);
   
   const { data: user } = useQuery({
     queryKey: ['user'],
@@ -170,7 +172,7 @@ const TemplatesPage = () => {
           <h1 className="text-3xl font-bold">Workout Templates</h1>
           <p className="text-muted-foreground">Create and manage your workout templates</p>
         </div>
-        <Button onClick={() => navigate('/fitness/templates/new')}>
+        <Button onClick={() => setIsGeneratorOpen(true)}>
           <Plus className="h-4 w-4 mr-2" />
           New Template
         </Button>
@@ -240,13 +242,22 @@ const TemplatesPage = () => {
               }
             </p>
             {(!searchQuery.trim() && showOnlyMyTemplates) && (
-              <Button onClick={() => navigate('/fitness/templates/new')}>
+              <Button onClick={() => setIsGeneratorOpen(true)}>
                 <Plus className="h-4 w-4 mr-2" />
                 Create Your First Template
               </Button>
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Template Generator Dialog */}
+      {user?.id && (
+        <TemplateGeneratorDialog
+          isOpen={isGeneratorOpen}
+          onClose={() => setIsGeneratorOpen(false)}
+          userId={user.id}
+        />
       )}
     </div>
   );
