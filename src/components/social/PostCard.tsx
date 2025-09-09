@@ -1,0 +1,92 @@
+import React from 'react';
+import { Card, CardContent, CardHeader } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { ReactionBar } from './ReactionBar';
+import { Trash2 } from 'lucide-react';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { deletePost } from '@/features/social/lib/api';
+import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDistanceToNow } from 'date-fns';
+
+interface PostCardProps {
+  post: {
+    id: string;
+    author_id: string;
+    body: string;
+    visibility: string;
+    like_count: number;
+    comment_count: number;
+    created_at: string;
+  };
+}
+
+export const PostCard: React.FC<PostCardProps> = ({ post }) => {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const isOwnPost = user?.id === post.author_id;
+
+  const deletePostMutation = useMutation({
+    mutationFn: () => deletePost(post.id),
+    onSuccess: () => {
+      toast.success('Post deleted');
+      queryClient.invalidateQueries({ queryKey: ['social-feed'] });
+    },
+    onError: (error) => {
+      console.error('Error deleting post:', error);
+      toast.error('Failed to delete post');
+    }
+  });
+
+  const getAuthorInitials = (authorId: string) => {
+    return authorId.slice(0, 2).toUpperCase();
+  };
+
+  const getVisibilityIcon = (visibility: string) => {
+    switch (visibility) {
+      case 'public': return '🌍';
+      case 'friends': return '👥';
+      case 'private': return '🔒';
+      default: return '👥';
+    }
+  };
+
+  return (
+    <Card>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center space-x-3">
+            <Avatar>
+              <AvatarFallback className="bg-primary text-primary-foreground">
+                {getAuthorInitials(post.author_id)}
+              </AvatarFallback>
+            </Avatar>
+            <div>
+              <p className="font-medium">User {post.author_id.slice(-4)}</p>
+              <div className="flex items-center space-x-2 text-sm text-muted-foreground">
+                <span>{formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}</span>
+                <span>{getVisibilityIcon(post.visibility)}</span>
+              </div>
+            </div>
+          </div>
+          {isOwnPost && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => deletePostMutation.mutate()}
+              disabled={deletePostMutation.isPending}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
+        <ReactionBar post={post} />
+      </CardContent>
+    </Card>
+  );
+};

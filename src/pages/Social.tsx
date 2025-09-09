@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { SocialFeed } from '@/components/social/SocialFeed';
-import { CreatePost } from '@/components/social/CreatePost';
-import { FriendsList } from '@/components/social/FriendsList';
+import { NewSocialFeed } from '@/components/social/NewSocialFeed';
+import { PostComposer } from '@/components/social/PostComposer';
+import { NewFriendsList } from '@/components/social/NewFriendsList';
 import { ChallengesList } from '@/components/social/ChallengesList';
 import { Users, Trophy, Share } from 'lucide-react';
 
@@ -33,10 +33,10 @@ const Social: React.FC = () => {
 
         <TabsContent value="feed" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-3">
-            <div className="md:col-span-2 space-y-6">
-              <CreatePost />
-              <SocialFeed />
-            </div>
+          <div className="md:col-span-2 space-y-6">
+            <PostComposer />
+            <NewSocialFeed />
+          </div>
             <div className="space-y-6">
               <Card>
                 <CardHeader>
@@ -65,7 +65,7 @@ const Social: React.FC = () => {
 
         <TabsContent value="friends" className="space-y-6">
           <div className="max-w-2xl mx-auto">
-            <FriendsList />
+            <NewFriendsList />
           </div>
         </TabsContent>
 
