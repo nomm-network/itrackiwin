@@ -26,14 +26,16 @@ interface CommentReply {
 
 interface CommentItemProps {
   comment: Comment;
+  isFirst?: boolean;
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
+const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) => {
   const [meta, setMeta] = useState<{counts: Record<string, number>, repliesCount: number}>({counts:{}, repliesCount:0});
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replies, setReplies] = useState<CommentReply[]>([]);
-  const [showReplies, setShowReplies] = useState(false);
+  const [showReplies, setShowReplies] = useState(isFirst);
+  const [replyReactions, setReplyReactions] = useState<Record<string, {counts: Record<string, number>}>>({});
 
   useEffect(() => {
     fetchCommentMeta(comment.id).then(setMeta);
@@ -62,8 +64,28 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
     if (!showReplies) {
       const newReplies = await fetchCommentReplies(comment.id);
       setReplies(newReplies as any);
+      // Load reaction counts for all replies
+      const reactionPromises = newReplies.map(async (reply: any) => {
+        const replyMeta = await fetchCommentMeta(reply.id);
+        return { id: reply.id, meta: replyMeta };
+      });
+      const replyReactionsData = await Promise.all(reactionPromises);
+      const reactionMap: Record<string, {counts: Record<string, number>}> = {};
+      replyReactionsData.forEach(({ id, meta }) => {
+        reactionMap[id] = { counts: meta.counts };
+      });
+      setReplyReactions(reactionMap);
     }
     setShowReplies(!showReplies);
+  };
+
+  const handleReplyReaction = async (replyId: string, kind: string) => {
+    await toggleCommentReaction(replyId, kind);
+    const updatedMeta = await fetchCommentMeta(replyId);
+    setReplyReactions(prev => ({
+      ...prev,
+      [replyId]: { counts: updatedMeta.counts }
+    }));
   };
 
   return (
@@ -100,7 +122,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
               Reply
             </Button>
 
-            {meta.repliesCount > 0 && (
+            {meta.repliesCount > 0 && !showReplies && (
               <Button
                 variant="ghost"
                 size="sm"
@@ -108,7 +130,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
                 className="h-auto p-1 text-xs"
               >
                 <MessageCircle className="h-3 w-3 mr-1" />
-                {showReplies ? 'Hide' : 'Show'} {meta.repliesCount} replies
+                Show {meta.repliesCount} replies
               </Button>
             )}
           </div>
@@ -129,15 +151,25 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
 
           {showReplies && replies.length > 0 && (
             <div className="ml-6 mt-3 space-y-2 border-l-2 border-muted pl-4">
-              {replies.map((reply) => (
+              {replies.slice(0, 3).map((reply) => (
                 <div key={reply.id} className="space-y-1">
-                  <div className="flex items-center space-x-2">
-                    <span className="font-medium text-sm">
-                      {reply.author?.nickname || 'Anonymous'}
-                    </span>
-                    <span className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-2">
+                      <span className="font-medium text-sm">
+                        {reply.author?.nickname || 'Anonymous'}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
+                      </span>
+                    </div>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      onClick={() => handleReplyReaction(reply.id, 'heart')} 
+                      className="h-6 px-1 text-xs"
+                    >
+                      ❤️ {replyReactions[reply.id]?.counts?.heart || 0}
+                    </Button>
                   </div>
                   <p className="text-sm">
                     {reply.replied_to_user && (
@@ -147,6 +179,19 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
                   </p>
                 </div>
               ))}
+              
+              {meta.repliesCount > 0 && (
+                <div className="pt-2">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowReplies(false)}
+                    className="h-auto p-1 text-xs text-muted-foreground"
+                  >
+                    Hide replies
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
@@ -210,8 +255,8 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       </div>
 
       <div className="space-y-4">
-        {comments.map((comment) => (
-          <CommentItem key={comment.id} comment={comment} />
+        {comments.map((comment, index) => (
+          <CommentItem key={comment.id} comment={comment} isFirst={index === 0} />
         ))}
       </div>
     </div>
