@@ -19,6 +19,13 @@ export function SessionHeaderMeta({
   // Use store readiness if available, otherwise fall back to prop
   const readiness = storeReadiness || propReadiness;
   
+  // DEBUG: Log readiness values on workout page
+  console.log('🏋️ WORKOUT PAGE DEBUG:');
+  console.log('  - storeReadiness:', storeReadiness);
+  console.log('  - propReadiness:', propReadiness);
+  console.log('  - final readiness:', readiness);
+  console.log('  - useReadinessStore full state:', useReadinessStore.getState());
+  
   useEffect(() => {
     if (!startedAt || endedAt) return;
     const id = setInterval(() => setNow(Date.now()), 1000);

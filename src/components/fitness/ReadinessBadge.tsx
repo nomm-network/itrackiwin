@@ -10,8 +10,13 @@ interface ReadinessBadgeProps {
 export const ReadinessBadge: React.FC<ReadinessBadgeProps> = ({ className }) => {
   const readiness = useReadinessStore();
 
+  console.log('🎯 ReadinessBadge DEBUG:');
+  console.log('  - readiness state:', readiness);
+  console.log('  - score:', readiness.score);
+
   useEffect(() => {
     // Load today's readiness when component mounts
+    console.log('🔄 ReadinessBadge loading today readiness...');
     loadTodayReadiness().catch(console.error);
   }, []);
 
