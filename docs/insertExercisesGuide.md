@@ -218,6 +218,87 @@ Before adding new exercises:
 - [ ] `owner_user_id = NULL` for system exercises
 - [ ] `configured = true` for complete exercises
 
+## Common Mistakes and How to Avoid Them
+
+### ❌ PL/pgSQL Variable Naming Conflicts
+When writing PL/pgSQL blocks for bulk insertions, avoid using reserved words or table names as variable names:
+
+```sql
+-- ❌ WRONG - "exercise" conflicts with table name
+DECLARE
+  exercise RECORD;
+BEGIN
+  FOR exercise IN SELECT ... LOOP
+```
+
+```sql
+-- ✅ CORRECT - Use prefixed or descriptive variable names
+DECLARE
+  ex_record RECORD;
+  v_exercise RECORD;
+BEGIN
+  FOR ex_record IN SELECT ... LOOP
+```
+
+### ❌ Missing Essential Data After Insertion
+Always verify and populate these critical fields after inserting exercises:
+
+1. **Missing `body_part_id`**: Should be derived from the primary muscle's body part
+2. **Missing `popularity_rank`**: Required for proper ordering in UI
+3. **Missing translations**: At minimum need English (`en`) translations
+
+```sql
+-- ✅ Always update body_part_id after insertion
+UPDATE exercises 
+SET body_part_id = (
+  SELECT mg.body_part_id 
+  FROM muscle_groups mg 
+  WHERE mg.id = exercises.primary_muscle_id
+)
+WHERE body_part_id IS NULL;
+
+-- ✅ Always set popularity_rank for proper ordering
+UPDATE exercises 
+SET popularity_rank = 50  -- Or appropriate value
+WHERE popularity_rank IS NULL;
+```
+
+### ❌ Incomplete Data Validation Checklist
+After inserting exercises, always verify:
+
+```sql
+-- Verification query to check data completeness
+SELECT 
+  e.slug,
+  e.body_part_id IS NOT NULL as has_body_part,
+  e.primary_muscle_id IS NOT NULL as has_muscle,
+  e.equipment_id IS NOT NULL as has_equipment,
+  e.popularity_rank IS NOT NULL as has_rank,
+  COUNT(et.id) > 0 as has_translations
+FROM exercises e
+LEFT JOIN exercises_translations et ON et.exercise_id = e.id
+WHERE e.slug IN ('your-exercise-slugs')
+GROUP BY e.id, e.slug, e.body_part_id, e.primary_muscle_id, e.equipment_id, e.popularity_rank;
+```
+
+### ❌ Forgetting to Check Existing Data
+Before inserting, always check if exercises already exist:
+
+```sql
+-- ✅ Check for duplicates first
+SELECT slug FROM exercises WHERE slug IN ('exercise-1', 'exercise-2');
+```
+
+## Recommended Insertion Process
+
+1. **Validate Prerequisites**: Check equipment, muscle groups, and body parts exist
+2. **Check for Duplicates**: Ensure exercise slugs don't already exist
+3. **Use Safe Variable Names**: Avoid reserved words in PL/pgSQL
+4. **Insert with Core Data**: Include all required fields in initial insert
+5. **Add Translations**: Insert at minimum English translations
+6. **Update Missing Fields**: Set body_part_id and popularity_rank
+7. **Verify Completeness**: Run validation query to confirm all data is present
+
 ## Future Improvements
 
 Consider adding these when inserting exercises:
