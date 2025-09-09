@@ -186,6 +186,9 @@ export async function updateUserNickname(nickname: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
+  // Ensure user record exists first
+  await supabase.rpc('create_user_if_not_exists');
+
   const { error } = await supabase
     .from('users')
     .update({ nickname })

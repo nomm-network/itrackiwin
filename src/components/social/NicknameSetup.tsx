@@ -34,11 +34,6 @@ export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) =
       onNicknameSet?.(newNickname);
       refreshNickname(); // Force refresh
       toast.success('Nickname updated successfully!');
-      
-      // Small delay then refresh the page to ensure proper state update
-      setTimeout(() => {
-        window.location.reload();
-      }, 1000);
     },
     onError: (error) => {
       console.error('Error updating nickname:', error);
