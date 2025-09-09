@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { NewSocialFeed } from '@/components/social/NewSocialFeed';
@@ -10,7 +10,13 @@ import { useNickname } from '@/hooks/useNickname';
 import { Users, Trophy, Share } from 'lucide-react';
 
 const Social: React.FC = () => {
-  const { nickname, loading } = useNickname();
+  const { nickname, loading, refreshNickname } = useNickname();
+  const [forceShowFeed, setForceShowFeed] = useState(false);
+
+  const handleNicknameSet = (newNickname: string) => {
+    refreshNickname();
+    setForceShowFeed(true);
+  };
 
   if (loading) {
     return (
@@ -24,8 +30,8 @@ const Social: React.FC = () => {
     );
   }
 
-  // Show only nickname setup if no nickname is set
-  if (!nickname) {
+  // Show only nickname setup if no nickname is set and user hasn't forced feed view
+  if (!nickname && !forceShowFeed) {
     return (
       <div className="container mx-auto p-6 space-y-6">
         <div className="flex items-center space-x-2">
@@ -34,7 +40,7 @@ const Social: React.FC = () => {
         </div>
         
         <div className="max-w-md mx-auto">
-          <NicknameSetup />
+          <NicknameSetup onNicknameSet={handleNicknameSet} />
         </div>
       </div>
     );

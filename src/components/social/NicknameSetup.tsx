@@ -6,6 +6,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { updateUserNickname, getUserProfile } from '@/features/social/lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { useNickname } from '@/hooks/useNickname';
 
 interface NicknameSetupProps {
   onNicknameSet?: (nickname: string) => void;
@@ -13,32 +14,25 @@ interface NicknameSetupProps {
 
 export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) => {
   const [nickname, setNickname] = useState('');
-  const [currentNickname, setCurrentNickname] = useState<string | null>(null);
   const { user } = useAuth();
+  const { nickname: currentNickname, updateNickname, refreshNickname } = useNickname();
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const fetchCurrentNickname = async () => {
-      if (user?.id) {
-        try {
-          const profile = await getUserProfile(user.id);
-          setCurrentNickname(profile?.nickname || null);
-          setNickname(profile?.nickname || '');
-        } catch (error) {
-          console.error('Error fetching user profile:', error);
-        }
-      }
-    };
-    fetchCurrentNickname();
-  }, [user?.id]);
+    if (currentNickname) {
+      setNickname(currentNickname);
+    }
+  }, [currentNickname]);
 
   const updateNicknameMutation = useMutation({
     mutationFn: () => updateUserNickname(nickname.trim()),
     onSuccess: () => {
       const newNickname = nickname.trim();
-      setCurrentNickname(newNickname);
+      updateNickname(newNickname);
       queryClient.invalidateQueries({ queryKey: ['social-feed'] });
+      queryClient.invalidateQueries({ queryKey: ['user-nickname'] });
       onNicknameSet?.(newNickname);
+      refreshNickname(); // Force refresh
       toast.success('Nickname updated successfully!');
     },
     onError: (error) => {

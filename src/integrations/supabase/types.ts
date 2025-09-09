@@ -10098,6 +10098,10 @@ export type Database = {
         }
         Returns: string
       }
+      create_user_if_not_exists: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       decide_coach_client_link: {
         Args: { p_action: string; p_gym?: string; p_link: string }
         Returns: undefined

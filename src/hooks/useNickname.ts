@@ -1,31 +1,35 @@
 import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserProfile } from '@/features/social/lib/api';
 
 export const useNickname = () => {
-  const [nickname, setNickname] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  useEffect(() => {
-    const fetchNickname = async () => {
-      if (user?.id) {
-        try {
-          const profile = await getUserProfile(user.id);
-          setNickname(profile?.nickname || null);
-        } catch (error) {
-          console.error('Error fetching nickname:', error);
-        }
-      }
-      setLoading(false);
-    };
-
-    fetchNickname();
-  }, [user?.id]);
+  const { data: nickname, isLoading: loading, refetch } = useQuery({
+    queryKey: ['user-nickname', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      const profile = await getUserProfile(user.id);
+      return profile?.nickname || null;
+    },
+    enabled: !!user?.id,
+    staleTime: 0, // Always fresh
+    gcTime: 0, // Don't cache
+  });
 
   const updateNickname = (newNickname: string) => {
-    setNickname(newNickname);
+    // Update the cache immediately
+    queryClient.setQueryData(['user-nickname', user?.id], newNickname);
+    // Also invalidate related queries
+    queryClient.invalidateQueries({ queryKey: ['user-nickname'] });
+    queryClient.invalidateQueries({ queryKey: ['social-feed'] });
   };
 
-  return { nickname, loading, updateNickname };
+  const refreshNickname = () => {
+    refetch();
+  };
+
+  return { nickname, loading, updateNickname, refreshNickname };
 };
