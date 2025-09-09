@@ -5234,6 +5234,73 @@ export type Database = {
           },
         ]
       }
+      social_comment_reactions: {
+        Row: {
+          comment_id: string
+          created_at: string
+          id: string
+          kind: Database["public"]["Enums"]["post_reaction"]
+          user_id: string
+        }
+        Insert: {
+          comment_id: string
+          created_at?: string
+          id?: string
+          kind: Database["public"]["Enums"]["post_reaction"]
+          user_id: string
+        }
+        Update: {
+          comment_id?: string
+          created_at?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["post_reaction"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_comment_reactions_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_post_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_comment_replies: {
+        Row: {
+          body: string
+          comment_id: string
+          created_at: string
+          id: string
+          replied_to_user_id: string | null
+          user_id: string
+        }
+        Insert: {
+          body: string
+          comment_id: string
+          created_at?: string
+          id?: string
+          replied_to_user_id?: string | null
+          user_id: string
+        }
+        Update: {
+          body?: string
+          comment_id?: string
+          created_at?: string
+          id?: string
+          replied_to_user_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_comment_replies_comment_id_fkey"
+            columns: ["comment_id"]
+            isOneToOne: false
+            referencedRelation: "social_post_comments"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_friendships: {
         Row: {
           created_at: string

@@ -193,6 +193,91 @@ export async function updateUserNickname(nickname: string) {
   if (error) throw error;
 }
 
+// Comment reactions API  
+export async function toggleCommentReaction(commentId: string, kind: any) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: existing } = await supabase
+    .from('social_comment_reactions')
+    .select('kind')
+    .eq('comment_id', commentId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    return supabase.from('social_comment_reactions').insert({
+      comment_id: commentId,
+      user_id: user.id,
+      kind: kind as any
+    });
+  }
+
+  if (existing.kind === kind) {
+    return supabase
+      .from('social_comment_reactions')
+      .delete()
+      .eq('comment_id', commentId)
+      .eq('user_id', user.id);
+  } else {
+    return supabase
+      .from('social_comment_reactions')
+      .update({ kind: kind as any })
+      .eq('comment_id', commentId)
+      .eq('user_id', user.id);
+  }
+}
+
+export async function addCommentReply(commentId: string, body: string, repliedToUserId?: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('social_comment_replies')
+    .insert({ 
+      comment_id: commentId,
+      user_id: user.id,
+      body: body.trim(),
+      replied_to_user_id: repliedToUserId 
+    });
+  return { error };
+}
+
+export async function fetchCommentMeta(commentId: string) {
+  // Get reaction counts
+  const { data: reactions } = await supabase
+    .from('social_comment_reactions')
+    .select('kind')
+    .eq('comment_id', commentId);
+
+  const counts = (reactions ?? []).reduce<Record<string, number>>((m, r: any) => {
+    m[r.kind] = (m[r.kind] ?? 0) + 1;
+    return m;
+  }, {});
+
+  // Get reply count
+  const { count: repliesCount } = await supabase
+    .from('social_comment_replies')
+    .select('*', { head: true, count: 'exact' })
+    .eq('comment_id', commentId);
+
+  return { counts, repliesCount: repliesCount ?? 0 };
+}
+
+export async function fetchCommentReplies(commentId: string) {
+  const { data, error } = await supabase
+    .from('social_comment_replies')
+    .select(`
+      *,
+      author:users!social_comment_replies_user_id_fkey(nickname),
+      replied_to_user:users!social_comment_replies_replied_to_user_id_fkey(nickname)
+    `)
+    .eq('comment_id', commentId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
 // Friendship API functions
 export async function sendFriendRequest(otherId: string) {
   const { data: { user } } = await supabase.auth.getUser();

@@ -6,9 +6,40 @@ import { PostComposer } from '@/components/social/PostComposer';
 import { NewFriendsList } from '@/components/social/NewFriendsList';
 import { ChallengesList } from '@/components/social/ChallengesList';
 import { NicknameSetup } from '@/components/social/NicknameSetup';
+import { useNickname } from '@/hooks/useNickname';
 import { Users, Trophy, Share } from 'lucide-react';
 
 const Social: React.FC = () => {
+  const { nickname, loading } = useNickname();
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center space-x-2">
+          <Users className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Social</h1>
+        </div>
+        <div className="text-center py-8">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show only nickname setup if no nickname is set
+  if (!nickname) {
+    return (
+      <div className="container mx-auto p-6 space-y-6">
+        <div className="flex items-center space-x-2">
+          <Users className="h-8 w-8" />
+          <h1 className="text-3xl font-bold">Social</h1>
+        </div>
+        
+        <div className="max-w-md mx-auto">
+          <NicknameSetup />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex items-center space-x-2">
@@ -34,11 +65,10 @@ const Social: React.FC = () => {
 
         <TabsContent value="feed" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-3">
-          <div className="md:col-span-2 space-y-6">
-            <NicknameSetup />
-            <PostComposer />
-            <NewSocialFeed />
-          </div>
+            <div className="md:col-span-2 space-y-6">
+              <PostComposer />
+              <NewSocialFeed />
+            </div>
             <div className="space-y-6">
               <Card>
                 <CardHeader>
