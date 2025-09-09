@@ -103,6 +103,8 @@ const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicP
 
 // Fitness & Programs
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
+const LazyTemplatesPage = lazy(() => import('@/app/templates/page'));
+const LazyTemplateAddPage = lazy(() => import('@/app/templates/add/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 
@@ -264,6 +266,18 @@ export function AppRoutes() {
           <Route path="/app/programs" element={
             <ProtectedMobileLayout>
               <LazyProgramsPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          {/* Templates Routes */}
+          <Route path="/app/templates" element={
+            <ProtectedMobileLayout>
+              <LazyTemplatesPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/app/templates/add" element={
+            <ProtectedMobileLayout>
+              <LazyTemplateAddPage />
             </ProtectedMobileLayout>
           } />
 
