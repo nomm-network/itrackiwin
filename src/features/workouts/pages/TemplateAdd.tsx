@@ -28,7 +28,7 @@ const TemplateAddPage = () => {
 
     try {
       const templateId = await createTemplate.mutateAsync(name.trim());
-      toast.success('Template created successfully');
+      toast.success('Template created successfully! Now go and add exercises to it!');
       navigate(`/fitness/templates/${templateId}/edit`);
     } catch (error) {
       toast.error('Failed to create template');
