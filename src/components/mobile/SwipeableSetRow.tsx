@@ -66,7 +66,7 @@ export const SwipeableSetRow: React.FC<SwipeableSetRowProps> = ({
       <PopoverTrigger asChild>
         <div
           className={cn(
-            "flex items-center justify-between p-3 rounded-lg transition-all duration-200",
+            "flex items-center justify-between p-2.5 rounded-lg transition-all duration-200",
             "bg-muted/30 hover:bg-muted/50 cursor-pointer touch-target",
             isLongPressed && "bg-primary/10 scale-98",
             className

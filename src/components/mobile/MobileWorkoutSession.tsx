@@ -235,13 +235,13 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                   </div>
                 </CardHeader>
 
-                <CardContent className="flex-1 overflow-y-auto space-y-4">
+                <CardContent className="flex-1 overflow-y-auto space-y-3">
                   {/* Completed sets */}
                   {completedSets.map((set, setIndex) => (
                     <Popover key={setIndex}>
                       <PopoverTrigger asChild>
                         <div
-                          className="flex items-center justify-between p-3 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50"
+                          className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50"
                           onMouseDown={() => handleSetMouseDown(set.id || `${exercise.id}-${setIndex}`)}
                           onMouseUp={handleSetMouseUp}
                           onTouchStart={() => handleSetMouseDown(set.id || `${exercise.id}-${setIndex}`)}
@@ -281,13 +281,13 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
 
                   {/* Next set entry */}
                   {!isExerciseComplete && index === currentExerciseIndex && (
-                    <div className="space-y-3 p-3 border-2 border-dashed border-primary/30 rounded-lg">
+                     <div className="space-y-2.5 p-2.5 border-2 border-dashed border-primary/30 rounded-lg">
                       <div className="flex items-center gap-2">
                         <Badge variant="outline">Set {nextSetIndex}</Badge>
                         <span className="text-sm text-muted-foreground">Next up</span>
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-2 gap-2.5">
                         <div>
                           <label className="text-xs text-muted-foreground">Weight (kg)</label>
                           <input
@@ -319,8 +319,8 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
       </div>
 
       {/* Sticky footer with large actions */}
-      <div className="p-4 border-t bg-card">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="p-3.5 border-t bg-card">
+        <div className="grid grid-cols-2 gap-2.5">
           <Button
             onClick={handleAddSet}
             disabled={!newSetWeight || !newSetReps || isExerciseComplete}
