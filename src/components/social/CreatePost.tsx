@@ -4,39 +4,31 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { PlusCircle, Send } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
+import { createPost } from '@/features/social/lib/api';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
+import { PostImageUpload } from './PostImageUpload';
 
 export const CreatePost: React.FC = () => {
-  const [caption, setCaption] = useState('');
+  const [content, setContent] = useState('');
+  const [imageUrl, setImageUrl] = useState<string>('');
   const [isPosting, setIsPosting] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
   const handleCreatePost = async () => {
-    if (!user || !caption.trim()) return;
+    if (!user || !content.trim()) return;
 
     setIsPosting(true);
     try {
-      const { error } = await supabase
-        .from('workout_shares')
-        .insert({
-          user_id: user.id,
-          workout_id: null, // Allow posts without specific workouts
-          caption: caption.trim(),
-          is_public: true,
-          workout_data: null,
-          share_type: 'general' // Add a general post type
-        });
-
-      if (error) throw error;
-
-      setCaption('');
+      await createPost(content.trim(), 'friends', imageUrl || undefined);
+      
+      setContent('');
+      setImageUrl('');
       toast.success('Post shared successfully!');
       
       // Refresh the social feed
-      queryClient.invalidateQueries({ queryKey: ['workout_shares'] });
+      queryClient.invalidateQueries({ queryKey: ['social-feed'] });
     } catch (error) {
       console.error('Error creating post:', error);
       toast.error('Failed to share post');
@@ -58,15 +50,22 @@ export const CreatePost: React.FC = () => {
       <CardContent className="space-y-4">
         <Textarea
           placeholder="What's on your mind? Share your fitness journey, thoughts, or motivation..."
-          value={caption}
-          onChange={(e) => setCaption(e.target.value)}
+          value={content}
+          onChange={(e) => setContent(e.target.value)}
           rows={3}
           className="resize-none"
         />
+        
+        <PostImageUpload
+          onImageUpload={setImageUrl}
+          currentImage={imageUrl}
+          onRemoveImage={() => setImageUrl('')}
+        />
+        
         <div className="flex justify-end">
           <Button
             onClick={handleCreatePost}
-            disabled={!caption.trim() || isPosting}
+            disabled={!content.trim() || isPosting}
             size="sm"
           >
             {isPosting ? (

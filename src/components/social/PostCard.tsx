@@ -21,6 +21,7 @@ interface PostCardProps {
     like_count: number;
     comment_count: number;
     created_at: string;
+    image_url?: string;
   };
 }
 
@@ -119,6 +120,16 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
       </CardHeader>
       <CardContent className="space-y-4">
         <p className="text-sm leading-relaxed whitespace-pre-wrap">{post.body}</p>
+        
+        {post.image_url && (
+          <div className="mt-3">
+            <img
+              src={post.image_url}
+              alt="Post image"
+              className="w-full max-h-96 object-cover rounded-lg"
+            />
+          </div>
+        )}
         
         <div className="flex items-center justify-between">
           <ReactionBar post={post} />

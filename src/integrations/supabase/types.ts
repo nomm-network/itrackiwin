@@ -5367,6 +5367,7 @@ export type Database = {
           comment_count: number
           created_at: string
           id: string
+          image_url: string | null
           like_count: number
           media: Json | null
           visibility: string
@@ -5377,6 +5378,7 @@ export type Database = {
           comment_count?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           like_count?: number
           media?: Json | null
           visibility?: string
@@ -5387,6 +5389,7 @@ export type Database = {
           comment_count?: number
           created_at?: string
           id?: string
+          image_url?: string | null
           like_count?: number
           media?: Json | null
           visibility?: string

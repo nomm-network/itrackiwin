@@ -36,13 +36,13 @@ export type SocialFriendship = {
 };
 
 // Post API functions
-export async function createPost(body: string, visibility: 'public' | 'friends' | 'private' = 'friends') {
+export async function createPost(body: string, visibility: 'public' | 'friends' | 'private' = 'friends', imageUrl?: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
   const { data, error } = await supabase
     .from('social_posts')
-    .insert({ author_id: user.id, body, visibility })
+    .insert({ author_id: user.id, body, visibility, image_url: imageUrl })
     .select()
     .single();
   if (error) throw error;
@@ -52,7 +52,7 @@ export async function createPost(body: string, visibility: 'public' | 'friends' 
 export async function fetchFeed() {
   const { data, error } = await supabase
     .from('social_posts')
-    .select('id, body, author_id, like_count, comment_count, created_at, visibility')
+    .select('id, body, author_id, like_count, comment_count, created_at, visibility, image_url')
     .order('created_at', { ascending: false })
     .limit(50);
   if (error) throw error;
