@@ -122,6 +122,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                     </h3>
                     <ul className="space-y-2">
                       {[
+                        { name: "Social", href: "/social", icon: Users },
                         { name: "Progress", href: "/progress", icon: TrendingUp },
                         { name: "Insights", href: "/insights", icon: Target },
                         { name: "Analytics", href: "/analytics", icon: Award },
@@ -203,6 +204,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   Other
                 </h3>
                 {[
+                  { name: "Social", href: "/social", icon: Users },
                   { name: "Progress", href: "/progress", icon: TrendingUp },
                   { name: "Insights", href: "/insights", icon: Target },
                   { name: "Analytics", href: "/analytics", icon: Award },
