@@ -76,11 +76,16 @@ export const useAdvancedSetLogging = () => {
           workouts!inner(user_id)
         `)
         .eq('id', setData.workout_exercise_id)
-        .single();
+        .maybeSingle();
 
       if (weError) {
         console.error('❌ Failed to get workout exercise info:', weError);
         throw weError;
+      }
+
+      if (!workoutExerciseInfo) {
+        console.error('❌ No workout exercise found with ID:', setData.workout_exercise_id);
+        throw new Error(`Workout exercise not found: ${setData.workout_exercise_id}`);
       }
 
       console.log('🔍 Workout Exercise Info:', {
@@ -155,7 +160,7 @@ export const useAdvancedSetLogging = () => {
             .select('id')
             .eq('workout_exercise_id', payload.workout_exercise_id)
             .eq('set_index', index)
-            .single();
+            .maybeSingle();
 
           if (setData) {
             // Clear existing grips
@@ -206,7 +211,7 @@ export const useAdvancedSetLogging = () => {
             load_meta: {} // Required field with default empty object
           })
           .select('id')
-          .single();
+          .maybeSingle();
         
         if (insertError) {
           console.error('❌ SET SAVE FAILED:', insertError);
