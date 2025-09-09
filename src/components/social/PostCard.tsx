@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Input } from '@/components/ui/input';
 import { ReactionBar } from './ReactionBar';
 import { Trash2, MessageCircle } from 'lucide-react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { deletePost, getUserProfile } from '@/features/social/lib/api';
+import { deletePost, getUserProfile, fetchPostMeta } from '@/features/social/lib/api';
 import { CommentSection } from './CommentSection';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
@@ -29,19 +29,30 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
   const queryClient = useQueryClient();
   const isOwnPost = user?.id === post.author_id;
   const [showComments, setShowComments] = useState(false);
-  const [authorNickname, setAuthorNickname] = useState<string | null>(null);
+  const [authorProfile, setAuthorProfile] = useState<{nickname: string; avatar_url?: string} | null>(null);
+  const [commentCount, setCommentCount] = useState(post.comment_count);
 
   useEffect(() => {
     const fetchAuthorProfile = async () => {
       try {
         const profile = await getUserProfile(post.author_id);
-        setAuthorNickname(profile?.nickname || null);
+        setAuthorProfile(profile);
       } catch (error) {
         console.error('Error fetching author profile:', error);
       }
     };
     fetchAuthorProfile();
-  }, [post.author_id]);
+
+    const fetchCommentCount = async () => {
+      try {
+        const meta = await fetchPostMeta(post.id);
+        setCommentCount(meta.commentsCount);
+      } catch (error) {
+        console.error('Error fetching comment count:', error);
+      }
+    };
+    fetchCommentCount();
+  }, [post.author_id, post.id]);
 
   const deletePostMutation = useMutation({
     mutationFn: () => deletePost(post.id),
@@ -61,7 +72,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
   };
 
   const getDisplayName = () => {
-    if (authorNickname) return authorNickname;
+    if (authorProfile?.nickname) return authorProfile.nickname;
     return `User ${post.author_id.slice(-4)}`;
   };
 
@@ -80,6 +91,7 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
         <div className="flex items-start justify-between">
           <div className="flex items-center space-x-3">
             <Avatar>
+              <AvatarImage src={authorProfile?.avatar_url} />
               <AvatarFallback className="bg-primary text-primary-foreground">
                 {getAuthorInitials(post.author_id)}
               </AvatarFallback>
@@ -117,12 +129,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post }) => {
             className="text-muted-foreground hover:text-foreground"
           >
             <MessageCircle className="h-4 w-4 mr-1" />
-            Comments
+            Comments ({commentCount})
           </Button>
         </div>
 
         {showComments && (
-          <CommentSection postId={post.id} />
+          <CommentSection postId={post.id} onCommentAdded={() => {
+            fetchPostMeta(post.id).then(meta => setCommentCount(meta.commentsCount));
+          }} />
         )}
       </CardContent>
     </Card>

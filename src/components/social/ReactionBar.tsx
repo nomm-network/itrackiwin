@@ -58,17 +58,12 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
   };
 
   return (
-    <div className="flex items-center justify-between">
+    <div className="flex items-center">
       <EmojiPicker 
         onSelect={handleReaction}
         currentReaction={userReaction}
         counts={reactionCounts}
       />
-      {commentsCount > 0 && (
-        <span className="text-sm text-muted-foreground">
-          {commentsCount} comment{commentsCount !== 1 ? 's' : ''}
-        </span>
-      )}
     </div>
   );
 };

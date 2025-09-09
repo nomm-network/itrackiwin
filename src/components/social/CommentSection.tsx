@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { fetchComments, addComment, fetchCommentMeta, toggleCommentReaction, addCommentReply, fetchCommentReplies } from '@/features/social/lib/api';
+import { fetchComments, addComment, fetchCommentMeta, toggleCommentReaction, addCommentReply, fetchCommentReplies, getUserProfile } from '@/features/social/lib/api';
 import { ReactionBar } from './ReactionBar';
 import { MessageCircle, Reply } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,7 +11,7 @@ interface Comment {
   body: string;
   created_at: string;
   user_id: string;
-  author?: { nickname: string } | null;
+  author?: { nickname: string; avatar_url?: string } | null;
 }
 
 interface CommentReply {
@@ -20,7 +20,7 @@ interface CommentReply {
   created_at: string;
   user_id: string;
   replied_to_user_id: string | null;
-  author?: { nickname: string } | null;
+  author?: { nickname: string; avatar_url?: string } | null;
   replied_to_user?: { nickname: string } | null;
 }
 
@@ -36,10 +36,12 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) =
   const [replies, setReplies] = useState<CommentReply[]>([]);
   const [showReplies, setShowReplies] = useState(isFirst);
   const [replyReactions, setReplyReactions] = useState<Record<string, {counts: Record<string, number>}>>({});
+  const [authorProfile, setAuthorProfile] = useState<{nickname: string; avatar_url?: string} | null>(null);
 
   useEffect(() => {
     fetchCommentMeta(comment.id).then(setMeta);
-  }, [comment.id]);
+    getUserProfile(comment.user_id).then(setAuthorProfile);
+  }, [comment.id, comment.user_id]);
 
   const handleReaction = async (kind: string) => {
     await toggleCommentReaction(comment.id, kind);
@@ -94,7 +96,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) =
         <div className="flex-1">
           <div className="flex items-center space-x-2">
             <span className="font-medium text-sm">
-              {comment.author?.nickname || 'Anonymous'}
+              {authorProfile?.nickname || 'Anonymous'}
             </span>
             <span className="text-xs text-muted-foreground">
               {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
@@ -202,9 +204,10 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) =
 
 interface CommentSectionProps {
   postId: string;
+  onCommentAdded?: () => void;
 }
 
-export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
+export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommentAdded }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
@@ -216,7 +219,18 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
   const loadComments = async () => {
     try {
       const data = await fetchComments(postId);
-      setComments(data as Comment[]);
+      // Fetch author profiles for each comment
+      const commentsWithProfiles = await Promise.all(
+        data.map(async (comment: any) => {
+          try {
+            const profile = await getUserProfile(comment.user_id);
+            return { ...comment, author: profile };
+          } catch {
+            return { ...comment, author: null };
+          }
+        })
+      );
+      setComments(commentsWithProfiles as Comment[]);
     } catch (error) {
       console.error('Error loading comments:', error);
     }
@@ -230,6 +244,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId }) => {
       await addComment(postId, newComment.trim());
       setNewComment('');
       await loadComments();
+      onCommentAdded?.();
     } catch (error) {
       console.error('Error adding comment:', error);
     } finally {
