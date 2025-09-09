@@ -14,7 +14,15 @@ export type SocialPost = {
 export type SocialReaction = {
   post_id: string;
   user_id: string;
-  emoji: string;
+  kind: 'like' | 'dislike' | 'muscle' | 'clap' | 'ok' | 'fire' | 'heart' | 'cheers' | 'thumbsup';
+  created_at: string;
+};
+
+export type SocialComment = {
+  id: string;
+  post_id: string;
+  user_id: string;
+  body: string;
   created_at: string;
 };
 
@@ -60,14 +68,41 @@ export async function deletePost(postId: string) {
 }
 
 // Reaction API functions
-export async function reactToPost(postId: string, emoji: string) {
+export async function toggleReaction(postId: string, kind: 'like' | 'dislike' | 'muscle' | 'clap' | 'ok' | 'fire' | 'heart' | 'cheers' | 'thumbsup') {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
-  const { error } = await supabase
+  const { data: existing } = await supabase
     .from('social_reactions')
-    .upsert({ post_id: postId, user_id: user.id, emoji }, { onConflict: 'post_id,user_id' });
-  if (error) throw error;
+    .select('kind')
+    .eq('post_id', postId)
+    .eq('user_id', user.id)
+    .maybeSingle();
+
+  if (!existing) {
+    const { error } = await supabase
+      .from('social_reactions')
+      .insert({ post_id: postId, user_id: user.id, kind });
+    if (error) throw error;
+    return;
+  }
+
+  // Same kind -> remove (toggle off). Different kind -> switch
+  if (existing.kind === kind) {
+    const { error } = await supabase
+      .from('social_reactions')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
+    if (error) throw error;
+  } else {
+    const { error } = await supabase
+      .from('social_reactions')
+      .update({ kind })
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
+    if (error) throw error;
+  }
 }
 
 export async function removeReaction(postId: string) {
@@ -88,12 +123,74 @@ export async function getUserReactionForPost(postId: string) {
 
   const { data, error } = await supabase
     .from('social_reactions')
-    .select('emoji')
+    .select('kind')
     .eq('post_id', postId)
     .eq('user_id', user.id)
     .maybeSingle();
   if (error) throw error;
-  return data?.emoji || null;
+  return data?.kind || null;
+}
+
+export async function fetchPostMeta(postId: string) {
+  const { data: reactions, error: reactionsError } = await supabase
+    .from('social_reactions')
+    .select('kind')
+    .eq('post_id', postId);
+  if (reactionsError) throw reactionsError;
+
+  const counts = (reactions ?? []).reduce<Record<string, number>>((acc, r) => {
+    acc[r.kind] = (acc[r.kind] ?? 0) + 1;
+    return acc;
+  }, {});
+
+  const { count: commentsCount, error: commentsError } = await supabase
+    .from('social_post_comments')
+    .select('*', { head: true, count: 'exact' })
+    .eq('post_id', postId);
+  if (commentsError) throw commentsError;
+
+  return { counts, commentsCount: commentsCount ?? 0 };
+}
+
+export async function addComment(postId: string, body: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('social_post_comments')
+    .insert({ post_id: postId, body, user_id: user.id });
+  return { error };
+}
+
+export async function fetchComments(postId: string) {
+  const { data, error } = await supabase
+    .from('social_post_comments')
+    .select('id, body, user_id, created_at')
+    .eq('post_id', postId)
+    .order('created_at', { ascending: true });
+  if (error) throw error;
+  return data;
+}
+
+export async function getUserProfile(userId: string) {
+  const { data, error } = await supabase
+    .from('users')
+    .select('nickname')
+    .eq('id', userId)
+    .maybeSingle();
+  if (error) throw error;
+  return data;
+}
+
+export async function updateUserNickname(nickname: string) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { error } = await supabase
+    .from('users')
+    .update({ nickname })
+    .eq('id', user.id);
+  if (error) throw error;
 }
 
 // Friendship API functions

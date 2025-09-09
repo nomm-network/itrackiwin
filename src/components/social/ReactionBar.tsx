@@ -1,44 +1,50 @@
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { reactToPost, removeReaction, getUserReactionForPost } from '@/features/social/lib/api';
+import { toggleReaction, getUserReactionForPost, fetchPostMeta } from '@/features/social/lib/api';
 import { toast } from 'sonner';
-
-const EMOJIS = ['💪', '👏', '👌', '🔥', '❤️', '🥂', '👍'] as const;
+import { EmojiPicker } from './EmojiPicker';
 
 interface ReactionBarProps {
   post: { 
     id: string; 
-    like_count: number; 
   };
 }
 
 export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
   const [userReaction, setUserReaction] = useState<string | null>(null);
+  const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
+  const [commentsCount, setCommentsCount] = useState(0);
   const queryClient = useQueryClient();
 
   useEffect(() => {
-    const fetchUserReaction = async () => {
+    const fetchData = async () => {
       try {
-        const reaction = await getUserReactionForPost(post.id);
+        const [reaction, meta] = await Promise.all([
+          getUserReactionForPost(post.id),
+          fetchPostMeta(post.id)
+        ]);
         setUserReaction(reaction);
+        setReactionCounts(meta.counts);
+        setCommentsCount(meta.commentsCount);
       } catch (error) {
-        console.error('Error fetching user reaction:', error);
+        console.error('Error fetching reaction data:', error);
       }
     };
-    fetchUserReaction();
+    fetchData();
   }, [post.id]);
 
   const reactionMutation = useMutation({
-    mutationFn: async ({ emoji, shouldRemove }: { emoji: string; shouldRemove: boolean }) => {
-      if (shouldRemove) {
-        await removeReaction(post.id);
-      } else {
-        await reactToPost(post.id, emoji);
-      }
+    mutationFn: async (reactionType: string) => {
+      await toggleReaction(post.id, reactionType as any);
     },
-    onSuccess: (_, { emoji, shouldRemove }) => {
-      setUserReaction(shouldRemove ? null : emoji);
+    onSuccess: async () => {
+      const [newReaction, meta] = await Promise.all([
+        getUserReactionForPost(post.id),
+        fetchPostMeta(post.id)
+      ]);
+      setUserReaction(newReaction);
+      setReactionCounts(meta.counts);
+      setCommentsCount(meta.commentsCount);
       queryClient.invalidateQueries({ queryKey: ['social-feed'] });
     },
     onError: (error) => {
@@ -47,28 +53,20 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
     }
   });
 
-  const handleReaction = (emoji: string) => {
-    const shouldRemove = userReaction === emoji;
-    reactionMutation.mutate({ emoji, shouldRemove });
+  const handleReaction = (reactionType: string) => {
+    reactionMutation.mutate(reactionType);
   };
 
   return (
-    <div className="flex items-center gap-1">
-      {EMOJIS.map((emoji) => (
-        <Button
-          key={emoji}
-          variant={userReaction === emoji ? 'default' : 'ghost'}
-          size="sm"
-          onClick={() => handleReaction(emoji)}
-          disabled={reactionMutation.isPending}
-          className="h-8 w-8 p-0 text-lg hover:scale-110 transition-transform"
-        >
-          {emoji}
-        </Button>
-      ))}
-      {post.like_count > 0 && (
-        <span className="text-sm text-muted-foreground ml-2">
-          {post.like_count} reaction{post.like_count !== 1 ? 's' : ''}
+    <div className="flex items-center justify-between">
+      <EmojiPicker 
+        onSelect={handleReaction}
+        currentReaction={userReaction}
+        counts={reactionCounts}
+      />
+      {commentsCount > 0 && (
+        <span className="text-sm text-muted-foreground">
+          {commentsCount} comment{commentsCount !== 1 ? 's' : ''}
         </span>
       )}
     </div>

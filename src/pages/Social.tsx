@@ -5,6 +5,7 @@ import { NewSocialFeed } from '@/components/social/NewSocialFeed';
 import { PostComposer } from '@/components/social/PostComposer';
 import { NewFriendsList } from '@/components/social/NewFriendsList';
 import { ChallengesList } from '@/components/social/ChallengesList';
+import { NicknameSetup } from '@/components/social/NicknameSetup';
 import { Users, Trophy, Share } from 'lucide-react';
 
 const Social: React.FC = () => {
@@ -34,6 +35,7 @@ const Social: React.FC = () => {
         <TabsContent value="feed" className="space-y-6">
           <div className="grid gap-6 md:grid-cols-3">
           <div className="md:col-span-2 space-y-6">
+            <NicknameSetup />
             <PostComposer />
             <NewSocialFeed />
           </div>

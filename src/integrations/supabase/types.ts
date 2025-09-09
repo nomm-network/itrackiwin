@@ -5261,6 +5261,38 @@ export type Database = {
         }
         Relationships: []
       }
+      social_post_comments: {
+        Row: {
+          body: string
+          created_at: string
+          id: string
+          post_id: string
+          user_id: string
+        }
+        Insert: {
+          body: string
+          created_at?: string
+          id?: string
+          post_id: string
+          user_id: string
+        }
+        Update: {
+          body?: string
+          created_at?: string
+          id?: string
+          post_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_post_comments_post_id_fkey"
+            columns: ["post_id"]
+            isOneToOne: false
+            referencedRelation: "social_posts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_posts: {
         Row: {
           author_id: string
@@ -5297,19 +5329,19 @@ export type Database = {
       social_reactions: {
         Row: {
           created_at: string
-          emoji: string
+          kind: Database["public"]["Enums"]["post_reaction"]
           post_id: string
           user_id: string
         }
         Insert: {
           created_at?: string
-          emoji: string
+          kind: Database["public"]["Enums"]["post_reaction"]
           post_id: string
           user_id: string
         }
         Update: {
           created_at?: string
-          emoji?: string
+          kind?: Database["public"]["Enums"]["post_reaction"]
           post_id?: string
           user_id?: string
         }
@@ -7208,6 +7240,7 @@ export type Database = {
           default_unit: string
           id: string
           is_pro: boolean
+          nickname: string | null
           updated_at: string | null
         }
         Insert: {
@@ -7217,6 +7250,7 @@ export type Database = {
           default_unit?: string
           id: string
           is_pro?: boolean
+          nickname?: string | null
           updated_at?: string | null
         }
         Update: {
@@ -7226,6 +7260,7 @@ export type Database = {
           default_unit?: string
           id?: string
           is_pro?: boolean
+          nickname?: string | null
           updated_at?: string | null
         }
         Relationships: []
@@ -9834,6 +9869,10 @@ export type Database = {
         Args: { a: string; b: string }
         Returns: boolean
       }
+      are_friends_with_user: {
+        Args: { target_user_id: string }
+        Returns: boolean
+      }
       assign_gym_admin: {
         Args: { p_gym: string; p_role: string; p_user: string }
         Returns: undefined
@@ -12221,6 +12260,16 @@ export type Database = {
         | "fixed"
       mentor_type: "mentor" | "coach"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
+      post_reaction:
+        | "like"
+        | "dislike"
+        | "muscle"
+        | "clap"
+        | "ok"
+        | "fire"
+        | "heart"
+        | "cheers"
+        | "thumbsup"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
       progression_algo:
         | "rep_range_linear"
@@ -12437,6 +12486,17 @@ export const Constants = {
       ],
       mentor_type: ["mentor", "coach"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
+      post_reaction: [
+        "like",
+        "dislike",
+        "muscle",
+        "clap",
+        "ok",
+        "fire",
+        "heart",
+        "cheers",
+        "thumbsup",
+      ],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
       progression_algo: [
         "rep_range_linear",
