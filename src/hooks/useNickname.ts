@@ -7,12 +7,22 @@ export const useNickname = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Add debugging
+  console.log('useNickname: Current user:', user?.id);
+
   const { data: nickname, isLoading: loading, refetch } = useQuery({
     queryKey: ['user-nickname', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
-      const profile = await getUserProfile(user.id);
-      return profile?.nickname || null;
+      console.log('useNickname: Fetching profile for user:', user.id);
+      try {
+        const profile = await getUserProfile(user.id);
+        console.log('useNickname: Profile result:', profile);
+        return profile?.nickname || null;
+      } catch (error) {
+        console.error('useNickname: Error fetching profile:', error);
+        return null;
+      }
     },
     enabled: !!user?.id,
     staleTime: 0, // Always fresh
@@ -20,6 +30,7 @@ export const useNickname = () => {
   });
 
   const updateNickname = (newNickname: string) => {
+    console.log('useNickname: Updating nickname to:', newNickname);
     // Update the cache immediately
     queryClient.setQueryData(['user-nickname', user?.id], newNickname);
     // Also invalidate related queries
@@ -28,8 +39,11 @@ export const useNickname = () => {
   };
 
   const refreshNickname = () => {
+    console.log('useNickname: Refreshing nickname');
     refetch();
   };
+
+  console.log('useNickname: Current nickname:', nickname, 'Loading:', loading);
 
   return { nickname, loading, updateNickname, refreshNickname };
 };
