@@ -123,10 +123,24 @@ export default function TemplateEdit() {
           equipment_id
         `);
 
-      // Apply filters
+      // Apply search filter - search in both display_name and translations
       if (exerciseSearch) {
-        query = query.or(`display_name.ilike.%${exerciseSearch}%`);
+        // Search in display_name or exercise translations
+        const searchPattern = `%${exerciseSearch}%`;
+        query = query.or(`display_name.ilike.${searchPattern}`);
+        
+        // Also search in translations via a separate query and combine results
+        const { data: translationResults, error: translationError } = await supabase
+          .from('exercises_translations')
+          .select('exercise_id')
+          .ilike('name', searchPattern);
+        
+        if (!translationError && translationResults?.length > 0) {
+          const exerciseIds = translationResults.map(r => r.exercise_id);
+          query = query.or(`id.in.(${exerciseIds.join(',')})`);
+        }
       }
+      
       if (selectedMuscleGroup && selectedMuscleGroup !== 'all') {
         query = query.eq('primary_muscle_id', selectedMuscleGroup);
       }
