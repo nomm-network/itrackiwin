@@ -21,12 +21,16 @@ const sleepHoursTo10 = (h: number) => {
 };
 
 export function computeReadinessScore(i: ReadinessInput): number {
+  console.log('🔥 computeReadinessScore INPUT:', i);
+  
   // convert to 0..10 scales
   const sleepH10 = sleepHoursTo10(i.sleepHours);
+  console.log('sleepH10:', sleepH10);
 
   // invert negatives (lower is better → higher score)
   const invSoreness = 10 - clamp(i.soreness, 0, 10);
   const invStress   = 10 - clamp(i.stress,   0, 10);
+  console.log('inverted values - soreness:', invSoreness, 'stress:', invStress);
 
   // weights sum = 1.00
   const w = {
@@ -45,13 +49,29 @@ export function computeReadinessScore(i: ReadinessInput): number {
       w.soreness* invSoreness +
       w.stress  * invStress;
 
+  console.log('base10 calculation:', base10);
+  console.log('individual components:', {
+    energy: w.energy * clamp(i.energy, 0, 10),
+    sleepQ: w.sleepQ * clamp(i.sleepQuality, 0, 10),
+    sleepH: w.sleepH * sleepH10,
+    soreness: w.soreness * invSoreness,
+    stress: w.stress * invStress
+  });
+
   // convert to 0..100
   let score = Math.round(base10 * 10);
+  console.log('score after x10:', score);
 
   // preworkout/creatine small bonus (max +5)
-  if (i.preworkout) score = Math.min(100, score + Math.round(10 * w.pre));
+  if (i.preworkout) {
+    const bonus = Math.round(10 * w.pre);
+    console.log('preworkout bonus:', bonus);
+    score = Math.min(100, score + bonus);
+  }
 
-  return clamp(score, 0, 100);
+  const finalScore = clamp(score, 0, 100);
+  console.log('🎯 FINAL SCORE:', finalScore);
+  return finalScore;
 }
 
 // Helper function to get score color based on value

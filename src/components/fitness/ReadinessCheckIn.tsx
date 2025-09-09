@@ -191,19 +191,26 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
               disabled={isLoading}
               onClick={handleSubmit(async (data) => {
                 try {
-                  const score = await saveTodayReadiness({
+                  console.log('🚀 Form submitted with data:', data);
+                  
+                  const inputData = {
                     energy: data.energy,
                     sleepQuality: data.sleep_quality,
                     sleepHours: data.sleep_hours,
                     soreness: data.soreness,
                     stress: data.stress,
                     preworkout: data.energisers_taken,
-                  });
+                  };
                   
+                  console.log('🔄 Calling saveTodayReadiness with:', inputData);
+                  
+                  const score = await saveTodayReadiness(inputData);
+                  
+                  console.log('✅ saveTodayReadiness returned score:', score);
                   toast.success(`Readiness logged: ${score}/100`);
                   onSubmit(data);
                 } catch (error) {
-                  console.error('Error saving readiness:', error);
+                  console.error('❌ Error saving readiness:', error);
                   toast.error('Failed to save readiness data');
                 }
               })}

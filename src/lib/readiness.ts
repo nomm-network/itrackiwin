@@ -11,41 +11,54 @@ export { computeReadinessScore } from './readiness/calc';
  * Save today's readiness data and computed score
  */
 export async function saveTodayReadiness(input: ReadinessInput): Promise<number> {
+  console.log('💾 saveTodayReadiness called with input:', input);
+  
   const { data: { user } } = await supabase.auth.getUser();
   
   if (!user) {
     throw new Error('User not authenticated');
   }
 
+  console.log('👤 User authenticated:', user.id);
+
   const score = computeReadinessScore(input);
+  console.log('📊 Computed score:', score);
+  
   const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  console.log('📅 Today date:', today);
+
+  const dbPayload = {
+    user_id: user.id,
+    checkin_at: new Date().toISOString(),
+    energy: input.energy,
+    sleep_quality: input.sleepQuality,
+    sleep_hours: input.sleepHours,
+    soreness: input.soreness,
+    stress: input.stress,
+    energizers: input.preworkout, // Use 'energizers' field
+    score,
+    computed_at: new Date().toISOString()
+  };
+  
+  console.log('💿 DB payload:', dbPayload);
 
   // Save to database
   const { error } = await supabase
     .from('readiness_checkins')
-    .upsert({
-      user_id: user.id,
-      checkin_at: new Date().toISOString(),
-      energy: input.energy,
-      sleep_quality: input.sleepQuality,
-      sleep_hours: input.sleepHours,
-      soreness: input.soreness,
-      stress: input.stress,
-      energizers: input.preworkout, // Use 'energizers' field
-      score,
-      computed_at: new Date().toISOString()
-    }, { 
+    .upsert(dbPayload, { 
       onConflict: 'user_id,checkin_at',
       ignoreDuplicates: false 
     });
 
   if (error) {
-    console.error('Error saving readiness data:', error);
+    console.error('❌ DB error:', error);
     throw error;
   }
+  
+  console.log('✅ Successfully saved to DB');
 
   // Update store immediately
-  useReadinessStore.getState().setReadiness({
+  const storePayload = {
     date: today,
     score,
     energy: input.energy,
@@ -54,7 +67,10 @@ export async function saveTodayReadiness(input: ReadinessInput): Promise<number>
     soreness: input.soreness,
     stress: input.stress,
     preworkout: input.preworkout,
-  });
+  };
+  
+  console.log('🏪 Updating store with:', storePayload);
+  useReadinessStore.getState().setReadiness(storePayload);
 
   return score;
 }
