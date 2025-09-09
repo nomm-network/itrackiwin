@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/useAuth';
 import { getUserProfile } from '@/features/social/lib/api';
+import { supabase } from '@/integrations/supabase/client';
 
 export const useNickname = () => {
   const { user } = useAuth();
@@ -16,6 +17,8 @@ export const useNickname = () => {
       if (!user?.id) return null;
       console.log('useNickname: Fetching profile for user:', user.id);
       try {
+        // Ensure user record exists before trying to get profile
+        await supabase.rpc('create_user_if_not_exists');
         const profile = await getUserProfile(user.id);
         console.log('useNickname: Profile result:', profile);
         return profile?.nickname || null;

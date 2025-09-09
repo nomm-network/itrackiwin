@@ -173,6 +173,9 @@ export async function fetchComments(postId: string) {
 }
 
 export async function getUserProfile(userId: string) {
+  // Ensure user record exists first
+  await supabase.rpc('create_user_if_not_exists');
+  
   const { data, error } = await supabase
     .from('users')
     .select('nickname')
