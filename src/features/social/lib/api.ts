@@ -178,25 +178,50 @@ export async function getUserProfile(userId: string) {
   
   const { data, error } = await supabase
     .from('users')
-    .select('nickname')
+    .select('nickname, avatar_url')
     .eq('id', userId)
     .maybeSingle();
   if (error) throw error;
   return data;
 }
 
-export async function updateUserNickname(nickname: string) {
+export async function updateUserNickname(nickname: string, avatarUrl?: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error('Not authenticated');
 
   // Ensure user record exists first
   await supabase.rpc('create_user_if_not_exists');
 
+  const updateData: { nickname: string; avatar_url?: string } = { nickname };
+  if (avatarUrl !== undefined) {
+    updateData.avatar_url = avatarUrl;
+  }
+
   const { error } = await supabase
     .from('users')
-    .update({ nickname })
+    .update(updateData)
     .eq('id', user.id);
   if (error) throw error;
+}
+
+export async function uploadAvatar(file: File): Promise<string> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${user.id}/avatar.${fileExt}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('avatars')
+    .upload(fileName, file, { upsert: true });
+
+  if (uploadError) throw uploadError;
+
+  const { data } = supabase.storage
+    .from('avatars')
+    .getPublicUrl(fileName);
+
+  return data.publicUrl;
 }
 
 // Comment reactions API  

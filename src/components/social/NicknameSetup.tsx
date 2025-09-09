@@ -7,6 +7,7 @@ import { updateUserNickname, getUserProfile } from '@/features/social/lib/api';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useNickname } from '@/hooks/useNickname';
+import { AvatarUpload } from './AvatarUpload';
 
 interface NicknameSetupProps {
   onNicknameSet?: (nickname: string) => void;
@@ -14,9 +15,31 @@ interface NicknameSetupProps {
 
 export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) => {
   const [nickname, setNickname] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [currentProfile, setCurrentProfile] = useState<{ nickname?: string; avatar_url?: string } | null>(null);
   const { user } = useAuth();
   const { nickname: currentNickname, updateNickname, refreshNickname } = useNickname();
   const queryClient = useQueryClient();
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      if (user) {
+        try {
+          const profile = await getUserProfile(user.id);
+          setCurrentProfile(profile);
+          if (profile?.nickname) {
+            setNickname(profile.nickname);
+          }
+          if (profile?.avatar_url) {
+            setAvatarUrl(profile.avatar_url);
+          }
+        } catch (error) {
+          console.error('Error loading profile:', error);
+        }
+      }
+    };
+    loadProfile();
+  }, [user]);
 
   useEffect(() => {
     if (currentNickname) {
@@ -25,7 +48,7 @@ export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) =
   }, [currentNickname]);
 
   const updateNicknameMutation = useMutation({
-    mutationFn: () => updateUserNickname(nickname.trim()),
+    mutationFn: () => updateUserNickname(nickname.trim(), avatarUrl),
     onSuccess: () => {
       const newNickname = nickname.trim();
       updateNickname(newNickname);
@@ -33,16 +56,19 @@ export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) =
       queryClient.invalidateQueries({ queryKey: ['user-nickname'] });
       onNicknameSet?.(newNickname);
       refreshNickname(); // Force refresh
-      toast.success('Nickname updated successfully!');
+      toast.success('Profile updated successfully!');
     },
     onError: (error) => {
-      console.error('Error updating nickname:', error);
-      toast.error('Failed to update nickname');
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
     }
   });
 
   const handleSubmit = () => {
-    if (nickname.trim() && nickname.trim() !== currentNickname) {
+    const hasNicknameChanged = nickname.trim() !== currentProfile?.nickname;
+    const hasAvatarChanged = avatarUrl !== currentProfile?.avatar_url;
+    
+    if (nickname.trim() && (hasNicknameChanged || hasAvatarChanged)) {
       updateNicknameMutation.mutate();
     }
   };
@@ -52,12 +78,20 @@ export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) =
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Set Your Nickname</CardTitle>
+        <CardTitle>Set Your Profile</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-6">
+        <div className="flex justify-center">
+          <AvatarUpload
+            currentAvatarUrl={avatarUrl}
+            onAvatarChange={setAvatarUrl}
+            disabled={updateNicknameMutation.isPending}
+          />
+        </div>
+        
         <div className="space-y-2">
           <label className="text-sm font-medium">
-            Nickname {currentNickname && `(Current: ${currentNickname})`}
+            Nickname {currentProfile?.nickname && `(Current: ${currentProfile.nickname})`}
           </label>
           <Input
             value={nickname}
@@ -66,12 +100,13 @@ export const NicknameSetup: React.FC<NicknameSetupProps> = ({ onNicknameSet }) =
             maxLength={50}
           />
         </div>
+        
         <Button 
           onClick={handleSubmit}
-          disabled={!nickname.trim() || nickname.trim() === currentNickname || updateNicknameMutation.isPending}
+          disabled={!nickname.trim() || updateNicknameMutation.isPending}
           className="w-full"
         >
-          {updateNicknameMutation.isPending ? 'Updating...' : 'Update Nickname'}
+          {updateNicknameMutation.isPending ? 'Updating...' : 'Update Profile'}
         </Button>
       </CardContent>
     </Card>

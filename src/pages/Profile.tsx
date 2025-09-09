@@ -10,6 +10,7 @@ import { useIsAdmin } from "@/hooks/useIsAdmin";
 import { getUserProfile, updateUserNickname } from "@/features/social/lib/api";
 import { toast } from "sonner";
 import { Edit2, Save, X } from "lucide-react";
+import { AvatarUpload } from "@/components/social/AvatarUpload";
 
 const Profile: React.FC = () => {
   const xp = useAppStore((s) => s.xp);
@@ -20,6 +21,7 @@ const Profile: React.FC = () => {
     role: string;
   } | null>(null);
   const [nickname, setNickname] = useState<string>('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [isEditingNickname, setIsEditingNickname] = useState(false);
   const [tempNickname, setTempNickname] = useState<string>('');
 
@@ -38,10 +40,11 @@ const Profile: React.FC = () => {
         .eq('user_id', session.user.id)
         .single();
 
-      // Get user profile (nickname)
+      // Get user profile (nickname and avatar)
       try {
         const profile = await getUserProfile(session.user.id);
         setNickname(profile?.nickname || '');
+        setAvatarUrl(profile?.avatar_url || null);
       } catch (error) {
         console.error('Error fetching profile:', error);
       }
@@ -62,13 +65,24 @@ const Profile: React.FC = () => {
 
   const handleSaveNickname = async () => {
     try {
-      await updateUserNickname(tempNickname.trim());
+      await updateUserNickname(tempNickname.trim(), avatarUrl);
       setNickname(tempNickname.trim());
       setIsEditingNickname(false);
-      toast.success('Nickname updated successfully!');
+      toast.success('Profile updated successfully!');
     } catch (error) {
-      console.error('Error updating nickname:', error);
-      toast.error('Failed to update nickname');
+      console.error('Error updating profile:', error);
+      toast.error('Failed to update profile');
+    }
+  };
+
+  const handleAvatarChange = async (newAvatarUrl: string | null) => {
+    try {
+      await updateUserNickname(nickname, newAvatarUrl);
+      setAvatarUrl(newAvatarUrl);
+      toast.success('Avatar updated successfully!');
+    } catch (error) {
+      console.error('Error updating avatar:', error);
+      toast.error('Failed to update avatar');
     }
   };
 
@@ -115,6 +129,17 @@ const Profile: React.FC = () => {
                 <div className="text-sm text-muted-foreground">Role</div>
                 <div className="text-sm capitalize">{userInfo?.role || 'Loading...'}</div>
               </div>
+            </div>
+          </div>
+          
+          <div className="rounded-lg border p-4 bg-card">
+            <h2 className="font-medium mb-4">Avatar</h2>
+            <div className="flex justify-center">
+              <AvatarUpload
+                currentAvatarUrl={avatarUrl}
+                onAvatarChange={handleAvatarChange}
+                showText={false}
+              />
             </div>
           </div>
           
