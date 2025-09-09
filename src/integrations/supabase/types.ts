@@ -10235,18 +10235,6 @@ export type Database = {
         }
         Returns: Json
       }
-      generate_exercise_name: {
-        Args: {
-          p_attr: Json
-          p_equipment_id: string
-          p_grip_type_key: string
-          p_handle_key: string
-          p_locale?: string
-          p_movement_id: string
-          p_primary_muscle: string
-        }
-        Returns: string
-      }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
         Returns: Json
