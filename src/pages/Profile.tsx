@@ -3,9 +3,13 @@ import { levelFromXp } from "@/lib/xp";
 import { useAppStore } from "@/store/app";
 import PageNav from "@/components/PageNav";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/lib/auth";
 import { useIsAdmin } from "@/hooks/useIsAdmin";
+import { getUserProfile, updateUserNickname } from "@/features/social/lib/api";
+import { toast } from "sonner";
+import { Edit2, Save, X } from "lucide-react";
 
 const Profile: React.FC = () => {
   const xp = useAppStore((s) => s.xp);
@@ -15,6 +19,9 @@ const Profile: React.FC = () => {
     email: string;
     role: string;
   } | null>(null);
+  const [nickname, setNickname] = useState<string>('');
+  const [isEditingNickname, setIsEditingNickname] = useState(false);
+  const [tempNickname, setTempNickname] = useState<string>('');
 
   useEffect(() => {
     const fetchUserInfo = async () => {
@@ -31,6 +38,14 @@ const Profile: React.FC = () => {
         .eq('user_id', session.user.id)
         .single();
 
+      // Get user profile (nickname)
+      try {
+        const profile = await getUserProfile(session.user.id);
+        setNickname(profile?.nickname || '');
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+
       setUserInfo({
         email,
         role: roleData?.role || 'user'
@@ -39,6 +54,39 @@ const Profile: React.FC = () => {
 
     fetchUserInfo();
   }, []);
+
+  const handleEditNickname = () => {
+    setTempNickname(nickname);
+    setIsEditingNickname(true);
+  };
+
+  const handleSaveNickname = async () => {
+    try {
+      await updateUserNickname(tempNickname.trim());
+      setNickname(tempNickname.trim());
+      setIsEditingNickname(false);
+      toast.success('Nickname updated successfully!');
+    } catch (error) {
+      console.error('Error updating nickname:', error);
+      toast.error('Failed to update nickname');
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setTempNickname('');
+    setIsEditingNickname(false);
+  };
+
+  const handleDeleteNickname = async () => {
+    try {
+      await updateUserNickname('');
+      setNickname('');
+      toast.success('Nickname removed successfully!');
+    } catch (error) {
+      console.error('Error removing nickname:', error);
+      toast.error('Failed to remove nickname');
+    }
+  };
 
   const handleSignOut = async () => {
     try {
@@ -69,6 +117,72 @@ const Profile: React.FC = () => {
               </div>
             </div>
           </div>
+          
+          <div className="rounded-lg border p-4 bg-card">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="font-medium">Nickname</h2>
+              {!isEditingNickname && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleEditNickname}
+                  className="h-8 w-8 p-0"
+                >
+                  <Edit2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+            
+            {isEditingNickname ? (
+              <div className="space-y-3">
+                <Input
+                  value={tempNickname}
+                  onChange={(e) => setTempNickname(e.target.value)}
+                  placeholder="Enter your nickname..."
+                  maxLength={50}
+                  className="text-sm"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="default"
+                    size="sm"
+                    onClick={handleSaveNickname}
+                    disabled={tempNickname.trim() === nickname}
+                  >
+                    <Save className="h-4 w-4 mr-1" />
+                    Save
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCancelEdit}
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Cancel
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                <div className="text-sm">
+                  {nickname || (
+                    <span className="text-muted-foreground italic">No nickname set</span>
+                  )}
+                </div>
+                {nickname && (
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDeleteNickname}
+                    className="text-xs"
+                  >
+                    Remove Nickname
+                  </Button>
+                )}
+              </div>
+            )}
+          </div>
+          
           <div className="rounded-lg border p-4 bg-card">
             <div className="text-sm text-muted-foreground">XP</div>
             <div className="text-2xl font-semibold">{xp}</div>
