@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { fetchTodayReadiness, getReadinessScoreColor } from '@/lib/readiness';
+import { fetchTodayReadiness } from '@/lib/api/readiness';
+import { getReadinessScoreColor } from '@/lib/readiness';
 import { Badge } from '@/components/ui/badge';
 
 interface ReadinessBadgeProps {

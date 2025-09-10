@@ -7,7 +7,7 @@ import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { saveTodayReadiness } from "@/lib/readiness";
+import { saveTodayReadiness } from "@/lib/api/readiness";
 import { toast } from "sonner";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -241,11 +241,14 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                   
                   const inputData = {
                     energy: data.energy,
-                    sleepQuality: data.sleep_quality,
-                    sleepHours: data.sleep_hours,
+                    sleep_quality: data.sleep_quality,
+                    sleep_hours: data.sleep_hours,
                     soreness: data.soreness,
                     stress: data.stress,
-                    preworkout: data.energisers_taken,
+                    mood: 6,
+                    energizers: !!data.energisers_taken,
+                    illness: !!data.illness,
+                    alcohol: !!data.alcohol,
                   };
                   
                   console.log('🔄 Calling saveTodayReadiness with:', inputData);
@@ -269,11 +272,14 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                     formData: data,
                     inputData: {
                       energy: data.energy,
-                      sleepQuality: data.sleep_quality,
-                      sleepHours: data.sleep_hours,
+                      sleep_quality: data.sleep_quality,
+                      sleep_hours: data.sleep_hours,
                       soreness: data.soreness,
                       stress: data.stress,
-                      preworkout: data.energisers_taken,
+                      mood: 6,
+                      energizers: !!data.energisers_taken,
+                      illness: !!data.illness,
+                      alcohol: !!data.alcohol,
                     }
                   };
                   

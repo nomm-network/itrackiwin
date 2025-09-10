@@ -10330,6 +10330,20 @@ export type Database = {
         Args: { p_checkin_id: string; p_persist: boolean }
         Returns: number
       }
+      fn_compute_readiness_v1: {
+        Args: {
+          p_alcohol: boolean
+          p_energizers: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+        }
+        Returns: number
+      }
       fn_detect_stagnation: {
         Args: { p_exercise_id: string; p_lookback_sessions?: number }
         Returns: Json

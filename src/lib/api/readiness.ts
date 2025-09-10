@@ -12,81 +12,45 @@ export type ReadinessPayload = {
   alcohol: boolean;
 };
 
-/**
- * Save today's readiness data using the optimized RPC function
- * Returns the computed score as 0-100 for UI display
- */
-export async function saveTodayReadiness(payload: ReadinessPayload): Promise<number> {
-  console.log('🔄 Saving readiness via RPC:', payload);
-  
-  // Check authentication first
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    console.error('❌ Authentication error:', authError);
-    throw new Error('Please log in to save your readiness data');
-  }
-  
-  console.log('✅ User authenticated:', user.id);
-  
-  const { data, error } = await supabase
-    .rpc('upsert_readiness_today', {
-      p_energy: payload.energy,
-      p_sleep_quality: payload.sleep_quality,
-      p_sleep_hours: payload.sleep_hours,
-      p_soreness: payload.soreness,
-      p_stress: payload.stress,
-      p_mood: payload.mood,
-      p_energizers: payload.energizers,
-      p_illness: payload.illness,
-      p_alcohol: payload.alcohol,
-    });
-
+// Returns 0–100
+export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
+  const { data, error } = await supabase.rpc('upsert_readiness_today', {
+    p_energy: p.energy,
+    p_sleep_quality: p.sleep_quality,
+    p_sleep_hours: p.sleep_hours,
+    p_soreness: p.soreness,
+    p_stress: p.stress,
+    p_mood: p.mood,
+    p_energizers: p.energizers,
+    p_illness: p.illness,
+    p_alcohol: p.alcohol,
+  });
   if (error) {
-    console.error('❌ RPC error:', error);
-    throw error;
+    console.error('upsert_readiness_today failed', error);
+    throw new Error(error.message || 'Failed to save readiness check.');
   }
-
-  const score = Number(data ?? 0);
-  console.log('✅ RPC completed, score:', score);
-  return score;
+  return Number(data ?? 0); // 0–100
 }
 
-/**
- * Fetch today's readiness score from the database
- * Returns null if no readiness data exists for today
- */
-export async function fetchTodayReadiness(): Promise<number | null> {
-  // Check authentication first
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  
-  if (authError || !user) {
-    console.log('⚠️ Not authenticated, cannot fetch readiness');
-    return null;
-  }
+export async function fetchTodayReadiness(): Promise<number|null> {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return null;
 
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD format
-  
+  const today = new Date().toISOString().slice(0,10);
   const { data, error } = await supabase
     .from('readiness_checkins')
-    .select('score, computed_at')
+    .select('score')
     .eq('user_id', user.id)
     .eq('checkin_date', today)
     .maybeSingle();
 
   if (error && error.code !== 'PGRST116') {
-    console.error('Error fetching readiness:', error);
-    throw error;
-  }
-
-  if (!data) {
+    console.error('fetchTodayReadiness error', error);
     return null;
   }
+  if (!data) return null;
 
-  // DB score is 0-10, convert to 0-100 for UI
-  const score = Math.round(Number(data.score ?? 0) * 10);
-  console.log('📊 Fetched readiness score:', score);
-  return score;
+  return Math.round(Number(data.score ?? 0) * 10); // convert 0–10 → 0–100
 }
 
 /**
