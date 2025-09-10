@@ -5100,7 +5100,6 @@ export type Database = {
           sleep_quality: number | null
           soreness: number | null
           stress: number | null
-          supplements: Json | null
           user_id: string
           workout_id: string | null
         }
@@ -5122,7 +5121,6 @@ export type Database = {
           sleep_quality?: number | null
           soreness?: number | null
           stress?: number | null
-          supplements?: Json | null
           user_id: string
           workout_id?: string | null
         }
@@ -5144,7 +5142,6 @@ export type Database = {
           sleep_quality?: number | null
           soreness?: number | null
           stress?: number | null
-          supplements?: Json | null
           user_id?: string
           workout_id?: string | null
         }
@@ -10339,10 +10336,6 @@ export type Database = {
         Returns: {
           exercise_id: string
         }[]
-      }
-      fn_compute_readiness_score_v1: {
-        Args: { p_checkin_id: string; p_persist: boolean }
-        Returns: number
       }
       fn_compute_readiness_v1: {
         Args: {
