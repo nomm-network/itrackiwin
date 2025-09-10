@@ -287,7 +287,6 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     step={1}
                     className="w-full"
                   />
-                  <input type="hidden" {...register("mood", { valueAsNumber: true })} />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Low</span>
                     <span>Great</span>
@@ -298,6 +297,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="illness"
+                    {...register("illness")}
                     checked={watchedValues.illness}
                     onCheckedChange={(checked) => setValue("illness", checked)}
                   />
@@ -308,6 +308,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="energisers_taken"
+                    {...register("energisers_taken")}
                     checked={watchedValues.energisers_taken}
                     onCheckedChange={(checked) => setValue("energisers_taken", checked)}
                   />
@@ -318,6 +319,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="alcohol"
+                    {...register("alcohol")}
                     checked={watchedValues.alcohol}
                     onCheckedChange={(checked) => setValue("alcohol", checked)}
                   />
@@ -381,6 +383,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     sleep_hours: watchedValues.sleep_hours,
                     soreness: watchedValues.soreness,
                     stress: watchedValues.stress,
+                    mood: watchedValues.mood,
                     illness: watchedValues.illness,
                     alcohol: watchedValues.alcohol,
                     energisers_taken: watchedValues.energisers_taken
