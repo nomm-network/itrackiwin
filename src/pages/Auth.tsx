@@ -28,8 +28,9 @@ const Auth: React.FC = () => {
 
   useEffect(() => {
     setSeo();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Only redirect on SIGNED_IN event (not SIGNED_UP which happens before email confirmation)
+      if (event === 'SIGNED_IN' && session?.user) {
         window.location.href = "/";
       }
     });
