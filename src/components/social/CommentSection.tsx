@@ -26,15 +26,15 @@ interface CommentReply {
 
 interface CommentItemProps {
   comment: Comment;
-  isFirst?: boolean;
+  isCompact?: boolean;
 }
 
-const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) => {
+const CommentItem: React.FC<CommentItemProps> = ({ comment, isCompact = false }) => {
   const [meta, setMeta] = useState<{counts: Record<string, number>, repliesCount: number}>({counts:{}, repliesCount:0});
   const [showReplyInput, setShowReplyInput] = useState(false);
   const [replyText, setReplyText] = useState('');
   const [replies, setReplies] = useState<CommentReply[]>([]);
-  const [showReplies, setShowReplies] = useState(isFirst);
+  const [showReplies, setShowReplies] = useState(false);
   const [replyReactions, setReplyReactions] = useState<Record<string, {counts: Record<string, number>}>>({});
   const [authorProfile, setAuthorProfile] = useState<{nickname: string; avatar_url?: string} | null>(null);
 
@@ -91,51 +91,52 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) =
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex items-start space-x-3">
+    <div className="space-y-1">
+      <div className="flex items-start space-x-0">
         <div className="flex-1">
-          <div className="flex items-center space-x-2">
-            <span className="font-medium text-sm">
+          <div className="text-sm">
+            <span className="font-semibold mr-2">
               {authorProfile?.nickname || 'Anonymous'}
             </span>
-            <span className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
-            </span>
+            <span>{comment.body}</span>
           </div>
-          <p className="text-sm mt-1">{comment.body}</p>
           
-          <div className="flex items-center space-x-4 mt-2">
-            <div className="flex space-x-1">
-              <Button variant="ghost" size="sm" onClick={() => handleReaction('like')} className="h-6 px-1 text-xs">
-                👍 {meta.counts.like || 0}
-              </Button>
-              <Button variant="ghost" size="sm" onClick={() => handleReaction('heart')} className="h-6 px-1 text-xs">
-                ❤️ {meta.counts.heart || 0}
-              </Button>
-            </div>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setShowReplyInput(!showReplyInput)}
-              className="h-auto p-1 text-xs"
-            >
-              <Reply className="h-3 w-3 mr-1" />
-              Reply
-            </Button>
-
-            {meta.repliesCount > 0 && !showReplies && (
+          {!isCompact && (
+            <div className="flex items-center space-x-4 mt-2">
+              <span className="text-xs text-muted-foreground">
+                {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}
+              </span>
+              
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={loadReplies}
-                className="h-auto p-1 text-xs"
+                onClick={() => handleReaction('heart')}
+                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
               >
-                <MessageCircle className="h-3 w-3 mr-1" />
-                Show {meta.repliesCount} replies
+                {meta.counts.heart ? `${meta.counts.heart} likes` : 'Like'}
               </Button>
-            )}
-          </div>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setShowReplyInput(!showReplyInput)}
+                className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+              >
+                Reply
+              </Button>
+
+              {meta.repliesCount > 0 && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={loadReplies}
+                  className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                >
+                  {showReplies ? 'Hide replies' : `View replies (${meta.repliesCount})`}
+                </Button>
+              )}
+            </div>
+          )}
 
           {showReplyInput && (
             <div className="flex space-x-2 mt-2">
@@ -152,48 +153,42 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, isFirst = false }) =
           )}
 
           {showReplies && replies.length > 0 && (
-            <div className="ml-6 mt-3 space-y-2 border-l-2 border-muted pl-4">
-              {replies.slice(0, 3).map((reply) => (
-                <div key={reply.id} className="space-y-1">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-medium text-sm">
+            <div className="ml-8 mt-3 space-y-3">
+              {replies.map((reply) => (
+                <div key={reply.id} className="flex items-start space-x-0">
+                  <div className="flex-1">
+                    <div className="text-sm">
+                      <span className="font-semibold mr-2">
                         {reply.author?.nickname || 'Anonymous'}
                       </span>
+                      {reply.replied_to_user && (
+                        <span className="text-primary mr-1">@{reply.replied_to_user.nickname}</span>
+                      )}
+                      <span>{reply.body}</span>
+                    </div>
+                    <div className="flex items-center space-x-4 mt-1">
                       <span className="text-xs text-muted-foreground">
                         {formatDistanceToNow(new Date(reply.created_at), { addSuffix: true })}
                       </span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleReplyReaction(reply.id, 'heart')}
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        {replyReactions[reply.id]?.counts?.heart ? `${replyReactions[reply.id].counts.heart} likes` : 'Like'}
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
+                      >
+                        Reply
+                      </Button>
                     </div>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => handleReplyReaction(reply.id, 'heart')} 
-                      className="h-6 px-1 text-xs"
-                    >
-                      ❤️ {replyReactions[reply.id]?.counts?.heart || 0}
-                    </Button>
                   </div>
-                  <p className="text-sm">
-                    {reply.replied_to_user && (
-                      <span className="text-primary">@{reply.replied_to_user.nickname} </span>
-                    )}
-                    {reply.body}
-                  </p>
                 </div>
               ))}
-              
-              {meta.repliesCount > 0 && (
-                <div className="pt-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowReplies(false)}
-                    className="h-auto p-1 text-xs text-muted-foreground"
-                  >
-                    Hide replies
-                  </Button>
-                </div>
-              )}
             </div>
           )}
         </div>
@@ -211,6 +206,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommen
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(false);
 
   useEffect(() => {
     loadComments();
@@ -252,27 +248,49 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommen
     }
   };
 
+  const displayedComments = showAllComments ? comments : comments.slice(0, 1);
+  const hasMoreComments = comments.length > 1;
+
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
+      {/* Comments Display */}
+      {comments.length > 0 && (
+        <div className="space-y-3">
+          {displayedComments.map((comment) => (
+            <CommentItem key={comment.id} comment={comment} />
+          ))}
+          
+          {hasMoreComments && !showAllComments && (
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowAllComments(true)}
+              className="h-auto p-0 text-sm text-muted-foreground hover:text-foreground"
+            >
+              View all {comments.length} comments
+            </Button>
+          )}
+        </div>
+      )}
+
+      {/* Add Comment Input */}
       <div className="flex space-x-2">
         <Input
           value={newComment}
           onChange={(e) => setNewComment(e.target.value)}
-          placeholder="Write a comment... (friends only)"
-          className="flex-1"
+          placeholder="Add a comment..."
+          className="flex-1 border-none shadow-none text-sm"
+          onKeyPress={(e) => e.key === 'Enter' && handleAddComment()}
         />
         <Button 
           onClick={handleAddComment} 
           disabled={!newComment.trim() || loading}
+          variant="ghost"
+          size="sm"
+          className="text-primary hover:text-primary/80"
         >
-          {loading ? 'Adding...' : 'Comment'}
+          {loading ? 'Posting...' : 'Post'}
         </Button>
-      </div>
-
-      <div className="space-y-4">
-        {comments.map((comment, index) => (
-          <CommentItem key={comment.id} comment={comment} isFirst={index === 0} />
-        ))}
       </div>
     </div>
   );
