@@ -600,6 +600,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
         if (error) throw error;
 
+        // Reset session timing store
+        useSessionTiming.setState({
+          sessionStartedAt: null,
+          totalRestMs: 0,
+          restStartedAt: null,
+        });
+
         toast.success('Workout deleted successfully');
         navigate('/dashboard');
       } catch (error) {
