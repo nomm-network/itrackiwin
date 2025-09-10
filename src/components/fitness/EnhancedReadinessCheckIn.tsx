@@ -61,6 +61,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       sleep_hours: 8,
       soreness: 3,
       stress: 3,
+      mood: 6,
       illness: false,
       energisers_taken: false,
       alcohol: false
@@ -271,6 +272,23 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Relaxed</span>
                     <span>Very Stressed</span>
+                  </div>
+                </div>
+
+                {/* Mood */}
+                <div className="space-y-2">
+                  <Label>Mood: {watchedValues.mood}/10</Label>
+                  <Slider
+                    value={[watchedValues.mood || 6]}
+                    onValueChange={(value) => setValue("mood", value[0])}
+                    max={10}
+                    min={1}
+                    step={1}
+                    className="w-full"
+                  />
+                  <div className="flex justify-between text-xs text-muted-foreground">
+                    <span>Low</span>
+                    <span>Great</span>
                   </div>
                 </div>
 
