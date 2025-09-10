@@ -207,14 +207,54 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
             />
           </div>
 
-          {/* Debug Error Display */}
+          {/* DEBUG SECTION - ALWAYS VISIBLE */}
+          <Card className="mt-4 border-yellow-500 bg-yellow-50">
+            <CardHeader>
+              <CardTitle className="text-yellow-800 text-sm">🔧 DEBUG INFO (ALWAYS VISIBLE)</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2 text-xs">
+                <div><strong>User:</strong> {user ? `${user.id} (${user.email})` : 'NOT AUTHENTICATED'}</div>
+                <div><strong>Current Form Values:</strong></div>
+                <pre className="bg-yellow-100 p-2 rounded text-xs overflow-auto max-h-32">
+                  {JSON.stringify({
+                    energy: watchedValues.energy,
+                    sleep_quality: watchedValues.sleep_quality,
+                    sleep_hours: watchedValues.sleep_hours,
+                    soreness: watchedValues.soreness,
+                    stress: watchedValues.stress,
+                    illness: watchedValues.illness,
+                    alcohol: watchedValues.alcohol,
+                    energisers_taken: watchedValues.energisers_taken,
+                    notes: watchedValues.notes
+                  }, null, 2)}
+                </pre>
+                <div><strong>Will Send to API:</strong></div>
+                <pre className="bg-yellow-100 p-2 rounded text-xs overflow-auto max-h-32">
+                  {JSON.stringify({
+                    energy: watchedValues.energy,
+                    sleep_quality: watchedValues.sleep_quality,
+                    sleep_hours: watchedValues.sleep_hours,
+                    soreness: watchedValues.soreness,
+                    stress: watchedValues.stress,
+                    mood: 6,
+                    energizers: !!watchedValues.energisers_taken,
+                    illness: !!watchedValues.illness,
+                    alcohol: !!watchedValues.alcohol,
+                  }, null, 2)}
+                </pre>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* ERROR DEBUG SECTION - SHOWS WHEN THERE'S AN ERROR */}
           {debugError && (
-            <Card className="mt-4 border-destructive bg-destructive/10">
+            <Card className="mt-4 border-red-500 bg-red-50">
               <CardHeader>
-                <CardTitle className="text-destructive text-sm">🐛 DEBUG ERROR DETAILS</CardTitle>
+                <CardTitle className="text-red-800 text-sm">🚨 ERROR DETAILS</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-40 text-destructive">
+                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-60 text-red-800 bg-red-100 p-3 rounded">
                   {debugError}
                 </pre>
                 <Button 
@@ -223,7 +263,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                   className="mt-2" 
                   onClick={() => setDebugError(null)}
                 >
-                  Clear Debug
+                  Clear Error Debug
                 </Button>
               </CardContent>
             </Card>
