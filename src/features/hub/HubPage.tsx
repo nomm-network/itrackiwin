@@ -74,7 +74,7 @@ export default function HubPage() {
               }
               className="h-16 flex flex-col items-center gap-1 p-2"
             >
-              <span className="text-lg">📋</span>
+              <span className="text-lg">{s.icon || '📋'}</span>
               <span className="text-xs leading-tight text-center">
                 {s.label}
               </span>
