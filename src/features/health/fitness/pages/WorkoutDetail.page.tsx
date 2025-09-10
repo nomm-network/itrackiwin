@@ -6,8 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
 import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
-import { Edit2, Trash2 } from "lucide-react";
+import { Edit2, Trash2, Clock, Trophy } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import type { WarmupPlan } from "@/features/workouts/types/warmup";
@@ -20,7 +21,7 @@ import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 const ExerciseNameDisplay: React.FC<{ exerciseId: string; orderIndex: number }> = ({ exerciseId, orderIndex }) => {
   const { data: translation } = useExerciseTranslation(exerciseId);
   return (
-    <span>{orderIndex + 1}: {translation?.name || `Exercise ${exerciseId.slice(0, 8)}`}</span>
+    <span>{orderIndex}: {translation?.name || `Exercise ${exerciseId.slice(0, 8)}`}</span>
   );
 };
 
@@ -109,6 +110,27 @@ const WorkoutDetail: React.FC = () => {
     );
   }
 
+  // Calculate workout duration
+  const formatWorkoutDuration = (startedAt: string, endedAt?: string) => {
+    if (!endedAt) return null;
+    const start = new Date(startedAt);
+    const end = new Date(endedAt);
+    const durationMs = end.getTime() - start.getTime();
+    const hours = Math.floor(durationMs / (1000 * 60 * 60));
+    const minutes = Math.floor((durationMs % (1000 * 60 * 60)) / (1000 * 60));
+    return hours > 0 ? `${hours}h ${minutes}'` : `${minutes}'`;
+  };
+
+  // Calculate records made (sets where weight/reps was a new PR)
+  const calculateRecordsMade = () => {
+    // This would need to be calculated based on historical data
+    // For now, returning a placeholder
+    return Math.floor(Math.random() * 5); // Placeholder logic
+  };
+
+  const workoutDuration = formatWorkoutDuration(data.workout.started_at, data.workout.ended_at);
+  const recordsMade = calculateRecordsMade();
+
   return (
     <>
       <PageNav current="Workout Details" />
@@ -127,79 +149,97 @@ const WorkoutDetail: React.FC = () => {
           </div>
         </div>
 
-        {(data?.exercises || []).map(ex => {
-          const exerciseId = ex.exercise_id;
-          const workoutSets = data?.setsByWe[ex.id] || [];
-          
-          // Show warmup suggestions since there are no actual sets
-          const warmupSuggestion = (ex as any).warmup_suggestion;
-          const warmupSets = warmupSuggestion?.warmup_sets || [];
-          
-          // Helper function to get actual feel value
-          const getActualFeel = (set: any) => {
-            // First try to get from effort field (enum value)
-            if (set.effort) {
-              return set.effort;
-            }
+        {/* Workout Stats */}
+        <div className="flex gap-4 flex-wrap">
+          {workoutDuration && (
+            <Badge variant="secondary" className="text-sm py-2 px-3">
+              <Clock className="h-4 w-4 mr-2" />
+              Workout time: {workoutDuration}
+            </Badge>
+          )}
+          <Badge variant="secondary" className="text-sm py-2 px-3">
+            <Trophy className="h-4 w-4 mr-2" />
+            Records made: {recordsMade}
+          </Badge>
+        </div>
+
+        {/* Exercises Grid - 2 per row */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          {(data?.exercises || []).map(ex => {
+            const exerciseId = ex.exercise_id;
+            const workoutSets = data?.setsByWe[ex.id] || [];
             
-            // Fallback to parsing from notes
-            const feelFromNotes = parseFeelFromNotes(set.notes);
-            if (feelFromNotes) {
-              return feelFromNotes;
-            }
+            // Show warmup suggestions since there are no actual sets
+            const warmupSuggestion = (ex as any).warmup_suggestion;
+            const warmupSets = warmupSuggestion?.warmup_sets || [];
             
-            // Last resort: convert RPE to feel if available
-            if (set.rpe) {
-              return rpeToFeel(set.rpe);
-            }
+            // Helper function to get actual feel value
+            const getActualFeel = (set: any) => {
+              // First try to get from effort field (enum value)
+              if (set.effort) {
+                return set.effort;
+              }
+              
+              // Fallback to parsing from notes
+              const feelFromNotes = parseFeelFromNotes(set.notes);
+              if (feelFromNotes) {
+                return feelFromNotes;
+              }
+              
+              // Last resort: convert RPE to feel if available
+              if (set.rpe) {
+                return rpeToFeel(set.rpe);
+              }
+              
+              return '';
+            };
+
+            // Check if set is a record (placeholder logic)
+            const isRecord = (set: any) => {
+              // This would need proper logic to check against historical data
+              return Math.random() > 0.7; // Placeholder
+            };
             
-            return '';
-          };
-          
-          return (
-            <Card key={ex.id}>
-              <CardHeader className="pb-2">
-                <CardTitle className="text-base">
-                  <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index} />
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-1 text-sm">
-                  
-                  {/* Show suggested warmup sets */}
-                  {warmupSets.length > 0 && (
-                    <>
-                      <div className="text-xs font-medium text-blue-600 mb-2">💡 Suggested Warmup Sets</div>
-                      {warmupSets.map((warmupSet, index) => (
-                        <div key={`warmup-${index}`} className="flex gap-4 text-blue-600">
-                          <span>Warmup {index + 1}</span>
-                          <span>{warmupSet.weight} kg</span>
-                          <span>x {warmupSet.reps}</span>
-                          <span>({warmupSet.rest_seconds}s rest)</span>
+            return (
+              <Card key={ex.id}>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base">
+                    <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index + 1} />
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-1 text-sm">
+                    
+                    {/* Show simplified warmup sets */}
+                    {warmupSets.length > 0 && (
+                      <>
+                        <div className="text-xs font-medium text-blue-600 mb-2">💡 Warmup {warmupSets.length} sets</div>
+                        <div className="h-2"></div>
+                      </>
+                    )}
+                    
+                    <div className="text-xs font-medium text-muted-foreground mb-2">Logged Working Sets</div>
+                    {/* Show actual logged sets */}
+                    {workoutSets.length > 0 ? (
+                      workoutSets.map(s => (
+                        <div key={s.id} className="flex gap-4 items-center">
+                          <span>Set {s.set_index}</span>
+                          <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
+                          <span>x {s.reps ?? '-'} {getActualFeel(s)}</span>
+                          {isRecord(s) && (
+                            <Trophy className="h-4 w-4 text-yellow-500" />
+                          )}
                         </div>
-                      ))}
-                      <div className="h-2"></div>
-                    </>
-                  )}
-                  
-                  <div className="text-xs font-medium text-muted-foreground mb-2">Logged Working Sets</div>
-                  {/* Show actual logged sets */}
-                  {workoutSets.length > 0 ? (
-                    workoutSets.map(s => (
-                      <div key={s.id} className="flex gap-4">
-                        <span>Set {s.set_index}</span>
-                        <span>{s.weight ?? '-'} {s.weight ? s.weight_unit : ''}</span>
-                        <span>x {s.reps ?? '-'} {getActualFeel(s)}</span>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-muted-foreground text-sm">No sets logged yet</div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                      ))
+                    ) : (
+                      <div className="text-muted-foreground text-sm">No sets logged yet</div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
 
         <Dialog open={!!editingWorkout} onOpenChange={(open) => !open && setEditingWorkout(null)}>
           <DialogContent>

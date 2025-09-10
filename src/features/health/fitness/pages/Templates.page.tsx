@@ -25,7 +25,7 @@ const TemplatesPage = () => {
   });
 
   // Fetch all templates (user's own + public)
-  const { data: allTemplates, isLoading } = useQuery({
+  const { data: allTemplates, isLoading, refetch } = useQuery({
     queryKey: ['all-workout-templates'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -59,6 +59,8 @@ const TemplatesPage = () => {
       if (error) throw error;
       
       toast.success('Template deleted successfully');
+      // Refresh the templates list
+      refetch();
     } catch (error) {
       toast.error('Failed to delete template');
       console.error('Delete error:', error);
