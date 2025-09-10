@@ -90,6 +90,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       console.log('🔍 ENERGISERS_TAKEN VALUE:', readinessData.energisers_taken, typeof readinessData.energisers_taken);
       
       // Ensure all values are within valid ranges and not null/undefined
+      // CRITICAL: Map form field names to API parameter names correctly!
       const cleanData = {
         energy: Math.max(1, Math.min(10, readinessData.energy || 7)),
         sleep_quality: Math.max(1, Math.min(10, readinessData.sleep_quality || 7)),
@@ -97,7 +98,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         soreness: Math.max(1, Math.min(10, readinessData.soreness || 3)),
         stress: Math.max(1, Math.min(10, readinessData.stress || 3)),
         mood: Math.max(1, Math.min(10, readinessData.mood || 6)),
-        energizers: Boolean(readinessData.energisers_taken),
+        energizers: Boolean(readinessData.energisers_taken), // Form field: energisers_taken -> API: energizers
         illness: Boolean(readinessData.illness),
         alcohol: Boolean(readinessData.alcohol),
         workout_id: workoutId, // Include workout_id in the payload
