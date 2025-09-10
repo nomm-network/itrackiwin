@@ -55,7 +55,7 @@ import PageNav from "@/components/PageNav";
 import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
 
 // Import readiness scoring utilities
-import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
+import { computeReadinessScore, getCurrentUserReadinessScore, saveTodayReadiness } from '@/lib/readiness';
 import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface WorkoutSessionProps {
@@ -499,33 +499,30 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       console.log('🔍 EnhancedWorkoutSession: Processing readiness and estimates:', { readiness, estimates });
       
-      // Create the readiness checkin record first
+      // Use the new RPC function to save readiness data
+      const inputData = {
+        energy: readiness.energy,
+        sleepQuality: readiness.sleep_quality, 
+        sleepHours: readiness.sleep_hours,
+        soreness: readiness.soreness,
+        stress: readiness.stress,
+        preworkout: readiness.energisers_taken,
+      };
+      
+      console.log('🔄 Calling saveTodayReadiness with:', inputData);
+      const realScore = await saveTodayReadiness(inputData);
+      console.log('✅ Readiness saved with score:', realScore);
+      
+      // Also create the pre-workout checkin record for tracking
       const checkinResponse = await createCheckin.mutateAsync({
         answers: {
           ...readiness,
-          energizers: readiness.energisers_taken // Map to database column name
+          energizers: readiness.energisers_taken
         },
-        readiness_score: null // Will be computed by the trigger
+        readiness_score: realScore
       });
       
-      console.log('✅ Readiness checkin created:', checkinResponse);
-      
-      // The database trigger will compute the score automatically, but let's also get it for the UI
-      let realScore = 65; // Default fallback
-      try {
-        if (checkinResponse?.id) {
-          realScore = await getCurrentUserReadinessScore();
-          console.log('📊 Computed readiness score:', realScore);
-        }
-      } catch (scoreError) {
-        console.warn('⚠️ Could not compute readiness score, using fallback:', scoreError);
-        // Try to get the user's overall readiness instead
-        try {
-          realScore = await getCurrentUserReadinessScore();
-        } catch {
-          // Keep fallback value
-        }
-      }
+      console.log('✅ Pre-workout checkin created:', checkinResponse);
       
       // Store readiness score for header display
       setReadinessScore(realScore);

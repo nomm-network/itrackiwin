@@ -1,6 +1,5 @@
-import React, { useEffect } from 'react';
-import { useReadinessStore } from '@/stores/readinessStore';
-import { loadTodayReadiness, getReadinessScoreColor } from '@/lib/readiness';
+import React, { useEffect, useState } from 'react';
+import { fetchTodayReadiness, getReadinessScoreColor } from '@/lib/readiness';
 import { Badge } from '@/components/ui/badge';
 
 interface ReadinessBadgeProps {
@@ -8,19 +7,29 @@ interface ReadinessBadgeProps {
 }
 
 export const ReadinessBadge: React.FC<ReadinessBadgeProps> = ({ className }) => {
-  const readiness = useReadinessStore();
-
-  console.log('🎯 ReadinessBadge DEBUG:');
-  console.log('  - readiness state:', readiness);
-  console.log('  - score:', readiness.score);
+  const [readinessScore, setReadinessScore] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load today's readiness when component mounts
-    console.log('🔄 ReadinessBadge loading today readiness...');
-    loadTodayReadiness().catch(console.error);
+    const loadReadiness = async () => {
+      try {
+        setIsLoading(true);
+        console.log('🔄 ReadinessBadge loading today readiness...');
+        const score = await fetchTodayReadiness();
+        console.log('🎯 ReadinessBadge loaded score:', score);
+        setReadinessScore(score);
+      } catch (error) {
+        console.error('❌ Error loading readiness:', error);
+        setReadinessScore(null);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadReadiness();
   }, []);
 
-  if (readiness.score == null) {
+  if (isLoading) {
     return (
       <Badge variant="outline" className={className}>
         --/100
@@ -28,12 +37,20 @@ export const ReadinessBadge: React.FC<ReadinessBadgeProps> = ({ className }) => 
     );
   }
 
+  if (readinessScore === null) {
+    return (
+      <Badge variant="outline" className={className}>
+        0/100
+      </Badge>
+    );
+  }
+
   return (
     <Badge 
       variant="outline" 
-      className={`${className} ${getReadinessScoreColor(readiness.score)}`}
+      className={`${className} ${getReadinessScoreColor(readinessScore)}`}
     >
-      {Math.round(readiness.score)}/100
+      {Math.round(readinessScore)}/100
     </Badge>
   );
 };

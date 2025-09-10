@@ -1,63 +1,40 @@
-import { supabase } from '@/integrations/supabase/client';
+// Import the new optimized API functions
+import { saveTodayReadiness as saveReadinessAPI, fetchTodayReadiness } from './api/readiness';
 import { computeReadinessScore, type ReadinessInput } from './readiness/calc';
 import { useReadinessStore, type ReadinessState } from '@/stores/readinessStore';
+import { supabase } from '@/integrations/supabase/client';
 
 export type ReadinessInputs = ReadinessInput;
 
-// Re-export the main calculator
+// Re-export the main calculator and API functions
 export { computeReadinessScore } from './readiness/calc';
+export { fetchTodayReadiness } from './api/readiness';
 
 /**
- * Save today's readiness data and computed score
+ * Save today's readiness data using the new RPC function
+ * This is the main function used by the UI components
  */
 export async function saveTodayReadiness(input: ReadinessInput): Promise<number> {
   console.log('💾 saveTodayReadiness called with input:', input);
   
-  const { data: { user } } = await supabase.auth.getUser();
-  
-  if (!user) {
-    throw new Error('User not authenticated');
-  }
-
-  console.log('👤 User authenticated:', user.id);
-
-  const score = computeReadinessScore(input);
-  console.log('📊 Computed score:', score);
-  
-  const today = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
-  console.log('📅 Today date:', today);
-
-  const dbPayload = {
-    user_id: user.id,
-    checkin_at: new Date().toISOString(),
+  // Convert ReadinessInput to ReadinessPayload format
+  const payload = {
     energy: input.energy,
     sleep_quality: input.sleepQuality,
     sleep_hours: input.sleepHours,
     soreness: input.soreness,
     stress: input.stress,
-    energizers: input.preworkout, // Use 'energizers' field
-    score,
-    computed_at: new Date().toISOString()
+    mood: 6, // Default mood value - can be enhanced later
+    energizers: input.preworkout,
+    illness: false, // Not currently captured in ReadinessInput
+    alcohol: false, // Not currently captured in ReadinessInput
   };
+
+  // Use the new RPC-based API
+  const score = await saveReadinessAPI(payload);
   
-  console.log('💿 DB payload:', dbPayload);
-
-  // Save to database
-  const { error } = await supabase
-    .from('readiness_checkins')
-    .upsert(dbPayload, { 
-      onConflict: 'user_id,checkin_at',
-      ignoreDuplicates: false 
-    });
-
-  if (error) {
-    console.error('❌ DB error:', error);
-    throw error;
-  }
-  
-  console.log('✅ Successfully saved to DB');
-
   // Update store immediately
+  const today = new Date().toISOString().slice(0, 10);
   const storePayload = {
     date: today,
     score,
@@ -77,44 +54,28 @@ export async function saveTodayReadiness(input: ReadinessInput): Promise<number>
 
 /**
  * Load today's readiness data for the current user
+ * Uses the new fetchTodayReadiness API function
  */
 export async function loadTodayReadiness(): Promise<ReadinessState | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  const score = await fetchTodayReadiness();
   
-  if (!user) {
+  if (score === null) {
     return null;
   }
 
   const today = new Date().toISOString().slice(0, 10);
   
-  const { data, error } = await supabase
-    .from('readiness_checkins')
-    .select('*')
-    .eq('user_id', user.id)
-    .gte('checkin_at', `${today}T00:00:00.000Z`)
-    .lt('checkin_at', `${today}T23:59:59.999Z`)
-    .order('checkin_at', { ascending: false })
-    .limit(1)
-    .maybeSingle();
-
-  if (error) {
-    console.error('Error loading readiness data:', error);
-    return null;
-  }
-
-  if (!data) {
-    return null;
-  }
-
+  // For now, we only have the score. We can extend this later to fetch all data
   const readinessState: ReadinessState = {
     date: today,
-    score: Number(data.score) || 0,
-    energy: Number(data.energy) || 0,
-    sleepQuality: Number(data.sleep_quality) || 0,
-    sleepHours: Number(data.sleep_hours) || 0,
-    soreness: Number(data.soreness) || 0,
-    stress: Number(data.stress) || 0,
-    preworkout: Boolean(data.energizers),
+    score,
+    // These will be populated when we fetch complete data
+    energy: undefined,
+    sleepQuality: undefined,
+    sleepHours: undefined,
+    soreness: undefined,
+    stress: undefined,
+    preworkout: undefined,
   };
 
   // Update store
@@ -127,8 +88,8 @@ export async function loadTodayReadiness(): Promise<ReadinessState | null> {
  * Get the current user's latest readiness score (legacy function for compatibility)
  */
 export async function getCurrentUserReadinessScore(): Promise<number> {
-  const readiness = await loadTodayReadiness();
-  return readiness?.score || 0; // Return 0 instead of 65 fallback
+  const score = await fetchTodayReadiness();
+  return score ?? 0; // Return 0 instead of 65 fallback
 }
 
 /**

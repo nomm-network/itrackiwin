@@ -5085,6 +5085,7 @@ export type Database = {
         Row: {
           alcohol: boolean | null
           checkin_at: string
+          checkin_date: string
           computed_at: string | null
           created_at: string
           energizers: boolean | null
@@ -5106,6 +5107,7 @@ export type Database = {
         Insert: {
           alcohol?: boolean | null
           checkin_at?: string
+          checkin_date?: string
           computed_at?: string | null
           created_at?: string
           energizers?: boolean | null
@@ -5127,6 +5129,7 @@ export type Database = {
         Update: {
           alcohol?: boolean | null
           checkin_at?: string
+          checkin_date?: string
           computed_at?: string | null
           created_at?: string
           energizers?: boolean | null
@@ -12357,6 +12360,20 @@ export type Database = {
           table_name: string
         }
         Returns: string
+      }
+      upsert_readiness_today: {
+        Args: {
+          p_alcohol: boolean
+          p_energizers: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+        }
+        Returns: number
       }
       upsert_user_exercise_warmup: {
         Args:
