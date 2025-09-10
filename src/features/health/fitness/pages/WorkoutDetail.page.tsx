@@ -16,6 +16,7 @@ import { getStepWeight } from "@/features/workouts/warmup/calcWarmup";
 import { rpeToFeel } from "@/features/health/fitness/lib/feelToRpe";
 import { parseFeelFromNotes } from "@/features/workouts/utils/feel";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
+import { useWorkoutPersonalRecords } from "@/features/health/fitness/hooks/useWorkoutPersonalRecords";
 
 // Component to properly display exercise name with translation
 const ExerciseNameDisplay: React.FC<{ exerciseId: string; orderIndex: number }> = ({ exerciseId, orderIndex }) => {
@@ -29,6 +30,7 @@ const WorkoutDetail: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { data, isLoading, error } = useWorkoutDetail(id);
+  const { data: prData } = useWorkoutPersonalRecords(id || '');
   const updateMut = useUpdateWorkout();
   const deleteMut = useDeleteWorkout();
 
@@ -121,15 +123,8 @@ const WorkoutDetail: React.FC = () => {
     return hours > 0 ? `${hours}h ${minutes}'` : `${minutes}'`;
   };
 
-  // Calculate records made (sets where weight/reps was a new PR)
-  const calculateRecordsMade = () => {
-    // This would need to be calculated based on historical data
-    // For now, returning a placeholder
-    return Math.floor(Math.random() * 5); // Placeholder logic
-  };
-
   const workoutDuration = formatWorkoutDuration(data.workout.started_at, data.workout.ended_at);
-  const recordsMade = calculateRecordsMade();
+  const recordsMade = prData?.totalRecords || 0;
 
   return (
     <>
@@ -194,10 +189,9 @@ const WorkoutDetail: React.FC = () => {
               return '';
             };
 
-            // Check if set is a record (placeholder logic)
+            // Check if set is a record using real PR data
             const isRecord = (set: any) => {
-              // This would need proper logic to check against historical data
-              return Math.random() > 0.7; // Placeholder
+              return prData?.recordsBySetId.has(set.id) || false;
             };
             
             return (
