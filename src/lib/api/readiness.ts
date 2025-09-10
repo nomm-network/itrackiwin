@@ -15,7 +15,10 @@ export type ReadinessPayload = {
 
 export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
   console.group('🔥 READINESS API CALL');
-  console.log('📤 Sending payload:', p);
+  console.log('📤 RAW PAYLOAD RECEIVED:', p);
+  console.log('📤 ILLNESS IN PAYLOAD:', p.illness, typeof p.illness);
+  console.log('📤 ALCOHOL IN PAYLOAD:', p.alcohol, typeof p.alcohol);
+  console.log('📤 ENERGIZERS IN PAYLOAD:', p.energizers, typeof p.energizers);
   console.log('📤 RPC parameters:', {
     p_energy: p.energy,
     p_sleep_quality: p.sleep_quality,

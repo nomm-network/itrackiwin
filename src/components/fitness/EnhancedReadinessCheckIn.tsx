@@ -84,7 +84,10 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
 
   const handleFormSubmit = async (readinessData: ReadinessData) => {
     try {
-      console.log('🔍 EnhancedReadinessCheckIn: Submitting readiness data:', readinessData);
+      console.log('🔍 RAW FORM DATA FROM REACT-HOOK-FORM:', readinessData);
+      console.log('🔍 ILLNESS VALUE:', readinessData.illness, typeof readinessData.illness);
+      console.log('🔍 ALCOHOL VALUE:', readinessData.alcohol, typeof readinessData.alcohol);
+      console.log('🔍 ENERGISERS_TAKEN VALUE:', readinessData.energisers_taken, typeof readinessData.energisers_taken);
       
       // Ensure all values are within valid ranges and not null/undefined
       const cleanData = {
@@ -94,13 +97,16 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         soreness: Math.max(1, Math.min(10, readinessData.soreness || 3)),
         stress: Math.max(1, Math.min(10, readinessData.stress || 3)),
         mood: Math.max(1, Math.min(10, readinessData.mood || 6)),
-        energizers: !!readinessData.energisers_taken,
-        illness: !!readinessData.illness,
-        alcohol: !!readinessData.alcohol,
+        energizers: Boolean(readinessData.energisers_taken),
+        illness: Boolean(readinessData.illness),
+        alcohol: Boolean(readinessData.alcohol),
         workout_id: workoutId, // Include workout_id in the payload
       };
       
-      console.log('🔍 Clean data being sent to API:', cleanData);
+      console.log('🔍 FINAL CLEAN DATA SENT TO API:', cleanData);
+      console.log('🔍 FINAL ILLNESS:', cleanData.illness, typeof cleanData.illness);
+      console.log('🔍 FINAL ALCOHOL:', cleanData.alcohol, typeof cleanData.alcohol);
+      console.log('🔍 FINAL ENERGIZERS:', cleanData.energizers, typeof cleanData.energizers);
       
       // Save readiness data using the new API
       const score = await saveTodayReadiness(cleanData);
@@ -297,9 +303,11 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="illness"
-                    {...register("illness")}
-                    checked={watchedValues.illness}
-                    onCheckedChange={(checked) => setValue("illness", checked)}
+                    checked={watchedValues.illness || false}
+                    onCheckedChange={(checked) => {
+                      console.log('🔥 ILLNESS SWITCH CHANGED TO:', checked);
+                      setValue("illness", checked);
+                    }}
                   />
                   <Label htmlFor="illness">Feeling unwell or sick</Label>
                 </div>
@@ -308,9 +316,11 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="energisers_taken"
-                    {...register("energisers_taken")}
-                    checked={watchedValues.energisers_taken}
-                    onCheckedChange={(checked) => setValue("energisers_taken", checked)}
+                    checked={watchedValues.energisers_taken || false}
+                    onCheckedChange={(checked) => {
+                      console.log('🔥 ENERGISERS SWITCH CHANGED TO:', checked);
+                      setValue("energisers_taken", checked);
+                    }}
                   />
                   <Label htmlFor="energisers_taken">Creatine/PreWorkout taken</Label>
                 </div>
@@ -319,9 +329,11 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                 <div className="flex items-center space-x-2">
                   <Switch
                     id="alcohol"
-                    {...register("alcohol")}
-                    checked={watchedValues.alcohol}
-                    onCheckedChange={(checked) => setValue("alcohol", checked)}
+                    checked={watchedValues.alcohol || false}
+                    onCheckedChange={(checked) => {
+                      console.log('🔥 ALCOHOL SWITCH CHANGED TO:', checked);
+                      setValue("alcohol", checked);
+                    }}
                   />
                   <Label htmlFor="alcohol">Had alcohol in last 24h</Label>
                 </div>
