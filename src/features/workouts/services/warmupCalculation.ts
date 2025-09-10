@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { recommendedWarmupsFor } from '@/lib/training/warmupManager';
 
 export interface SmartWarmupSet {
   id: string;
@@ -98,20 +99,32 @@ export class SmartWarmupCalculator {
   }
 
   /**
-   * Generate smart warmup plan
+   * Generate smart warmup plan with context-based step count
    */
   async generateWarmupPlan(options: WarmupCalculationOptions): Promise<SmartWarmupPlan> {
     const { workoutExerciseId, suggestedTopWeight = 60, userId } = options;
 
-    // Get exercise ID for estimates lookup
+    // Get exercise information for muscle group context
     const { data: workoutExercise } = await supabase
       .from('workout_exercises')
-      .select('exercise_id')
+      .select(`
+        exercise_id,
+        exercises!inner(
+          body_part_id,
+          secondary_muscle_group_ids
+        )
+      `)
       .eq('id', workoutExerciseId)
       .single();
 
     const exerciseId = workoutExercise?.exercise_id;
+    const exercise = workoutExercise?.exercises;
+    const primaryGroup = exercise?.body_part_id || '';
+    const secondaryGroups = exercise?.secondary_muscle_group_ids || [];
 
+    // Get context-based warmup count
+    const desiredSteps = recommendedWarmupsFor(primaryGroup, secondaryGroups);
+    
     // Get intelligent target weight
     const targetWeight = await this.getIntelligentTargetWeight(
       workoutExerciseId,
@@ -120,8 +133,8 @@ export class SmartWarmupCalculator {
       userId
     );
 
-    // Generate 3-step warmup: 40%, 60%, 80%
-    const steps: SmartWarmupSet[] = [
+    // Define all possible warmup steps
+    const allSteps: SmartWarmupSet[] = [
       {
         id: 'W1',
         pct: 0.4,
@@ -145,7 +158,15 @@ export class SmartWarmupCalculator {
       }
     ];
 
-    console.log('🎯 SmartWarmupCalculator: Generated plan for target weight:', targetWeight, 'kg', steps);
+    // Take only the desired number of steps (from the end, so higher intensities)
+    const steps = allSteps.slice(-desiredSteps);
+
+    console.log('🎯 SmartWarmupCalculator: Generated plan for target weight:', targetWeight, 'kg', {
+      primaryGroup,
+      secondaryGroups,
+      desiredSteps,
+      steps
+    });
 
     return {
       strategy: 'ramped',
