@@ -28,10 +28,7 @@ export const AuthGuard = () => {
     return <Navigate to={Paths.auth} state={{ from: location }} replace />;
   }
 
-  // Check if user needs onboarding (excluding onboarding routes)
-  if (needsOnboarding && !location.pathname.startsWith('/onboarding') && !location.pathname.startsWith('/fitness/onboarding')) {
-    return <Navigate to="/onboarding" replace />;
-  }
+  // Onboarding check removed - allow access to templates without fitness setup
 
   // If user completed onboarding but still on onboarding routes, redirect to dashboard
   if (isComplete && (location.pathname.startsWith('/onboarding') || location.pathname.startsWith('/fitness/onboarding'))) {
