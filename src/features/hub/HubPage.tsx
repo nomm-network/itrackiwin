@@ -65,6 +65,7 @@ export default function HubPage() {
       <div className="grid grid-cols-3 gap-2 sm:gap-3">
         {hub.subs.slice(0, 5).map((s) => {
           const isActive = s.slug === activeSub;
+          const isConfigure = s.slug === 'configure';
           return (
             <Button
               key={s.slug}
@@ -72,7 +73,11 @@ export default function HubPage() {
               onClick={() =>
                 setSp({ cat: cat, sub: s.slug }, { replace: true })
               }
-              className="h-16 flex flex-col items-center gap-1 p-2"
+              className={`h-16 flex flex-col items-center gap-1 p-2 ${
+                isConfigure && !isActive 
+                  ? 'bg-muted/50 border-muted-foreground/20 hover:bg-muted/70' 
+                  : ''
+              }`}
             >
               <span className="text-lg">{s.icon || '📋'}</span>
               <span className="text-xs leading-tight text-center">
