@@ -9,6 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { saveTodayReadiness } from "@/lib/readiness";
 import { toast } from "sonner";
+import { useAuth } from "@/hooks/useAuth";
 
 export interface ReadinessData {
   energy: number;
@@ -29,6 +30,8 @@ interface ReadinessCheckInProps {
 }
 
 const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading = false }) => {
+  const { user } = useAuth();
+  
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ReadinessData>({
     defaultValues: {
       energy: 7,
@@ -50,6 +53,25 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
     const supplements = data.supplements || [];
     onSubmit({ ...data, supplements });
   };
+
+  // Show authentication message if user is not logged in
+  if (!user) {
+    return (
+      <Card className="w-full max-w-2xl mx-auto">
+        <CardHeader>
+          <CardTitle className="text-center">Please Log In</CardTitle>
+        </CardHeader>
+        <CardContent className="text-center">
+          <p className="text-muted-foreground mb-4">
+            You need to be logged in to track your readiness data.
+          </p>
+          <Button onClick={() => window.location.href = '/auth'}>
+            Go to Login
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <Card className="w-full max-w-2xl mx-auto">

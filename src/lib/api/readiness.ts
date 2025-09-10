@@ -19,6 +19,16 @@ export type ReadinessPayload = {
 export async function saveTodayReadiness(payload: ReadinessPayload): Promise<number> {
   console.log('🔄 Saving readiness via RPC:', payload);
   
+  // Check authentication first
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  
+  if (authError || !user) {
+    console.error('❌ Authentication error:', authError);
+    throw new Error('Please log in to save your readiness data');
+  }
+  
+  console.log('✅ User authenticated:', user.id);
+  
   const { data, error } = await supabase
     .rpc('upsert_readiness_today', {
       p_energy: payload.energy,
@@ -47,9 +57,11 @@ export async function saveTodayReadiness(payload: ReadinessPayload): Promise<num
  * Returns null if no readiness data exists for today
  */
 export async function fetchTodayReadiness(): Promise<number | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  // Check authentication first
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  if (!user) {
+  if (authError || !user) {
+    console.log('⚠️ Not authenticated, cannot fetch readiness');
     return null;
   }
 
@@ -81,9 +93,11 @@ export async function fetchTodayReadiness(): Promise<number | null> {
  * Fetch today's complete readiness form data for prefilling
  */
 export async function fetchTodayReadinessData(): Promise<Partial<ReadinessPayload> | null> {
-  const { data: { user } } = await supabase.auth.getUser();
+  // Check authentication first
+  const { data: { user }, error: authError } = await supabase.auth.getUser();
   
-  if (!user) {
+  if (authError || !user) {
+    console.log('⚠️ Not authenticated, cannot fetch readiness data');
     return null;
   }
 
