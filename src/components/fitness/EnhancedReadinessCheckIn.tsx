@@ -93,7 +93,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         sleep_hours: Math.max(0, Math.min(24, readinessData.sleep_hours || 8)),
         soreness: Math.max(0, Math.min(10, readinessData.soreness || 3)),
         stress: Math.max(0, Math.min(10, readinessData.stress || 3)),
-        mood: 6, // Default mood value
+        mood: Math.max(0, Math.min(10, readinessData.mood || 6)),
         energizers: !!readinessData.energisers_taken,
         illness: !!readinessData.illness,
         alcohol: !!readinessData.alcohol,

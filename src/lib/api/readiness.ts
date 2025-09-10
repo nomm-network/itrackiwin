@@ -12,7 +12,6 @@ export type ReadinessPayload = {
   alcohol: boolean;
 };
 
-// Returns 0–100
 export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
   console.group('🔥 READINESS API CALL');
   console.log('📤 Sending payload:', p);
