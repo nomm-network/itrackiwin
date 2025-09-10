@@ -31,19 +31,42 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReact
   const totalReactions = Object.values(counts).reduce((sum, count) => sum + count, 0);
 
   return (
-    <div className="flex items-center gap-2">
+    <div className="flex items-center gap-1 flex-wrap">
+      {/* Existing reaction badges */}
+      {Object.entries(counts).map(([reactionKey, count]) => {
+        if (count === 0) return null;
+        const reaction = REACTIONS.find(r => r.key === reactionKey);
+        if (!reaction) return null;
+        
+        const isUserReaction = currentReaction === reactionKey;
+        
+        return (
+          <Button
+            key={reactionKey}
+            variant="ghost"
+            size="sm"
+            onClick={() => handleSelect(reactionKey as 'like' | 'dislike' | 'muscle' | 'clap' | 'ok' | 'fire' | 'heart' | 'cheers' | 'thumbsup')}
+            className={`h-7 px-2 rounded-full text-xs font-medium transition-all hover:scale-105 ${
+              isUserReaction 
+                ? 'bg-primary/20 text-primary border border-primary/30' 
+                : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            <span className="mr-1">{reaction.label}</span>
+            <span>{count}</span>
+          </Button>
+        );
+      })}
+      
+      {/* Add reaction button */}
       <Popover open={open} onOpenChange={setOpen}>
         <PopoverTrigger asChild>
           <Button
             variant="ghost"
             size="sm"
-            className="h-8 px-2 text-sm hover:scale-110 transition-transform"
+            className="h-7 w-7 p-0 rounded-full text-lg hover:scale-110 transition-transform hover:bg-muted"
           >
-            {currentReaction ? 
-              REACTIONS.find(r => r.key === currentReaction)?.label || '👍' : 
-              '👍'
-            }
-            React
+            💪
           </Button>
         </PopoverTrigger>
         <PopoverContent className="w-auto p-2" align="start">
@@ -51,10 +74,10 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReact
             {REACTIONS.map((reaction) => (
               <Button
                 key={reaction.key}
-                variant={currentReaction === reaction.key ? 'default' : 'ghost'}
+                variant="ghost"
                 size="sm"
                 onClick={() => handleSelect(reaction.key)}
-                className="h-10 w-10 p-0 text-lg hover:scale-110 transition-transform"
+                className="h-10 w-10 p-0 text-lg hover:scale-110 transition-transform hover:bg-muted"
               >
                 {reaction.label}
               </Button>
@@ -62,12 +85,6 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReact
           </div>
         </PopoverContent>
       </Popover>
-      
-      {totalReactions > 0 && (
-        <span className="text-sm text-muted-foreground">
-          {totalReactions} reaction{totalReactions !== 1 ? 's' : ''}
-        </span>
-      )}
     </div>
   );
 };
