@@ -286,6 +286,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     step={1}
                     className="w-full"
                   />
+                  <input type="hidden" {...register("mood", { valueAsNumber: true })} />
                   <div className="flex justify-between text-xs text-muted-foreground">
                     <span>Low</span>
                     <span>Great</span>
