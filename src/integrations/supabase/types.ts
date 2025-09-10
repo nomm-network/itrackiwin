@@ -10193,6 +10193,20 @@ export type Database = {
         }
         Returns: number
       }
+      compute_readiness_score_v2: {
+        Args: {
+          p_alcohol: boolean
+          p_energizers: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+        }
+        Returns: number
+      }
       compute_targets_for_workout: {
         Args: { p_workout_id: string }
         Returns: undefined

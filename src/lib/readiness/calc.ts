@@ -1,77 +1,84 @@
-// Single source of truth for readiness calculation (0-100)
+// Readiness calculation using new formula (0-100)
 export type ReadinessInput = {
   energy: number;           // 0..10
   sleepQuality: number;     // 0..10
-  sleepHours: number;       // 0..12 (we'll map to 0..10)
+  sleepHours: number;       // actual hours
   soreness: number;         // 0..10  (LOWER is better)
   stress: number;           // 0..10  (LOWER is better)
-  preworkout: boolean;      // true = small boost
+  mood: number;             // 0..10
+  energizers: boolean;      // true = +10 bonus
+  illness: boolean;         // true = -20 penalty
+  alcohol: boolean;         // true = -10 penalty
 };
 
 const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 
-// Map hours → 0..10 (8h ≈ 10, 7h ≈ 8.5, 6h ≈ 7, <5 sharp drop)
-const sleepHoursTo10 = (h: number) => {
-  const x = clamp(h, 0, 12);
-  if (x >= 8) return 10;
-  if (x >= 7) return 8.5;
-  if (x >= 6) return 7;
-  if (x >= 5) return 5;
-  return Math.max(0, (x / 5) * 5); // 0..5
+// Map sleep hours to 0-100 scale (matches DB function)
+const mapSleepHours = (hours: number): number => {
+  if (hours >= 9) return 100;
+  if (hours >= 8) return 100;
+  if (hours === 7) return 80;
+  if (hours === 6) return 60;
+  if (hours === 5) return 40;
+  if (hours < 5) return 20;
+  return 60; // default
 };
 
 export function computeReadinessScore(i: ReadinessInput): number {
-  console.log('🔥 computeReadinessScore INPUT:', i);
+  console.log('🔥 computeReadinessScore INPUT (v2):', i);
   
-  // convert to 0..10 scales
-  const sleepH10 = sleepHoursTo10(i.sleepHours);
-  console.log('sleepH10:', sleepH10);
+  // Convert to 0-100 scales
+  const energyScore = Math.max(0, Math.min(100, (i.energy || 0) * 10));
+  const sleepQualityScore = Math.max(0, Math.min(100, (i.sleepQuality || 0) * 10));
+  const sleepHoursScore = mapSleepHours(i.sleepHours || 0);
+  const sorenessScore = Math.max(0, Math.min(100, 110 - (i.soreness || 10) * 10)); // invert: 1 best → 100
+  const stressScore = Math.max(0, Math.min(100, 110 - (i.stress || 10) * 10)); // invert: 1 best → 100
+  const moodScore = Math.max(0, Math.min(100, (i.mood || 0) * 10));
 
-  // invert negatives (lower is better → higher score)
-  const invSoreness = 10 - clamp(i.soreness, 0, 10);
-  const invStress   = 10 - clamp(i.stress,   0, 10);
-  console.log('inverted values - soreness:', invSoreness, 'stress:', invStress);
+  // Sleep bundle: 50/50 quality & hours
+  const sleepBundle = (sleepQualityScore * 0.5 + sleepHoursScore * 0.5);
 
-  // weights sum = 1.00
-  const w = {
-    energy: 0.30,
-    sleepQ: 0.25,
-    sleepH: 0.15,
-    soreness: 0.15,
-    stress: 0.10,
-    pre: 0.05, // applied as a capped bonus later
-  };
+  // New weights: Energy 15%, Sleep bundle 20%, Soreness 15%, Stress 15%, Mood 25%
+  const baseScore = 
+      energyScore * 0.15 +
+      sleepBundle * 0.20 +
+      sorenessScore * 0.15 +
+      stressScore * 0.15 +
+      moodScore * 0.25;
 
-  const base10 =
-      w.energy  * clamp(i.energy, 0, 10) +
-      w.sleepQ  * clamp(i.sleepQuality, 0, 10) +
-      w.sleepH  * sleepH10 +
-      w.soreness* invSoreness +
-      w.stress  * invStress;
-
-  console.log('base10 calculation:', base10);
-  console.log('individual components:', {
-    energy: w.energy * clamp(i.energy, 0, 10),
-    sleepQ: w.sleepQ * clamp(i.sleepQuality, 0, 10),
-    sleepH: w.sleepH * sleepH10,
-    soreness: w.soreness * invSoreness,
-    stress: w.stress * invStress
+  console.log('Score components:', {
+    energy: energyScore * 0.15,
+    sleepBundle: sleepBundle * 0.20,
+    soreness: sorenessScore * 0.15,
+    stress: stressScore * 0.15,
+    mood: moodScore * 0.25,
+    baseScore
   });
 
-  // convert to 0..100
-  let score = Math.round(base10 * 10);
-  console.log('score after x10:', score);
-
-  // preworkout/creatine small bonus (max +5)
-  if (i.preworkout) {
-    const bonus = Math.round(10 * w.pre);
-    console.log('preworkout bonus:', bonus);
-    score = Math.min(100, score + bonus);
+  // Apply bonuses and penalties
+  let finalScore = baseScore;
+  
+  // Energizers bonus: +10
+  if (i.energizers) {
+    finalScore += 10;
+    console.log('Energizers bonus: +10');
+  }
+  
+  // Illness penalty: -20
+  if (i.illness) {
+    finalScore -= 20;
+    console.log('Illness penalty: -20');
+  }
+  
+  // Alcohol penalty: -10
+  if (i.alcohol) {
+    finalScore -= 10;
+    console.log('Alcohol penalty: -10');
   }
 
-  const finalScore = clamp(score, 0, 100);
-  console.log('🎯 FINAL SCORE:', finalScore);
-  return finalScore;
+  const result = Math.round(clamp(finalScore, 0, 100));
+  console.log('🎯 FINAL SCORE (v2):', result);
+  return result;
 }
 
 // Helper function to get score color based on value

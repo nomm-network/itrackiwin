@@ -54,11 +54,11 @@ const FitnessReadiness: React.FC = () => {
             </div>
           ) : readinessScore !== null ? (
             <>
-              <div className={`text-3xl font-bold ${getScoreColor(readinessScore * 10)}`}>
-                {Math.round(readinessScore * 10)}/100
+              <div className={`text-3xl font-bold ${getScoreColor(readinessScore)}`}>
+                {Math.round(readinessScore)}/100
               </div>
               <div className="text-sm text-muted-foreground">
-                {getScoreDescription(readinessScore * 10)}
+                {getScoreDescription(readinessScore)}
               </div>
             </>
           ) : (
@@ -80,7 +80,7 @@ const FitnessReadiness: React.FC = () => {
                 <Battery className="h-3 w-3" />
                 Readiness
               </span>
-              <span>{Math.round(readinessScore * 10)}/100</span>
+              <span>{Math.round(readinessScore)}/100</span>
             </div>
           </div>
         )}
