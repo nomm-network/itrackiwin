@@ -2,7 +2,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { useStartWorkout } from "@/features/workouts/hooks";
-import type { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
+import type { EnhancedReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
 import type { EffortLevel } from "@/components/fitness/EffortSelector";
 
 export type WorkoutPhase = 'readiness' | 'active' | 'rest' | 'complete';
@@ -19,7 +19,7 @@ export interface WorkoutFlowState {
 }
 
 export interface WorkoutFlowActions {
-  startWorkout: (templateId?: string, readinessData?: ReadinessData) => Promise<void>;
+  startWorkout: (templateId?: string, readinessData?: EnhancedReadinessData) => Promise<void>;
   skipReadinessCheck: (templateId?: string) => Promise<void>;
   completeSet: (effort: EffortLevel) => void;
   reportPain: () => void;
@@ -45,7 +45,7 @@ export const useWorkoutFlow = (initialTemplateId?: string) => {
   });
 
   const actions: WorkoutFlowActions = {
-    startWorkout: useCallback(async (templateId?: string, readinessData?: ReadinessData) => {
+    startWorkout: useCallback(async (templateId?: string, readinessData?: EnhancedReadinessData) => {
       // Use the unified startWorkout function
       startWorkout({ templateId: templateId || initialTemplateId }, {
         onSuccess: (result) => {

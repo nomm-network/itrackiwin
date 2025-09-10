@@ -22,7 +22,7 @@ import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 
 import { useTranslations } from "@/hooks/useTranslations";
-import ReadinessCheckIn, { ReadinessData } from "@/components/fitness/ReadinessCheckIn";
+import EnhancedReadinessCheckIn, { EnhancedReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
 import { useShouldShowReadiness } from "@/features/health/fitness/hooks/useShouldShowReadiness";
 import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
@@ -257,13 +257,14 @@ const WorkoutSession: React.FC = () => {
     // Could log pain event here
   };
 
-  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
+  const handleReadinessSubmit = async (enhancedData: EnhancedReadinessData) => {
     try {
+      const { readiness } = enhancedData;
       // Calculate a simple readiness score (0-10 based on answers)
-      const score = calculateReadinessScore(readinessData);
+      const score = calculateReadinessScore(readiness);
       
       await createCheckin.mutateAsync({
-        answers: readinessData,
+        answers: readiness,
         readiness_score: score
       });
       
@@ -285,7 +286,7 @@ const WorkoutSession: React.FC = () => {
   };
 
   // Simple readiness score calculation
-  const calculateReadinessScore = (readinessData: ReadinessData): number => {
+  const calculateReadinessScore = (readinessData: any): number => {
     let score = 10;
     if (readinessData.illness) score -= 3;
     if (readinessData.sleep_quality < 5) score -= 2;
@@ -366,7 +367,8 @@ const WorkoutSession: React.FC = () => {
       <>
         <PageNav current="Pre-Workout Check" />
         <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
-          <ReadinessCheckIn
+          <EnhancedReadinessCheckIn
+            workoutId={id}
             onSubmit={handleReadinessSubmit}
           />
         </main>

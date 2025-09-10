@@ -51,7 +51,7 @@ export const ReadinessBadge: React.FC<ReadinessBadgeProps> = ({ className }) => 
       variant="outline" 
       className={`${className} ${getReadinessScoreColor(readinessScore)}`}
     >
-      {Math.round(readinessScore)}/100
+      {readinessScore}/100
     </Badge>
   );
 };

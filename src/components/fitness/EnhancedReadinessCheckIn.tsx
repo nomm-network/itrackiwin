@@ -13,6 +13,7 @@ import { useMissingEstimates, type MissingEstimate } from "@/features/workouts/h
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
+import { saveTodayReadiness } from "@/lib/api/readiness";
 
 export interface ReadinessData {
   energy: number;
@@ -86,14 +87,23 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
   const handleFormSubmit = async (readinessData: ReadinessData) => {
     try {
       console.log('🔍 EnhancedReadinessCheckIn: Submitting readiness data:', readinessData);
-      console.log('🔍 EnhancedReadinessCheckIn: Submitting estimates:', estimates);
       
-      const supplements = readinessData.supplements || [];
-      const enhancedData: EnhancedReadinessData = {
-        readiness: { ...readinessData, supplements },
-        estimates
-      };
-
+      // Save readiness data using the new API
+      const score = await saveTodayReadiness({
+        energy: readinessData.energy,
+        sleep_quality: readinessData.sleep_quality,
+        sleep_hours: readinessData.sleep_hours,
+        soreness: readinessData.soreness,
+        stress: readinessData.stress,
+        mood: 6, // Default mood value
+        energizers: !!readinessData.energisers_taken,
+        illness: !!readinessData.illness,
+        alcohol: !!readinessData.alcohol,
+      });
+      
+      console.log('✅ Readiness saved with score:', score);
+      toast.success(`Readiness logged: ${score}/100`);
+      
       // Save estimates to database if any exist
       if (Object.keys(estimates).length > 0 && user?.id) {
         console.log('🔍 EnhancedReadinessCheckIn: Saving estimates to database...');
@@ -121,10 +131,32 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         toast.success(`Saved estimates for ${Object.keys(estimates).length} exercises`);
       }
 
+      const supplements = readinessData.supplements || [];
+      const enhancedData: EnhancedReadinessData = {
+        readiness: { ...readinessData, supplements },
+        estimates
+      };
+
       onSubmit(enhancedData);
     } catch (error) {
       console.error('🔍 EnhancedReadinessCheckIn: Error in form submission:', error);
-      toast.error('Failed to submit readiness check');
+      
+      // Set detailed debug error
+      const errorDetails = {
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : null,
+        name: error instanceof Error ? error.name : 'UnknownError',
+        user: user ? { id: user.id, email: user.email } : 'Not authenticated',
+        workoutId: workoutId,
+        timestamp: new Date().toISOString(),
+        readinessData: readinessData,
+        estimates: estimates,
+        missingEstimatesCount: missingEstimates.length,
+        hasAllEstimates: hasAllEstimates
+      };
+      
+      setDebugError(JSON.stringify(errorDetails, null, 2));
+      toast.error('Failed to submit readiness check - Check debug info below');
     }
   };
 
@@ -383,34 +415,6 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
               type="submit"
               className="flex-1"
               disabled={isLoading || !hasAllEstimates}
-              onClick={handleSubmit(async (readinessData) => {
-                try {
-                  setDebugError(null); // Clear previous errors
-                  console.log('🚀 Enhanced form submitted with data:', readinessData);
-                  console.log('🚀 Enhanced estimates:', estimates);
-                  
-                  await handleFormSubmit(readinessData);
-                } catch (error) {
-                  console.error('❌ Enhanced Error:', error);
-                  
-                  // Detailed error information for debug box
-                  const errorDetails = {
-                    message: error instanceof Error ? error.message : 'Unknown error',
-                    stack: error instanceof Error ? error.stack : null,
-                    name: error instanceof Error ? error.name : 'UnknownError',
-                    user: user ? { id: user.id, email: user.email } : 'Not authenticated',
-                    workoutId: workoutId,
-                    timestamp: new Date().toISOString(),
-                    readinessData: readinessData,
-                    estimates: estimates,
-                    missingEstimatesCount: missingEstimates.length,
-                    hasAllEstimates: hasAllEstimates
-                  };
-                  
-                  setDebugError(JSON.stringify(errorDetails, null, 2));
-                  toast.error('Enhanced readiness save failed - Check debug info below');
-                }
-              })}
             >
               {isLoading ? "Starting..." : "Start Workout"}
             </Button>
