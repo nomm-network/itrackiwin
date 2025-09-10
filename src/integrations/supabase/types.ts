@@ -9585,6 +9585,7 @@ export type Database = {
           created_at: string | null
           default_pinned: boolean | null
           display_order: number | null
+          icon: string | null
           id: string | null
           route_name: string | null
           slug: string | null
