@@ -41,8 +41,8 @@ export function SessionHeaderMeta({
     <div className="flex items-center gap-2">
       {typeof readiness === 'number' && readiness > 0 ? (
         <div className="relative w-9 h-9 rounded-full grid place-items-center"
-             aria-label={`Readiness ${readiness}/100 - ${getReadinessScoreDescription(readiness)}`}
-             title={`Readiness: ${getReadinessScoreDescription(readiness)} (${Math.round(readiness)}/100)`}>
+             aria-label={`Readiness ${Math.round(readiness * 10)}/100 - ${getReadinessScoreDescription(readiness * 10)}`}
+             title={`Readiness: ${getReadinessScoreDescription(readiness * 10)} (${Math.round(readiness * 10)}/100)`}>
           {/* Circular progress ring */}
           <svg viewBox="0 0 36 36" className="absolute inset-0 w-9 h-9">
             <circle 
@@ -58,18 +58,18 @@ export function SessionHeaderMeta({
               cy="18" 
               r="16" 
               fill="none"
-              stroke={readiness >= 80 ? "hsl(var(--success))" : 
-                     readiness >= 60 ? "hsl(var(--warning))" : 
-                     readiness >= 40 ? "hsl(var(--orange))" : 
+              stroke={readiness * 10 >= 80 ? "hsl(var(--success))" : 
+                     readiness * 10 >= 60 ? "hsl(var(--warning))" : 
+                     readiness * 10 >= 40 ? "hsl(var(--orange))" : 
                      "hsl(var(--destructive))"} 
               strokeWidth="3"
-              strokeDasharray={`${Math.max(4, Math.min(100, readiness)) * 1.005}, 120`}
+              strokeDasharray={`${Math.max(4, Math.min(100, readiness * 10)) * 1.005}, 120`}
               className="transition-all duration-300"
               transform="rotate(-90 18 18)"
             />
           </svg>
-          <span className={`text-xs font-semibold relative z-10 ${getReadinessScoreColor(readiness)}`}>
-            {Math.round(readiness)}
+          <span className={`text-xs font-semibold relative z-10 ${getReadinessScoreColor(readiness * 10)}`}>
+            {Math.round(readiness * 10)}
           </span>
         </div>
       ) : (
