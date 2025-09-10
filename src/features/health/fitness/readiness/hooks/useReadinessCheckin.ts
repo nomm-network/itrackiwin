@@ -10,6 +10,7 @@ export interface ReadinessData {
   sleep_hours: number;
   soreness: number;
   stress: number;
+  mood: number;
   supplements: string[];
   estimatesByExercise?: Record<string, { weight: number; unit: string }>;
 }
@@ -46,6 +47,7 @@ export function useReadinessCheckin() {
             sleep_hours: data.sleep_hours,
             soreness: data.soreness,
             stress: data.stress,
+            mood: data.mood,
             supplements: data.supplements
           },
           readiness_score: score

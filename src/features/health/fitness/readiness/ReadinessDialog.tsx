@@ -35,6 +35,7 @@ export function ReadinessDialog({
     sleep_hours: 7,
     soreness: 25,
     stress: 25,
+    mood: 75,
     supplements: [],
     estimatesByExercise: {}
   });
@@ -119,6 +120,7 @@ export function ReadinessDialog({
         sleep_hours: 7,
         soreness: 25,
         stress: 25,
+        mood: 75,
         supplements: [],
         estimatesByExercise: {}
       });
@@ -225,6 +227,18 @@ export function ReadinessDialog({
             <Slider
               value={[formData.stress]}
               onValueChange={([value]) => setFormData(prev => ({ ...prev, stress: value }))}
+              max={100}
+              step={5}
+              className="w-full"
+            />
+          </div>
+
+          {/* Mood */}
+          <div className="space-y-2">
+            <Label>Mood Level: {formData.mood}%</Label>
+            <Slider
+              value={[formData.mood]}
+              onValueChange={([value]) => setFormData(prev => ({ ...prev, mood: value }))}
               max={100}
               step={5}
               className="w-full"

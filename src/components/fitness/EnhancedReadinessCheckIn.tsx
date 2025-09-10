@@ -21,6 +21,7 @@ export interface ReadinessData {
   sleep_hours: number;
   soreness: number;
   stress: number;
+  mood: number;
   illness: boolean;
   energisers_taken: boolean;
   alcohol: boolean;
