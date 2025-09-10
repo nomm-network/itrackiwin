@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -31,6 +31,7 @@ interface ReadinessCheckInProps {
 
 const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading = false }) => {
   const { user } = useAuth();
+  const [debugError, setDebugError] = useState<string | null>(null);
   
   const { register, handleSubmit, watch, setValue, formState: { errors } } = useForm<ReadinessData>({
     defaultValues: {
@@ -206,6 +207,28 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
             />
           </div>
 
+          {/* Debug Error Display */}
+          {debugError && (
+            <Card className="mt-4 border-destructive bg-destructive/10">
+              <CardHeader>
+                <CardTitle className="text-destructive text-sm">🐛 DEBUG ERROR DETAILS</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-40 text-destructive">
+                  {debugError}
+                </pre>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-2" 
+                  onClick={() => setDebugError(null)}
+                >
+                  Clear Debug
+                </Button>
+              </CardContent>
+            </Card>
+          )}
+
           <div className="flex gap-3 pt-4">
             <Button
               type="submit"
@@ -213,6 +236,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
               disabled={isLoading}
               onClick={handleSubmit(async (data) => {
                 try {
+                  setDebugError(null); // Clear previous errors
                   console.log('🚀 Form submitted with data:', data);
                   
                   const inputData = {
@@ -225,6 +249,7 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                   };
                   
                   console.log('🔄 Calling saveTodayReadiness with:', inputData);
+                  console.log('🔍 User authenticated:', !!user, user?.id);
                   
                   const score = await saveTodayReadiness(inputData);
                   
@@ -233,7 +258,27 @@ const ReadinessCheckIn: React.FC<ReadinessCheckInProps> = ({ onSubmit, isLoading
                   onSubmit(data);
                 } catch (error) {
                   console.error('❌ Error saving readiness:', error);
-                  toast.error('Failed to save readiness data');
+                  
+                  // Detailed error information for debug box
+                  const errorDetails = {
+                    message: error instanceof Error ? error.message : 'Unknown error',
+                    stack: error instanceof Error ? error.stack : null,
+                    name: error instanceof Error ? error.name : 'UnknownError',
+                    user: user ? { id: user.id, email: user.email } : 'Not authenticated',
+                    timestamp: new Date().toISOString(),
+                    formData: data,
+                    inputData: {
+                      energy: data.energy,
+                      sleepQuality: data.sleep_quality,
+                      sleepHours: data.sleep_hours,
+                      soreness: data.soreness,
+                      stress: data.stress,
+                      preworkout: data.energisers_taken,
+                    }
+                  };
+                  
+                  setDebugError(JSON.stringify(errorDetails, null, 2));
+                  toast.error('Failed to save readiness data - Check debug info below');
                 }
               })}
             >
