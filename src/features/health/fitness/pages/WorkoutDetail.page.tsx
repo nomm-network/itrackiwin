@@ -124,7 +124,7 @@ const WorkoutDetail: React.FC = () => {
   };
 
   const workoutDuration = formatWorkoutDuration(data.workout.started_at, data.workout.ended_at);
-  const recordsMade = prData?.totalRecords || 0;
+  const recordsMade = prData?.uniqueSetsWithRecords || 0;
 
   return (
     <>

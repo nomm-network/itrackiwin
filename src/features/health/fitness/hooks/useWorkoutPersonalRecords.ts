@@ -53,7 +53,8 @@ export const useWorkoutPersonalRecords = (workoutId: string) => {
       return {
         allRecords: data || [],
         recordsBySetId,
-        totalRecords: data?.length || 0
+        totalRecords: data?.length || 0,
+        uniqueSetsWithRecords: recordsBySetId.size // Count unique sets that have any PR
       };
     },
     enabled: !!workoutId
