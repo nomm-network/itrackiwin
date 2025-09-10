@@ -55,7 +55,8 @@ import PageNav from "@/components/PageNav";
 import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
 
 // Import readiness scoring utilities
-import { computeReadinessScore, getCurrentUserReadinessScore, saveTodayReadiness } from '@/lib/readiness';
+import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
+import { saveTodayReadiness } from '@/lib/api/readiness'; // Use the correct API function
 import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface WorkoutSessionProps {
@@ -502,11 +503,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       // Use the new RPC function to save readiness data
       const inputData = {
         energy: readiness.energy,
-        sleepQuality: readiness.sleep_quality, 
-        sleepHours: readiness.sleep_hours,
+        sleep_quality: readiness.sleep_quality, 
+        sleep_hours: readiness.sleep_hours,
         soreness: readiness.soreness,
         stress: readiness.stress,
-        preworkout: readiness.energisers_taken,
+        mood: readiness.mood || 6, // Use actual mood value from form
+        energizers: readiness.energisers_taken,
+        illness: readiness.illness || false, // Use actual illness value from form
+        alcohol: readiness.alcohol || false, // Use actual alcohol value from form
+        workout_id: workout.id, // Link to this specific workout
       };
       
       console.log('🔄 Calling saveTodayReadiness with:', inputData);
