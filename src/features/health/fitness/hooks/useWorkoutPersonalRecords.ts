@@ -5,14 +5,21 @@ export const useWorkoutPersonalRecords = (workoutId: string) => {
   return useQuery({
     queryKey: ['workout-personal-records', workoutId],
     queryFn: async () => {
+      console.log('Fetching PR data for workout:', workoutId);
+      
       // First get all workout exercise IDs for this workout
       const { data: workoutExercises, error: weError } = await supabase
         .from('workout_exercises')
         .select('id')
         .eq('workout_id', workoutId);
 
+      console.log('Workout exercises:', workoutExercises, 'Error:', weError);
+
       if (weError) throw weError;
-      if (!workoutExercises?.length) return { allRecords: [], recordsBySetId: new Map(), totalRecords: 0 };
+      if (!workoutExercises?.length) {
+        console.log('No workout exercises found');
+        return { allRecords: [], recordsBySetId: new Map(), totalRecords: 0, uniqueSetsWithRecords: 0 };
+      }
 
       // Get all workout set IDs for these exercises
       const { data: workoutSets, error: wsError } = await supabase
@@ -20,10 +27,15 @@ export const useWorkoutPersonalRecords = (workoutId: string) => {
         .select('id')
         .in('workout_exercise_id', workoutExercises.map(we => we.id));
 
-      if (wsError) throw wsError;
-      if (!workoutSets?.length) return { allRecords: [], recordsBySetId: new Map(), totalRecords: 0 };
+      console.log('Workout sets:', workoutSets, 'Error:', wsError);
 
-      // Get all personal records for these sets
+      if (wsError) throw wsError;
+      if (!workoutSets?.length) {
+        console.log('No workout sets found');
+        return { allRecords: [], recordsBySetId: new Map(), totalRecords: 0, uniqueSetsWithRecords: 0 };
+      }
+
+      // Get all personal records for these sets (RLS will filter by current user)
       const { data, error } = await supabase
         .from('personal_records')
         .select(`
@@ -33,10 +45,13 @@ export const useWorkoutPersonalRecords = (workoutId: string) => {
           unit,
           workout_set_id,
           exercise_id,
-          achieved_at
+          achieved_at,
+          user_id
         `)
         .in('workout_set_id', workoutSets.map(ws => ws.id))
         .not('workout_set_id', 'is', null);
+
+      console.log('Personal records query result:', data, 'Error:', error);
 
       if (error) throw error;
 
