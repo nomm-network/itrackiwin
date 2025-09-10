@@ -75,7 +75,7 @@ export default function HubPage() {
               }
               className={`h-16 flex flex-col items-center gap-1 p-2 ${
                 isConfigure && !isActive 
-                  ? 'bg-muted/50 border-muted-foreground/20 hover:bg-muted/70' 
+                  ? 'bg-muted/50 border-muted-foreground/30 hover:bg-muted/70 transition-colors' 
                   : ''
               }`}
             >
@@ -90,7 +90,11 @@ export default function HubPage() {
         <Button
           variant={activeSub === "configure" ? "default" : "outline"}
           onClick={() => setSp({ cat: cat, sub: "configure" }, { replace: true })}
-          className="h-16 flex flex-col items-center gap-1 p-2"
+          className={`h-16 flex flex-col items-center gap-1 p-2 ${
+            activeSub !== "configure" 
+              ? 'bg-muted/50 border-muted-foreground/30 hover:bg-muted/70 transition-colors' 
+              : ''
+          }`}
         >
           <span className="text-lg">⚙️</span>
           <span className="text-xs leading-tight text-center">

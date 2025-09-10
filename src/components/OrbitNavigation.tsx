@@ -326,13 +326,14 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       const {
         data,
         error
-      } = await (supabase as any).from("v_subcategories_with_translations").select("id, category_id, translations, display_order").order("display_order", {
+      } = await (supabase as any).from("v_subcategories_with_translations").select("id, category_id, translations, display_order, icon").order("display_order", {
         ascending: true
       });
       if (error) throw error;
       return (data ?? []) as Array<{
         id: string;
         category_id: string;
+        icon: string | null;
         translations: Record<string, { name: string; description?: string }> | null;
       }>;
     }
@@ -420,22 +421,24 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       id: string;
       category_id: string;
       name: string;
+      icon: string | null;
     }> = {};
     for (const s of subcategories) {
       const name = getTranslatedName(s);
-      m[s.id] = { id: s.id, category_id: s.category_id, name };
+      m[s.id] = { id: s.id, category_id: s.category_id, name, icon: s.icon };
     }
     return m;
   }, [subcategories, getTranslatedName]);
   const pinnedItems = useMemo(() => {
     const defaults = ["Fitness & exercise", "Long-term wealth building", "Romantic life"];
-    let list = pins.length ? pins.map(p => subById[p.subcategory_id]).filter(Boolean) : defaults.map(n => subcategories.find(s => getTranslatedName(s) === n)).filter(Boolean).map(s => ({ id: s.id, category_id: s.category_id, name: getTranslatedName(s) }));
+    let list = pins.length ? pins.map(p => subById[p.subcategory_id]).filter(Boolean) : defaults.map(n => subcategories.find(s => getTranslatedName(s) === n)).filter(Boolean).map(s => ({ id: s.id, category_id: s.category_id, name: getTranslatedName(s), icon: s.icon }));
     // dedupe by id and limit 3
     const seen = new Set<string>();
     const final: Array<{
       id: string;
       category_id: string;
       name: string;
+      icon: string | null;
     }> = [];
     for (const s of list) {
       if (!s || seen.has(s.id)) continue;
@@ -491,7 +494,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
           console.log('🌍 OrbitNavigation: Navigating to /subcategory/' + sub);
           navigate(`/subcategory/${sub}`);
         }}>
-              <span className="mr-1" aria-hidden>{subcategoryIcon(s.name)}</span>
+              <span className="mr-1" aria-hidden>{s.icon || subcategoryIcon(s.name)}</span>
               {s.name}
             </button>;
       })}
