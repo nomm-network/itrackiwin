@@ -1,5 +1,5 @@
-// Import the new optimized API functions
-import { saveTodayReadiness as saveReadinessAPI, fetchTodayReadiness } from './api/readiness';
+// Import the optimized API functions
+import { fetchTodayReadiness } from './api/readiness';
 import { computeReadinessScore, type ReadinessInput } from './readiness/calc';
 import { useReadinessStore, type ReadinessState } from '@/stores/readinessStore';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,48 +9,7 @@ export type ReadinessInputs = ReadinessInput;
 // Re-export the main calculator and API functions
 export { computeReadinessScore } from './readiness/calc';
 export { fetchTodayReadiness } from './api/readiness';
-
-/**
- * Save today's readiness data using the new RPC function
- * This is the main function used by the UI components
- */
-export async function saveTodayReadiness(input: ReadinessInput): Promise<number> {
-  console.log('💾 saveTodayReadiness called with input:', input);
-  
-  // Convert ReadinessInput to ReadinessPayload format
-  const payload = {
-    energy: input.energy,
-    sleep_quality: input.sleepQuality,
-    sleep_hours: input.sleepHours,
-    soreness: input.soreness,
-    stress: input.stress,
-    mood: 6, // Default mood value - can be enhanced later
-    energizers: input.preworkout,
-    illness: false, // Not currently captured in ReadinessInput
-    alcohol: false, // Not currently captured in ReadinessInput
-  };
-
-  // Use the new RPC-based API
-  const score = await saveReadinessAPI(payload);
-  
-  // Update store immediately
-  const today = new Date().toISOString().slice(0, 10);
-  const storePayload = {
-    date: today,
-    score,
-    energy: input.energy,
-    sleepQuality: input.sleepQuality,
-    sleepHours: input.sleepHours,
-    soreness: input.soreness,
-    stress: input.stress,
-    preworkout: input.preworkout,
-  };
-  
-  console.log('🏪 Updating store with:', storePayload);
-  useReadinessStore.getState().setReadiness(storePayload);
-
-  return score;
-}
+export { saveTodayReadiness } from './api/readiness'; // Re-export the correct function
 
 /**
  * Load today's readiness data for the current user
