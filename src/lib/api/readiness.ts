@@ -54,7 +54,7 @@ export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
   
   console.log('✅ SUCCESS - Received data:', data);
   console.groupEnd();
-  return Number(data ?? 0); // 0–100
+  return Number(data ?? 0); // 0–100 directly from new function
 }
 
 export async function fetchTodayReadiness(): Promise<number|null> {
@@ -75,5 +75,5 @@ export async function fetchTodayReadiness(): Promise<number|null> {
   }
   if (!data) return null;
 
-  return Math.round(Number(data.score ?? 0) * 10); // convert 0–10 → 0–100
+  return Number(data.score ?? 0); // Already 0–100 from new function
 }

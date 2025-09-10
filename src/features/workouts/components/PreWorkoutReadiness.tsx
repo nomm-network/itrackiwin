@@ -15,6 +15,7 @@ interface ReadinessData {
   sleep_hours: number; // hours
   soreness: number; // 1-10 scale
   stress: number; // 1-10 scale
+  mood: number; // 1-10 scale
   illness: boolean;
   alcohol: boolean;
   supplements: string[];
@@ -31,6 +32,7 @@ const energyLabels = ['Dead', 'Low', 'Tired', 'OK', 'Good', 'Great', 'High', 'Pe
 const sleepLabels = ['Terrible', 'Poor', 'Bad', 'Below Avg', 'Average', 'Good', 'Great', 'Excellent', 'Perfect', 'Best Ever'];
 const sorenessLabels = ['None', 'Minimal', 'Light', 'Mild', 'Moderate', 'Noticeable', 'Significant', 'High', 'Severe', 'Extreme'];
 const stressLabels = ['Zen', 'Calm', 'Relaxed', 'Normal', 'Mild', 'Moderate', 'Elevated', 'High', 'Very High', 'Overwhelmed'];
+const moodLabels = ['Awful', 'Terrible', 'Bad', 'Poor', 'Low', 'Okay', 'Good', 'Great', 'Excellent', 'Amazing'];
 
 const commonSupplements = ['Caffeine', 'Creatine', 'Pre-workout', 'Protein', 'BCAA', 'Beta-alanine', 'Citrulline', 'Vitamin D'];
 
@@ -41,6 +43,7 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
     sleep_hours: 7.5,
     soreness: 3,
     stress: 4,
+    mood: 6,
     illness: false,
     alcohol: false,
     supplements: [],
@@ -180,6 +183,26 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
               step={1}
             />
           </div>
+        </div>
+
+        {/* Mood */}
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <Label className="flex items-center gap-2">
+              😊 Mood
+            </Label>
+            <Badge variant="outline">
+              {moodLabels[data.mood - 1]} ({data.mood}/10)
+            </Badge>
+          </div>
+          <Slider
+            value={[data.mood]}
+            onValueChange={(value) => handleSliderChange('mood', value)}
+            max={10}
+            min={1}
+            step={1}
+            className="w-full"
+          />
         </div>
 
         <Separator />

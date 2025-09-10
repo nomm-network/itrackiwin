@@ -10175,6 +10175,20 @@ export type Database = {
         Args: { p_at: string; p_user_id: string }
         Returns: number
       }
+      compute_readiness_from_values: {
+        Args: {
+          p_alcohol: boolean
+          p_energizers: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+        }
+        Returns: number
+      }
       compute_readiness_score: {
         Args: {
           p_alcohol: boolean
