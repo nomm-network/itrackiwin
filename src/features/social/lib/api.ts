@@ -77,30 +77,23 @@ export async function toggleReaction(postId: string, kind: 'like' | 'dislike' | 
     .select('kind')
     .eq('post_id', postId)
     .eq('user_id', user.id)
+    .eq('kind', kind)
     .maybeSingle();
 
   if (!existing) {
+    // Add this reaction
     const { error } = await supabase
       .from('social_reactions')
       .insert({ post_id: postId, user_id: user.id, kind });
     if (error) throw error;
-    return;
-  }
-
-  // Same kind -> remove (toggle off). Different kind -> switch
-  if (existing.kind === kind) {
+  } else {
+    // Remove this specific reaction (toggle off)
     const { error } = await supabase
       .from('social_reactions')
       .delete()
       .eq('post_id', postId)
-      .eq('user_id', user.id);
-    if (error) throw error;
-  } else {
-    const { error } = await supabase
-      .from('social_reactions')
-      .update({ kind })
-      .eq('post_id', postId)
-      .eq('user_id', user.id);
+      .eq('user_id', user.id)
+      .eq('kind', kind);
     if (error) throw error;
   }
 }
@@ -119,16 +112,15 @@ export async function removeReaction(postId: string) {
 
 export async function getUserReactionForPost(postId: string) {
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) return [];
 
   const { data, error } = await supabase
     .from('social_reactions')
     .select('kind')
     .eq('post_id', postId)
-    .eq('user_id', user.id)
-    .maybeSingle();
+    .eq('user_id', user.id);
   if (error) throw error;
-  return data?.kind || null;
+  return data?.map(r => r.kind) || [];
 }
 
 export async function fetchPostMeta(postId: string) {

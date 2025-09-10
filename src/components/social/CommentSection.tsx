@@ -215,18 +215,35 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommen
   const loadComments = async () => {
     try {
       const data = await fetchComments(postId);
-      // Fetch author profiles for each comment
+      
+      // Fetch author profiles and comment metadata for popularity sorting
       const commentsWithProfiles = await Promise.all(
         data.map(async (comment: any) => {
           try {
-            const profile = await getUserProfile(comment.user_id);
-            return { ...comment, author: profile };
+            const [profile, meta] = await Promise.all([
+              getUserProfile(comment.user_id),
+              fetchCommentMeta(comment.id)
+            ]);
+            return { 
+              ...comment, 
+              author: profile,
+              popularity: meta.repliesCount + Object.values(meta.counts).reduce((sum, count) => sum + count, 0)
+            };
           } catch {
-            return { ...comment, author: null };
+            return { ...comment, author: null, popularity: 0 };
           }
         })
       );
-      setComments(commentsWithProfiles as Comment[]);
+      
+      // Sort by popularity (replies + reactions), then by creation date
+      const sortedComments = commentsWithProfiles.sort((a, b) => {
+        if (b.popularity !== a.popularity) {
+          return b.popularity - a.popularity;
+        }
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
+      
+      setComments(sortedComments as Comment[]);
     } catch (error) {
       console.error('Error loading comments:', error);
     }
@@ -248,13 +265,15 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommen
     }
   };
 
-  const displayedComments = showAllComments ? comments : comments.slice(0, 1);
+  // Always show first comment if exists, then option to show all
+  const shouldShowFirstComment = comments.length > 0;
+  const displayedComments = showAllComments ? comments : (shouldShowFirstComment ? [comments[0]] : []);
   const hasMoreComments = comments.length > 1;
 
   return (
     <div className="space-y-3">
-      {/* Comments Display */}
-      {comments.length > 0 && (
+      {/* Comments Display - Always show first comment */}
+      {shouldShowFirstComment && (
         <div className="space-y-3">
           {displayedComments.map((comment) => (
             <CommentItem key={comment.id} comment={comment} />

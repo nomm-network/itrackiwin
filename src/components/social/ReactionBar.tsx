@@ -11,7 +11,7 @@ interface ReactionBarProps {
 }
 
 export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
-  const [userReaction, setUserReaction] = useState<string | null>(null);
+  const [userReactions, setUserReactions] = useState<string[]>([]);
   const [reactionCounts, setReactionCounts] = useState<Record<string, number>>({});
   const [commentsCount, setCommentsCount] = useState(0);
   const queryClient = useQueryClient();
@@ -19,11 +19,11 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [reaction, meta] = await Promise.all([
+        const [reactions, meta] = await Promise.all([
           getUserReactionForPost(post.id),
           fetchPostMeta(post.id)
         ]);
-        setUserReaction(reaction);
+        setUserReactions(reactions);
         setReactionCounts(meta.counts);
         setCommentsCount(meta.commentsCount);
       } catch (error) {
@@ -38,11 +38,11 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
       await toggleReaction(post.id, reactionType as any);
     },
     onSuccess: async () => {
-      const [newReaction, meta] = await Promise.all([
+      const [newReactions, meta] = await Promise.all([
         getUserReactionForPost(post.id),
         fetchPostMeta(post.id)
       ]);
-      setUserReaction(newReaction);
+      setUserReactions(newReactions);
       setReactionCounts(meta.counts);
       setCommentsCount(meta.commentsCount);
       queryClient.invalidateQueries({ queryKey: ['social-feed'] });
@@ -61,7 +61,7 @@ export const ReactionBar: React.FC<ReactionBarProps> = ({ post }) => {
     <div className="flex items-center">
       <EmojiPicker 
         onSelect={handleReaction}
-        currentReaction={userReaction}
+        currentReactions={userReactions}
         counts={reactionCounts}
       />
     </div>

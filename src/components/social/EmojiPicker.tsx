@@ -16,11 +16,11 @@ const REACTIONS = [
 
 interface EmojiPickerProps {
   onSelect: (reaction: 'like' | 'dislike' | 'muscle' | 'clap' | 'ok' | 'fire' | 'heart' | 'cheers' | 'thumbsup') => void;
-  currentReaction?: string | null;
+  currentReactions?: string[];
   counts?: Record<string, number>;
 }
 
-export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReaction, counts = {} }) => {
+export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReactions = [], counts = {} }) => {
   const [open, setOpen] = useState(false);
 
   const handleSelect = (reactionKey: 'like' | 'dislike' | 'muscle' | 'clap' | 'ok' | 'fire' | 'heart' | 'cheers' | 'thumbsup') => {
@@ -38,7 +38,7 @@ export const EmojiPicker: React.FC<EmojiPickerProps> = ({ onSelect, currentReact
         const reaction = REACTIONS.find(r => r.key === reactionKey);
         if (!reaction) return null;
         
-        const isUserReaction = currentReaction === reactionKey;
+        const isUserReaction = currentReactions.includes(reactionKey);
         
         return (
           <Button
