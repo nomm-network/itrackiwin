@@ -1,5 +1,5 @@
 import { useNavigate } from 'react-router-dom';
-import { useActiveWorkout } from '../hooks/useActiveWorkout';
+import { useActiveWorkout } from '../api/workouts.api';
 import { useStartWorkout } from '../hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';

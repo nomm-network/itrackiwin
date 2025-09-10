@@ -25,6 +25,9 @@ export interface ReadinessData {
   illness: boolean;
   energisers_taken: boolean;
   alcohol: boolean;
+  // Optional fields for backward compatibility
+  supplements?: string[];
+  notes?: string;
 }
 
 export interface EstimateData {

@@ -9,18 +9,8 @@ import { Separator } from '@/components/ui/separator';
 import { Slider } from '@/components/ui/slider';
 import { Battery, Moon, Zap, AlertTriangle, Wine, Pill } from 'lucide-react';
 
-interface ReadinessData {
-  energy: number; // 1-10 scale
-  sleep_quality: number; // 1-10 scale
-  sleep_hours: number; // hours
-  soreness: number; // 1-10 scale
-  stress: number; // 1-10 scale
-  mood: number; // 1-10 scale
-  illness: boolean;
-  alcohol: boolean;
-  supplements: string[];
-  notes?: string;
-}
+// Use the main ReadinessData interface instead of duplicate
+import type { ReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
 
 interface PreWorkoutReadinessProps {
   onSubmit: (data: ReadinessData) => void;
@@ -46,8 +36,9 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
     mood: 6,
     illness: false,
     alcohol: false,
-    supplements: [],
-    notes: ''
+    energisers_taken: false, // Add missing required field
+    supplements: [], // Add as optional
+    notes: '', // Add as optional
   });
 
   const handleSliderChange = (field: keyof ReadinessData, value: number[]) => {

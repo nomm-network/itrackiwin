@@ -55,7 +55,7 @@ export {
   useExercises, 
   useExercise, 
   useWorkouts, 
-  useWorkout,
+  // useWorkout, // REMOVED: duplicate - use the one from workouts.api.ts
   useCreateWorkout,
   useCreateWorkoutSet,
   useUpdateWorkoutSet

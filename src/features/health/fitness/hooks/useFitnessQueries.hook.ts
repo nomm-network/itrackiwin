@@ -37,13 +37,7 @@ export const useWorkouts = (userId: string) => {
   });
 };
 
-export const useWorkout = (id: string) => {
-  return useQuery({
-    queryKey: fitnessKeys.workout(id),
-    queryFn: () => fetchWorkout(id),
-    enabled: !!id,
-  });
-};
+// DUPLICATE REMOVED: useWorkout - use the one from workouts.api.ts
 
 // Workout mutations
 export const useCreateWorkout = () => {

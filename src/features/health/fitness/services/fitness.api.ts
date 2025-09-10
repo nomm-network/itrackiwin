@@ -352,16 +352,7 @@ export const useRecentWorkouts = (limit = 5) => {
 
 // CLEANED: All legacy workout start functions removed - use useStartWorkout from workouts.api.ts
 
-export const useEndWorkout = () => {
-  const qc = useQueryClient();
-  return useMutation({
-    mutationFn: async (workoutId: UUID) => {
-      const { error } = await supabase.rpc("end_workout", { p_workout_id: workoutId });
-      if (error) throw error;
-    },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ["workouts"] }),
-  });
-};
+// DUPLICATE REMOVED: useEndWorkout - use the one from workouts.api.ts
 
 export const useUpdateWorkout = () => {
   const qc = useQueryClient();
