@@ -10324,7 +10324,7 @@ export type Database = {
         }[]
       }
       fn_compute_readiness_score_v1: {
-        Args: { p_checkin_id: string; p_persist?: boolean }
+        Args: { p_checkin_id: string; p_persist: boolean }
         Returns: number
       }
       fn_detect_stagnation: {
