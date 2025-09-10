@@ -18,8 +18,11 @@ export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
   console.log('📤 RAW PAYLOAD RECEIVED:', p);
   console.log('📤 ILLNESS IN PAYLOAD:', p.illness, typeof p.illness);
   console.log('📤 ALCOHOL IN PAYLOAD:', p.alcohol, typeof p.alcohol);
+  console.log('📤 MOOD IN PAYLOAD:', p.mood, typeof p.mood);
   console.log('📤 ENERGIZERS IN PAYLOAD:', p.energizers, typeof p.energizers);
-  console.log('📤 RPC parameters:', {
+  
+  // EXPLICIT DEBUGGING FOR THE EXACT RPC CALL
+  const rpcParams = {
     p_energy: p.energy,
     p_sleep_quality: p.sleep_quality,
     p_sleep_hours: p.sleep_hours,
@@ -30,20 +33,14 @@ export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
     p_illness: p.illness,
     p_alcohol: p.alcohol,
     p_workout_id: p.workout_id || null,
-  });
+  };
   
-  const { data, error } = await supabase.rpc('upsert_readiness_today', {
-    p_energy:        p.energy,
-    p_sleep_quality: p.sleep_quality,
-    p_sleep_hours:   p.sleep_hours,
-    p_soreness:      p.soreness,
-    p_stress:        p.stress,
-    p_mood:          p.mood,
-    p_energizers:    p.energizers,
-    p_illness:       p.illness,
-    p_alcohol:       p.alcohol,
-    p_workout_id:    p.workout_id || null, // Pass workout_id if provided
-  });
+  console.log('📤 EXACT RPC PARAMETERS BEING SENT:', rpcParams);
+  console.log('📤 MOOD PARAMETER:', rpcParams.p_mood, typeof rpcParams.p_mood);
+  console.log('📤 ILLNESS PARAMETER:', rpcParams.p_illness, typeof rpcParams.p_illness);
+  console.log('📤 ALCOHOL PARAMETER:', rpcParams.p_alcohol, typeof rpcParams.p_alcohol);
+  
+  const { data, error } = await supabase.rpc('upsert_readiness_today', rpcParams);
   
   if (error) {
     console.error('❌ SUPABASE RPC ERROR:', {
