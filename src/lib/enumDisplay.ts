@@ -307,7 +307,7 @@ export const appRoleDisplay: EnumDisplayConfig = {
 export const healthSubcategoryDisplay: EnumDisplayConfig = {
   fitness: {
     key: 'enum.health.fitness',
-    icon: '💪',
+    icon: '🏋️',
     color: 'green'
   },
   nutrition: {
@@ -317,13 +317,13 @@ export const healthSubcategoryDisplay: EnumDisplayConfig = {
   },
   sleep: {
     key: 'enum.health.sleep',
-    icon: '😴',
+    icon: '🛏️',
     color: 'purple'
   },
   medical: {
     key: 'enum.health.medical',
-    icon: '🩺',
-    color: 'red'
+    icon: '💎',
+    color: 'blue'
   },
   energy: {
     key: 'enum.health.energy',
