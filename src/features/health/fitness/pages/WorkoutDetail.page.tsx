@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useWorkoutDetail, useUpdateWorkout, useDeleteWorkout } from "@/features/health/fitness/services/fitness.api";
-import { Edit2, Trash2, Clock, Trophy } from "lucide-react";
+import { Edit2, Trash2, Clock, Trophy, Dumbbell } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import { getExerciseNameFromTranslations } from "@/utils/exerciseTranslations";
 import type { WarmupPlan } from "@/features/workouts/types/warmup";
@@ -134,7 +134,9 @@ const WorkoutDetail: React.FC = () => {
       <PageNav current="Workout Details" />
       <main className="container py-8 space-y-6">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold">{data.workout.title || 'Workout'}</h1>
+          <h1 className="text-2xl font-semibold">
+            {data.workout.title || data.workout.template?.name || 'Workout'}
+          </h1>
           <div className="flex gap-2">
             <Button variant="outline" size="sm" onClick={handleEdit}>
               <Edit2 className="mr-1 h-4 w-4" />
@@ -160,6 +162,7 @@ const WorkoutDetail: React.FC = () => {
             Records made: {recordsMade}
           </Badge>
           <Badge variant="secondary" className="text-sm py-2 px-3">
+            <Dumbbell className="h-4 w-4 mr-2" />
             {exerciseCount} exercises, {totalSets} sets in total
           </Badge>
         </div>
