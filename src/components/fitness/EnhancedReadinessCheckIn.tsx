@@ -88,20 +88,23 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
     try {
       console.log('🔍 EnhancedReadinessCheckIn: Submitting readiness data:', readinessData);
       
-      // Save readiness data using the new API
-      const score = await saveTodayReadiness({
-        energy: readinessData.energy,
-        sleep_quality: readinessData.sleep_quality,
-        sleep_hours: readinessData.sleep_hours,
-        soreness: readinessData.soreness,
-        stress: readinessData.stress,
+      // Ensure all values are within valid ranges and not null/undefined
+      const cleanData = {
+        energy: Math.max(0, Math.min(10, readinessData.energy || 5)),
+        sleep_quality: Math.max(0, Math.min(10, readinessData.sleep_quality || 5)),
+        sleep_hours: Math.max(0, Math.min(24, readinessData.sleep_hours || 8)),
+        soreness: Math.max(0, Math.min(10, readinessData.soreness || 3)),
+        stress: Math.max(0, Math.min(10, readinessData.stress || 3)),
         mood: 6, // Default mood value
         energizers: !!readinessData.energisers_taken,
         illness: !!readinessData.illness,
         alcohol: !!readinessData.alcohol,
-      });
+      };
       
-      console.log('✅ Readiness saved with score:', score);
+      console.log('🔍 Clean data being sent to API:', cleanData);
+      
+      // Save readiness data using the new API
+      const score = await saveTodayReadiness(cleanData);
       toast.success(`Readiness logged: ${score}/100`);
       
       // Save estimates to database if any exist
@@ -196,12 +199,12 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {/* Energy Level */}
                 <div className="space-y-2">
-                  <Label>Energy Level: {watchedValues.energy}/10</Label>
+                  <Label>Energy Level: {watchedValues.energy || 0}/10</Label>
                   <Slider
-                    value={[watchedValues.energy]}
+                    value={[watchedValues.energy || 7]}
                     onValueChange={(value) => setValue("energy", value[0])}
                     max={10}
-                    min={1}
+                    min={0}
                     step={1}
                     className="w-full"
                   />
@@ -213,12 +216,12 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
 
                 {/* Sleep Quality */}
                 <div className="space-y-2">
-                  <Label>Sleep Quality: {watchedValues.sleep_quality}/10</Label>
+                  <Label>Sleep Quality: {watchedValues.sleep_quality || 0}/10</Label>
                   <Slider
-                    value={[watchedValues.sleep_quality]}
+                    value={[watchedValues.sleep_quality || 7]}
                     onValueChange={(value) => setValue("sleep_quality", value[0])}
                     max={10}
-                    min={1}
+                    min={0}
                     step={1}
                     className="w-full"
                   />
