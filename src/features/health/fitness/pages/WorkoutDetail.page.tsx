@@ -198,7 +198,7 @@ const WorkoutDetail: React.FC = () => {
               <Card key={ex.id}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">
-                    <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index + 1} />
+                    <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index} />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
