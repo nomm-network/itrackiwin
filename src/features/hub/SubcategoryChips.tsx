@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from '@/components/ui/button';
+import { healthSubcategoryDisplay } from '@/lib/enumDisplay';
 
 export type Chip = { slug: string; label: string };
 
@@ -16,6 +17,9 @@ export default function SubcategoryChips({ hubSlug, chips }:{
       {chips.slice(0, 5).map((c) => {
         const slug = c.slug.toLowerCase();
         const isActive = slug === active;
+        const iconDisplay = healthSubcategoryDisplay[slug];
+        const icon = iconDisplay?.icon || '📋';
+        
         return (
           <Button
             key={slug}
@@ -23,7 +27,7 @@ export default function SubcategoryChips({ hubSlug, chips }:{
             onClick={() => navigate(`/dashboard?cat=${hubSlug}&sub=${slug}`)}
             className="h-16 flex flex-col items-center gap-1 p-2"
           >
-            <span className="text-lg">📋</span>
+            <span className="text-lg">{icon}</span>
             <span className="text-xs leading-tight text-center">
               {c.label}
             </span>
