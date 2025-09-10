@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 
-export type HubSub = { slug: string; label: string };
+export type HubSub = { slug: string; label: string; icon?: string };
 export type HubMeta = { slug: string; name: string; subs: HubSub[] };
 
 function firstWord(s: string) {
@@ -105,7 +105,7 @@ export function useHubMeta(categorySlug: string): HubMeta | null {
       // Get subcategories
       const { data: subcategories } = await supabase
         .from("v_subcategories_with_translations")
-        .select("slug, translations, display_order")
+        .select("slug, translations, display_order, icon")
         .eq("category_id", cat.id)
         .order("display_order", { ascending: true });
 
@@ -117,11 +117,12 @@ export function useHubMeta(categorySlug: string): HubMeta | null {
             return {
               slug: (s.slug || "").toLowerCase(),
               label: firstWord(fullName),
+              icon: s.icon || '📋',
             };
           }) ?? [];
 
       if (!subs.some((s: HubSub) => s.slug === "configure")) {
-        subs.push({ slug: "configure", label: "Configure" });
+        subs.push({ slug: "configure", label: "Configure", icon: "⚙️" });
       }
 
       const catTranslations = cat.translations as any;

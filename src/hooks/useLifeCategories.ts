@@ -25,6 +25,7 @@ export interface LifeSubcategory {
   name: string;
   description: string;
   display_order: number;
+  icon: string | null;
   translations: Record<string, { name: string; description: string }>;
 }
 
@@ -71,6 +72,7 @@ export function useLifeSubcategories(language: string = 'en') {
         name: subcategory.translations?.[language]?.name || subcategory.translations?.en?.name || 'Unnamed Subcategory',
         description: subcategory.translations?.[language]?.description || subcategory.translations?.en?.description || '',
         display_order: subcategory.display_order,
+        icon: subcategory.icon || getDefaultSubcategoryIcon(subcategory.slug, null),
         translations: subcategory.translations
       })) as LifeSubcategory[];
     }

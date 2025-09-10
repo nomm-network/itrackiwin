@@ -3681,6 +3681,7 @@ export type Database = {
           created_at: string
           default_pinned: boolean | null
           display_order: number
+          icon: string | null
           id: string
           route_name: string | null
           slug: string | null
@@ -3691,6 +3692,7 @@ export type Database = {
           created_at?: string
           default_pinned?: boolean | null
           display_order?: number
+          icon?: string | null
           id?: string
           route_name?: string | null
           slug?: string | null
@@ -3701,6 +3703,7 @@ export type Database = {
           created_at?: string
           default_pinned?: boolean | null
           display_order?: number
+          icon?: string | null
           id?: string
           route_name?: string | null
           slug?: string | null

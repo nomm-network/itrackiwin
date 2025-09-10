@@ -303,40 +303,6 @@ export const appRoleDisplay: EnumDisplayConfig = {
   }
 };
 
-// Health subcategory enum display
-export const healthSubcategoryDisplay: EnumDisplayConfig = {
-  fitness: {
-    key: 'enum.health.fitness',
-    icon: '🏋️',
-    color: 'green'
-  },
-  nutrition: {
-    key: 'enum.health.nutrition',
-    icon: '🍎',
-    color: 'orange'
-  },
-  sleep: {
-    key: 'enum.health.sleep',
-    icon: '🛏️',
-    color: 'purple'
-  },
-  medical: {
-    key: 'enum.health.medical',
-    icon: '💎',
-    color: 'blue'
-  },
-  energy: {
-    key: 'enum.health.energy',
-    icon: '⚡',
-    color: 'yellow'
-  },
-  configure: {
-    key: 'enum.health.configure',
-    icon: '⚙️',
-    color: 'gray'
-  }
-};
-
 // Map of all enum displays for easy access
 export const enumDisplayMaps = {
   sex: sexDisplay,
@@ -349,8 +315,7 @@ export const enumDisplayMaps = {
   weight_unit: weightUnitDisplay,
   body_side: bodySideDisplay,
   injury_severity: injurySeverityDisplay,
-  app_role: appRoleDisplay,
-  health_subcategory: healthSubcategoryDisplay
+  app_role: appRoleDisplay
 } as const;
 
 export type EnumDisplayMapKeys = keyof typeof enumDisplayMaps;

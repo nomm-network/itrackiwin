@@ -1,9 +1,8 @@
 import React from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from '@/components/ui/button';
-import { healthSubcategoryDisplay } from '@/lib/enumDisplay';
 
-export type Chip = { slug: string; label: string };
+export type Chip = { slug: string; label: string; icon?: string };
 
 export default function SubcategoryChips({ hubSlug, chips }:{
   hubSlug: string; chips: Chip[];
@@ -17,8 +16,7 @@ export default function SubcategoryChips({ hubSlug, chips }:{
       {chips.slice(0, 5).map((c) => {
         const slug = c.slug.toLowerCase();
         const isActive = slug === active;
-        const iconDisplay = healthSubcategoryDisplay[slug];
-        const icon = iconDisplay?.icon || '📋';
+        const icon = c.icon || '📋';
         
         return (
           <Button
