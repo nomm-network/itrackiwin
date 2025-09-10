@@ -74,7 +74,7 @@ export async function toggleReaction(postId: string, kind: 'like' | 'dislike' | 
 
   const { data: existing } = await supabase
     .from('social_reactions')
-    .select('kind')
+    .select('*')
     .eq('post_id', postId)
     .eq('user_id', user.id)
     .eq('kind', kind)

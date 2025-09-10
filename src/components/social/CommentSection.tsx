@@ -206,7 +206,7 @@ export const CommentSection: React.FC<CommentSectionProps> = ({ postId, onCommen
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [showAllComments, setShowAllComments] = useState(false);
+  const [showAllComments, setShowAllComments] = useState(true);
 
   useEffect(() => {
     loadComments();
