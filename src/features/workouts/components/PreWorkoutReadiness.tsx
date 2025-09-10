@@ -38,7 +38,6 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
     alcohol: false,
     energisers_taken: false, // Add missing required field
     supplements: [], // Add as optional
-    notes: '', // Add as optional
   });
 
   const handleSliderChange = (field: keyof ReadinessData, value: number[]) => {
@@ -250,16 +249,6 @@ export function PreWorkoutReadiness({ onSubmit, onSkip, isLoading = false }: Pre
           </div>
         </div>
 
-        {/* Notes */}
-        <div className="space-y-2">
-          <Label>Additional Notes</Label>
-          <Textarea
-            placeholder="Anything else affecting your readiness? (injuries, mood, etc.)"
-            value={data.notes}
-            onChange={(e) => setData(prev => ({ ...prev, notes: e.target.value }))}
-            rows={2}
-          />
-        </div>
 
         {/* Action Buttons */}
         <div className="flex justify-between pt-4">

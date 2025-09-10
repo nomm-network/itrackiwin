@@ -5093,8 +5093,6 @@ export type Database = {
           id: string
           illness: boolean | null
           mood: number | null
-          notes: string | null
-          recovery_score: number | null
           score: number | null
           sleep_hours: number | null
           sleep_quality: number | null
@@ -5114,8 +5112,6 @@ export type Database = {
           id?: string
           illness?: boolean | null
           mood?: number | null
-          notes?: string | null
-          recovery_score?: number | null
           score?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
@@ -5135,8 +5131,6 @@ export type Database = {
           id?: string
           illness?: boolean | null
           mood?: number | null
-          notes?: string | null
-          recovery_score?: number | null
           score?: number | null
           sleep_hours?: number | null
           sleep_quality?: number | null
