@@ -43,6 +43,7 @@ import { recomputeWarmupPlan } from '../warmup/recalc';
 import { submitWarmupFeedback } from '../warmup/feedback';
 import { SessionHeaderMeta } from './SessionHeaderMeta';
 import { useWarmupSessionState } from '../state/warmupSessionState';
+import { useWarmupManager } from '../hooks/useWarmupManager';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -87,6 +88,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Warmup session state for managing which warmups have been shown
   const { warmupsShown, setWarmupShown } = useWarmupSessionState();
   
+  // Warmup context manager for dynamic warm-up counts
+  const { resetSessionContext, logWorkingSet } = useWarmupManager();
+  
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(
     workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null
   );
@@ -126,8 +130,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   React.useEffect(() => {
     if (workout?.started_at && !workout?.ended_at) {
       startSession();
+      // Reset warmup context for new session
+      resetSessionContext();
     }
-  }, [workout?.started_at, workout?.ended_at, startSession]);
+  }, [workout?.started_at, workout?.ended_at, startSession, resetSessionContext]);
 
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
@@ -351,6 +357,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           console.error('Failed to recalculate warmup:', warmupError);
           // Don't block the set logging for warmup issues
         }
+      }
+      
+      // Log working set to warmup context for future warm-up planning
+      try {
+        await logWorkingSet(workoutExerciseId);
+      } catch (contextError) {
+        console.error('Failed to log working set to context:', contextError);
+        // Don't block the set logging for context issues
       }
       
       // Reset form for next set

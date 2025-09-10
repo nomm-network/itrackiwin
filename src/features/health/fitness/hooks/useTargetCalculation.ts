@@ -4,6 +4,7 @@ import { useExerciseEstimate } from '@/features/workouts/hooks/useExerciseEstima
 import { useReadinessTargets } from '@/features/workouts/hooks/useReadinessTargets';
 import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
+import { scaleByReadiness } from '@/lib/training/readinessScaling';
 
 interface UseTargetCalculationProps {
   userId?: string;
@@ -47,36 +48,26 @@ export function useTargetCalculation({
       setIndex
     });
 
-    // Use smart target calculation with readiness adaptation when available
-    if (userId && exerciseId && readiness.score !== null && readiness.score !== undefined) {
-      // Note: getSmartTarget is async, so we'll use a different approach here
-      // For now, we'll enhance the existing logic with simple readiness modification
+    // Build baseline target first
+    let baselineTarget;
+    
+    if (!lastSet) {
+      // NO PREVIOUS SETS - use estimates
+      const baseWeight = estimate?.estimated_weight || templateTargetWeight || 20;
+      const baseReps = templateTargetReps || 10;
       
-      if (!lastSet) {
-        // NO PREVIOUS SETS - use estimates with readiness adjustment
-        const baseWeight = estimate?.estimated_weight || templateTargetWeight || 20;
-        const baseReps = templateTargetReps || 10;
-        
-        // Simple readiness adjustment for new exercises
-        const readinessMultiplier = Math.max(0.8, Math.min(1.2, readiness.score / 75));
-        const adjustedWeight = Math.round((baseWeight * readinessMultiplier) * 2) / 2; // Round to 0.5kg
-        
-        const target = {
-          weight: adjustedWeight,
-          reps: baseReps,
-        };
-        
-        console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates with readiness adjustment:', { 
-          baseWeight,
-          readinessScore: readiness.score,
-          readinessMultiplier,
-          adjustedWeight,
-          target 
-        });
-        return target;
-      }
-
-      // HAS PREVIOUS SETS - use progressive overload with readiness enhancement
+      baselineTarget = {
+        weight: baseWeight,
+        reps: baseReps,
+      };
+      
+      console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates:', { 
+        baseWeight,
+        baseReps,
+        baselineTarget 
+      });
+    } else {
+      // HAS PREVIOUS SETS - use progressive overload
       const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
       
       const baseSuggestion = suggestTarget({
@@ -88,42 +79,58 @@ export function useTargetCalculation({
         stepKg: 2.5
       });
       
-      // Apply readiness-based modification to progression
-      const readinessBonus = (readiness.score - 65) * 0.002; // ±2% per 10 points from neutral (65)
-      const adjustedWeight = Math.round((baseSuggestion.weight * (1 + readinessBonus)) * 2) / 2;
-      
-      const enhancedTarget = {
-        weight: Math.max(lastSet.weight, adjustedWeight), // Never go below last weight
+      baselineTarget = {
+        weight: baseSuggestion.weight,
         reps: baseSuggestion.reps
       };
       
-      console.log('🎯 useTargetCalculation: HAS PREVIOUS SETS - progressive overload with readiness:', { 
+      console.log('🎯 useTargetCalculation: HAS PREVIOUS SETS - progressive overload baseline:', { 
         lastSetWeight: lastSet.weight,
-        baseSuggestionWeight: baseSuggestion.weight,
-        readinessScore: readiness.score,
-        readinessBonus,
-        adjustedWeight,
-        enhancedTarget 
+        lastSetReps: lastSet.reps,
+        baselineTarget 
       });
-      return enhancedTarget;
     }
 
-    // Fallback to original logic when no readiness data
-    if (!lastSet) {
-      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 20;
-      const effectiveReps = templateTargetReps || 10;
-      return { weight: effectiveWeight, reps: effectiveReps };
+    // Apply readiness scaling
+    if (readiness.score !== null && readiness.score !== undefined) {
+      const { weightPct, repsDelta } = scaleByReadiness(readiness.score);
+      
+      // Progressive bias (only for readiness >= 25)
+      const progressiveBias = readiness.score >= 25 ? 1.005 : 1.0;
+      
+      // Apply scaling
+      const scaledWeight = baselineTarget.weight * weightPct * progressiveBias;
+      const scaledReps = Math.max(1, baselineTarget.reps + repsDelta);
+      
+      // Round to 0.5kg increments
+      const finalWeight = Math.round(scaledWeight * 2) / 2;
+      
+      // Safety net: don't increase reps on ultra-low readiness
+      let finalReps = scaledReps;
+      if (readiness.score < 25 && lastSet) {
+        finalReps = Math.min(scaledReps, lastSet.reps);
+      }
+      
+      const finalTarget = {
+        weight: finalWeight,
+        reps: finalReps
+      };
+      
+      console.log('🎯 useTargetCalculation: Applied readiness scaling:', {
+        readinessScore: readiness.score,
+        weightPct,
+        repsDelta,
+        progressiveBias,
+        scaledWeight,
+        finalTarget
+      });
+      
+      return finalTarget;
     }
 
-    const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
-    return suggestTarget({
-      lastWeight: lastSet.weight,
-      lastReps: lastSet.reps,
-      feel: lastFeel,
-      templateTargetReps,
-      templateTargetWeight: undefined,
-      stepKg: 2.5
-    });
+    // Fallback to baseline target (no readiness data available)
+    console.log('🎯 useTargetCalculation: No readiness data - using baseline target');
+    return baselineTarget;
   }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex, readiness.score, userId, exerciseId]);
 
   // Apply target to form - track by unique key to ensure reliability

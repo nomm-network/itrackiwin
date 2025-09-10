@@ -42,6 +42,7 @@ import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
+import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -103,6 +104,9 @@ const WorkoutSession: React.FC = () => {
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [currentSetData, setCurrentSetData] = useState<{effort?: EffortRating, hadPain?: boolean}>({});
   
+  // Warmup context manager for dynamic warm-up counts
+  const { resetSessionContext, logWorkingSet } = useWarmupManager();
+  
 
   // Hooks for suggestions and timers
   const { state: timerState, actions: timerActions } = useRestTimer(restDuration, () => {
@@ -150,6 +154,14 @@ const WorkoutSession: React.FC = () => {
       
       // Store the set ID for effort tracking
       setLastCompletedSetId(result?.id || Math.random().toString());
+      
+      // Log working set to warmup context for future warm-up planning
+      try {
+        await logWorkingSet(workoutExerciseId);
+      } catch (contextError) {
+        console.error('Failed to log working set to context:', contextError);
+        // Don't block the set logging for context issues
+      }
       
       const description = setData.weight 
         ? `Added ${setData.weight}kg × ${setData.reps} reps`
@@ -209,6 +221,14 @@ const WorkoutSession: React.FC = () => {
       
       // Store the set ID for effort tracking
       setLastCompletedSetId(result?.id || Math.random().toString());
+      
+      // Log working set to warmup context for future warm-up planning
+      try {
+        await logWorkingSet(workoutExerciseId);
+      } catch (contextError) {
+        console.error('Failed to log working set to context:', contextError);
+        // Don't block the set logging for context issues
+      }
       
       toast({
         title: "Set added!",
@@ -325,6 +345,13 @@ const WorkoutSession: React.FC = () => {
   };
 
   const unit = (useUserSettings().data?.unit_weight ?? 'kg');
+  
+  // Reset warmup context when workout starts
+  React.useEffect(() => {
+    if (data?.workout?.started_at && !data?.workout?.ended_at) {
+      resetSessionContext();
+    }
+  }, [data?.workout?.started_at, data?.workout?.ended_at, resetSessionContext]);
 
   // Calculate total sets for workout clock
   const totalSets = (data?.exercises || []).reduce((total, ex) => {

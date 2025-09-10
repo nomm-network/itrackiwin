@@ -2,6 +2,7 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WarmupPlan, WarmupFeedback } from '../types/warmup-unified';
 import { useSmartWarmup } from './useSmartWarmup';
+import { recommendedWarmupsFor, resetWarmupContext, noteWorkingSet } from '@/lib/training/warmupManager';
 
 export const useWarmupManager = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -85,19 +86,96 @@ export const useWarmupManager = () => {
   const getSmartWarmupSetsCount = useCallback(async (workoutExerciseId: string) => {
     try {
       console.log('🔥 useWarmupManager: Getting smart warmup sets count for:', workoutExerciseId);
-      const setsCount = await getWarmupSetsCount(workoutExerciseId);
-      console.log('✅ useWarmupManager: Smart warmup sets count:', setsCount);
-      return setsCount;
+      
+      // Get exercise information for muscle group context
+      const { data: workoutExercise, error: exerciseError } = await supabase
+        .from('workout_exercises')
+        .select(`
+          exercise_id,
+          exercises!inner(
+            body_part_id,
+            secondary_muscle_group_ids
+          )
+        `)
+        .eq('id', workoutExerciseId)
+        .single();
+
+      if (exerciseError || !workoutExercise) {
+        console.error('❌ useWarmupManager: Error getting exercise data:', exerciseError);
+        return 3; // Fallback to default
+      }
+
+      const exercise = workoutExercise.exercises;
+      const primaryGroup = exercise.body_part_id || '';
+      const secondaryGroups = exercise.secondary_muscle_group_ids || [];
+
+      // Use session context to determine warmup count
+      const contextBasedCount = recommendedWarmupsFor(primaryGroup, secondaryGroups);
+      
+      console.log('✅ useWarmupManager: Context-based warmup sets count:', {
+        workoutExerciseId,
+        primaryGroup,
+        secondaryGroups,
+        contextBasedCount
+      });
+      
+      return contextBasedCount;
     } catch (err) {
       console.error('❌ useWarmupManager: Error getting smart warmup count:', err);
       return 3; // Fallback to default
     }
-  }, [getWarmupSetsCount]);
+  }, []);
+
+  const resetSessionContext = useCallback(() => {
+    console.log('🔄 useWarmupManager: Resetting warmup context for new session');
+    resetWarmupContext();
+  }, []);
+
+  const logWorkingSet = useCallback(async (workoutExerciseId: string) => {
+    try {
+      console.log('📝 useWarmupManager: Logging working set for context:', workoutExerciseId);
+      
+      // Get exercise information for muscle group context
+      const { data: workoutExercise, error: exerciseError } = await supabase
+        .from('workout_exercises')
+        .select(`
+          exercise_id,
+          exercises!inner(
+            body_part_id,
+            secondary_muscle_group_ids
+          )
+        `)
+        .eq('id', workoutExerciseId)
+        .single();
+
+      if (exerciseError || !workoutExercise) {
+        console.error('❌ useWarmupManager: Error getting exercise data for logging:', exerciseError);
+        return;
+      }
+
+      const exercise = workoutExercise.exercises;
+      const primaryGroup = exercise.body_part_id || '';
+      const secondaryGroups = exercise.secondary_muscle_group_ids || [];
+
+      // Update session context
+      noteWorkingSet(primaryGroup, secondaryGroups);
+      
+      console.log('✅ useWarmupManager: Working set logged to context:', {
+        workoutExerciseId,
+        primaryGroup,
+        secondaryGroups
+      });
+    } catch (err) {
+      console.error('❌ useWarmupManager: Error logging working set:', err);
+    }
+  }, []);
 
   return {
     recomputeWarmup,
     saveFeedback,
     getSmartWarmupSetsCount,
+    resetSessionContext,
+    logWorkingSet,
     isLoading,
     error
   };
