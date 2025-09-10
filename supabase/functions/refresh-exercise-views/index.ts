@@ -27,17 +27,14 @@ Deno.serve(async (req) => {
 
     console.log(`Refreshing materialized views for user: ${user_id}, exercise: ${exercise_id}`);
 
-    // Call the refresh function
-    const { error: refreshError } = await supabase.rpc('refresh_exercise_views', {
-      p_user_id: user_id,
-      p_exercise_id: exercise_id
-    });
+    // Refresh workout details materialized view
+    const { error: refreshError } = await supabase.rpc('refresh_workout_details_view');
 
     if (refreshError) {
-      console.error('Error refreshing views:', refreshError);
+      console.error('Error refreshing workout details view:', refreshError);
       return new Response(
         JSON.stringify({ 
-          error: 'Failed to refresh views',
+          error: 'Failed to refresh workout details view',
           details: refreshError.message 
         }),
         { 
@@ -47,12 +44,12 @@ Deno.serve(async (req) => {
       );
     }
 
-    console.log('Successfully refreshed materialized views');
+    console.log('Successfully refreshed workout details materialized view');
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        message: 'Materialized views refreshed successfully',
+        message: 'Workout details materialized view refreshed successfully',
         user_id,
         exercise_id
       }),

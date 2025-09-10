@@ -18,11 +18,10 @@ import { parseFeelFromNotes } from "@/features/workouts/utils/feel";
 import { useExerciseTranslation } from "@/hooks/useExerciseTranslations";
 import { useWorkoutPersonalRecords } from "@/features/health/fitness/hooks/useWorkoutPersonalRecords";
 
-// Component to properly display exercise name with translation
-const ExerciseNameDisplay: React.FC<{ exerciseId: string; orderIndex: number }> = ({ exerciseId, orderIndex }) => {
-  const { data: translation } = useExerciseTranslation(exerciseId);
+// Component to display exercise name - optimized (name already included in workout data)
+const ExerciseNameDisplay: React.FC<{ exerciseName: string; orderIndex: number }> = ({ exerciseName, orderIndex }) => {
   return (
-    <span>{orderIndex}: {translation?.name || `Exercise ${exerciseId.slice(0, 8)}`}</span>
+    <span>{orderIndex}: {exerciseName}</span>
   );
 };
 
@@ -205,7 +204,7 @@ const WorkoutDetail: React.FC = () => {
               <Card key={ex.id}>
                 <CardHeader className="pb-2">
                   <CardTitle className="text-base">
-                    <ExerciseNameDisplay exerciseId={exerciseId} orderIndex={ex.order_index} />
+                    <ExerciseNameDisplay exerciseName={ex.exercise_name || ex.exercises?.translations?.en?.name || `Exercise ${ex.exercise_id.slice(0, 8)}`} orderIndex={ex.order_index} />
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
