@@ -97,6 +97,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         energizers: !!readinessData.energisers_taken,
         illness: !!readinessData.illness,
         alcohol: !!readinessData.alcohol,
+        workout_id: workoutId, // Include workout_id in the payload
       };
       
       console.log('🔍 Clean data being sent to API:', cleanData);

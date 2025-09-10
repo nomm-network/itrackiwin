@@ -10,6 +10,7 @@ export type ReadinessPayload = {
   energizers: boolean;
   illness: boolean;
   alcohol: boolean;
+  workout_id?: string; // Added workout_id parameter
 };
 
 export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
@@ -25,18 +26,20 @@ export async function saveTodayReadiness(p: ReadinessPayload): Promise<number> {
     p_energizers: p.energizers,
     p_illness: p.illness,
     p_alcohol: p.alcohol,
+    p_workout_id: p.workout_id || null,
   });
   
   const { data, error } = await supabase.rpc('upsert_readiness_today', {
-    p_energy: p.energy,
+    p_energy:        p.energy,
     p_sleep_quality: p.sleep_quality,
-    p_sleep_hours: p.sleep_hours,
-    p_soreness: p.soreness,
-    p_stress: p.stress,
-    p_mood: p.mood,
-    p_energizers: p.energizers,
-    p_illness: p.illness,
-    p_alcohol: p.alcohol,
+    p_sleep_hours:   p.sleep_hours,
+    p_soreness:      p.soreness,
+    p_stress:        p.stress,
+    p_mood:          p.mood,
+    p_energizers:    p.energizers,
+    p_illness:       p.illness,
+    p_alcohol:       p.alcohol,
+    p_workout_id:    p.workout_id || null, // Pass workout_id if provided
   });
   
   if (error) {
