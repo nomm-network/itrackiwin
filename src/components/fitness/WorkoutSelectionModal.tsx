@@ -9,8 +9,7 @@ import { useTemplates } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useStartWorkout } from '@/features/workouts';
-import { useReadinessCheckin } from '@/features/health/fitness/readiness/hooks/useReadinessCheckin';
-import { ReadinessDialog } from '@/features/health/fitness/readiness/ReadinessDialog';
+import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
 
 interface WorkoutSelectionModalProps {
   open: boolean;
@@ -20,19 +19,22 @@ interface WorkoutSelectionModalProps {
 const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onOpenChange }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isStarting, setIsStarting] = useState(false);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(null);
+  const [showReadinessCheck, setShowReadinessCheck] = useState(false);
 
   const handleOpenChange = (newOpen: boolean) => {
     onOpenChange(newOpen);
     if (!newOpen) {
       setSearchQuery('');
       setIsStarting(false);
+      setSelectedTemplateId(null);
+      setShowReadinessCheck(false);
     }
   };
   
   const navigate = useNavigate();
   const { data: templates = [], isLoading } = useTemplates();
   const startWorkout = useStartWorkout();
-  const readinessCheckin = useReadinessCheckin();
 
   const filteredTemplates = useMemo(() => {
     let filtered = templates.filter(template => 
@@ -50,8 +52,8 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
 
   const handleTemplateSelect = (templateId: string) => {
     if (isStarting) return;
-    onOpenChange(false);
-    readinessCheckin.open(templateId);
+    setSelectedTemplateId(templateId);
+    setShowReadinessCheck(true);
   };
 
   const handleCreateProgram = () => {
@@ -63,6 +65,41 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
     handleOpenChange(false);
     navigate('/fitness/templates');
   };
+
+  const handleReadinessSubmit = async (data: EnhancedReadinessData) => {
+    if (!selectedTemplateId) return;
+    
+    try {
+      setIsStarting(true);
+      const result = await startWorkout.mutateAsync({ templateId: selectedTemplateId });
+      
+      // Navigate to workout with readiness data
+      navigate(`/app/workouts/${result.workoutId}`);
+      toast.success('Training session started!');
+      handleOpenChange(false);
+    } catch (error) {
+      console.error('Failed to start workout:', error);
+      toast.error('Failed to start training session');
+      setIsStarting(false);
+    }
+  };
+
+  if (showReadinessCheck && selectedTemplateId) {
+    return (
+      <Dialog open={open} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto p-0">
+          <div className="p-6">
+            <EnhancedReadinessCheckIn
+              workoutId={selectedTemplateId}
+              onSubmit={handleReadinessSubmit}
+              onAbort={() => setShowReadinessCheck(false)}
+              isLoading={isStarting || startWorkout.isPending}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
@@ -170,25 +207,6 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
           )}
         </div>
       </DialogContent>
-      
-      <ReadinessDialog
-        isOpen={readinessCheckin.isOpen}
-        onClose={readinessCheckin.close}
-        onSubmit={async (data) => {
-          try {
-            const result = await startWorkout.mutateAsync({ templateId: readinessCheckin.templateId! });
-            await readinessCheckin.submit({ data, workoutId: result.workoutId });
-            navigate(`/app/workouts/${result.workoutId}`);
-            toast.success('Training session started!');
-          } catch (error) {
-            console.error('Failed to start workout:', error);
-            toast.error('Failed to start training session');
-          }
-        }}
-        templateId={readinessCheckin.templateId}
-        workoutId={null}
-        isSubmitting={readinessCheckin.isSubmitting || startWorkout.isPending}
-      />
     </Dialog>
   );
 };
