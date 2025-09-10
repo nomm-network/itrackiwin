@@ -5147,84 +5147,42 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "mv_workout_details"
             referencedColumns: ["workout_id"]
           },
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_current_workout"
             referencedColumns: ["id"]
           },
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_last_working_set"
             referencedColumns: ["workout_id"]
           },
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_pre_checkin_exists"
             referencedColumns: ["workout_id"]
           },
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "v_workout_has_checkin"
             referencedColumns: ["workout_id"]
           },
           {
-            foreignKeyName: "fk_readiness_checkins_workout_id"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "workouts"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "mv_workout_details"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "v_current_workout"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "v_last_working_set"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "v_pre_checkin_exists"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "v_workout_has_checkin"
-            referencedColumns: ["workout_id"]
-          },
-          {
-            foreignKeyName: "readiness_checkins_workout_id_fkey"
+            foreignKeyName: "fk_readiness_checkins_workout_cascade"
             columns: ["workout_id"]
             isOneToOne: false
             referencedRelation: "workouts"
