@@ -24,8 +24,6 @@ export interface ReadinessData {
   illness: boolean;
   energisers_taken: boolean;
   alcohol: boolean;
-  supplements: string[];
-  notes: string;
 }
 
 export interface EstimateData {
@@ -64,9 +62,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       stress: 3,
       illness: false,
       energisers_taken: false,
-      alcohol: false,
-      supplements: [],
-      notes: ""
+      alcohol: false
     }
   });
 
@@ -134,9 +130,8 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
         toast.success(`Saved estimates for ${Object.keys(estimates).length} exercises`);
       }
 
-      const supplements = readinessData.supplements || [];
       const enhancedData: EnhancedReadinessData = {
-        readiness: { ...readinessData, supplements },
+        readiness: readinessData,
         estimates
       };
 
@@ -308,16 +303,6 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                   <Label htmlFor="alcohol">Had alcohol in last 24h</Label>
                 </div>
               </div>
-
-              {/* Notes */}
-              <div className="space-y-2 mt-6">
-                <Label>Additional Notes (optional)</Label>
-                <Textarea
-                  {...register("notes")}
-                  placeholder="Any other factors affecting your readiness..."
-                  rows={3}
-                />
-              </div>
             </CardContent>
           </Card>
 
@@ -377,8 +362,7 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     stress: watchedValues.stress,
                     illness: watchedValues.illness,
                     alcohol: watchedValues.alcohol,
-                    energisers_taken: watchedValues.energisers_taken,
-                    notes: watchedValues.notes
+                    energisers_taken: watchedValues.energisers_taken
                   }, null, 2)}
                 </pre>
                 <div className="text-blue-900 dark:text-blue-100"><strong>Exercise Estimates:</strong></div>
