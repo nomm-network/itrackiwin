@@ -356,16 +356,16 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
           )}
 
           {/* DEBUG SECTION - ALWAYS VISIBLE */}
-          <Card className="mt-4 border-yellow-500 bg-yellow-50">
+          <Card className="mt-4 border-blue-500 bg-blue-50 dark:bg-blue-950">
             <CardHeader>
-              <CardTitle className="text-yellow-800 text-sm">🔧 ENHANCED DEBUG INFO (ALWAYS VISIBLE)</CardTitle>
+              <CardTitle className="text-blue-900 dark:text-blue-100 text-sm">🔧 ENHANCED DEBUG INFO (ALWAYS VISIBLE)</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="space-y-2 text-xs">
-                <div><strong>User:</strong> {user ? `${user.id} (${user.email})` : 'NOT AUTHENTICATED'}</div>
-                <div><strong>Workout ID:</strong> {workoutId}</div>
-                <div><strong>Current Form Values:</strong></div>
-                <pre className="bg-yellow-100 p-2 rounded text-xs overflow-auto max-h-32">
+                <div className="text-blue-900 dark:text-blue-100"><strong>User:</strong> {user ? `${user.id} (${user.email})` : 'NOT AUTHENTICATED'}</div>
+                <div className="text-blue-900 dark:text-blue-100"><strong>Workout ID:</strong> {workoutId}</div>
+                <div className="text-blue-900 dark:text-blue-100"><strong>Current Form Values:</strong></div>
+                <pre className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 p-2 rounded text-xs overflow-auto max-h-32 text-gray-900 dark:text-gray-100">
                   {JSON.stringify({
                     energy: watchedValues.energy,
                     sleep_quality: watchedValues.sleep_quality,
@@ -378,24 +378,24 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
                     notes: watchedValues.notes
                   }, null, 2)}
                 </pre>
-                <div><strong>Exercise Estimates:</strong></div>
-                <pre className="bg-yellow-100 p-2 rounded text-xs overflow-auto max-h-32">
+                <div className="text-blue-900 dark:text-blue-100"><strong>Exercise Estimates:</strong></div>
+                <pre className="bg-white dark:bg-gray-800 border border-blue-200 dark:border-blue-700 p-2 rounded text-xs overflow-auto max-h-32 text-gray-900 dark:text-gray-100">
                   {JSON.stringify(estimates, null, 2)}
                 </pre>
-                <div><strong>Missing Estimates Count:</strong> {missingEstimates.length}</div>
-                <div><strong>Has All Estimates:</strong> {hasAllEstimates ? 'YES' : 'NO'}</div>
+                <div className="text-blue-900 dark:text-blue-100"><strong>Missing Estimates Count:</strong> {missingEstimates.length}</div>
+                <div className="text-blue-900 dark:text-blue-100"><strong>Has All Estimates:</strong> {hasAllEstimates ? 'YES' : 'NO'}</div>
               </div>
             </CardContent>
           </Card>
 
           {/* ERROR DEBUG SECTION - SHOWS WHEN THERE'S AN ERROR */}
           {debugError && (
-            <Card className="mt-4 border-red-500 bg-red-50">
+            <Card className="mt-4 border-red-500 bg-red-50 dark:bg-red-950">
               <CardHeader>
-                <CardTitle className="text-red-800 text-sm">🚨 ENHANCED ERROR DETAILS</CardTitle>
+                <CardTitle className="text-red-900 dark:text-red-100 text-sm">🚨 ENHANCED ERROR DETAILS</CardTitle>
               </CardHeader>
               <CardContent>
-                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-60 text-red-800 bg-red-100 p-3 rounded">
+                <pre className="text-xs whitespace-pre-wrap overflow-auto max-h-60 text-red-900 dark:text-red-100 bg-white dark:bg-gray-800 border border-red-200 dark:border-red-700 p-3 rounded">
                   {debugError}
                 </pre>
                 <Button 
