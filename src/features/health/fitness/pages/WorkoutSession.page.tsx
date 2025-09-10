@@ -155,12 +155,16 @@ const WorkoutSession: React.FC = () => {
       // Store the set ID for effort tracking
       setLastCompletedSetId(result?.id || Math.random().toString());
       
-      // Log working set to warmup context for future warm-up planning
-      try {
-        await logWorkingSet(workoutExerciseId);
-      } catch (contextError) {
-        console.error('Failed to log working set to context:', contextError);
-        // Don't block the set logging for context issues
+      // Log working set to warmup context for future warm-up planning (only for working sets)
+      const isWorkingSet = setData.weight > 0 && setData.reps > 0; // Basic check for working set
+      if (isWorkingSet) {
+        try {
+          await logWorkingSet(workoutExerciseId);
+          console.log('✅ Logged working set to warmup context');
+        } catch (contextError) {
+          console.error('Failed to log working set to context:', contextError);
+          // Don't block the set logging for context issues
+        }
       }
       
       const description = setData.weight 
@@ -222,12 +226,16 @@ const WorkoutSession: React.FC = () => {
       // Store the set ID for effort tracking
       setLastCompletedSetId(result?.id || Math.random().toString());
       
-      // Log working set to warmup context for future warm-up planning
-      try {
-        await logWorkingSet(workoutExerciseId);
-      } catch (contextError) {
-        console.error('Failed to log working set to context:', contextError);
-        // Don't block the set logging for context issues
+      // Log working set to warmup context for future warm-up planning (only for working sets)
+      const isWorkingSet = payload.weight > 0 && payload.reps > 0; // Basic check for working set
+      if (isWorkingSet) {
+        try {
+          await logWorkingSet(workoutExerciseId);
+          console.log('✅ Logged working set to warmup context');
+        } catch (contextError) {
+          console.error('Failed to log working set to context:', contextError);
+          // Don't block the set logging for context issues
+        }
       }
       
       toast({

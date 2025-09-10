@@ -345,26 +345,20 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     try {
       const result = await newLogSet(payload, plannedSetIndex);
       
-      // Recompute warmup plan after logging working set
-      if (user?.id && currentExercise?.exercise_id) {
-        try {
-          await recomputeWarmupPlan({
-            workoutExerciseId,
-            exerciseId: currentExercise.exercise_id,
-            userId: user.id,
-          });
-        } catch (warmupError) {
-          console.error('Failed to recalculate warmup:', warmupError);
-          // Don't block the set logging for warmup issues
-        }
-      }
+      // Only update warmup context for working sets (not warmup sets)
+      const isWorkingSet = plannedSetIndex > 0; // Set index 0 and negative are warmup sets
       
-      // Log working set to warmup context for future warm-up planning
-      try {
-        await logWorkingSet(workoutExerciseId);
-      } catch (contextError) {
-        console.error('Failed to log working set to context:', contextError);
-        // Don't block the set logging for context issues
+      if (isWorkingSet) {
+        // Log working set to warmup context for future exercise warm-up planning
+        try {
+          await logWorkingSet(workoutExerciseId);
+          console.log('✅ Logged working set to warmup context');
+        } catch (contextError) {
+          console.error('Failed to log working set to context:', contextError);
+          // Don't block the set logging for context issues
+        }
+      } else {
+        console.log('⏭️ Skipping warmup context update for warmup set');
       }
       
       // Reset form for next set
