@@ -12,6 +12,15 @@ const FitnessFirstLanding: React.FC = () => {
   const [carouselImages, setCarouselImages] = useState<Array<{ src: string; alt: string }>>([]);
 
   useEffect(() => {
+    // Set default images immediately to prevent loading issues
+    const defaultImages = [
+      { src: '/placeholder.svg', alt: "Fitness tracking interface" },
+      { src: '/placeholder.svg', alt: "Workout progress tracking" },
+      { src: '/placeholder.svg', alt: "Exercise planning interface" }
+    ];
+    
+    setCarouselImages(defaultImages);
+
     const fetchCarouselImages = async () => {
       try {
         const { data, error } = await supabase
@@ -20,33 +29,26 @@ const FitnessFirstLanding: React.FC = () => {
           .eq('is_active', true)
           .order('order_index');
 
-        if (error) throw error;
+        if (error) {
+          console.log('No carousel_images table or error fetching:', error.message);
+          return; // Keep default images
+        }
 
         if (data && data.length > 0) {
           setCarouselImages(data.map(img => ({
             src: img.file_url,
             alt: img.alt_text
           })));
-        } else {
-          // Fallback to default images if no database images
-          setCarouselImages([
-            { src: '/assets/fitness-carousel-1.png', alt: "Pre-workout check interface" },
-            { src: '/assets/fitness-carousel-2.png', alt: "Warm-up exercise tracking" },
-            { src: '/assets/fitness-carousel-3.png', alt: "Workout progress tracking" }
-          ]);
         }
       } catch (error) {
-        console.error('Error fetching carousel images:', error);
-        // Fallback to default images
-        setCarouselImages([
-          { src: '/assets/fitness-carousel-1.png', alt: "Pre-workout check interface" },
-          { src: '/assets/fitness-carousel-2.png', alt: "Warm-up exercise tracking" },
-          { src: '/assets/fitness-carousel-3.png', alt: "Workout progress tracking" }
-        ]);
+        console.log('Error fetching carousel images:', error);
+        // Keep default images - no need to set again
       }
     };
 
-    fetchCarouselImages();
+    // Add a small delay to prevent blocking the initial render
+    const timeoutId = setTimeout(fetchCarouselImages, 100);
+    return () => clearTimeout(timeoutId);
   }, []);
 
   if (showOrbits) {
