@@ -379,7 +379,7 @@ export const useUpdateWorkout = () => {
     },
     onSuccess: (_, vars) => {
       qc.invalidateQueries({ queryKey: ["workouts"] });
-      qc.invalidateQueries({ queryKey: ["workout_detail_v5", vars.workoutId] });
+      qc.invalidateQueries({ queryKey: ["workout_detail_optimized", vars.workoutId] });
     },
   });
 };
@@ -396,7 +396,7 @@ export const useDeleteWorkout = () => {
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["workouts"] });
-      qc.invalidateQueries({ queryKey: ["workout_detail_v5"] });
+      qc.invalidateQueries({ queryKey: ["workout_detail_optimized"] });
     },
   });
 };
@@ -478,121 +478,88 @@ const generateWorkoutSuggestions = async (exercises: any[], workout: any) => {
 
 export const useWorkoutDetail = (workoutId?: UUID) => {
   return useQuery({
-    queryKey: ["workout_detail_v5", workoutId], // Force refresh with new version
+    queryKey: ["workout_detail_optimized", workoutId], // Use optimized version
     enabled: !!workoutId,
     queryFn: async () => {
-      console.log("🔍 [WorkoutDetail] Fetching workout detail for ID:", workoutId);
+      console.log("🚀 [WorkoutDetail] Fetching optimized workout detail for ID:", workoutId);
       
-      // Fetch workout data
-      const { data: workout, error: workoutError } = await supabase
-        .from("workouts")
-        .select("*")
-        .eq("id", workoutId)
-        .maybeSingle();
+      // Get current user
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) {
+        throw new Error('Authentication required');
+      }
+
+      // Use optimized RPC function for single DB call
+      const { data, error } = await supabase.rpc('get_workout_detail_optimized', {
+        p_workout_id: workoutId,
+        p_user_id: user.id
+      });
       
-      if (workoutError) {
-        console.error("Workout fetch error:", workoutError);
-        throw workoutError;
+      if (error) {
+        console.error("Optimized workout fetch error:", error);
+        throw error;
       }
       
-      console.log("Workout fetched:", workout);
+      console.log("✅ Optimized workout fetched:", data);
 
-      // Fetch workout exercises - Use translation view
-      const { data: exercises, error: exercisesError } = await supabase
-        .from("workout_exercises")
-        .select(`
-          *,
-          exercises:v_exercises_with_translations (
-            id,
-            slug,
-            translations
-          )
-        `)
-        .eq("workout_id", workoutId)
-        .order("order_index");
-      
-      if (exercisesError) {
-        console.error("Exercises fetch error:", exercisesError);
-        throw exercisesError;
+      if (!data) {
+        throw new Error('Workout not found');
       }
-      
-      console.log("Exercises fetched:", exercises);
 
-      // Fetch workout sets 
+      // Transform data from RPC response to match expected format
+      const rpcData = data as any; // Type assertion since RPC returns JSONB
+      const workout = rpcData.workout;
+      const exercises = rpcData.exercises || [];
+      
+      // Convert exercises to expected format and create setsByWe mapping
       const setsByWe: Record<string, any[]> = {};
-      if (exercises?.length) {
-        const { data: sets, error: setsError } = await supabase
-          .from("workout_sets")
-          .select("*")
-          .in("workout_exercise_id", exercises.map(ex => ex.id))
-          .order("set_index");
-        
-        if (setsError) {
-          console.error("Sets fetch error:", setsError);
-        } else {
-          sets?.forEach(set => {
-            if (!setsByWe[set.workout_exercise_id]) {
-              setsByWe[set.workout_exercise_id] = [];
-            }
-            setsByWe[set.workout_exercise_id].push(set);
-          });
+      
+      const transformedExercises = exercises.map((ex: any) => {
+        // Store sets in setsByWe
+        if (ex.sets && ex.sets.length > 0) {
+          setsByWe[ex.id] = ex.sets.map((set: any) => ({
+            ...set,
+            workout_exercise_id: ex.id,
+            weight_kg: set.weight, // Map weight to weight_kg
+            weight: set.weight
+          }));
         }
-      }
-
-      // Add warmup suggestions for each exercise using smart calculation
-      if (exercises?.length) {
-        // Get current user for warmup calculations
-        const { data: { user } } = await supabase.auth.getUser();
         
-        for (const workoutExercise of exercises) {
-          try {
-            // Use smart warmup calculation service for consistency
-            const { smartWarmupCalculator } = await import('@/features/workouts/services/warmupCalculation');
-            const warmupSets = await smartWarmupCalculator.getWarmupSetsForHistory(
-              workoutExercise.id,
-              workoutExercise.exercise_id,
-              user?.id
-            );
-            
-            (workoutExercise as any).warmup_suggestion = {
-              warmup_sets: warmupSets
-            };
-            
-            console.log(`🔥 Smart warmup for ${getExerciseNameFromTranslations(workoutExercise.exercises?.translations)}:`, {
-              exercise_id: workoutExercise.exercise_id,
-              warmup_sets: warmupSets
-            });
-          } catch (error) {
-            console.error('Smart warmup calculation failed:', error);
-            // Fallback to simple calculation
-            const exerciseSets = setsByWe[workoutExercise.id] || [];
-            const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup' && set.weight);
-            let workingWeight = workingSets.length > 0 ? workingSets[workingSets.length - 1].weight : undefined;
-            
-            if (!workingWeight) {
-              workingWeight = 60;
-            }
-            
-            (workoutExercise as any).warmup_suggestion = {
-              warmup_sets: [
-                { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
-                { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
-                { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
-              ]
-            };
+        // Add warmup suggestions (simplified for performance)
+        const exerciseSets = setsByWe[ex.id] || [];
+        const workingSets = exerciseSets.filter(set => set.set_kind !== 'warmup' && set.weight);
+        let workingWeight = workingSets.length > 0 ? workingSets[workingSets.length - 1].weight : 60;
+        
+        (ex as any).warmup_suggestion = {
+          warmup_sets: [
+            { set_index: 1, weight: Math.round(workingWeight * 0.4), reps: 10, rest_seconds: 60 },
+            { set_index: 2, weight: Math.round(workingWeight * 0.6), reps: 8, rest_seconds: 90 },
+            { set_index: 3, weight: Math.round(workingWeight * 0.8), reps: 5, rest_seconds: 120 }
+          ]
+        };
+        
+        // Add exercises compatibility for existing code  
+        (ex as any).exercises = {
+          id: ex.exercise_id,
+          slug: ex.exercise_slug,
+          translations: {
+            en: { name: ex.exercise_name },
+            ro: { name: ex.exercise_name }
           }
-        }
-      }
+        };
+        
+        return ex;
+      });
 
-      console.log("Final data:", { 
+      console.log("⚡ Optimized data processed:", { 
         workoutTitle: workout?.title, 
-        exerciseCount: exercises?.length, 
+        exerciseCount: transformedExercises?.length, 
         setsCount: Object.keys(setsByWe).length 
       });
 
       return {
         workout,
-        exercises: exercises || [],
+        exercises: transformedExercises,
         setsByWe
       };
     },
