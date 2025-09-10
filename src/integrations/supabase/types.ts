@@ -10363,6 +10363,33 @@ export type Database = {
         Args: { p_exercise_id: string; p_lookback_sessions?: number }
         Returns: Json
       }
+      fn_last_performance_for_exercise: {
+        Args: { p_exercise_id: string; p_user_id: string }
+        Returns: {
+          readiness_score: number
+          reps: number
+          weight_kg: number
+        }[]
+      }
+      fn_last_readiness_for_exercise: {
+        Args: { p_exercise_id: string; p_user_id: string }
+        Returns: number
+      }
+      fn_next_target_for_exercise: {
+        Args: {
+          p_exercise_id: string
+          p_prev_reps: number
+          p_prev_weight_kg: number
+          p_readiness_prev: number
+          p_readiness_today: number
+          p_target_reps: number
+        }
+        Returns: {
+          bump_pct: number
+          next_reps: number
+          next_weight_kg: number
+        }[]
+      }
       fn_suggest_rest_seconds: {
         Args: { p_effort_level?: string; p_workout_set_id: string }
         Returns: number
@@ -10382,6 +10409,10 @@ export type Database = {
           p_working_weight?: number
         }
         Returns: Json
+      }
+      fn_warmup_sets_for_exercise: {
+        Args: { p_workout_exercise_id: string }
+        Returns: number
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }

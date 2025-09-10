@@ -11,6 +11,10 @@ export { useLastSetForExercise, usePersonalRecord } from '../api/workouts.api';
 export { useExerciseEstimate } from './useExerciseEstimate';
 
 
+// Smart workout features
+export { useSmartWarmup } from './useSmartWarmup';
+export { useReadinessTargets } from './useReadinessTargets';
+
 // Legacy hooks (maintained for backward compatibility)
 export { useWorkoutOpen } from '../../../hooks/useOptimizedWorkout';
 export { useSetLog } from '../../../hooks/useOptimizedWorkout';

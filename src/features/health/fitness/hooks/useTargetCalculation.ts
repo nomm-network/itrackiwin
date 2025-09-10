@@ -1,6 +1,8 @@
 import React from 'react';
 import { useLastSet } from './useLastSet';
 import { useExerciseEstimate } from '@/features/workouts/hooks/useExerciseEstimate';
+import { useReadinessTargets } from '@/features/workouts/hooks/useReadinessTargets';
+import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 
 interface UseTargetCalculationProps {
@@ -24,6 +26,8 @@ export function useTargetCalculation({
 }: UseTargetCalculationProps) {
   const { data: lastSet, isLoading: isLoadingLastSet } = useLastSet(userId, exerciseId, setIndex, gripKey);
   const { data: estimate, isLoading: isLoadingEstimate } = useExerciseEstimate(exerciseId, 'rm10');
+  const { getSmartTarget } = useReadinessTargets();
+  const readiness = useReadinessData();
 
   console.log('🎯 useTargetCalculation: Hook inputs:', {
     userId, exerciseId, setIndex, templateTargetReps, templateTargetWeight,
@@ -33,56 +37,94 @@ export function useTargetCalculation({
     estimate: estimate // Full estimate object for debugging
   });
 
-  // Calculate target once with all logic consolidated
+  // Calculate target with readiness adaptation for smarter progression
   const target = React.useMemo(() => {
-    console.log('🎯 useTargetCalculation: Computing target with:', {
+    console.log('🎯 useTargetCalculation: Computing target with readiness adaptation:', {
       hasLastSet: !!lastSet,
       templateTargetWeight,
       estimateWeight: estimate?.estimated_weight,
+      readinessScore: readiness.score,
       setIndex
     });
 
-    if (!lastSet) {
-      // NO PREVIOUS SETS - use estimates FIRST TIME ONLY
-      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 0;
-      const effectiveReps = templateTargetReps || 10;
+    // Use smart target calculation with readiness adaptation when available
+    if (userId && exerciseId && readiness.score !== null && readiness.score !== undefined) {
+      // Note: getSmartTarget is async, so we'll use a different approach here
+      // For now, we'll enhance the existing logic with simple readiness modification
       
-      const target = {
-        weight: effectiveWeight,
-        reps: effectiveReps,
+      if (!lastSet) {
+        // NO PREVIOUS SETS - use estimates with readiness adjustment
+        const baseWeight = estimate?.estimated_weight || templateTargetWeight || 20;
+        const baseReps = templateTargetReps || 10;
+        
+        // Simple readiness adjustment for new exercises
+        const readinessMultiplier = Math.max(0.8, Math.min(1.2, readiness.score / 75));
+        const adjustedWeight = Math.round((baseWeight * readinessMultiplier) * 2) / 2; // Round to 0.5kg
+        
+        const target = {
+          weight: adjustedWeight,
+          reps: baseReps,
+        };
+        
+        console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates with readiness adjustment:', { 
+          baseWeight,
+          readinessScore: readiness.score,
+          readinessMultiplier,
+          adjustedWeight,
+          target 
+        });
+        return target;
+      }
+
+      // HAS PREVIOUS SETS - use progressive overload with readiness enhancement
+      const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
+      
+      const baseSuggestion = suggestTarget({
+        lastWeight: lastSet.weight,
+        lastReps: lastSet.reps,
+        feel: lastFeel,
+        templateTargetReps,
+        templateTargetWeight: undefined,
+        stepKg: 2.5
+      });
+      
+      // Apply readiness-based modification to progression
+      const readinessBonus = (readiness.score - 65) * 0.002; // ±2% per 10 points from neutral (65)
+      const adjustedWeight = Math.round((baseSuggestion.weight * (1 + readinessBonus)) * 2) / 2;
+      
+      const enhancedTarget = {
+        weight: Math.max(lastSet.weight, adjustedWeight), // Never go below last weight
+        reps: baseSuggestion.reps
       };
       
-      console.log('🎯 useTargetCalculation: NO PREVIOUS SETS - using estimates (FIRST TIME ONLY):', { 
-        estimateWeight: estimate?.estimated_weight,
-        templateTargetWeight,
-        templateTargetReps,
-        effectiveWeight,
-        effectiveReps,
-        target 
+      console.log('🎯 useTargetCalculation: HAS PREVIOUS SETS - progressive overload with readiness:', { 
+        lastSetWeight: lastSet.weight,
+        baseSuggestionWeight: baseSuggestion.weight,
+        readinessScore: readiness.score,
+        readinessBonus,
+        adjustedWeight,
+        enhancedTarget 
       });
-      return target;
+      return enhancedTarget;
     }
 
-    // HAS PREVIOUS SETS - use progressive overload system, NEVER use estimates again
+    // Fallback to original logic when no readiness data
+    if (!lastSet) {
+      const effectiveWeight = estimate?.estimated_weight || templateTargetWeight || 20;
+      const effectiveReps = templateTargetReps || 10;
+      return { weight: effectiveWeight, reps: effectiveReps };
+    }
+
     const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
-    
-    const suggestion = suggestTarget({
+    return suggestTarget({
       lastWeight: lastSet.weight,
       lastReps: lastSet.reps,
       feel: lastFeel,
       templateTargetReps,
-      templateTargetWeight: undefined, // Don't use template weight when we have history
+      templateTargetWeight: undefined,
       stepKg: 2.5
     });
-    
-    console.log('🎯 useTargetCalculation: HAS PREVIOUS SETS - using progressive overload (IGNORING estimates):', { 
-      lastSetWeight: lastSet.weight,
-      lastSetReps: lastSet.reps,
-      lastFeel,
-      suggestion 
-    });
-    return suggestion;
-  }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex]);
+  }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex, readiness.score, userId, exerciseId]);
 
   // Apply target to form - track by unique key to ensure reliability
   const hasAppliedRef = React.useRef<string>('');

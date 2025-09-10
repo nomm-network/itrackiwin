@@ -1,10 +1,12 @@
 import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { WarmupPlan, WarmupFeedback } from '../types/warmup-unified';
+import { useSmartWarmup } from './useSmartWarmup';
 
 export const useWarmupManager = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { getWarmupSetsCount } = useSmartWarmup();
 
   const recomputeWarmup = useCallback(async (opts: {
     workoutExerciseId: string;
@@ -80,9 +82,22 @@ export const useWarmupManager = () => {
     }
   }, [recomputeWarmup]);
 
+  const getSmartWarmupSetsCount = useCallback(async (workoutExerciseId: string) => {
+    try {
+      console.log('🔥 useWarmupManager: Getting smart warmup sets count for:', workoutExerciseId);
+      const setsCount = await getWarmupSetsCount(workoutExerciseId);
+      console.log('✅ useWarmupManager: Smart warmup sets count:', setsCount);
+      return setsCount;
+    } catch (err) {
+      console.error('❌ useWarmupManager: Error getting smart warmup count:', err);
+      return 3; // Fallback to default
+    }
+  }, [getWarmupSetsCount]);
+
   return {
     recomputeWarmup,
     saveFeedback,
+    getSmartWarmupSetsCount,
     isLoading,
     error
   };

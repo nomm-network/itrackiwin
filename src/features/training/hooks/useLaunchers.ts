@@ -1,4 +1,5 @@
 import { supabase } from "@/integrations/supabase/client";
+import { useReadinessStore } from "@/stores/readinessStore";
 
 export async function startFromTemplate(templateId: string) {
   // Call the existing start_workout RPC function with template
@@ -7,6 +8,15 @@ export async function startFromTemplate(templateId: string) {
   });
 
   if (error) throw error;
+  
+  // Update workout with current readiness score
+  const readinessStore = useReadinessStore.getState();
+  if (data && readinessStore.score !== null && readinessStore.score !== undefined) {
+    await supabase
+      .from('workouts')
+      .update({ readiness_score: readinessStore.score })
+      .eq('id', data);
+  }
   
   return { workoutId: data };
 }
@@ -42,6 +52,15 @@ export async function startFromProgram(programId: string) {
   });
 
   if (workoutError) throw workoutError;
+  
+  // Update workout with current readiness score
+  const readinessStore = useReadinessStore.getState();
+  if (workoutId && readinessStore.score !== null && readinessStore.score !== undefined) {
+    await supabase
+      .from('workouts')
+      .update({ readiness_score: readinessStore.score })
+      .eq('id', workoutId);
+  }
   
   return { workoutId };
 }
