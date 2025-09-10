@@ -125,6 +125,10 @@ const WorkoutDetail: React.FC = () => {
 
   const workoutDuration = formatWorkoutDuration(data.workout.started_at, data.workout.ended_at);
   const recordsMade = prData?.uniqueSetsWithRecords || 0;
+  const exerciseCount = data?.exercises?.length || 0;
+  const totalSets = data?.exercises?.reduce((total, ex) => {
+    return total + (data?.setsByWe[ex.id]?.length || 0);
+  }, 0) || 0;
 
   return (
     <>
@@ -155,6 +159,9 @@ const WorkoutDetail: React.FC = () => {
           <Badge variant="secondary" className="text-sm py-2 px-3">
             <Trophy className="h-4 w-4 mr-2" />
             Records made: {recordsMade}
+          </Badge>
+          <Badge variant="secondary" className="text-sm py-2 px-3">
+            {exerciseCount} exercises, {totalSets} sets in total
           </Badge>
         </div>
 
