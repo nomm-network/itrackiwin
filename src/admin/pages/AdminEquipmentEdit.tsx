@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel } from "@/components/ui/form";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 import { ArrowLeft, Save, Trash2 } from "lucide-react";
@@ -409,10 +410,21 @@ const AdminEquipmentEdit: React.FC = () => {
         </Card>
 
         {/* Equipment Profiles */}
-        <div className="space-y-4">
-          <h3 className="text-lg font-semibold">Equipment Profiles</h3>
-          <EquipmentProfilesSection equipmentId={id!} />
-        </div>
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle>Equipment Profiles</CardTitle>
+              <Link to="/admin/plates/profiles">
+                <Button variant="outline" size="sm">
+                  Manage Plate Profiles
+                </Button>
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <EquipmentProfilesSection equipmentId={id!} />
+          </CardContent>
+        </Card>
 
         {/* Standard Plate Inventory */}
         <div className="space-y-4">
