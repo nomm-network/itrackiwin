@@ -8,6 +8,8 @@ import { useBarTypes } from "@/hooks/useBarTypes";
 import { getEffectivePlateProfile, getCurrentGymContext } from "@/lib/loadout/getProfile";
 import { resolveLoadout, type LoadType, type ResolveResult } from "@/lib/loadout/resolveLoadout";
 import { openLoadoutModal } from "./LoadoutModal";
+import { SmartWeightInput } from "./SmartWeightInput";
+import { ImplementChooser } from "./ImplementChooser";
 
 interface SetRowProps {
   setNumber: number;
@@ -31,6 +33,8 @@ interface SetRowProps {
   equipmentId?: string;
   loadType?: LoadType;
   suggestedWeight?: number;
+  gymId?: string;
+  supportedImplements?: ('barbell' | 'dumbbell' | 'machine')[];
 }
 
 export default function SetRow({ 
@@ -41,7 +45,9 @@ export default function SetRow({
   exerciseId,
   equipmentId,
   loadType = 'dual_load',
-  suggestedWeight
+  suggestedWeight,
+  gymId,
+  supportedImplements = ['barbell']
 }: SetRowProps) {
   const { data: barTypes } = useBarTypes();
   
@@ -54,6 +60,7 @@ export default function SetRow({
   const [oneSideWeight, setOneSideWeight] = useState(lastSet?.load_one_side_kg || 0);
   const [totalWeight, setTotalWeight] = useState(weight);
   const [loadoutSnap, setLoadoutSnap] = useState<ResolveResult | null>(null);
+  const [selectedImplement, setSelectedImplement] = useState<string>(supportedImplements[0] || 'barbell');
 
   const selectedBar = barTypes?.find(bar => bar.id === barTypeId);
 
@@ -157,12 +164,16 @@ export default function SetRow({
           </ToggleGroup>
         )}
 
-        <Input
-          type="number"
+        <SmartWeightInput
+          value={loadEntryMode === 'one_side' ? (oneSideWeight || 0) : (weight || 0)}
+          onChange={handleWeightChange}
+          exerciseId={exerciseId}
+          gymId={gymId}
           placeholder={loadEntryMode === 'one_side' ? "Per side" : "Weight"}
-          value={loadEntryMode === 'one_side' ? (oneSideWeight || '') : (weight || '')}
-          onChange={(e) => handleWeightChange(Number(e.target.value))}
           className="w-20"
+          onResolutionChange={(resolved) => {
+            // Could store resolution details for loadout modal
+          }}
         />
         <span className="text-xs">kg</span>
         
@@ -177,6 +188,14 @@ export default function SetRow({
         <Button size="sm" onClick={handleLogSet}>
           ✓
         </Button>
+
+        {/* Implement chooser */}
+        <ImplementChooser
+          exerciseId={exerciseId || ''}
+          supportedImplements={supportedImplements}
+          selectedImplement={selectedImplement}
+          onImplementChange={setSelectedImplement}
+        />
 
       </div>
 

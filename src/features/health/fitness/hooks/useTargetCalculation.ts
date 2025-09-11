@@ -6,6 +6,7 @@ import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { scaleByReadiness } from '@/lib/training/readinessScaling';
 import { resolveWeightForExercise } from '@/lib/loading/equipmentResolver';
+import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
 
 interface UseTargetCalculationProps {
   userId?: string;
@@ -137,30 +138,30 @@ export function useTargetCalculation({
     return baselineTarget;
   }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex, readiness.score, userId, exerciseId, loadType]);
 
-  // Equipment-aware target resolution
+  // Equipment-aware target resolution with smart snapping
   const [equipmentResolvedTarget, setEquipmentResolvedTarget] = React.useState(target);
   
   React.useEffect(() => {
     const resolveWithEquipment = async () => {
       try {
-        const resolved = await resolveWeightForExercise(
-          target.weight,
-          'kg', // Assume kg for now, can be made dynamic
-          exerciseId,
-          loadType,
-          userId
+        // Use the new consolidated resolver
+        const resolved = await resolveAchievableLoad(
+          exerciseId || '',
+          target.weight
+          // gymId would come from user context
         );
         
         setEquipmentResolvedTarget({
-          weight: resolved.weight,
+          weight: resolved.totalKg,
           reps: target.reps
         });
         
-        console.log('🎯 useTargetCalculation: Equipment resolution:', {
+        console.log('🎯 useTargetCalculation: Smart equipment resolution:', {
           original: target.weight,
-          resolved: resolved.weight,
-          achievable: resolved.achievable,
-          breakdown: resolved.breakdown
+          resolved: resolved.totalKg,
+          implement: resolved.implement,
+          residual: resolved.residualKg,
+          source: resolved.source
         });
       } catch (error) {
         console.error('Equipment resolution failed:', error);
@@ -168,12 +169,12 @@ export function useTargetCalculation({
       }
     };
 
-    if (target.weight > 0) {
+    if (target.weight > 0 && exerciseId) {
       resolveWithEquipment();
     } else {
       setEquipmentResolvedTarget(target);
     }
-  }, [target.weight, target.reps, exerciseId, loadType, userId]);
+  }, [target.weight, target.reps, exerciseId]);
 
   // Apply target to form - track by unique key to ensure reliability
   const hasAppliedRef = React.useRef<string>('');

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { resolveWeightForExercise } from '@/lib/loading/equipmentResolver';
+import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
 
 export interface WarmupSet {
   percentage: number;
@@ -52,17 +53,15 @@ export function useEquipmentAwareWarmup(
           const targetWeight = workingWeight * percentages[i];
           
           // Resolve weight to achievable load with gym equipment
-          const resolved = await resolveWeightForExercise(
-            targetWeight,
-            'kg',
-            exerciseId,
-            loadType,
-            userId
+          const resolved = await resolveAchievableLoad(
+            exerciseId || '',
+            targetWeight
+            // gymId would come from user context
           );
           
           sets.push({
             percentage: percentages[i],
-            weight: resolved.weight,
+            weight: resolved.totalKg,
             reps: Math.max(15 - i * 3, 5), // 15, 12, 9 reps (min 5)
             restSeconds: 45 + i * 15 // 45, 60, 75 seconds
           });

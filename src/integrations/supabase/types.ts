@@ -10787,6 +10787,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      closest_barbell_weight_kg: {
+        Args: { available_plates: number[]; bar_kg: number; desired_kg: number }
+        Returns: number
+      }
       closest_machine_weight: {
         Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
@@ -11035,6 +11039,15 @@ export type Database = {
           next_reps: number
           next_weight_kg: number
         }[]
+      }
+      fn_resolve_achievable_load: {
+        Args: {
+          allow_mix_units?: boolean
+          desired_kg?: number
+          exercise_id: string
+          gym_id?: string
+        }
+        Returns: Json
       }
       fn_suggest_rest_seconds: {
         Args: { p_effort_level?: string; p_workout_set_id: string }
