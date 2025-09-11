@@ -77,7 +77,7 @@ export default function ImprovedWorkoutSession({
   const [showGripsDialog, setShowGripsDialog] = useState(false);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
-  const [showWarmupDialog, setShowWarmupDialog] = useState(false);
+  const [showWarmupDialog, setShowWarmupDialog] = useState(true); // Show by default
   const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
   const [currentSetData, setCurrentSetData] = useState<SetData & {
     weightKg?: number;
@@ -366,7 +366,7 @@ export default function ImprovedWorkoutSession({
         </Badge>
       </div>
 
-      {/* Warmup Block - Positioned below exercise name */}
+      {/* Warmup Block - Positioned below exercise name, open by default */}
       {showWarmupDialog && (
         <div className="mb-4">
           <WarmupBlock
@@ -375,8 +375,9 @@ export default function ImprovedWorkoutSession({
             suggestedTopWeight={templateTargetWeight || currentSetData.weight || 60}
             suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
             onFeedbackGiven={() => {
-              // Keep warmup open after feedback
-              console.log('Warmup feedback given');
+              // Close warmup after feedback is given
+              setShowWarmupDialog(false);
+              console.log('Warmup feedback given - closing warmup');
             }}
             onClose={() => setShowWarmupDialog(false)}
           />

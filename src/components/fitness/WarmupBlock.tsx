@@ -68,8 +68,8 @@ export function WarmupBlock({
       });
       
       setLocalFeedback(value);
+      onFeedbackGiven?.(); // This will close the warmup
       toast.success('Warm-up feedback saved');
-      onFeedbackGiven?.();
       
       // Regenerate plan after feedback
       const smartPlan = await smartWarmupCalculator.generateWarmupPlan({
