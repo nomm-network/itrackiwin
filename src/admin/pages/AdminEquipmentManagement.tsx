@@ -21,6 +21,7 @@ import { Switch } from "@/components/ui/switch";
 import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PlateInventorySection } from "@/components/equipment/PlateInventorySection";
 
 interface Equipment {
   id: string;
@@ -436,59 +437,66 @@ const AdminEquipmentManagement: React.FC = () => {
                             </FormControl>
                           </FormItem>
                         )}
-                      />
-                      
-                      {editingItem && (
-                        <div className="space-y-4">
-                          <h4 className="font-medium">Grip Configuration</h4>
-                          
-                          <div className="space-y-3">
-                            {availableGrips.map((grip) => {
-                              const equipmentGrip = equipmentGrips.find(eg => eg.grip_id === grip.id);
-                              const isAllowed = !!equipmentGrip;
-                              const isDefault = equipmentGrip?.is_default || false;
-                              
-                              return (
-                                <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
-                                  <div className="font-medium">{grip.name}</div>
-                                  <div className="flex items-center gap-6">
-                                    <div className="flex items-center gap-2">
-                                      <Checkbox
-                                        checked={isAllowed}
-                                        onCheckedChange={(checked) => {
-                                          if (checked) {
-                                            addGripMutation.mutate({ equipmentId: editingItem.id, gripIds: [grip.id] });
-                                          } else {
-                                            if (equipmentGrip) {
-                                              removeGripMutation.mutate(equipmentGrip.id);
-                                            }
-                                          }
-                                        }}
-                                      />
-                                      <label className="text-sm">Allowed</label>
+                       />
+                       
+                       {editingItem && (
+                         <>
+                           <div className="space-y-4">
+                             <h4 className="font-medium">Standard Plate Inventory</h4>
+                             <PlateInventorySection equipmentId={editingItem.id} />
+                           </div>
+                           
+                            <div className="space-y-4">
+                              <h4 className="font-medium">Grip Configuration</h4>
+                           
+                              <div className="space-y-3">
+                                {availableGrips.map((grip) => {
+                                  const equipmentGrip = equipmentGrips.find(eg => eg.grip_id === grip.id);
+                                  const isAllowed = !!equipmentGrip;
+                                  const isDefault = equipmentGrip?.is_default || false;
+                                  
+                                  return (
+                                    <div key={grip.id} className="flex items-center justify-between p-3 border rounded-md">
+                                      <div className="font-medium">{grip.name}</div>
+                                      <div className="flex items-center gap-6">
+                                        <div className="flex items-center gap-2">
+                                          <Checkbox
+                                            checked={isAllowed}
+                                            onCheckedChange={(checked) => {
+                                              if (checked) {
+                                                addGripMutation.mutate({ equipmentId: editingItem.id, gripIds: [grip.id] });
+                                              } else {
+                                                if (equipmentGrip) {
+                                                  removeGripMutation.mutate(equipmentGrip.id);
+                                                }
+                                              }
+                                            }}
+                                          />
+                                          <label className="text-sm">Allowed</label>
+                                        </div>
+                                        <div className="flex items-center gap-2">
+                                          <Checkbox
+                                            checked={isDefault}
+                                            disabled={!isAllowed}
+                                            onCheckedChange={(checked) => {
+                                              if (equipmentGrip) {
+                                                toggleDefaultGripMutation.mutate({ 
+                                                  id: equipmentGrip.id, 
+                                                  isDefault: checked as boolean
+                                                });
+                                              }
+                                            }}
+                                          />
+                                          <label className="text-sm">Default</label>
+                                        </div>
+                                      </div>
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                      <Checkbox
-                                        checked={isDefault}
-                                        disabled={!isAllowed}
-                                        onCheckedChange={(checked) => {
-                                          if (equipmentGrip) {
-                                            toggleDefaultGripMutation.mutate({ 
-                                              id: equipmentGrip.id, 
-                                              isDefault: checked as boolean
-                                            });
-                                          }
-                                        }}
-                                      />
-                                      <label className="text-sm">Default</label>
-                                    </div>
-                                  </div>
-                                </div>
-                              );
-                            })}
-                          </div>
-                        </div>
-                      )}
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          </>
+                        )}
                       
                       <div className="flex gap-2">
                         <Button type="submit" disabled={createEquipmentMutation.isPending || updateEquipmentMutation.isPending}>

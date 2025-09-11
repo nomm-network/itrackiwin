@@ -15,6 +15,7 @@ import {
 } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Dumbbell, Plus, Edit, Trash2 } from 'lucide-react';
+import { GymInventoryTab } from './GymInventoryTab';
 
 interface GymEquipmentTabProps {
   gymId: string;
@@ -84,12 +85,17 @@ export default function GymEquipmentTab({ gymId, isAdmin }: GymEquipmentTabProps
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-semibold">Gym Equipment</h3>
-          <p className="text-sm text-muted-foreground">Configure equipment available at this gym</p>
-        </div>
+    <div className="space-y-8">
+      {/* Gym Inventory Management */}
+      <GymInventoryTab gymId={gymId} isAdmin={isAdmin} />
+      
+      {/* Existing Equipment Management */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-lg font-semibold">Gym Equipment</h3>
+            <p className="text-sm text-muted-foreground">Configure equipment available at this gym</p>
+          </div>
         
         {isAdmin && (
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
@@ -154,6 +160,7 @@ export default function GymEquipmentTab({ gymId, isAdmin }: GymEquipmentTabProps
           </CardContent>
         </Card>
       )}
+      </div>
     </div>
   );
 }
