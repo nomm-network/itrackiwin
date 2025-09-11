@@ -5,7 +5,6 @@ import { useReadinessTargets } from '@/features/workouts/hooks/useReadinessTarge
 import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { scaleByReadiness } from '@/lib/training/readinessScaling';
-import { resolveWeightForExercise } from '@/lib/loading/equipmentResolver';
 import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
 
 interface UseTargetCalculationProps {
