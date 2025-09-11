@@ -73,9 +73,9 @@ export const GymEquipmentProfilesTab: React.FC<GymEquipmentProfilesTabProps> = (
 
           <div className="space-y-2">
             <Label>Equipment</Label>
-            <Select
-              value={selectedEquipmentId || ""}
-              onValueChange={setSelectedEquipmentId}
+              <Select
+                value={selectedEquipmentId || "none"}
+                onValueChange={(value) => setSelectedEquipmentId(value === "none" ? null : value)}
             >
               <SelectTrigger className="bg-background border-input">
                 <SelectValue placeholder="Select equipment to configure" />
@@ -168,14 +168,14 @@ const EquipmentProfileOverrideForm: React.FC<EquipmentProfileOverrideFormProps> 
           <div className="space-y-2">
             <Label>Gym Plate Override</Label>
             <Select
-              value={plateProfileId || ""}
-              onValueChange={(value) => setPlateProfileId(value || null)}
+              value={plateProfileId || "none"}
+              onValueChange={(value) => setPlateProfileId(value === "none" ? null : value)}
             >
               <SelectTrigger className="bg-background border-input">
                 <SelectValue placeholder="Use global default" />
               </SelectTrigger>
               <SelectContent className="bg-background border-input shadow-lg z-50">
-                <SelectItem value="">Use global default</SelectItem>
+                <SelectItem value="none">Use global default</SelectItem>
                 {plateProfiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.name} ({profile.default_unit})
@@ -195,14 +195,14 @@ const EquipmentProfileOverrideForm: React.FC<EquipmentProfileOverrideFormProps> 
           <div className="space-y-2">
             <Label>Gym Stack Override</Label>
             <Select
-              value={stackProfileId || ""}
-              onValueChange={(value) => setStackProfileId(value || null)}
+              value={stackProfileId || "none"}
+              onValueChange={(value) => setStackProfileId(value === "none" ? null : value)}
             >
               <SelectTrigger className="bg-background border-input">
                 <SelectValue placeholder="Use global default" />
               </SelectTrigger>
               <SelectContent className="bg-background border-input shadow-lg z-50">
-                <SelectItem value="">Use global default</SelectItem>
+                <SelectItem value="none">Use global default</SelectItem>
                 {stackProfiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.name} ({profile.default_unit})

@@ -59,14 +59,14 @@ export const EquipmentProfilesSection: React.FC<EquipmentProfilesSectionProps> =
           <div className="space-y-2">
             <Label>Plate Profile</Label>
             <Select
-              value={selectedPlateProfile || ""}
-              onValueChange={(value) => setSelectedPlateProfile(value || null)}
+              value={selectedPlateProfile || "none"}
+              onValueChange={(value) => setSelectedPlateProfile(value === "none" ? null : value)}
             >
               <SelectTrigger className="bg-background border-input">
                 <SelectValue placeholder="Select plate profile" />
               </SelectTrigger>
               <SelectContent className="bg-background border-input shadow-lg z-50">
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {plateProfiles?.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.name} ({profile.default_unit})
@@ -79,14 +79,14 @@ export const EquipmentProfilesSection: React.FC<EquipmentProfilesSectionProps> =
           <div className="space-y-2">
             <Label>Stack Profile</Label>
             <Select
-              value={selectedStackProfile || ""}
-              onValueChange={(value) => setSelectedStackProfile(value || null)}
+              value={selectedStackProfile || "none"}
+              onValueChange={(value) => setSelectedStackProfile(value === "none" ? null : value)}
             >
               <SelectTrigger className="bg-background border-input">
                 <SelectValue placeholder="Select stack profile" />
               </SelectTrigger>
               <SelectContent className="bg-background border-input shadow-lg z-50">
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value="none">None</SelectItem>
                 {stackProfiles?.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.name} ({profile.default_unit})
