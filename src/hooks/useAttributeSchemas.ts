@@ -26,6 +26,7 @@ export interface Movement {
 export interface Equipment {
   id: string;
   name: string;
+  slug?: string;
   created_at: string;
 }
 
@@ -70,15 +71,21 @@ export const useMovements = () => {
 
 export const useEquipments = () => {
   return useQuery({
-    queryKey: ['equipments'],
+    queryKey: ['equipment'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('equipments')
-        .select('*')
-        .order('name');
+        .from('equipment')
+        .select('id, slug, equipment_translations!inner(name)')
+        .eq('equipment_translations.language_code', 'en')
+        .order('equipment_translations.name');
 
       if (error) throw error;
-      return data as Equipment[];
+      return data?.map(equipment => ({
+        id: equipment.id,
+        slug: equipment.slug,
+        name: equipment.equipment_translations[0]?.name || 'Unknown Equipment',
+        created_at: new Date().toISOString()
+      })) as Equipment[];
     },
   });
 };

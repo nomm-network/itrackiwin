@@ -1583,24 +1583,6 @@ export type Database = {
           },
         ]
       }
-      equipments: {
-        Row: {
-          created_at: string
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       exercise_aliases: {
         Row: {
           alias: string
@@ -2342,13 +2324,6 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exercises_equipment_ref_id_fkey"
-            columns: ["equipment_ref_id"]
-            isOneToOne: false
-            referencedRelation: "equipments"
             referencedColumns: ["id"]
           },
           {
@@ -10126,13 +10101,6 @@ export type Database = {
             columns: ["equipment_id"]
             isOneToOne: false
             referencedRelation: "v_equipment_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "exercises_equipment_ref_id_fkey"
-            columns: ["equipment_ref_id"]
-            isOneToOne: false
-            referencedRelation: "equipments"
             referencedColumns: ["id"]
           },
           {
