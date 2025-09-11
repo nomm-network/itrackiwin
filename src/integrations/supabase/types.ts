@@ -1482,6 +1482,55 @@ export type Database = {
           },
         ]
       }
+      equipment_profiles: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          id: string
+          profile_id: string
+          profile_type: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          id?: string
+          profile_id: string
+          profile_type: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          id?: string
+          profile_id?: string
+          profile_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       equipment_translations: {
         Row: {
           created_at: string
@@ -7020,6 +7069,89 @@ export type Database = {
           },
         ]
       }
+      user_gym_equipment_profiles: {
+        Row: {
+          created_at: string
+          equipment_id: string
+          id: string
+          notes: string | null
+          plate_profile_id: string | null
+          stack_profile_id: string | null
+          updated_at: string
+          user_gym_id: string
+        }
+        Insert: {
+          created_at?: string
+          equipment_id: string
+          id?: string
+          notes?: string | null
+          plate_profile_id?: string | null
+          stack_profile_id?: string | null
+          updated_at?: string
+          user_gym_id: string
+        }
+        Update: {
+          created_at?: string
+          equipment_id?: string
+          id?: string
+          notes?: string | null
+          plate_profile_id?: string | null
+          stack_profile_id?: string | null
+          updated_at?: string
+          user_gym_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gym_equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_plate_profile_id_fkey"
+            columns: ["plate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "plate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_stack_profile_id_fkey"
+            columns: ["stack_profile_id"]
+            isOneToOne: false
+            referencedRelation: "stack_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "user_gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_equipment_profiles_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_user_default_gym"
+            referencedColumns: ["user_gym_id"]
+          },
+        ]
+      }
       user_gym_machines: {
         Row: {
           aux_values: number[] | null
@@ -11560,6 +11692,13 @@ export type Database = {
           _unit: Database["public"]["Enums"]["weight_unit"]
         }
         Returns: Json
+      }
+      get_equipment_profile: {
+        Args: { p_equipment_id: string; p_user_gym_id?: string }
+        Returns: {
+          plate_profile_id: string
+          stack_profile_id: string
+        }[]
       }
       get_last_sets_for_exercises: {
         Args: { p_exercise_ids: string[] }

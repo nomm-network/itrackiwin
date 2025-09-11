@@ -16,6 +16,7 @@ import {
 import { Textarea } from '@/components/ui/textarea';
 import { Dumbbell, Plus, Edit, Trash2 } from 'lucide-react';
 import { GymInventoryTab } from './GymInventoryTab';
+import { GymEquipmentProfilesTab } from './GymEquipmentProfilesTab';
 
 interface GymEquipmentTabProps {
   gymId: string;
@@ -86,6 +87,9 @@ export default function GymEquipmentTab({ gymId, isAdmin }: GymEquipmentTabProps
 
   return (
     <div className="space-y-8">
+      {/* Equipment Profile Overrides */}
+      <GymEquipmentProfilesTab gymId={gymId} />
+      
       {/* Gym Inventory Management */}
       <GymInventoryTab gymId={gymId} isAdmin={isAdmin} />
       
