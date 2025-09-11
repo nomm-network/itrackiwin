@@ -42,7 +42,8 @@ export function AdminRoutes() {
         <AdminLayout>
           <Routes>
             <Route index element={<AdminHomePage />} />
-          <Route path="exercises" element={<AdminExercisesManagement />} />
+            <Route path="equipment" element={<AdminEquipmentManagement />} />
+            <Route path="exercises" element={<AdminExercisesManagement />} />
           <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
           <Route path="users" element={<AdminUsersListPage />} />
           <Route path="users/:id" element={<AdminUserDetailPage />} />
