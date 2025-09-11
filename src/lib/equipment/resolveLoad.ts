@@ -54,6 +54,17 @@ async function resolveAchievableLoadV2(
   
   // Log telemetry if significant difference
   if (Math.abs(result.residualKg) >= 0.25) {
+    console.log('🎯 Weight Resolution V2 (equipment snapping):', {
+      exerciseId,
+      gymId,
+      desired: desiredKg,
+      resolved: result.totalKg,
+      implement: result.implement,
+      source: result.source,
+      residualKg: result.residualKg,
+      achievable: result.achievable
+    });
+    
     logWeightResolution({
       exercise_id: exerciseId,
       gym_id: gymId,
