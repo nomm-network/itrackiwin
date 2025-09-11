@@ -8,6 +8,7 @@ const AdminExercisesManagement = lazy(() => import("./pages/AdminExercisesManage
 const AdminExerciseEdit = lazy(() => import("./pages/AdminExerciseEdit.tsx"));
 const AdminMusclesManagement = lazy(() => import("./pages/AdminMusclesManagement"));
 const AdminEquipmentManagement = lazy(() => import("./pages/AdminEquipmentManagement"));
+const AdminEquipmentEdit = lazy(() => import("./pages/AdminEquipmentEdit"));
 const AdminGripsManagement = lazy(() => import("./pages/AdminGripsManagement"));
 const AdminMovementsManagement = lazy(() => import("./pages/AdminMovementsManagement"));
 const AdminEquipmentGripCompatibility = lazy(() => import("./pages/AdminEquipmentGripCompatibility"));
@@ -43,6 +44,7 @@ export function AdminRoutes() {
           <Routes>
             <Route index element={<AdminHomePage />} />
             <Route path="equipment" element={<AdminEquipmentManagement />} />
+            <Route path="equipment/:id/edit" element={<AdminEquipmentEdit />} />
             <Route path="exercises" element={<AdminExercisesManagement />} />
           <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
           <Route path="users" element={<AdminUsersListPage />} />
