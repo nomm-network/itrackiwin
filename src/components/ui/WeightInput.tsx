@@ -7,6 +7,9 @@ import { cn } from '@/lib/utils';
 import { useDisplayUnit } from '@/hooks/useWorkoutUnit';
 import { convertWeight, roundWeight, formatDualWeight, createWeightData, type WeightUnit, type WeightData } from '@/lib/weightConversion';
 import { useUserProfile } from '@/hooks/useUserProfile';
+import { fetchEffectivePlates } from '@/lib/equipment/api';
+import { closestLoad, makeIncrementTable } from '@/lib/equipment/resolve';
+import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
 
 interface WeightInputProps {
   value?: number;
@@ -28,11 +31,24 @@ export const WeightInput: React.FC<WeightInputProps> = ({
   showDualDisplay = true
 }) => {
   const { data: userProfile } = useUserProfile();
+  const { gym } = useMyGym();
   const displayUnit = useDisplayUnit(workoutId);
   const [inputValue, setInputValue] = useState<string>('');
+  const [plateProfile, setPlateProfile] = useState<any>(null);
   
   const userDefaultUnit = userProfile?.default_unit || 'kg';
   const showDual = showDualDisplay && displayUnit !== userDefaultUnit;
+
+  // Load equipment profile for weight validation
+  useEffect(() => {
+    const loadPlateProfile = async () => {
+      if (gym?.id) {
+        const profile = await fetchEffectivePlates(gym.id, displayUnit);
+        setPlateProfile(profile);
+      }
+    };
+    loadPlateProfile();
+  }, [gym?.id, displayUnit]);
 
   // Initialize input value from prop
   useEffect(() => {
@@ -47,8 +63,19 @@ export const WeightInput: React.FC<WeightInputProps> = ({
     
     const numericValue = parseFloat(newValue);
     if (!isNaN(numericValue) && numericValue > 0) {
-      const weightData = createWeightData(numericValue, displayUnit);
+      // Snap to closest achievable weight if plate profile is available
+      let adjustedWeight = numericValue;
+      if (plateProfile) {
+        adjustedWeight = closestLoad(numericValue, 'barbell', plateProfile);
+      }
+      
+      const weightData = createWeightData(adjustedWeight, displayUnit);
       onChange(weightData);
+      
+      // Update input to show the snapped weight
+      if (adjustedWeight !== numericValue) {
+        setInputValue(adjustedWeight.toString());
+      }
     }
   };
 
