@@ -245,31 +245,8 @@ export default function ImprovedWorkoutSession({
       };
       onSetComplete(setData);
       
-      // Track muscle usage for adaptive warmups (only for working sets, not warmup sets)
-      if (currentSetNumber > 0) {
-        // Get exercise muscle data from supabase
-        try {
-          const { data: exerciseData } = await supabase
-            .from('exercises')
-            .select('body_part_id, secondary_muscle_group_ids')
-            .eq('id', exerciseId)
-            .single();
-            
-          if (exerciseData) {
-            const primaryGroup = exerciseData.body_part_id || '';
-            const secondaryGroups = exerciseData.secondary_muscle_group_ids || [];
-            noteWorkingSet(primaryGroup, secondaryGroups);
-            console.log('💪 Tracked muscle usage for adaptive warmups:', { 
-              primaryGroup, 
-              secondaryGroups, 
-              exerciseId, 
-              exerciseName: exercise.name 
-            });
-          }
-        } catch (error) {
-          console.warn('Failed to track muscle usage:', error);
-        }
-      }
+      // DO NOT track muscle usage here - this is called after each SET, not each EXERCISE
+      // The warmup context should only be updated when completing an entire exercise
       
       // Update warmup plan based on current workout data after each set
       // (in case this set is heavier than previous ones)
@@ -504,6 +481,17 @@ export default function ImprovedWorkoutSession({
               }}
             />
 
+            {/* Debug exercise data for SetEditor */}
+            {(() => {
+              console.log('🔍 SetEditor DEBUG - Exercise data:', {
+                exerciseName: exercise.name,
+                load_type: exercise.load_type,
+                equipment_ref: exercise.equipment_ref,
+                isDual: exercise.load_type === 'dual_load'
+              });
+              return null;
+            })()}
+            
             {/* SetEditor for dual-load support */}
             <SetEditor
               exercise={{
@@ -592,7 +580,31 @@ export default function ImprovedWorkoutSession({
                 </div>
                 <div className="space-y-2">
                   {onFinishWorkout && (
-                    <Button onClick={onFinishWorkout} className="w-full" size="lg">
+                    <Button onClick={async () => {
+                      // Track muscle usage for adaptive warmups ONLY when completing entire exercise (last exercise)
+                      try {
+                        const { data: exerciseData } = await supabase
+                          .from('exercises')
+                          .select('body_part_id, secondary_muscle_group_ids')
+                          .eq('id', exerciseId)
+                          .single();
+                          
+                        if (exerciseData) {
+                          const primaryGroup = exerciseData.body_part_id || '';
+                          const secondaryGroups = exerciseData.secondary_muscle_group_ids || [];
+                          noteWorkingSet(primaryGroup, secondaryGroups);
+                          console.log('🏁 Last exercise completed - tracked muscle usage for adaptive warmups:', { 
+                            primaryGroup, 
+                            secondaryGroups, 
+                            exerciseId, 
+                            exerciseName: exercise.name 
+                          });
+                        }
+                      } catch (error) {
+                        console.warn('Failed to track muscle usage on workout finish:', error);
+                      }
+                      onFinishWorkout();
+                    }} className="w-full" size="lg">
                       Finish Workout
                     </Button>
                   )}
@@ -618,7 +630,31 @@ export default function ImprovedWorkoutSession({
                   {exercise.completed_sets.length} sets completed
                 </div>
                 <div className="space-y-2">
-                  <Button onClick={onExerciseComplete} className="w-full" size="lg">
+                  <Button onClick={async () => {
+                    // Track muscle usage for adaptive warmups ONLY when completing entire exercise
+                    try {
+                      const { data: exerciseData } = await supabase
+                        .from('exercises')
+                        .select('body_part_id, secondary_muscle_group_ids')
+                        .eq('id', exerciseId)
+                        .single();
+                        
+                      if (exerciseData) {
+                        const primaryGroup = exerciseData.body_part_id || '';
+                        const secondaryGroups = exerciseData.secondary_muscle_group_ids || [];
+                        noteWorkingSet(primaryGroup, secondaryGroups);
+                        console.log('🏁 Exercise completed - tracked muscle usage for adaptive warmups:', { 
+                          primaryGroup, 
+                          secondaryGroups, 
+                          exerciseId, 
+                          exerciseName: exercise.name 
+                        });
+                      }
+                    } catch (error) {
+                      console.warn('Failed to track muscle usage on exercise completion:', error);
+                    }
+                    onExerciseComplete();
+                  }} className="w-full" size="lg">
                     Next Exercise
                   </Button>
                   {onAddExtraSet && (
