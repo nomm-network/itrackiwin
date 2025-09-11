@@ -1,4 +1,5 @@
 import { WeightUnit } from './api';
+import { toKg, toUnit, toDisplayUnit } from './mixedUnits';
 
 const KG_TO_LB = 2.2046226218;
 const LB_TO_KG = 1 / KG_TO_LB;
@@ -8,6 +9,9 @@ export const kgToLb = (kg: number): number => kg * KG_TO_LB;
 
 // Convert lb to kg  
 export const lbToKg = (lb: number): number => lb * LB_TO_KG;
+
+// Re-export mixed unit helpers for backward compatibility
+export { toKg, toUnit, toDisplayUnit };
 
 // Convert weight between units
 export const convertWeight = (weight: number, fromUnit: WeightUnit, toUnit: WeightUnit): number => {

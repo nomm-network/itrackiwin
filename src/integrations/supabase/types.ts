@@ -6975,6 +6975,7 @@ export type Database = {
       user_gym_dumbbells: {
         Row: {
           id: string
+          native_unit: Database["public"]["Enums"]["weight_unit"] | null
           quantity: number
           unit: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
@@ -6982,6 +6983,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity?: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
@@ -6989,6 +6991,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity?: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id?: string
@@ -7164,6 +7167,7 @@ export type Database = {
       user_gym_miniweights: {
         Row: {
           id: string
+          native_unit: Database["public"]["Enums"]["weight_unit"] | null
           quantity: number
           unit: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
@@ -7171,6 +7175,7 @@ export type Database = {
         }
         Insert: {
           id?: string
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
@@ -7178,6 +7183,7 @@ export type Database = {
         }
         Update: {
           id?: string
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity?: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id?: string
@@ -7202,21 +7208,30 @@ export type Database = {
       }
       user_gym_plates: {
         Row: {
+          color: string | null
           id: string
+          label: string | null
+          native_unit: Database["public"]["Enums"]["weight_unit"] | null
           quantity: number
           unit: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
           weight: number
         }
         Insert: {
+          color?: string | null
           id?: string
+          label?: string | null
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id: string
           weight: number
         }
         Update: {
+          color?: string | null
           id?: string
+          label?: string | null
+          native_unit?: Database["public"]["Enums"]["weight_unit"] | null
           quantity?: number
           unit?: Database["public"]["Enums"]["weight_unit"]
           user_gym_id?: string
@@ -10823,6 +10838,14 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      calculate_mixed_unit_increment: {
+        Args: {
+          display_unit?: Database["public"]["Enums"]["weight_unit"]
+          gym_id: string
+          load_type: string
+        }
+        Returns: number
+      }
       can_mutate_workout_set: {
         Args: { _we_id: string }
         Returns: boolean
@@ -13133,6 +13156,18 @@ export type Database = {
         Returns: {
           pct: number
           suggested_kg: number
+        }[]
+      }
+      sum_plates_mixed_units: {
+        Args: {
+          display_unit?: Database["public"]["Enums"]["weight_unit"]
+          plate_units: string[]
+          plate_weights_kg: number[]
+        }
+        Returns: {
+          total_display: number
+          total_kg: number
+          unit_display: string
         }[]
       }
       text: {
