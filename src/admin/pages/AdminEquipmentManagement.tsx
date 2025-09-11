@@ -22,6 +22,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlateInventorySection } from "@/components/equipment/PlateInventorySection";
+import { StackWeightsSection } from "@/components/equipment/StackWeightsSection";
 
 interface Equipment {
   id: string;
@@ -444,8 +445,13 @@ const AdminEquipmentManagement: React.FC = () => {
                            <div className="space-y-4">
                              <h4 className="font-medium">Standard Plate Inventory</h4>
                              <PlateInventorySection equipmentId={editingItem.id} />
-                           </div>
-                           
+                            </div>
+                            
+                            <div className="space-y-4">
+                              <h4 className="font-medium">Default Stack Weights</h4>
+                              <StackWeightsSection equipmentId={editingItem.id} />
+                            </div>
+                            
                             <div className="space-y-4">
                               <h4 className="font-medium">Grip Configuration</h4>
                            

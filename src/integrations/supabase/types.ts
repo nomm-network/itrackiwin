@@ -1280,6 +1280,8 @@ export type Database = {
           default_side_min_plate_kg: number | null
           default_single_min_increment_kg: number | null
           default_stack: Json | null
+          default_stack_unit: Database["public"]["Enums"]["weight_unit"] | null
+          default_stack_weights: number[] | null
           equipment_type: string
           id: string
           kind: string | null
@@ -1296,6 +1298,8 @@ export type Database = {
           default_side_min_plate_kg?: number | null
           default_single_min_increment_kg?: number | null
           default_stack?: Json | null
+          default_stack_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          default_stack_weights?: number[] | null
           equipment_type?: string
           id?: string
           kind?: string | null
@@ -1312,6 +1316,8 @@ export type Database = {
           default_side_min_plate_kg?: number | null
           default_single_min_increment_kg?: number | null
           default_stack?: Json | null
+          default_stack_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          default_stack_weights?: number[] | null
           equipment_type?: string
           id?: string
           kind?: string | null
@@ -7295,6 +7301,114 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_gym_stacks: {
+        Row: {
+          created_at: string | null
+          equipment_id: string | null
+          id: string
+          stack_weights: number[]
+          unit: Database["public"]["Enums"]["weight_unit"]
+          updated_at: string | null
+          user_gym_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          equipment_id?: string | null
+          id?: string
+          stack_weights?: number[]
+          unit?: Database["public"]["Enums"]["weight_unit"]
+          updated_at?: string | null
+          user_gym_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          equipment_id?: string | null
+          id?: string
+          stack_weights?: number[]
+          unit?: Database["public"]["Enums"]["weight_unit"]
+          updated_at?: string | null
+          user_gym_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_gym_stacks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_activity"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_effective_plates"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_equipment_completeness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gym_poster_freshness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_gyms_needing_poster_check"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "user_gym_stacks_user_gym_id_fkey"
+            columns: ["user_gym_id"]
+            isOneToOne: false
+            referencedRelation: "v_marketplace_gyms"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_gym_visits: {
         Row: {

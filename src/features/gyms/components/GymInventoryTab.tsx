@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Plus, Trash2, Dumbbell, Weight } from 'lucide-react';
+import { Plus, Trash2, Dumbbell, Weight, Settings } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface GymInventoryTabProps {
@@ -39,6 +39,17 @@ interface GymBar {
   };
 }
 
+interface GymStack {
+  id: string;
+  equipment_id: string;
+  stack_weights: number[];
+  unit: 'kg' | 'lb';
+  equipment: {
+    slug: string;
+    equipment_translations: { name: string }[];
+  };
+}
+
 export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin }) => {
   const queryClient = useQueryClient();
   const [newPlate, setNewPlate] = useState({ weight: '', quantity: '2', unit: 'kg' });
@@ -54,24 +65,51 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
   const { data: gymInventory, isLoading } = useQuery({
     queryKey: ['gym-inventory', gymId],
     queryFn: async () => {
-      const [platesRes, dumbbellsRes, barsRes] = await Promise.all([
+      const [platesRes, dumbbellsRes, barsRes, stacksRes] = await Promise.all([
         supabase.from('user_gym_plates').select('*').eq('user_gym_id', gymId),
         supabase.from('user_gym_dumbbells').select('*').eq('user_gym_id', gymId),
         supabase.from('user_gym_bars').select(`
           *,
           bar_types(name, default_weight, unit)
+        `).eq('user_gym_id', gymId),
+        supabase.from('user_gym_stacks').select(`
+          *,
+          equipment(slug, equipment_translations!inner(name))
         `).eq('user_gym_id', gymId)
       ]);
 
       if (platesRes.error) throw platesRes.error;
       if (dumbbellsRes.error) throw dumbbellsRes.error;
       if (barsRes.error) throw barsRes.error;
+      if (stacksRes.error) throw stacksRes.error;
 
       return {
         plates: platesRes.data || [],
         dumbbells: dumbbellsRes.data || [],
-        bars: barsRes.data || []
+        bars: barsRes.data || [],
+        stacks: stacksRes.data || []
       };
+    }
+  });
+
+  // Fetch equipment for stack management
+  const { data: equipment = [] } = useQuery({
+    queryKey: ['equipment-for-stacks'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('equipment')
+        .select(`
+          id,
+          slug,
+          equipment_translations!inner(name),
+          default_stack_weights,
+          default_stack_unit
+        `)
+        .eq('load_type', 'stack')
+        .order('equipment_translations.name');
+      
+      if (error) throw error;
+      return data;
     }
   });
 
@@ -156,9 +194,31 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
     }
   });
 
+  // Add stack weights mutation
+  const addStackMutation = useMutation({
+    mutationFn: async ({ equipmentId, stackWeights, unit }: { equipmentId: string; stackWeights: number[]; unit: 'kg' | 'lb' }) => {
+      const { error } = await supabase
+        .from('user_gym_stacks')
+        .upsert([{
+          user_gym_id: gymId,
+          equipment_id: equipmentId,
+          stack_weights: stackWeights,
+          unit
+        }], {
+          onConflict: 'user_gym_id,equipment_id'
+        });
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['gym-inventory', gymId] });
+      toast.success('Stack weights updated');
+    }
+  });
+
   // Remove mutations
   const removeItemMutation = useMutation({
-    mutationFn: async ({ table, id }: { table: 'user_gym_plates' | 'user_gym_dumbbells' | 'user_gym_bars'; id: string }) => {
+    mutationFn: async ({ table, id }: { table: 'user_gym_plates' | 'user_gym_dumbbells' | 'user_gym_bars' | 'user_gym_stacks'; id: string }) => {
       const { error } = await supabase
         .from(table)
         .delete()
@@ -221,6 +281,10 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
     });
   };
 
+  const handleOverrideStack = async (equipmentId: string, weights: number[], unit: 'kg' | 'lb') => {
+    await addStackMutation.mutateAsync({ equipmentId, stackWeights: weights, unit });
+  };
+
   const commonPlates = {
     kg: [1.25, 2.5, 5, 10, 15, 20, 25],
     lb: [2.5, 5, 10, 25, 35, 45]
@@ -239,15 +303,16 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
       <div>
         <h3 className="text-lg font-semibold">Gym Inventory</h3>
         <p className="text-sm text-muted-foreground">
-          Manage plates, dumbbells, and bars available at this gym
+          Manage plates, dumbbells, bars, and machine stacks available at this gym
         </p>
       </div>
 
       <Tabs defaultValue="plates" className="space-y-4">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="plates">Plates</TabsTrigger>
           <TabsTrigger value="dumbbells">Dumbbells</TabsTrigger>
           <TabsTrigger value="bars">Bars</TabsTrigger>
+          <TabsTrigger value="stacks">Machine Stacks</TabsTrigger>
         </TabsList>
 
         <TabsContent value="plates" className="space-y-4">
@@ -264,10 +329,10 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                       value={newPlate.unit} 
                       onValueChange={(value) => setNewPlate({ ...newPlate, unit: value })}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger className="bg-background border-input">
                         <SelectValue />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="bg-background border-input shadow-lg z-50">
                         <SelectItem value="kg">Kilograms</SelectItem>
                         <SelectItem value="lb">Pounds</SelectItem>
                       </SelectContent>
@@ -281,6 +346,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                       value={newPlate.weight}
                       onChange={(e) => setNewPlate({ ...newPlate, weight: e.target.value })}
                       placeholder="2.5"
+                      className="bg-background"
                     />
                   </div>
                   <div>
@@ -290,6 +356,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                       value={newPlate.quantity}
                       onChange={(e) => setNewPlate({ ...newPlate, quantity: e.target.value })}
                       placeholder="2"
+                      className="bg-background"
                     />
                   </div>
                   <div className="flex items-end">
@@ -362,10 +429,10 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newDumbbell.unit} 
                     onValueChange={(value) => setNewDumbbell({ ...newDumbbell, unit: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background border-input">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-input shadow-lg z-50">
                       <SelectItem value="kg">Kilograms</SelectItem>
                       <SelectItem value="lb">Pounds</SelectItem>
                     </SelectContent>
@@ -379,6 +446,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newDumbbell.minWeight}
                     onChange={(e) => setNewDumbbell({ ...newDumbbell, minWeight: e.target.value })}
                     placeholder="2.5"
+                    className="bg-background"
                   />
                 </div>
                 <div>
@@ -389,6 +457,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newDumbbell.maxWeight}
                     onChange={(e) => setNewDumbbell({ ...newDumbbell, maxWeight: e.target.value })}
                     placeholder="50"
+                    className="bg-background"
                   />
                 </div>
                 <div>
@@ -399,6 +468,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newDumbbell.step}
                     onChange={(e) => setNewDumbbell({ ...newDumbbell, step: e.target.value })}
                     placeholder="2.5"
+                    className="bg-background"
                   />
                 </div>
                 <div className="flex items-end">
@@ -449,10 +519,10 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newBar.barTypeId} 
                     onValueChange={(value) => setNewBar({ ...newBar, barTypeId: value })}
                   >
-                    <SelectTrigger>
+                    <SelectTrigger className="bg-background border-input">
                       <SelectValue placeholder="Select bar type" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-background border-input shadow-lg z-50">
                       {barTypes.map((barType) => (
                         <SelectItem key={barType.id} value={barType.id}>
                           {barType.name} ({barType.default_weight}{barType.unit})
@@ -468,6 +538,7 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
                     value={newBar.quantity}
                     onChange={(e) => setNewBar({ ...newBar, quantity: e.target.value })}
                     placeholder="1"
+                    className="bg-background"
                   />
                 </div>
                 <div className="flex items-end">
@@ -505,7 +576,179 @@ export const GymInventoryTab: React.FC<GymInventoryTabProps> = ({ gymId, isAdmin
             ))}
           </div>
         </TabsContent>
+
+        <TabsContent value="stacks" className="space-y-4">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium mb-2">Machine Stack Overrides</h4>
+              <p className="text-sm text-muted-foreground mb-4">
+                Override default stack weights for specific machines in your gym
+              </p>
+            </div>
+            
+            {equipment.map((eq) => {
+              const gymStack = gymInventory?.stacks.find(s => s.equipment_id === eq.id);
+              const hasOverride = !!gymStack;
+              const currentWeights = hasOverride ? gymStack.stack_weights : eq.default_stack_weights || [];
+              const currentUnit = hasOverride ? gymStack.unit : eq.default_stack_unit || 'kg';
+              const equipmentName = eq.equipment_translations?.[0]?.name || eq.slug;
+              
+              return (
+                <Card key={eq.id}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Settings className="h-4 w-4 text-muted-foreground" />
+                        <span>{equipmentName}</span>
+                        {hasOverride && <Badge variant="secondary">Custom</Badge>}
+                      </div>
+                      {hasOverride && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeItemMutation.mutate({ 
+                            table: 'user_gym_stacks', 
+                            id: gymStack.id 
+                          })}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium">
+                          {hasOverride ? 'Custom Weights' : 'Default Weights'}
+                        </Label>
+                        <div className="flex flex-wrap gap-2 mt-1 p-2 border rounded-md bg-muted/30 min-h-[2rem]">
+                          {currentWeights.length > 0 ? (
+                            currentWeights.map((weight, index) => (
+                              <Badge key={index} variant="outline" className="bg-background">
+                                {weight}{currentUnit}
+                              </Badge>
+                            ))
+                          ) : (
+                            <span className="text-sm text-muted-foreground">No weights configured</span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <StackOverrideForm
+                        equipmentId={eq.id}
+                        equipmentName={equipmentName}
+                        currentWeights={currentWeights}
+                        currentUnit={currentUnit}
+                        onOverride={handleOverrideStack}
+                      />
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
       </Tabs>
+    </div>
+  );
+};
+
+// Stack Override Form Component
+interface StackOverrideFormProps {
+  equipmentId: string;
+  equipmentName: string;
+  currentWeights: number[];
+  currentUnit: 'kg' | 'lb';
+  onOverride: (equipmentId: string, weights: number[], unit: 'kg' | 'lb') => Promise<void>;
+}
+
+const StackOverrideForm: React.FC<StackOverrideFormProps> = ({
+  equipmentId,
+  equipmentName,
+  currentWeights,
+  currentUnit,
+  onOverride
+}) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [weights, setWeights] = useState('');
+  const [unit, setUnit] = useState<'kg' | 'lb'>(currentUnit);
+
+  const handleSubmit = async () => {
+    const weightArray = weights
+      .split(',')
+      .map(w => parseFloat(w.trim()))
+      .filter(w => !isNaN(w) && w > 0)
+      .sort((a, b) => a - b);
+
+    if (weightArray.length === 0) {
+      toast.error('Please enter valid weights');
+      return;
+    }
+
+    await onOverride(equipmentId, weightArray, unit);
+    setIsEditing(false);
+    setWeights('');
+  };
+
+  if (!isEditing) {
+    return (
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => {
+          setIsEditing(true);
+          setWeights(currentWeights.join(', '));
+          setUnit(currentUnit);
+        }}
+        className="w-full"
+      >
+        <Settings className="h-3 w-3 mr-2" />
+        Override Stack Weights
+      </Button>
+    );
+  }
+
+  return (
+    <div className="space-y-3 p-3 border rounded-md bg-background">
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <Label>Unit</Label>
+          <Select value={unit} onValueChange={(value: 'kg' | 'lb') => setUnit(value)}>
+            <SelectTrigger className="bg-background border-input">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent className="bg-background border-input shadow-lg z-50">
+              <SelectItem value="kg">Kilograms</SelectItem>
+              <SelectItem value="lb">Pounds</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div>
+          <Label>Weights (comma-separated)</Label>
+          <Input
+            value={weights}
+            onChange={(e) => setWeights(e.target.value)}
+            placeholder="5, 10, 15, 20, 25..."
+            className="bg-background"
+          />
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={handleSubmit}>
+          Save Override
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => {
+            setIsEditing(false);
+            setWeights('');
+          }}
+        >
+          Cancel
+        </Button>
+      </div>
     </div>
   );
 };
