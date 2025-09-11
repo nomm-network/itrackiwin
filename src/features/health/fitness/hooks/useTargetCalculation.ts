@@ -6,6 +6,7 @@ import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { scaleByReadiness } from '@/lib/training/readinessScaling';
 import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
+import { getCurrentGymContext } from '@/lib/loadout/getProfile';
 
 interface UseTargetCalculationProps {
   userId?: string;
@@ -144,7 +145,9 @@ export function useTargetCalculation({
     const resolveWithEquipment = async () => {
       try {
         if (exerciseId && target.weight) {
-          const resolved = await resolveAchievableLoad(exerciseId, target.weight);
+          // Get gym context for proper equipment resolution
+          const { gymId } = await getCurrentGymContext();
+          const resolved = await resolveAchievableLoad(exerciseId, target.weight, gymId);
           
           setEquipmentResolvedTarget({
             weight: resolved.totalKg,
@@ -155,8 +158,10 @@ export function useTargetCalculation({
             original: target.weight,
             resolved: resolved.totalKg,
             implement: resolved.implement,
-            residual: resolved.residualKg,
-            achievable: resolved.achievable
+            source: resolved.source,
+            residualKg: resolved.residualKg,
+            achievable: resolved.achievable,
+            gymId
           });
         }
       } catch (error) {

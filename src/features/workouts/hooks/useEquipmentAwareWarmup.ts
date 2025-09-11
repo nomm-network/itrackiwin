@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { resolveWeightForExercise } from '@/lib/loading/equipmentResolver';
 import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
 
 export interface WarmupSet {
