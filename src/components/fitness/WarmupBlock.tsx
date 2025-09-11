@@ -14,6 +14,7 @@ type WarmupProps = {
   suggestedTopWeight?: number;
   suggestedTopReps?: number;
   onFeedbackGiven?: () => void;
+  onClose?: () => void;
 };
 
 export function WarmupBlock({
@@ -22,6 +23,7 @@ export function WarmupBlock({
   suggestedTopWeight = 60,
   suggestedTopReps = 8,
   onFeedbackGiven,
+  onClose,
 }: WarmupProps) {
   const { user } = useAuth();
   const [plan, setPlan] = useState<SmartWarmupPlan | null>(null);
@@ -104,6 +106,16 @@ export function WarmupBlock({
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
+            {onClose && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="h-6 w-6 p-0"
+              >
+                ✕
+              </Button>
+            )}
           </div>
           <div className="text-xs text-muted-foreground">
             Strategy: <Badge variant="secondary">{plan.strategy}</Badge> • <strong>Top: {plan.baseWeight}{unit}</strong>
@@ -114,11 +126,11 @@ export function WarmupBlock({
         <CardContent className="space-y-3">
           {/* Plan preview */}
           <div className="rounded-md border p-3">
-            <div className="text-xs font-medium mb-2">Steps</div>
+            <div className="text-xs font-medium mb-2">Sets</div>
             <ol className="space-y-2">
-              {plan.steps.map((step) => (
+              {plan.steps.map((step, index) => (
                 <li key={step.id} className="flex items-center justify-between text-sm">
-                  <span className="font-mono">{step.id}</span>
+                  <span className="font-medium">Set {index + 1}</span>
                   <span>
                     <strong className="text-blue-600">{step.weight > 0 ? `${step.weight}${unit}` : '–'} × {step.reps} reps</strong>
                   </span>

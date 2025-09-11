@@ -18,6 +18,7 @@ import { noteWorkingSet } from '@/lib/training/warmupManager';
 import { useGrips } from '@/hooks/useGrips';
 import RestTimerPill from './RestTimerPill';
 import { useSessionTiming } from '@/stores/sessionTiming';
+import { WarmupBlock } from './WarmupBlock';
 
 interface SetData {
   weight: number;
@@ -352,8 +353,10 @@ export default function ImprovedWorkoutSession({
           <Button 
             variant="ghost" 
             size="sm" 
-            className="h-8 w-8 p-0"
-            onClick={() => setShowWarmupDialog(true)}
+            className={cn("h-8 w-8 p-0", showWarmupDialog && "opacity-50 cursor-not-allowed")}
+            onClick={() => !showWarmupDialog && setShowWarmupDialog(true)}
+            disabled={showWarmupDialog}
+            title={showWarmupDialog ? "Warmup is already open" : "Open warmup"}
           >
             🤸
           </Button>
@@ -362,6 +365,23 @@ export default function ImprovedWorkoutSession({
           {exercise.completed_sets.length}/{targetSets} sets
         </Badge>
       </div>
+
+      {/* Warmup Block - Positioned below exercise name */}
+      {showWarmupDialog && (
+        <div className="mb-4">
+          <WarmupBlock
+            workoutExerciseId={exercise.workout_exercise_id}
+            unit={unit}
+            suggestedTopWeight={templateTargetWeight || currentSetData.weight || 60}
+            suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
+            onFeedbackGiven={() => {
+              // Keep warmup open after feedback
+              console.log('Warmup feedback given');
+            }}
+            onClose={() => setShowWarmupDialog(false)}
+          />
+        </div>
+      )}
 
       {/* Completed Sets - Ordered with Set labels */}
       {exercise.completed_sets.map((set, index) => (
@@ -774,72 +794,6 @@ export default function ImprovedWorkoutSession({
         </DialogContent>
       </Dialog>
 
-      {/* Warmup Feedback Dialog */}
-      <Dialog open={showWarmupDialog} onOpenChange={setShowWarmupDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Warmup Feedback</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4 p-4">
-            <p className="text-base text-muted-foreground">
-              How was the warm-up for this exercise?
-            </p>
-            <div className="flex gap-2">
-              <Button
-                size="sm"
-                variant={warmupFeedback === 'not_enough' ? 'default' : 'outline'}
-                onClick={() => {
-                  if (userId) {
-                    warmupFeedbackMutation.mutate({
-                      workoutExerciseId: exercise.workout_exercise_id,
-                      userId: userId,
-                      feedback: 'not_enough',
-                    });
-                    setWarmupFeedback('not_enough');
-                    setShowWarmupDialog(false);
-                  }
-                }}
-              >
-                😴 Not enough
-              </Button>
-              <Button
-                size="sm"
-                variant={warmupFeedback === 'excellent' ? 'default' : 'outline'}
-                onClick={() => {
-                  if (userId) {
-                    warmupFeedbackMutation.mutate({
-                      workoutExerciseId: exercise.workout_exercise_id,
-                      userId: userId,
-                      feedback: 'excellent',
-                    });
-                    setWarmupFeedback('excellent');
-                    setShowWarmupDialog(false);
-                  }
-                }}
-              >
-                🔥 Excellent
-              </Button>
-              <Button
-                size="sm"
-                variant={warmupFeedback === 'too_much' ? 'default' : 'outline'}
-                onClick={() => {
-                  if (userId) {
-                    warmupFeedbackMutation.mutate({
-                      workoutExerciseId: exercise.workout_exercise_id,
-                      userId: userId,
-                      feedback: 'too_much',
-                    });
-                    setWarmupFeedback('too_much');
-                    setShowWarmupDialog(false);
-                  }
-                }}
-              >
-                🥵 Too much
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
       
       {/* Edit Set Dialog */}
       {editingSet !== null && editSetData && (
