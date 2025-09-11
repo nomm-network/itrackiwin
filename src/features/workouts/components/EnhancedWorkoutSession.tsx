@@ -37,7 +37,6 @@ import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
 import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
-import { WarmthProvider } from '@/features/workouts/warmup/WarmthContext';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
 import { recomputeWarmupPlan } from '../warmup/recalc';
@@ -689,7 +688,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const allExercisesComplete = completedExercises.size === totalExercises;
 
   return (
-    <WarmthProvider>
     <div className="min-h-screen bg-background">
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
@@ -914,6 +912,5 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         </div>
       </div>
     </div>
-    </WarmthProvider>
   );
 }

@@ -13,6 +13,8 @@ import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
+import { SetEditor } from '@/features/workouts/components/SetEditor';
+import { noteWorkingSet } from '@/lib/training/warmupManager';
 import { useGrips } from '@/hooks/useGrips';
 import RestTimerPill from './RestTimerPill';
 import { useSessionTiming } from '@/stores/sessionTiming';
@@ -33,6 +35,8 @@ interface ExerciseData {
   name: string;
   target_sets: number;
   completed_sets: SetData[];
+  load_type?: string;
+  equipment_ref?: string;
 }
 
 interface ImprovedWorkoutSessionProps {
@@ -74,13 +78,20 @@ export default function ImprovedWorkoutSession({
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
   const [showWarmupDialog, setShowWarmupDialog] = useState(false);
   const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
-  const [currentSetData, setCurrentSetData] = useState<SetData>({
+  const [currentSetData, setCurrentSetData] = useState<SetData & {
+    weightKg?: number;
+    perSideKg?: number;
+    entryMode?: 'total' | 'per_side';
+  }>({
     weight: 0,
     reps: 0,
     feel: '=' as Feel,
     pain: false,
     notes: '',
-    is_completed: false
+    is_completed: false,
+    weightKg: undefined,
+    perSideKg: undefined,
+    entryMode: 'total'
   });
 
   const currentSetNumber = exercise.completed_sets.length + 1;
@@ -213,7 +224,12 @@ export default function ImprovedWorkoutSession({
 
   // Auto-advance to next set when current set is completed
   const handleSetSubmit = useCallback(async () => {
-    if (currentSetData.weight > 0 && currentSetData.reps > 0) {
+    // Calculate final weight from per-side if needed
+    const finalWeight = currentSetData.entryMode === 'per_side' && currentSetData.perSideKg 
+      ? 20 + currentSetData.perSideKg * 2  // Default to 20kg bar weight for now
+      : currentSetData.weightKg || currentSetData.weight;
+      
+    if (finalWeight > 0 && currentSetData.reps > 0) {
       // Stop any current rest timer since we're starting the next set
       stopRest();
       
@@ -222,17 +238,44 @@ export default function ImprovedWorkoutSession({
       
       const setData = {
         ...currentSetData,
+        weight: finalWeight,
         notes: notesWithFeel || '',
         pain: currentSetData.pain || false,
         is_completed: true
       };
       onSetComplete(setData);
       
+      // Track muscle usage for adaptive warmups (only for working sets, not warmup sets)
+      if (currentSetNumber > 0) {
+        // Get exercise muscle data from supabase
+        try {
+          const { data: exerciseData } = await supabase
+            .from('exercises')
+            .select('body_part_id, secondary_muscle_group_ids')
+            .eq('id', exerciseId)
+            .single();
+            
+          if (exerciseData) {
+            const primaryGroup = exerciseData.body_part_id || '';
+            const secondaryGroups = exerciseData.secondary_muscle_group_ids || [];
+            noteWorkingSet(primaryGroup, secondaryGroups);
+            console.log('💪 Tracked muscle usage for adaptive warmups:', { 
+              primaryGroup, 
+              secondaryGroups, 
+              exerciseId, 
+              exerciseName: exercise.name 
+            });
+          }
+        } catch (error) {
+          console.warn('Failed to track muscle usage:', error);
+        }
+      }
+      
       // Update warmup plan based on current workout data after each set
       // (in case this set is heavier than previous ones)
       if (exercise.workout_exercise_id && userId) {
         console.log('🔄 Triggering warmup update after set completion');
-        console.log('📊 Set data:', { weight: currentSetData.weight, reps: currentSetData.reps, feel: currentSetData.feel });
+        console.log('📊 Set data:', { weight: finalWeight, reps: currentSetData.reps, feel: currentSetData.feel });
         
         updateWarmupAfterSetMutation.mutate({
           workoutExerciseId: exercise.workout_exercise_id,
@@ -244,12 +287,15 @@ export default function ImprovedWorkoutSession({
       
       // Keep weight and reps for next set progression, reset everything else
       setCurrentSetData({
-        weight: currentSetData.weight,
+        weight: finalWeight,
+        weightKg: finalWeight,
         reps: currentSetData.reps,
         feel: '=' as Feel,
         pain: false,
         notes: '',
-        is_completed: false
+        is_completed: false,
+        entryMode: 'total',
+        perSideKg: undefined
       });
 
       // Start rest timer for next set (if not the last set)
