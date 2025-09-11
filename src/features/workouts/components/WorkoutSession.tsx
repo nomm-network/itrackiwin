@@ -60,7 +60,9 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
           order_index: ex.order_index || 0,
           sets: ex.sets || [],
           target_sets: ex.target_sets || 3,
-          notes: ex.notes
+          notes: ex.notes,
+          load_type: ex.load_type,
+          equipment_ref: ex.equipment_ref
         }))}
         onSetComplete={handleSetComplete}
         onWorkoutComplete={handleWorkoutComplete}

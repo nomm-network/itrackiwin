@@ -14,6 +14,7 @@ import {
   Target
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
+import { SetEditor } from '@/features/workouts/components/SetEditor';
 import { PersistentRestTimer } from './PersistentRestTimer';
 
 interface SetData {
@@ -34,6 +35,8 @@ interface ExerciseData {
   sets?: SetData[];
   target_sets?: number;
   notes?: string;
+  load_type?: string;
+  equipment_ref?: string;
 }
 
 interface MobileWorkoutSessionProps {
@@ -55,8 +58,12 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
   const [translateX, setTranslateX] = useState(0);
   const [isDragging, setIsDragging] = useState(false);
   const [longPressedSetId, setLongPressedSetId] = useState<string | null>(null);
-  const [newSetWeight, setNewSetWeight] = useState('');
-  const [newSetReps, setNewSetReps] = useState('');
+  const [newSetData, setNewSetData] = useState<{
+    weightKg?: number;
+    perSideKg?: number;
+    reps?: number;
+    entryMode?: 'total' | 'per_side';
+  }>({});
   
   const containerRef = useRef<HTMLDivElement>(null);
   const startXRef = useRef(0);
@@ -126,11 +133,15 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
   };
 
   const handleAddSet = () => {
-    if (!newSetWeight || !newSetReps) return;
+    const finalWeight = newSetData.entryMode === 'per_side' && newSetData.perSideKg 
+      ? (currentExercise.equipment_ref === 'barbell_standard' ? 20 : 0) + newSetData.perSideKg * 2
+      : newSetData.weightKg;
+      
+    if (!finalWeight || !newSetData.reps) return;
 
     const setData: SetData = {
-      weight: parseFloat(newSetWeight),
-      reps: parseInt(newSetReps),
+      weight: finalWeight,
+      reps: newSetData.reps,
       set_index: nextSetIndex,
       is_completed: true,
       rest_seconds: lastSet?.rest_seconds || 180
@@ -143,8 +154,7 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
     setIsRestTimerActive(true);
     
     // Clear inputs
-    setNewSetWeight('');
-    setNewSetReps('');
+    setNewSetData({});
   };
 
   const handleNextExercise = () => {
@@ -286,29 +296,16 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                         <Badge variant="outline">Set {nextSetIndex}</Badge>
                         <span className="text-sm text-muted-foreground">Next up</span>
                       </div>
-                      
-                      <div className="grid grid-cols-2 gap-2.5">
-                        <div>
-                          <label className="text-xs text-muted-foreground">Weight (kg)</label>
-                          <input
-                            type="number"
-                            value={newSetWeight}
-                            onChange={(e) => setNewSetWeight(e.target.value)}
-                            placeholder={lastSet?.weight?.toString() || "0"}
-                            className="w-full p-2 border rounded-md text-center touch-target"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-xs text-muted-foreground">Reps</label>
-                          <input
-                            type="number"
-                            value={newSetReps}
-                            onChange={(e) => setNewSetReps(e.target.value)}
-                            placeholder={lastSet?.reps?.toString() || "0"}
-                            className="w-full p-2 border rounded-md text-center touch-target"
-                          />
-                        </div>
-                      </div>
+                       
+                       <SetEditor
+                         exercise={{
+                           load_type: currentExercise.load_type,
+                           equipment_ref: currentExercise.equipment_ref
+                         }}
+                         value={newSetData}
+                         onChange={setNewSetData}
+                         className="space-y-2"
+                       />
                     </div>
                   )}
                 </CardContent>
@@ -323,7 +320,7 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
         <div className="grid grid-cols-2 gap-2.5">
           <Button
             onClick={handleAddSet}
-            disabled={!newSetWeight || !newSetReps || isExerciseComplete}
+            disabled={(!newSetData.weightKg && !newSetData.perSideKg) || !newSetData.reps || isExerciseComplete}
             size="lg"
             className="h-14 text-lg touch-target-comfortable"
           >
