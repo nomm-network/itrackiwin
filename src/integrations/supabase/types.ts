@@ -1184,6 +1184,45 @@ export type Database = {
         }
         Relationships: []
       }
+      dumbbell_sets: {
+        Row: {
+          created_at: string
+          default_unit: Database["public"]["Enums"]["weight_unit"]
+          id: string
+          is_active: boolean
+          max_kg: number
+          min_kg: number
+          name: string
+          notes: string | null
+          step_kg: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          max_kg: number
+          min_kg: number
+          name: string
+          notes?: string | null
+          step_kg: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          max_kg?: number
+          min_kg?: number
+          name?: string
+          notes?: string | null
+          step_kg?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       equipment: {
         Row: {
           configured: boolean
@@ -2310,6 +2349,42 @@ export type Database = {
         }
         Relationships: []
       }
+      fixed_bars: {
+        Row: {
+          default_unit: Database["public"]["Enums"]["weight_unit"]
+          id: string
+          is_active: boolean
+          kind: Database["public"]["Enums"]["fixed_bar_kind"]
+          max_kg: number
+          min_kg: number
+          name: string
+          notes: string | null
+          step_kg: number
+        }
+        Insert: {
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          kind: Database["public"]["Enums"]["fixed_bar_kind"]
+          max_kg: number
+          min_kg: number
+          name: string
+          notes?: string | null
+          step_kg: number
+        }
+        Update: {
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          kind?: Database["public"]["Enums"]["fixed_bar_kind"]
+          max_kg?: number
+          min_kg?: number
+          name?: string
+          notes?: string | null
+          step_kg?: number
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -3315,6 +3390,142 @@ export type Database = {
             columns: ["gym_id"]
             isOneToOne: false
             referencedRelation: "v_marketplace_gyms"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gym_weight_configs: {
+        Row: {
+          allows_mixed_units: boolean
+          bars_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          created_at: string
+          db_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id: string | null
+          fixed_ez_id: string | null
+          fixed_straight_id: string | null
+          gym_id: string
+          id: string
+          plate_profile_id: string | null
+          racks_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allows_mixed_units?: boolean
+          bars_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          created_at?: string
+          db_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id?: string | null
+          fixed_ez_id?: string | null
+          fixed_straight_id?: string | null
+          gym_id: string
+          id?: string
+          plate_profile_id?: string | null
+          racks_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allows_mixed_units?: boolean
+          bars_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          created_at?: string
+          db_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id?: string | null
+          fixed_ez_id?: string | null
+          fixed_straight_id?: string | null
+          gym_id?: string
+          id?: string
+          plate_profile_id?: string | null
+          racks_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_weight_configs_dumbbell_set_id_fkey"
+            columns: ["dumbbell_set_id"]
+            isOneToOne: false
+            referencedRelation: "dumbbell_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_fixed_ez_id_fkey"
+            columns: ["fixed_ez_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_bars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_fixed_straight_id_fkey"
+            columns: ["fixed_straight_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_bars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_activity"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_equipment_completeness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_poster_freshness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gyms_needing_poster_check"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_marketplace_gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_plate_profile_id_fkey"
+            columns: ["plate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "plate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_stack_profile_id_fkey"
+            columns: ["stack_profile_id"]
+            isOneToOne: false
+            referencedRelation: "stack_profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4857,6 +5068,68 @@ export type Database = {
           },
         ]
       }
+      plate_profile_plates: {
+        Row: {
+          count_per_side: number | null
+          display_order: number
+          id: string
+          profile_id: string
+          weight_kg: number
+        }
+        Insert: {
+          count_per_side?: number | null
+          display_order?: number
+          id?: string
+          profile_id: string
+          weight_kg: number
+        }
+        Update: {
+          count_per_side?: number | null
+          display_order?: number
+          id?: string
+          profile_id?: string
+          weight_kg?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "plate_profile_plates_profile_id_fkey"
+            columns: ["profile_id"]
+            isOneToOne: false
+            referencedRelation: "plate_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      plate_profiles: {
+        Row: {
+          created_at: string
+          default_unit: Database["public"]["Enums"]["weight_unit"]
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       pre_workout_checkins: {
         Row: {
           answers: Json
@@ -5457,6 +5730,36 @@ export type Database = {
           proj4text?: string | null
           srid?: number
           srtext?: string | null
+        }
+        Relationships: []
+      }
+      stack_profiles: {
+        Row: {
+          aux_adders_kg: number[] | null
+          default_unit: Database["public"]["Enums"]["weight_unit"]
+          id: string
+          is_active: boolean
+          name: string
+          notes: string | null
+          stack_steps_kg: number[]
+        }
+        Insert: {
+          aux_adders_kg?: number[] | null
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          name: string
+          notes?: string | null
+          stack_steps_kg: number[]
+        }
+        Update: {
+          aux_adders_kg?: number[] | null
+          default_unit?: Database["public"]["Enums"]["weight_unit"]
+          id?: string
+          is_active?: boolean
+          name?: string
+          notes?: string | null
+          stack_steps_kg?: number[]
         }
         Relationships: []
       }
@@ -9010,6 +9313,133 @@ export type Database = {
         }
         Relationships: []
       }
+      v_effective_gym_weight_config: {
+        Row: {
+          allows_mixed_units: boolean | null
+          bars_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          db_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id: string | null
+          fixed_ez_id: string | null
+          fixed_straight_id: string | null
+          gym_id: string | null
+          plate_profile_id: string | null
+          racks_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id: string | null
+        }
+        Insert: {
+          allows_mixed_units?: boolean | null
+          bars_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          db_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id?: string | null
+          fixed_ez_id?: string | null
+          fixed_straight_id?: string | null
+          gym_id?: string | null
+          plate_profile_id?: string | null
+          racks_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id?: string | null
+        }
+        Update: {
+          allows_mixed_units?: boolean | null
+          bars_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          db_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          dumbbell_set_id?: string | null
+          fixed_ez_id?: string | null
+          fixed_straight_id?: string | null
+          gym_id?: string | null
+          plate_profile_id?: string | null
+          racks_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_display_unit?: Database["public"]["Enums"]["weight_unit"] | null
+          stack_profile_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "gym_weight_configs_dumbbell_set_id_fkey"
+            columns: ["dumbbell_set_id"]
+            isOneToOne: false
+            referencedRelation: "dumbbell_sets"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_fixed_ez_id_fkey"
+            columns: ["fixed_ez_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_bars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_fixed_straight_id_fkey"
+            columns: ["fixed_straight_id"]
+            isOneToOne: false
+            referencedRelation: "fixed_bars"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_city_gyms_with_stats"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_activity"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_equipment_completeness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gym_poster_freshness"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_gyms_needing_poster_check"
+            referencedColumns: ["gym_id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_gym_id_fkey"
+            columns: ["gym_id"]
+            isOneToOne: true
+            referencedRelation: "v_marketplace_gyms"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_plate_profile_id_fkey"
+            columns: ["plate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "plate_profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "gym_weight_configs_stack_profile_id_fkey"
+            columns: ["stack_profile_id"]
+            isOneToOne: false
+            referencedRelation: "stack_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_equipment_effective: {
         Row: {
           bar_weight_kg: number | null
@@ -10345,6 +10775,15 @@ export type Database = {
           exercise_id: string
         }[]
       }
+      fn_closest_weight: {
+        Args: {
+          p_desired_kg: number
+          p_equipment_id: string
+          p_gym_id: string
+          p_kind: string
+        }
+        Returns: number
+      }
       fn_compute_readiness_v1: {
         Args: {
           p_alcohol: boolean
@@ -10361,6 +10800,10 @@ export type Database = {
       }
       fn_detect_stagnation: {
         Args: { p_exercise_id: string; p_lookback_sessions?: number }
+        Returns: Json
+      }
+      fn_effective_weight_config: {
+        Args: { p_equipment_id?: string; p_gym_id: string }
         Returns: Json
       }
       fn_last_performance_for_exercise: {
@@ -10413,6 +10856,14 @@ export type Database = {
       fn_warmup_sets_for_exercise: {
         Args: { p_workout_exercise_id: string }
         Returns: number
+      }
+      fn_weight_steps: {
+        Args: { p_equipment_id?: string; p_gym_id: string; p_kind: string }
+        Returns: {
+          display_unit: Database["public"]["Enums"]["weight_unit"]
+          step_display: number
+          step_kg: number
+        }[]
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
@@ -12505,6 +12956,7 @@ export type Database = {
         | "increase_strength"
         | "improve_endurance"
         | "general_fitness"
+      fixed_bar_kind: "straight" | "ez"
       grip_orientation: "overhand" | "underhand" | "neutral" | "mixed"
       group_type: "solo" | "superset" | "giant" | "finisher" | "circuit"
       injury_severity: "mild" | "moderate" | "severe" | "chronic"
@@ -12729,6 +13181,7 @@ export const Constants = {
         "improve_endurance",
         "general_fitness",
       ],
+      fixed_bar_kind: ["straight", "ez"],
       grip_orientation: ["overhand", "underhand", "neutral", "mixed"],
       group_type: ["solo", "superset", "giant", "finisher", "circuit"],
       injury_severity: ["mild", "moderate", "severe", "chronic"],
