@@ -43,27 +43,52 @@ export interface TargetOutput {
 export function computeTarget(input: TargetInput): TargetOutput {
   const { last, template, equipmentStepKg, gymLoadingMode, guard } = input;
   
+  console.log('🎯 DEBUG: computeTarget - Starting target computation', {
+    input,
+    hasLastData: !!last,
+    templateRange: `${template.repMin}-${template.repMax}`,
+    equipmentStep: equipmentStepKg,
+    guardConditions: guard
+  });
+  
   // Safety first - if sick or in pain, suggest deload
   if (guard.pain || guard.sickDay) {
     const baseWeight = last?.weight || 40;
-    return {
+    const deloadTarget = {
       weight: roundToEquipmentStep(baseWeight * 0.8, equipmentStepKg),
       reps: Math.max(template.repMin, 8),
       note: guard.pain ? 'Deload due to pain - listen to your body' : 'Deload due to illness - recover first'
     };
+    
+    console.log('🎯 DEBUG: computeTarget - Safety deload applied:', {
+      reason: guard.pain ? 'pain' : 'sickness',
+      baseWeight,
+      deloadTarget
+    });
+    
+    return deloadTarget;
   }
   
   // No previous data - use conservative start
   if (!last) {
-    return {
+    const startingTarget = {
       weight: roundToEquipmentStep(40, equipmentStepKg),
       reps: template.repMin,
       note: 'Starting weight - adjust as needed'
     };
+    
+    console.log('🎯 DEBUG: computeTarget - No previous data, using starting weight:', startingTarget);
+    
+    return startingTarget;
   }
   
   // Progressive overload based on feel
   const progression = getProgressionFromFeel(last.feel);
+  console.log('🎯 DEBUG: computeTarget - Feel-based progression:', {
+    feel: last.feel,
+    progression
+  });
+  
   let newWeight = last.weight;
   let newReps = last.reps;
   let note = '';
@@ -73,39 +98,82 @@ export function computeTarget(input: TargetInput): TargetOutput {
       newWeight = last.weight + progression.amount;
       newReps = Math.max(template.repMin, last.reps - 1); // Drop reps slightly with weight increase
       note = `Progressive overload: +${progression.amount}kg`;
+      console.log('🎯 DEBUG: computeTarget - Weight increase:', {
+        oldWeight: last.weight,
+        newWeight,
+        oldReps: last.reps,
+        newReps,
+        increment: progression.amount
+      });
       break;
       
     case 'increase_reps':
       newWeight = last.weight;
       newReps = Math.min(template.repMax, last.reps + progression.amount);
       note = `Progressive overload: +${progression.amount} reps`;
+      console.log('🎯 DEBUG: computeTarget - Rep increase:', {
+        weight: newWeight,
+        oldReps: last.reps,
+        newReps,
+        increment: progression.amount
+      });
       break;
       
     case 'maintain':
       newWeight = last.weight;
       newReps = last.reps;
       note = 'Maintaining current load';
+      console.log('🎯 DEBUG: computeTarget - Maintaining load:', {
+        weight: newWeight,
+        reps: newReps
+      });
       break;
       
     case 'deload':
       newWeight = last.weight * 0.9;
       newReps = Math.max(template.repMin, last.reps);
       note = 'Deload - too challenging last time';
+      console.log('🎯 DEBUG: computeTarget - Deloading:', {
+        oldWeight: last.weight,
+        newWeight,
+        deloadFactor: 0.9,
+        reps: newReps
+      });
       break;
   }
   
   // Round to equipment constraints
+  const preRoundWeight = newWeight;
   newWeight = roundToEquipmentStep(newWeight, equipmentStepKg);
   
+  console.log('🎯 DEBUG: computeTarget - Equipment rounding:', {
+    preRound: preRoundWeight,
+    postRound: newWeight,
+    stepSize: equipmentStepKg
+  });
+  
   // Validate rep range
+  const preValidationReps = newReps;
   if (newReps < template.repMin) newReps = template.repMin;
   if (newReps > template.repMax) newReps = template.repMax;
   
-  return {
+  if (preValidationReps !== newReps) {
+    console.log('🎯 DEBUG: computeTarget - Rep validation applied:', {
+      preValidation: preValidationReps,
+      postValidation: newReps,
+      templateRange: `${template.repMin}-${template.repMax}`
+    });
+  }
+  
+  const finalTarget = {
     weight: newWeight,
     reps: newReps,
     note
   };
+  
+  console.log('🎯 DEBUG: computeTarget - Final computed target:', finalTarget);
+  
+  return finalTarget;
 }
 
 // ============================================================================

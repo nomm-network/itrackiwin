@@ -27,30 +27,62 @@ async function resolveAchievableLoadV2(
   desiredKg: number,
   gymId?: string
 ): Promise<LoadResolutionResult> {
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Starting V2 resolution', {
+    exerciseId,
+    desiredKg,
+    gymId
+  });
+  
   // Get user's display unit preference (default to kg)
   const userUnit = 'kg'; // TODO: Get from user preferences
   
   // Fetch gym inventory and determine unit preference
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Fetching gym inventory');
   const inventory = await fetchGymInventory(gymId);
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Gym inventory fetched:', {
+    hasInventory: !!inventory,
+    platesCount: inventory?.plates?.length || 0,
+    dumbbellsCount: inventory?.dumbbells?.length || 0,
+    machinesCount: inventory?.machines?.length || 0
+  });
+  
   const unitPreference = determineUnitPreference(userUnit, inventory);
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Unit preference determined:', {
+    userUnit,
+    unitPreference
+  });
   
   // Get exercise data and determine implement from load_type
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Fetching exercise data');
   const exerciseData = await fetchExerciseData(exerciseId);
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Exercise data fetched:', exerciseData);
+  
   const implement = mapLoadTypeToImplement(exerciseData?.load_type || 'dual_load');
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Implement determined:', {
+    loadType: exerciseData?.load_type,
+    implement
+  });
   
   let result: LoadResolutionResult;
   
   switch (implement) {
     case 'dumbbell':
+      console.log('🎯 DEBUG: resolveAchievableLoadV2 - Resolving dumbbell load');
       result = await resolveDumbbellLoad(desiredKg, inventory, unitPreference);
       break;
     case 'machine':
+      console.log('🎯 DEBUG: resolveAchievableLoadV2 - Resolving machine load');
       result = await resolveMachineLoad(desiredKg, inventory, unitPreference);
       break;
     default:
+      console.log('🎯 DEBUG: resolveAchievableLoadV2 - Resolving barbell load', {
+        barType: exerciseData?.default_bar_type_id || 'standard'
+      });
       result = await resolveBarbellLoad(desiredKg, inventory, unitPreference, exerciseData?.default_bar_type_id || 'standard');
       break;
   }
+  
+  console.log('🎯 DEBUG: resolveAchievableLoadV2 - Load resolution completed:', result);
   
   // Log telemetry if significant difference
   if (Math.abs(result.residualKg) >= 0.25) {
@@ -127,24 +159,46 @@ export async function resolveAchievableLoad(
   desiredKg: number,
   gymId?: string
 ): Promise<LoadResolutionResult> {
+  console.log('🎯 DEBUG: resolveAchievableLoad - Starting weight resolution', {
+    exerciseId,
+    desiredKg,
+    gymId
+  });
+  
   try {
     // Check if gym equipment v2 is enabled
     const v2Enabled = await getFeatureFlag('gym_equipment_v2');
     
-    return v2Enabled 
-      ? resolveAchievableLoadV2(exerciseId, desiredKg, gymId)
-      : resolveAchievableLoadV1(exerciseId, desiredKg, gymId);
+    console.log('🎯 DEBUG: resolveAchievableLoad - Feature flag check:', {
+      v2Enabled
+    });
+    
+    const result = v2Enabled 
+      ? await resolveAchievableLoadV2(exerciseId, desiredKg, gymId)
+      : await resolveAchievableLoadV1(exerciseId, desiredKg, gymId);
+    
+    console.log('🎯 DEBUG: resolveAchievableLoad - Resolution completed:', {
+      version: v2Enabled ? 'v2' : 'v1',
+      result
+    });
+    
+    return result;
   } catch (error) {
-    console.error('Failed to resolve achievable load:', error);
+    console.error('🎯 DEBUG: resolveAchievableLoad - Resolution failed:', error);
+    
     // Fallback to original weight
-    return {
-      implement: 'barbell',
+    const fallbackResult = {
+      implement: 'barbell' as const,
       totalKg: desiredKg,
       details: { unit: 'kg' },
-      source: 'default',
+      source: 'default' as const,
       achievable: true,
       residualKg: 0
     };
+    
+    console.log('🎯 DEBUG: resolveAchievableLoad - Using fallback result:', fallbackResult);
+    
+    return fallbackResult;
   }
 }
 
