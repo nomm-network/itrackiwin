@@ -1,4 +1,5 @@
 import { supabase } from '@/integrations/supabase/client';
+import { getFeatureFlag, logWeightResolution } from './featureFlags';
 
 export interface LoadResolutionResult {
   implement: 'barbell' | 'dumbbell' | 'machine';
@@ -21,20 +22,29 @@ export async function resolveAchievableLoad(
   gymId?: string
 ): Promise<LoadResolutionResult> {
   try {
-    const { data, error } = await supabase.rpc('fn_resolve_achievable_load', {
-      exercise_id: exerciseId,
-      gym_id: gymId || null,
-      desired_kg: desiredKg,
-      allow_mix_units: true
-    });
+    // Check if gym equipment v2 is enabled
+    const v2Enabled = await getFeatureFlag('gym_equipment_v2');
+    
+    const rpcFunction = v2Enabled ? 'fn_resolve_achievable_load_v2' : 'fn_resolve_achievable_load';
+    
+    const { data, error } = await supabase.rpc(
+      rpcFunction as any, // Type assertion for dynamic RPC function name
+      {
+        exercise_id: exerciseId,
+        gym_id: gymId || null,
+        desired_kg: desiredKg,
+        allow_mix_units: true,
+        ...(v2Enabled && { user_unit: 'kg' })
+      }
+    );
 
     if (error) {
       console.error('Error resolving achievable load:', error);
       throw error;
     }
 
-    const result = data as any; // Type assertion for RPC result
-    return {
+    const result = data as any;
+    const resolvedResult = {
       implement: result.implement,
       totalKg: result.total_kg,
       details: result.details,
@@ -42,6 +52,21 @@ export async function resolveAchievableLoad(
       achievable: result.achievable,
       residualKg: result.residual_kg
     };
+
+    // Log the resolution for telemetry (only if significant difference)
+    if (Math.abs(resolvedResult.residualKg) >= 0.25) {
+      logWeightResolution({
+        exercise_id: exerciseId,
+        gym_id: gymId,
+        desired_weight: desiredKg,
+        resolved_weight: resolvedResult.totalKg,
+        implement: resolvedResult.implement,
+        resolution_source: resolvedResult.source,
+        feature_version: v2Enabled ? 'v2' : 'v1'
+      });
+    }
+
+    return resolvedResult;
   } catch (error) {
     console.error('Failed to resolve achievable load:', error);
     // Fallback to original weight

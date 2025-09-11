@@ -502,6 +502,27 @@ export type Database = {
         }
         Relationships: []
       }
+      app_flags: {
+        Row: {
+          created_at: string | null
+          enabled: boolean | null
+          key: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          enabled?: boolean | null
+          key: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          enabled?: boolean | null
+          key?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       attribute_schemas: {
         Row: {
           created_at: string
@@ -7806,6 +7827,45 @@ export type Database = {
         }
         Relationships: []
       }
+      weight_resolution_log: {
+        Row: {
+          created_at: string | null
+          desired_weight: number | null
+          exercise_id: string | null
+          feature_version: string | null
+          gym_id: string | null
+          id: string
+          implement: string | null
+          resolution_source: string | null
+          resolved_weight: number | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          desired_weight?: number | null
+          exercise_id?: string | null
+          feature_version?: string | null
+          gym_id?: string | null
+          id?: string
+          implement?: string | null
+          resolution_source?: string | null
+          resolved_weight?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          desired_weight?: number | null
+          exercise_id?: string | null
+          feature_version?: string | null
+          gym_id?: string | null
+          id?: string
+          implement?: string | null
+          resolution_source?: string | null
+          resolved_weight?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       workout_checkins: {
         Row: {
           alcohol: boolean | null
@@ -8779,11 +8839,13 @@ export type Database = {
           notes: string | null
           perceived_exertion: number | null
           readiness_score: number | null
+          resolution_source: string | null
           session_unit: string
           started_at: string
           template_id: string | null
           title: string | null
           total_duration_seconds: number | null
+          unit: string | null
           user_id: string
         }
         Insert: {
@@ -8794,11 +8856,13 @@ export type Database = {
           notes?: string | null
           perceived_exertion?: number | null
           readiness_score?: number | null
+          resolution_source?: string | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
           title?: string | null
           total_duration_seconds?: number | null
+          unit?: string | null
           user_id: string
         }
         Update: {
@@ -8809,11 +8873,13 @@ export type Database = {
           notes?: string | null
           perceived_exertion?: number | null
           readiness_score?: number | null
+          resolution_source?: string | null
           session_unit?: string
           started_at?: string
           template_id?: string | null
           title?: string | null
           total_duration_seconds?: number | null
+          unit?: string | null
           user_id?: string
         }
         Relationships: [
@@ -11543,6 +11609,10 @@ export type Database = {
       }
       is_admin_with_rate_limit: {
         Args: { _user_id: string }
+        Returns: boolean
+      }
+      is_feature_enabled: {
+        Args: { flag_key: string }
         Returns: boolean
       }
       is_gym_admin: {
