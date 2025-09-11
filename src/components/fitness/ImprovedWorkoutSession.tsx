@@ -504,85 +504,31 @@ export default function ImprovedWorkoutSession({
               }}
             />
 
-            {/* Weight Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Weight ({unit})</label>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => adjustWeight(-2.5)}
-                  className="w-8 h-8 p-0"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                  <Input
-                  type="text"
-                  value={currentSetData.weight || ''}
-                  onChange={(e) => {
-                    const value = e.target.value;
-                    if (/^\d*\.?\d{0,2}$/.test(value) || value === '') {
-                      setCurrentSetData(prev => ({ ...prev, weight: parseFloat(value) || 0 }));
-                    }
-                  }}
-                  onKeyPress={(e) => {
-                    if (!/[\d.]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight' && e.key !== 'Enter') {
-                      e.preventDefault();
-                    } else if (e.key === 'Enter' && currentSetData.weight > 0 && currentSetData.reps > 0) {
-                      handleSetSubmit();
-                    }
-                  }}
-                  className="text-center text-lg font-semibold"
-                  placeholder="0"
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => adjustWeight(2.5)}
-                  className="w-8 h-8 p-0"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
-
-            {/* Reps Input */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Reps</label>
-              <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => adjustReps(-1)}
-                  className="w-8 h-8 p-0"
-                >
-                  <Minus className="h-3 w-3" />
-                </Button>
-                 <Input
-                  type="text"
-                  value={currentSetData.reps || ''}
-                  onChange={(e) => {
-                    const value = e.target.value.replace(/[^\d]/g, '');
-                    setCurrentSetData(prev => ({ ...prev, reps: parseInt(value) || 0 }));
-                  }}
-                  onKeyPress={(e) => {
-                    if (!/[0-9]/.test(e.key) && e.key !== 'Backspace' && e.key !== 'Delete' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') {
-                      e.preventDefault();
-                    }
-                  }}
-                  className="text-center text-lg font-semibold"
-                  placeholder="0"
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => adjustReps(1)}
-                  className="w-8 h-8 p-0"
-                >
-                  <Plus className="h-3 w-3" />
-                </Button>
-              </div>
-            </div>
+            {/* SetEditor for dual-load support */}
+            <SetEditor
+              exercise={{
+                load_type: exercise.load_type,
+                equipment_ref: exercise.equipment_ref
+              }}
+              value={{
+                weightKg: currentSetData.weight,
+                perSideKg: currentSetData.perSideKg,
+                reps: currentSetData.reps,
+                entryMode: currentSetData.entryMode || 'total'
+              }}
+              onChange={(value) => {
+                console.log('🔧 SetEditor onChange:', value);
+                setCurrentSetData(prev => ({
+                  ...prev,
+                  weight: value.weightKg || 0,
+                  weightKg: value.weightKg,
+                  perSideKg: value.perSideKg,
+                  reps: value.reps || prev.reps,
+                  entryMode: value.entryMode || 'total'
+                }));
+              }}
+              className="space-y-4"
+            />
 
             {/* Feel Selector */}
             <div className="space-y-2">

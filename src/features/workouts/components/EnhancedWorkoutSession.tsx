@@ -743,15 +743,25 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                      onFeedbackGiven={() => setWarmupCompleted(true)}
                    />
                 )}
+                {/* Debug exercise data */}
+                {console.log('🔧 Exercise data for dual-load check:', {
+                  exerciseId: currentExercise?.exercise_id,
+                  exerciseObject: currentExercise?.exercise,
+                  loadType: currentExercise?.exercise?.load_type || currentExercise?.load_type,
+                  equipmentRef: currentExercise?.exercise?.equipment_ref || currentExercise?.equipment_ref,
+                  currentExercise: currentExercise
+                })}
                 <ImprovedWorkoutSession
                 exercise={{
                   id: currentExercise.id,
                   workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
                   name: getExerciseName(),
                   target_sets: currentExercise.target_sets || 3,
-                 completed_sets: sets
-                   .filter((set: any) => set.is_completed)
-                   .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0))
+                  completed_sets: sets
+                    .filter((set: any) => set.is_completed)
+                    .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0)),
+                  load_type: currentExercise?.exercise?.load_type || currentExercise?.load_type,
+                  equipment_ref: currentExercise?.exercise?.equipment_ref || currentExercise?.equipment_ref
                 }}
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
