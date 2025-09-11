@@ -1,12 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { resolveAchievableLoad } from '@/lib/equipment/resolveLoad';
-import { 
-  createWarmupContext, 
-  nextWarmupCountFor, 
-  getWarmupPercentages,
-  type WarmupContext,
-  type ExerciseMuscleData 
-} from '@/lib/warmup/adaptiveWarmupContext';
+import { useWarmth } from '@/features/workouts/warmup/WarmthContext';
 
 interface WarmupSet {
   percentage: number;
@@ -17,24 +11,37 @@ interface WarmupSet {
 
 interface UseAdaptiveWarmupProps {
   workingWeight: number;
-  exerciseId?: string;
-  exerciseMuscleData?: ExerciseMuscleData;
-  warmupContext?: WarmupContext;
-  onMuscleCommit?: (muscleData: ExerciseMuscleData) => void;
+  exerciseId: string;
+  exerciseMuscleData?: { primaryMuscleGroupId: string; secondaryMuscleGroupIds?: string[] };
+  onMuscleCommit?: (hit: { primary: string; secondary?: string[] }) => void;
+}
+
+function getWarmupPercentages(count: 1 | 2 | 3): number[] {
+  return count === 1 ? [70] : count === 2 ? [50, 75] : [40, 60, 80];
+}
+
+function nextWarmupCountFor(
+  exercise: { primaryMuscleGroupId: string; secondaryMuscleGroupIds?: string[] },
+  ctx: { primary: Set<string>; secondary: Set<string> }
+): 1 | 2 | 3 {
+  const pid = String(exercise.primaryMuscleGroupId);
+  if (ctx.primary.has(pid)) return 1;
+  if (ctx.secondary.has(pid)) return 2;
+  return 3;
 }
 
 export function useAdaptiveWarmup({
   workingWeight,
   exerciseId,
   exerciseMuscleData,
-  warmupContext,
   onMuscleCommit
 }: UseAdaptiveWarmupProps) {
+  const { warmth, commit } = useWarmth();
   const [warmupSets, setWarmupSets] = useState<WarmupSet[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    if (!exerciseMuscleData || !warmupContext || workingWeight <= 0) {
+    if (!exerciseMuscleData || workingWeight <= 0) {
       // Fallback to standard 3-set warmup
       setWarmupSets([
         { percentage: 40, weight: workingWeight * 0.4, reps: 12, restSeconds: 45 },
@@ -49,7 +56,7 @@ export function useAdaptiveWarmup({
       
       try {
         // Determine warmup count based on muscle usage
-        const setCount = nextWarmupCountFor(exerciseMuscleData, warmupContext);
+        const setCount = nextWarmupCountFor(exerciseMuscleData, warmth);
         const percentages = getWarmupPercentages(setCount);
         
         console.log('🔥 Adaptive warmup:', {
@@ -58,8 +65,8 @@ export function useAdaptiveWarmup({
           setCount,
           percentages,
           contextState: {
-            primary: Array.from(warmupContext.primary),
-            secondary: Array.from(warmupContext.secondary)
+            primary: Array.from(warmth.primary),
+            secondary: Array.from(warmth.secondary)
           }
         });
 
@@ -67,10 +74,7 @@ export function useAdaptiveWarmup({
           const targetWeight = workingWeight * (percentage / 100);
           
           try {
-            const resolved = await resolveAchievableLoad(
-              exerciseId || '',
-              targetWeight
-            );
+            const resolved = await resolveAchievableLoad(exerciseId, targetWeight);
             
             return {
               percentage,
@@ -96,8 +100,8 @@ export function useAdaptiveWarmup({
         console.log('🎯 Adaptive warmup generated:', {
           exerciseId,
           setCount,
-          muscleWarmth: warmupContext.primary.has(exerciseMuscleData.primaryMuscleGroupId) ? 'primary' :
-                       warmupContext.secondary.has(exerciseMuscleData.primaryMuscleGroupId) ? 'secondary' : 'cold',
+          muscleWarmth: warmth.primary.has(String(exerciseMuscleData.primaryMuscleGroupId)) ? 'primary' :
+                       warmth.secondary.has(String(exerciseMuscleData.primaryMuscleGroupId)) ? 'secondary' : 'cold',
           sets: resolvedSets.map(s => ({ percentage: s.percentage, weight: s.weight, reps: s.reps }))
         });
         
@@ -115,14 +119,18 @@ export function useAdaptiveWarmup({
     };
 
     generateAdaptiveWarmup();
-  }, [workingWeight, exerciseId, exerciseMuscleData, warmupContext]);
+  }, [workingWeight, exerciseId, JSON.stringify(exerciseMuscleData), warmth.bump]);
 
-  // Helper to commit muscle usage (call after completing working sets)
+  // Call this after the WORKING sets are done for this exercise
   const commitMuscleUsage = React.useCallback(() => {
-    if (exerciseMuscleData && onMuscleCommit) {
-      onMuscleCommit(exerciseMuscleData);
-    }
-  }, [exerciseMuscleData, onMuscleCommit]);
+    if (!exerciseMuscleData) return;
+    const payload = {
+      primary: String(exerciseMuscleData.primaryMuscleGroupId),
+      secondary: (exerciseMuscleData.secondaryMuscleGroupIds || []).map(String),
+    };
+    commit(payload);
+    onMuscleCommit?.(payload);
+  }, [exerciseMuscleData, commit, onMuscleCommit]);
 
   return {
     warmupSets,
