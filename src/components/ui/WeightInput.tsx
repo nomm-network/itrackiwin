@@ -10,27 +10,35 @@ import { useUserProfile } from '@/hooks/useUserProfile';
 import { fetchEffectivePlates } from '@/lib/equipment/api';
 import { closestLoad, makeIncrementTable } from '@/lib/equipment/resolve';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
+import { resolveWeightForExercise, getAvailableWeights } from '@/lib/loading/equipmentResolver';
 
 interface WeightInputProps {
   value?: number;
   onChange: (weightData: WeightData) => void;
   workoutId?: string;
+  exerciseId?: string;
+  loadType?: 'dual_load' | 'single_load' | 'stack';
   className?: string;
   placeholder?: string;
   disabled?: boolean;
   showDualDisplay?: boolean;
+  showEquipmentHints?: boolean;
 }
 
 export const WeightInput: React.FC<WeightInputProps> = ({
   value,
   onChange,
   workoutId,
+  exerciseId,
+  loadType = 'dual_load',
   className,
   placeholder = "0",
   disabled = false,
-  showDualDisplay = true
+  showDualDisplay = true,
+  showEquipmentHints = false
 }) => {
   const { data: userProfile } = useUserProfile();
+  const [equipmentHint, setEquipmentHint] = React.useState<string>('');
   const { gym } = useMyGym();
   const displayUnit = useDisplayUnit(workoutId);
   const [inputValue, setInputValue] = useState<string>('');
@@ -50,12 +58,30 @@ export const WeightInput: React.FC<WeightInputProps> = ({
     loadPlateProfile();
   }, [gym?.id, displayUnit]);
 
-  // Initialize input value from prop
+  // Initialize input value from prop and generate equipment hints
   useEffect(() => {
     if (value !== undefined) {
       setInputValue(value.toString());
+      
+      // Generate equipment hint if enabled
+      if (showEquipmentHints && value > 0 && exerciseId) {
+        resolveWeightForExercise(value, displayUnit, exerciseId, loadType, userProfile?.id)
+          .then(resolved => {
+            if (resolved.breakdown?.perSide && resolved.breakdown.perSide.length > 0) {
+              const plateString = resolved.breakdown.perSide.join(' + ');
+              setEquipmentHint(`${resolved.breakdown.bar}${displayUnit} bar + ${plateString}${displayUnit} per side`);
+            } else if (loadType === 'single_load') {
+              setEquipmentHint(`${resolved.weight}${resolved.unit} dumbbell`);
+            } else if (loadType === 'stack') {
+              setEquipmentHint(`Stack: ${resolved.weight}${resolved.unit}`);
+            }
+          })
+          .catch(() => setEquipmentHint(''));
+      } else {
+        setEquipmentHint('');
+      }
     }
-  }, [value]);
+  }, [value, showEquipmentHints, exerciseId, loadType, userProfile?.id, displayUnit]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -113,6 +139,12 @@ export const WeightInput: React.FC<WeightInputProps> = ({
       {showDual && getDualDisplayText() && (
         <div className="text-xs text-muted-foreground text-center">
           {getDualDisplayText()}
+        </div>
+      )}
+      
+      {showEquipmentHints && equipmentHint && (
+        <div className="text-xs text-muted-foreground text-center bg-muted/50 px-2 py-1 rounded">
+          {equipmentHint}
         </div>
       )}
     </div>

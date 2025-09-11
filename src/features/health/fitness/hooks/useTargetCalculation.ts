@@ -5,6 +5,7 @@ import { useReadinessTargets } from '@/features/workouts/hooks/useReadinessTarge
 import { useReadinessData } from '@/hooks/useReadinessData';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
 import { scaleByReadiness } from '@/lib/training/readinessScaling';
+import { resolveWeightForExercise } from '@/lib/loading/equipmentResolver';
 
 interface UseTargetCalculationProps {
   userId?: string;
@@ -13,6 +14,7 @@ interface UseTargetCalculationProps {
   templateTargetReps?: number;
   templateTargetWeight?: number;
   gripKey?: string | null;
+  loadType?: 'dual_load' | 'single_load' | 'stack';
   onApplyTarget?: (weight: number, reps: number) => void;
 }
 
@@ -23,6 +25,7 @@ export function useTargetCalculation({
   templateTargetReps,
   templateTargetWeight,
   gripKey,
+  loadType = 'dual_load',
   onApplyTarget,
 }: UseTargetCalculationProps) {
   const { data: lastSet, isLoading: isLoadingLastSet } = useLastSet(userId, exerciseId, setIndex, gripKey);
@@ -38,14 +41,15 @@ export function useTargetCalculation({
     estimate: estimate // Full estimate object for debugging
   });
 
-  // Calculate target with readiness adaptation for smarter progression
+  // Calculate target with readiness adaptation AND equipment constraints
   const target = React.useMemo(() => {
     console.log('🎯 useTargetCalculation: Computing target with readiness adaptation:', {
       hasLastSet: !!lastSet,
       templateTargetWeight,
       estimateWeight: estimate?.estimated_weight,
       readinessScore: readiness.score,
-      setIndex
+      setIndex,
+      loadType
     });
 
     // Build baseline target first
@@ -131,27 +135,65 @@ export function useTargetCalculation({
     // Fallback to baseline target (no readiness data available)
     console.log('🎯 useTargetCalculation: No readiness data - using baseline target');
     return baselineTarget;
-  }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex, readiness.score, userId, exerciseId]);
+  }, [lastSet, templateTargetReps, templateTargetWeight, estimate?.estimated_weight, setIndex, readiness.score, userId, exerciseId, loadType]);
+
+  // Equipment-aware target resolution
+  const [equipmentResolvedTarget, setEquipmentResolvedTarget] = React.useState(target);
+  
+  React.useEffect(() => {
+    const resolveWithEquipment = async () => {
+      try {
+        const resolved = await resolveWeightForExercise(
+          target.weight,
+          'kg', // Assume kg for now, can be made dynamic
+          exerciseId,
+          loadType,
+          userId
+        );
+        
+        setEquipmentResolvedTarget({
+          weight: resolved.weight,
+          reps: target.reps
+        });
+        
+        console.log('🎯 useTargetCalculation: Equipment resolution:', {
+          original: target.weight,
+          resolved: resolved.weight,
+          achievable: resolved.achievable,
+          breakdown: resolved.breakdown
+        });
+      } catch (error) {
+        console.error('Equipment resolution failed:', error);
+        setEquipmentResolvedTarget(target);
+      }
+    };
+
+    if (target.weight > 0) {
+      resolveWithEquipment();
+    } else {
+      setEquipmentResolvedTarget(target);
+    }
+  }, [target.weight, target.reps, exerciseId, loadType, userId]);
 
   // Apply target to form - track by unique key to ensure reliability
   const hasAppliedRef = React.useRef<string>('');
-  const currentKey = `${userId}-${exerciseId}-${setIndex}-${target.weight}-${target.reps}`;
+  const currentKey = `${userId}-${exerciseId}-${setIndex}-${equipmentResolvedTarget.weight}-${equipmentResolvedTarget.reps}`;
   
   React.useEffect(() => {
     // Always apply if we haven't applied this exact target combination
     if (onApplyTarget && hasAppliedRef.current !== currentKey && !isLoadingLastSet && !isLoadingEstimate) {
-      console.log('🎯 useTargetCalculation: Applying target (key changed):', { 
-        target, 
+      console.log('🎯 useTargetCalculation: Applying equipment-resolved target:', { 
+        target: equipmentResolvedTarget, 
         oldKey: hasAppliedRef.current, 
         newKey: currentKey 
       });
-      onApplyTarget(target.weight, target.reps);
+      onApplyTarget(equipmentResolvedTarget.weight, equipmentResolvedTarget.reps);
       hasAppliedRef.current = currentKey;
     }
-  }, [currentKey, onApplyTarget, isLoadingLastSet, isLoadingEstimate, target.weight, target.reps]);
+  }, [currentKey, onApplyTarget, isLoadingLastSet, isLoadingEstimate, equipmentResolvedTarget.weight, equipmentResolvedTarget.reps]);
 
   return {
-    target,
+    target: equipmentResolvedTarget,
     lastSet,
     isLoading: isLoadingLastSet || isLoadingEstimate,
   };
