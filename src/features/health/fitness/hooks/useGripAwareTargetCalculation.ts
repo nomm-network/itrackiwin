@@ -2,6 +2,9 @@ import React from 'react';
 import { useGripAwareLastSet } from './useGripAwareLastSet';
 import { useExerciseEstimate } from '@/features/workouts/hooks/useExerciseEstimate';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '../lib/targetSuggestions';
+import { enhancedSuggestTarget } from '@/lib/training/readinessTargeting';
+import { getActiveWeightModel } from '@/lib/equipment/gymWeightModel';
+import { useReadinessData } from '@/hooks/useReadinessData';
 
 interface UseGripAwareTargetCalculationProps {
   userId?: string;
@@ -30,6 +33,16 @@ export function useGripAwareTargetCalculation({
   });
   
   const { data: estimate, isLoading: isLoadingEstimate } = useExerciseEstimate(exerciseId, 'rm10');
+  const readiness = useReadinessData();
+  
+  // Load weight model for equipment-aware calculations
+  const [weightModel, setWeightModel] = React.useState(null);
+  
+  React.useEffect(() => {
+    if (userId) {
+      getActiveWeightModel(userId).then(setWeightModel);
+    }
+  }, [userId]);
 
   console.log('🎯 useGripAwareTargetCalculation: Hook inputs:', {
     userId, exerciseId, setIndex, templateTargetReps, templateTargetWeight,
@@ -70,18 +83,34 @@ export function useGripAwareTargetCalculation({
       return target;
     }
 
-    // HAS PREVIOUS SETS - use progressive overload system, NEVER use estimates again
+    // HAS PREVIOUS SETS - use progressive overload system with equipment awareness
     const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
     
-    // If using fallback data, be more conservative with progression
-    const suggestion = suggestTarget({
-      lastWeight: lastSet.weight,
-      lastReps: lastSet.reps,
-      feel: lastFeel,
-      templateTargetReps,
-      templateTargetWeight: undefined, // Don't use template weight when we have history
-      stepKg: isUsingFallback ? 1.25 : 2.5 // Smaller increments when using fallback data
-    });
+    let suggestion;
+    
+    // Use enhanced targeting if weight model and readiness are available
+    if (weightModel && readiness?.score !== null && readiness?.score !== undefined) {
+      suggestion = enhancedSuggestTarget({
+        lastWeight: lastSet.weight,
+        lastReps: lastSet.reps,
+        feel: lastFeel,
+        templateTargetReps,
+        templateTargetWeight: undefined,
+        stepKg: isUsingFallback ? 1.25 : 2.5,
+        model: weightModel,
+        readinessScore: readiness.score
+      });
+    } else {
+      // Fallback to original system
+      suggestion = suggestTarget({
+        lastWeight: lastSet.weight,
+        lastReps: lastSet.reps,
+        feel: lastFeel,
+        templateTargetReps,
+        templateTargetWeight: undefined,
+        stepKg: isUsingFallback ? 1.25 : 2.5
+      });
+    }
     
     console.log('🎯 useGripAwareTargetCalculation: HAS PREVIOUS SETS - using progressive overload:', { 
       lastSetWeight: lastSet.weight,

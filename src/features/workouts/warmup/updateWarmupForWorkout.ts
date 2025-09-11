@@ -2,6 +2,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { buildWarmupPlan } from './calcWarmup';
 import { suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { parseFeelFromNotes, parseFeelFromRPE } from '@/features/health/fitness/lib/targetSuggestions';
+import { getActiveWeightModel } from '@/lib/equipment/gymWeightModel';
+import { enhancedSuggestTarget } from '@/lib/training/readinessTargeting';
 
 type Feel = '--' | '-' | '=' | '+' | '++';
 type Feedback = 'not_enough' | 'excellent' | 'too_much';
@@ -22,11 +24,11 @@ async function getGymMinIncrement(gymId?: string | null): Promise<number> {
   return 2.5;
 }
 
-// Helper to get the intelligent target weight using progressive overload system
+// Helper to get the intelligent target weight using enhanced progressive overload system
 async function getTargetWeight(workoutExerciseId: string, userId: string): Promise<number> {
-  console.log('🔍 Getting target weight for workout exercise:', workoutExerciseId);
+  console.log('🔍 Getting enhanced target weight for workout exercise:', workoutExerciseId);
   
-  // Get exercise ID first
+  // Get exercise ID 
   const { data: we } = await supabase
     .from('workout_exercises')
     .select('exercise_id')
@@ -65,9 +67,33 @@ async function getTargetWeight(workoutExerciseId: string, userId: string): Promi
     return 60;
   }
 
-  // Use progressive overload system to calculate target
+  // Get weight model and readiness for enhanced targeting
+  const [weightModel, { data: readiness }] = await Promise.all([
+    getActiveWeightModel(userId),
+    supabase.rpc('get_latest_readiness', { p_user_id: userId })
+  ]);
+
   const lastFeel = parseFeelFromNotes(lastSet.notes) || parseFeelFromRPE(lastSet.rpe);
   
+  // Use enhanced targeting if available
+  if (weightModel && readiness && readiness.length > 0) {
+    const latestReadiness = readiness[0];
+    const target = enhancedSuggestTarget({
+      lastWeight: lastSet.weight,
+      lastReps: lastSet.reps,
+      feel: lastFeel,
+      templateTargetReps: undefined,
+      templateTargetWeight: undefined,
+      stepKg: 2.5,
+      model: weightModel,
+      readinessScore: latestReadiness.energy || 65
+    });
+    
+    console.log('✅ Enhanced target calculated:', target);
+    return target.weight;
+  }
+  
+  // Fallback to original system
   const target = suggestTarget({
     lastWeight: lastSet.weight,
     lastReps: lastSet.reps,
@@ -99,7 +125,10 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
     const minInc = await getGymMinIncrement(null); // use default for now
     const fb = p.feedback ?? we.warmup_feedback ?? null;
 
-    // 4) Build warm-up based on intelligent target weight + feedback + gym increments
+    // 4) Get weight model for equipment-aware warmup
+    const weightModel = await getActiveWeightModel(p.userId);
+    
+    // 5) Build warm-up based on intelligent target weight + feedback + gym increments + muscle warmth
     const plan = buildWarmupPlan({
       topWeightKg: targetWeight,
       repsGoal: 8, // default target reps
@@ -107,6 +136,8 @@ export async function updateWarmupForWorkout(p: UpdateParams) {
       minWeightKg: 0,
       strategy: 'ramped',
       feedback: fb as Feedback,
+      muscleGroupIds: [], // TODO: Get muscle groups when schema is available
+      weightModel: weightModel || undefined
     });
 
     // 5) Persist plan snapshot used by UI
