@@ -143,25 +143,22 @@ export function useTargetCalculation({
   React.useEffect(() => {
     const resolveWithEquipment = async () => {
       try {
-        // Use the new consolidated resolver
-        const resolved = await resolveAchievableLoad(
-          exerciseId || '',
-          target.weight
-          // gymId would come from user context
-        );
-        
-        setEquipmentResolvedTarget({
-          weight: resolved.totalKg,
-          reps: target.reps
-        });
-        
-        console.log('🎯 useTargetCalculation: Smart equipment resolution:', {
-          original: target.weight,
-          resolved: resolved.totalKg,
-          implement: resolved.implement,
-          residual: resolved.residualKg,
-          source: resolved.source
-        });
+        if (exerciseId && target.weight) {
+          const resolved = await resolveAchievableLoad(exerciseId, target.weight);
+          
+          setEquipmentResolvedTarget({
+            weight: resolved.totalKg,
+            reps: target.reps
+          });
+          
+          console.log('🎯 useTargetCalculation: Smart equipment resolution:', {
+            original: target.weight,
+            resolved: resolved.totalKg,
+            implement: resolved.implement,
+            residual: resolved.residualKg,
+            achievable: resolved.achievable
+          });
+        }
       } catch (error) {
         console.error('Equipment resolution failed:', error);
         setEquipmentResolvedTarget(target);

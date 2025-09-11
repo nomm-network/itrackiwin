@@ -34,9 +34,9 @@ async function resolveAchievableLoadV2(
   const inventory = await fetchGymInventory(gymId);
   const unitPreference = determineUnitPreference(userUnit, inventory);
   
-  // Get exercise default implement
+  // Get exercise data and determine implement from load_type
   const exerciseData = await fetchExerciseData(exerciseId);
-  const implement = exerciseData?.default_implement || 'barbell';
+  const implement = mapLoadTypeToImplement(exerciseData?.load_type || 'dual_load');
   
   let result: LoadResolutionResult;
   
@@ -48,7 +48,7 @@ async function resolveAchievableLoadV2(
       result = await resolveMachineLoad(desiredKg, inventory, unitPreference);
       break;
     default:
-      result = await resolveBarbellLoad(desiredKg, inventory, unitPreference, exerciseData?.bar_type || 'barbell');
+      result = await resolveBarbellLoad(desiredKg, inventory, unitPreference, exerciseData?.default_bar_type_id || 'standard');
       break;
   }
   
@@ -164,6 +164,19 @@ async function fetchExerciseData(exerciseId: string) {
   return data;
 }
 
+function mapLoadTypeToImplement(loadType: string): 'barbell' | 'dumbbell' | 'machine' {
+  switch (loadType) {
+    case 'single_load':
+      return 'dumbbell';
+    case 'stack':
+      return 'machine';
+    case 'dual_load':
+    case 'barbell':
+    default:
+      return 'barbell';
+  }
+}
+
 function determineUnitPreference(userUnit: string, inventory: any) {
   if (!inventory) return userUnit;
   
@@ -178,9 +191,9 @@ async function resolveBarbellLoad(
   desiredKg: number,
   inventory: any,
   unitPreference: string,
-  barType: string = 'barbell'
+  barTypeId: string = 'standard'
 ): Promise<LoadResolutionResult> {
-  const barWeight = barType === 'ezbar' ? 7.5 : 20; // kg
+  const barWeight = barTypeId === 'ezbar' ? 7.5 : 20; // kg
   
   if (desiredKg < barWeight) {
     return {

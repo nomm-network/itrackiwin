@@ -56,7 +56,6 @@ export function useEquipmentAwareWarmup(
           const resolved = await resolveAchievableLoad(
             exerciseId || '',
             targetWeight
-            // gymId would come from user context
           );
           
           sets.push({

@@ -11998,6 +11998,14 @@ export type Database = {
         Args: { p_gym: string; p_msg?: string; p_role: string }
         Returns: string
       }
+      resolve_stack_weight_with_aux: {
+        Args: {
+          aux_weights?: number[]
+          desired_kg: number
+          stack_steps?: number[]
+        }
+        Returns: Json
+      }
       round_load_for_exercise: {
         Args: { p_exercise: string; p_gym: string; p_target_kg: number }
         Returns: number
