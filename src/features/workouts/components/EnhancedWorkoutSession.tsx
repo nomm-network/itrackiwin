@@ -771,7 +771,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     .filter((set: any) => set.is_completed)
                     .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0)),
                   load_type: currentExercise?.exercise?.load_type || currentExercise?.load_type,
-                  equipment_ref: currentExercise?.exercise?.equipment_ref || currentExercise?.equipment_ref
+                  equipment_ref: getEquipmentRefId(currentExercise)
                 }}
                 userId={userId}
                 exerciseId={currentExercise?.exercise_id}
