@@ -42,6 +42,7 @@ import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
+import { SetEditor } from "@/features/workouts/components/SetEditor";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 
 const useSEO = (titleAddon: string) => {
@@ -555,13 +556,41 @@ const WorkoutSession: React.FC = () => {
                           )}
                         </div>
                         
-                         {/* Add Set Form */}
-                        <AdaptiveSetForm 
-                          exerciseId={ex.id}
-                          onSubmit={(setData) => handleSetSubmit(ex.id, setData)}
-                          isLoading={addSetMut.isPending}
-                          unit={unit}
-                        />
+                         {/* Add Set Form with Dual Load Support */}
+                        <div className="space-y-3">
+                          <SetEditor
+                            exercise={{
+                              load_type: ex.load_type,
+                              equipment_ref: ex.equipment_ref,
+                              id: ex.id
+                            }}
+                            value={{
+                              weightKg: undefined,
+                              perSideKg: undefined,
+                              reps: undefined,
+                              entryMode: ex.load_type === 'dual_load' ? 'per_side' : 'total'
+                            }}
+                            onChange={(value) => {
+                              // Handle the set data change
+                              console.log('🎯 Set data changed:', value);
+                            }}
+                            setIndex={completedSets.length}
+                            userId={user?.id}
+                            gymId={undefined} // TODO: Pass gymId
+                            templateTargetReps={ex.target_reps}
+                            templateTargetWeight={ex.target_weight_kg}
+                          />
+                          
+                          <Button 
+                            onClick={() => {
+                              // Handle set submission here
+                              console.log('🎯 Set submission would happen here');
+                            }}
+                            className="w-full"
+                          >
+                            Log Set {completedSets.length + 1}
+                          </Button>
+                        </div>
                         
                       </div>
                     )}
@@ -576,8 +605,40 @@ const WorkoutSession: React.FC = () => {
 
           <div className="space-y-6">{/* Right column for controls and timer */}
 
-            {/* Rest Timer */}
-            {showRestTimer && (
+        {/* Debug Info - Dual Load Specific */}
+        <Card className="mb-4">
+          <CardHeader>
+            <CardTitle className="text-sm">🎯 DEBUG INFO</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2 text-xs font-mono">
+              <div><strong>Workout ID:</strong> {id}</div>
+              <div><strong>Current Exercise Index:</strong> {data?.exercises?.findIndex(ex => !completedExercises.has(ex.id)) ?? 0}</div>
+              <div><strong>Total Exercises:</strong> {data?.exercises?.length ?? 0}</div>
+              
+              {data?.exercises && (() => {
+                const currentEx = data.exercises.find(ex => !completedExercises.has(ex.id));
+                if (!currentEx) return null;
+                
+                return (
+                  <div className="space-y-2">
+                    <div><strong>Current Exercise Load Type:</strong> {currentEx.load_type || 'Not set'}</div>
+                    <div><strong>Equipment Ref:</strong> {currentEx.equipment_ref || 'Not set'}</div>
+                    <div><strong>Dual Load Enabled:</strong> {currentEx.load_type === 'dual_load' ? 'YES' : 'NO'}</div>
+                    <div><strong>Exercise ID:</strong> {currentEx.id}</div>
+                    <div><strong>Target Weight:</strong> {currentEx.target_weight_kg || 'Not set'} kg</div>
+                    <div><strong>Target Reps:</strong> {currentEx.target_reps || 'Not set'}</div>
+                    <div><strong>Completed Sets:</strong> {completedSets.length}</div>
+                    <div><strong>Target Sets:</strong> {currentEx.target_sets || 'Not set'}</div>
+                  </div>
+                );
+              })()}
+            </div>
+          </CardContent>
+        </Card>
+        
+          {/* Rest Timer */}
+          {showRestTimer && (
               <RestTimer
                 suggestedSeconds={restDuration}
                 onComplete={() => {

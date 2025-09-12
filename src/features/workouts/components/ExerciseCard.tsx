@@ -125,13 +125,6 @@ export default function ExerciseCard({
           />
         )}
 
-        {/* Warmup section for active exercise */}
-        {isActive && showWarmup && workoutExerciseId && (
-          <WarmupBlock 
-            workoutExerciseId={workoutExerciseId}
-            onFeedbackGiven={() => console.log('Warmup feedback given')}
-          />
-        )}
       </CardContent>
 
       {/* Footer with action buttons */}
