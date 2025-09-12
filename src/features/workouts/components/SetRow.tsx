@@ -156,20 +156,24 @@ export default function SetRow({
         if (alive) {
           setLoadoutSnap(result);
           
-          // Add debug entry
+          // Add debug entry with detailed dual-load info
           const debugItem = {
             exerciseId: exerciseId || 'unknown',
             name: `Set ${setNumber}`,
             loadType: loadType || 'unknown',
             barWeight,
             perSide: perSideMode,
-            inputKg,
+            inputKg: perSideMode ? oneSideWeight : weight,
             desiredTotalKg,
             resolved: {
               totalKg: result.targetDisplay,
               implement: selectedImplement,
               source: 'gym',
-              residualKg: 0
+              residualKg: Math.abs(result.targetDisplay - desiredTotalKg)
+            },
+            profiles: {
+              plateProfile: profile ? 'active' : 'none',
+              stackProfile: loadType === 'stack' ? 'stack' : undefined
             },
             gymId
           };
@@ -306,9 +310,9 @@ export default function SetRow({
         </div>
       )}
 
-      {/* Debug panel */}
+      {/* Debug panel - always enabled for dual load debugging */}
       <WorkoutExerciseDebug 
-        enabled={process.env.NODE_ENV === 'development'} 
+        enabled={true} 
         debugItems={debugItems} 
       />
     </div>
