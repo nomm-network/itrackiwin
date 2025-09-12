@@ -135,7 +135,6 @@ export function SetEditor({
       
       <div className="flex items-end gap-3">
         {isDual && value.entryMode === 'per_side' ? (
-          <>
           <div className="flex-1">
             <Label className="text-xs text-muted-foreground">Per-side (kg)</Label>
             <div className="flex items-center gap-2">
@@ -179,10 +178,6 @@ export function SetEditor({
               </Button>
             </div>
           </div>
-            <div className="text-xs text-muted-foreground pb-2 flex-shrink-0">
-              {hasBar ? `${barKg}kg bar + 2×${formatKg(perSide || 0)}` : `2×${formatKg(perSide || 0)}`} = {formatKg(totalFromSide)} kg total
-            </div>
-          </>
         ) : (
           <div className="flex-1">
             <Label className="text-xs text-muted-foreground">
@@ -271,6 +266,12 @@ export function SetEditor({
           </div>
         </div>
       </div>
+
+      {isDual && value.entryMode === 'per_side' && (
+        <div className="text-sm text-muted-foreground mt-1">
+          {hasBar ? `${barKg}kg bar + 2×${formatKg(perSide || 0)}` : `2×${formatKg(perSide || 0)}`} = {formatKg(totalFromSide)} kg total
+        </div>
+      )}
     </div>
   );
 }
