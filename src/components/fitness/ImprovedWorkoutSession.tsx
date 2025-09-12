@@ -547,7 +547,7 @@ export default function ImprovedWorkoutSession({
                 <div className="text-xs font-mono space-y-1">
                   <div>Exercise: {exercise.name}</div>
                   <div>Load Type: {exercise.load_type}</div>
-                  <div>Equipment Ref: {exercise.equipment_ref || 'not set'}</div>
+                  <div>Equipment Ref ID: {(exercise as any).equipment_ref_id || 'not set'}</div>
                   <div>Input Weight: {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Current Set: {currentSetNumber}</div>
                   <div>Target Reps: {currentSetData.reps}</div>
