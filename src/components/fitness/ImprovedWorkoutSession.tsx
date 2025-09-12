@@ -540,7 +540,7 @@ export default function ImprovedWorkoutSession({
               className="space-y-4"
             />
 
-            {/* DUAL LOAD DEBUG PANEL */}
+            {/* DUAL LOAD DEBUG PANEL - SIMPLIFIED */}
             {exercise.load_type === 'dual_load' && (
               <div className="mt-4 p-3 border rounded-lg bg-muted/20">
                 <h4 className="text-sm font-medium mb-2">🔧 DUAL LOAD DEBUG</h4>
@@ -551,17 +551,6 @@ export default function ImprovedWorkoutSession({
                   <div>Entry Mode: {currentSetData.entryMode}</div>
                   <div>Weight (total): {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Per-side Weight: {currentSetData.perSideKg} kg</div>
-                  <div>Bar Weight: {(() => {
-                    const { hasBar, barKg } = getBarMeta(exercise.equipment_ref);
-                    return hasBar ? `${barKg} kg` : '0 kg (no bar)';
-                  })()}</div>
-                  <div>Calculated Total: {(() => {
-                    const { hasBar, barKg } = getBarMeta(exercise.equipment_ref);
-                    if (currentSetData.entryMode === 'per_side' && currentSetData.perSideKg) {
-                      return `${(hasBar ? barKg : 0) + currentSetData.perSideKg * 2} kg (${hasBar ? barKg : 0} + 2×${currentSetData.perSideKg})`;
-                    }
-                    return `${currentSetData.weightKg || currentSetData.weight} kg`;
-                  })()}</div>
                   <div>Current Set: {currentSetNumber}</div>
                   <div>Target Reps: {currentSetData.reps}</div>
                 </div>
