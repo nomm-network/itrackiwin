@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
-import { getEquipmentRefId, getLoadType } from '@/lib/exercises/equipmentRef';
+import { getEquipmentRefId, getLoadType } from '@/lib/workouts/equipmentContext';
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
