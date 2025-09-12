@@ -742,6 +742,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   equipmentRef: currentExercise?.exercise?.equipment_ref || currentExercise?.equipment_ref,
                   currentExercise: currentExercise
                 })}
+
+                {/* MASSIVE DUAL LOAD DEBUG PANEL - ALWAYS VISIBLE */}
+                <div className="mt-4 p-4 border-4 border-red-500 rounded-lg bg-red-100">
+                  <h4 className="text-xl font-bold mb-3 text-red-700">🚨 DUAL LOAD DEBUG PANEL 🚨</h4>
+                  <div className="text-sm font-mono space-y-2 text-red-900">
+                    <div><strong>Exercise Name:</strong> {getExerciseName()}</div>
+                    <div><strong>Exercise ID:</strong> {currentExercise?.exercise_id}</div>
+                    <div><strong>Load Type (exercise):</strong> {currentExercise?.exercise?.load_type || 'not found'}</div>
+                    <div><strong>Load Type (direct):</strong> {currentExercise?.load_type || 'not found'}</div>
+                    <div><strong>Equipment Ref:</strong> {currentExercise?.exercise?.equipment_ref || currentExercise?.equipment_ref || 'not found'}</div>
+                    <div><strong>Equipment ID:</strong> {currentExercise?.exercise?.equipment_id || 'not found'}</div>
+                    <div><strong>Is Dual Load:</strong> {(currentExercise?.exercise?.load_type === 'dual_load' || currentExercise?.load_type === 'dual_load') ? 'YES' : 'NO'}</div>
+                    <div><strong>Current Exercise Object:</strong></div>
+                    <pre className="bg-white p-2 rounded text-xs overflow-auto max-h-32 border">
+                      {JSON.stringify(currentExercise, null, 2)}
+                    </pre>
+                  </div>
+                </div>
                 <ImprovedWorkoutSession
                 exercise={{
                   id: currentExercise.id,
