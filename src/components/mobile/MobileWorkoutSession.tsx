@@ -300,11 +300,15 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                        <SetEditor
                          exercise={{
                            load_type: currentExercise.load_type,
-                           equipment_ref: currentExercise.equipment_ref
+                           equipment_ref: currentExercise.equipment_ref,
+                           id: currentExercise.id
                          }}
                          value={newSetData}
                          onChange={setNewSetData}
                          className="space-y-2"
+                         setIndex={nextSetIndex - 1}
+                         userId={undefined} // TODO: Pass userId prop
+                         gymId={undefined} // TODO: Pass gymId prop
                        />
                     </div>
                   )}

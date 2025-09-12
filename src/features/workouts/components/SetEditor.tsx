@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Plus, Minus } from 'lucide-react';
+import { useTargetCalculation } from "@/features/health/fitness/hooks/useTargetCalculation";
 
 interface SetValue {
   weightKg?: number;
@@ -16,10 +17,16 @@ interface SetEditorProps {
   exercise?: {
     load_type?: string;
     equipment_ref?: string;
+    id?: string;
   };
   value: SetValue;
   onChange: (value: SetValue) => void;
   className?: string;
+  setIndex?: number;
+  userId?: string;
+  gymId?: string;
+  templateTargetReps?: number;
+  templateTargetWeight?: number;
 }
 
 function formatKg(kg: number): string {
@@ -30,10 +37,60 @@ export function SetEditor({
   exercise,
   value,
   onChange,
-  className = ""
+  className = "",
+  setIndex = 0,
+  userId,
+  gymId,
+  templateTargetReps,
+  templateTargetWeight
 }: SetEditorProps) {
+  
+  console.log('🎯 SetEditor: Component initialized with debug logging enabled:', {
+    setIndex,
+    exerciseId: exercise?.id,
+    userId,
+    value,
+    templateTargetReps,
+    templateTargetWeight,
+    gymId,
+    loadType: exercise?.load_type
+  });
+
+  // Use target calculation hook for smart weight/rep suggestions
+  const { target: calculatedTarget } = useTargetCalculation({
+    userId,
+    exerciseId: exercise?.id,
+    setIndex: setIndex,
+    templateTargetReps,
+    templateTargetWeight,
+    onApplyTarget: (weight, reps) => {
+      console.log('🎯 SetEditor: Target calculation callback triggered:', { weight, reps });
+      onChange({
+        ...value,
+        weightKg: weight,
+        reps: reps,
+        entryMode: 'total'
+      });
+    }
+  });
+  
+  console.log('🎯 SetEditor: Target calculation result:', {
+    calculatedTarget,
+    fallbackWeight: value.weightKg || 0,
+    fallbackReps: value.reps || 0
+  });
   const isDual = exercise?.load_type === 'dual_load';
   const { hasBar, barKg } = getBarMeta(exercise?.equipment_ref);
+
+  console.log('🎯 SetEditor: dual_load detection:', {
+    loadType: exercise?.load_type,
+    isDual,
+    equipmentRef: exercise?.equipment_ref,
+    hasBar,
+    barKg,
+    currentValue: value,
+    dualLoadUIShowing: isDual
+  });
 
   const perSide = isDual
     ? (value.perSideKg ?? (value.weightKg ? Math.max(0, (value.weightKg - (hasBar ? barKg : 0)) / 2) : undefined))
