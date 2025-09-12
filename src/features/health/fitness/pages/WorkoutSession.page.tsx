@@ -73,10 +73,41 @@ const WorkoutSession: React.FC = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const { data } = useWorkoutDetail(id);
+  const { data, isLoading: isLoadingWorkout, error: workoutError } = useWorkoutDetail(id);
+  
+  console.log('🚀 [WorkoutSession] Debug workout loading:', {
+    workoutId: id,
+    isLoadingWorkout,
+    hasData: !!data,
+    workoutError,
+    dataKeys: data ? Object.keys(data) : [],
+    exercisesCount: data?.exercises?.length || 0
+  });
   const { gym: selectedGym } = useMyGym();
   const queryClient = useQueryClient();
   useSEO(data?.workout?.title || 'Session');
+
+  // Show loading while workout data is being fetched
+  if (isLoadingWorkout) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+        <span className="ml-2">Loading workout...</span>
+      </div>
+    );
+  }
+
+  // Show error if workout failed to load
+  if (workoutError || !data) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-xl font-semibold mb-2">Failed to load workout</h2>
+          <p className="text-muted-foreground">{workoutError?.message || 'Workout not found'}</p>
+        </div>
+      </div>
+    );
+  }
 
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
