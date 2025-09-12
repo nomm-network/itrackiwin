@@ -125,7 +125,7 @@ export default function ExerciseCard({
           />
         )}
 
-        {/* Warmup section for active exercise */}
+        {/* Inline warmup for active exercise - this is the only warmup display */}
         {isActive && showWarmup && workoutExerciseId && (
           <WarmupBlock 
             workoutExerciseId={workoutExerciseId}

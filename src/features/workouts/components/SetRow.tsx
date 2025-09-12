@@ -186,8 +186,8 @@ export default function SetRow({
           </Select>
         )}
 
-        {/* Entry mode toggle - only show if bar is selected */}
-        {supportsBarSelection && selectedBar && (
+        {/* Dual-load toggle - show for dual_load exercises */}
+        {loadType === 'dual_load' && (
           <ToggleGroup
             type="single"
             value={loadEntryMode}
@@ -195,10 +195,10 @@ export default function SetRow({
             className="h-8"
           >
             <ToggleGroupItem value="one_side" className="text-xs px-2">
-              Per Side
+              per-side
             </ToggleGroupItem>
             <ToggleGroupItem value="total" className="text-xs px-2">
-              Total
+              total
             </ToggleGroupItem>
           </ToggleGroup>
         )}
@@ -258,10 +258,12 @@ export default function SetRow({
         </div>
       )}
 
-      {/* Preview line for one-side mode */}
-      {loadEntryMode === 'one_side' && selectedBar && oneSideWeight > 0 && (
+      {/* Dual-load hint */}
+      {loadType === 'dual_load' && (
         <div className="text-xs text-muted-foreground ml-8">
-          = {totalWeight} kg total ({selectedBar.default_weight}kg bar + {oneSideWeight * 2}kg plates)
+          {loadEntryMode === 'one_side' 
+            ? `Total this set ≈ ${totalWeight.toFixed(1)} kg ${selectedBar ? `(incl. ${selectedBar.default_weight} kg bar)` : ''}`
+            : `Per-side ≈ ${((totalWeight - (selectedBar?.default_weight || 0)) / 2).toFixed(1)} kg ${selectedBar ? `(bar ${selectedBar.default_weight} kg)` : ''}`}
         </div>
       )}
     </div>

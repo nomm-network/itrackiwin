@@ -733,16 +733,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Show warmup if conditions are met and it should be displayed */}
-                {!warmupCompleted && warmupsShown[resolveWorkoutExerciseId(currentExercise)] && (
-                    <WarmupBlock
-                     workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                     unit="kg"
-                     suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
-                     suggestedTopReps={currentExercise?.target_reps ?? 8}
-                     onFeedbackGiven={() => setWarmupCompleted(true)}
-                   />
-                )}
+                {/* Removed session-level warmup to prevent duplication */}
+                {/* Only inline warmup remains in ExerciseCard */}
                 {/* Debug exercise data */}
                 {console.log('🔧 Exercise data for dual-load check:', {
                   exerciseId: currentExercise?.exercise_id,
@@ -921,6 +913,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
         </div>
       </div>
+
+      {/* Debug Panel - Only show if debug mode is enabled */}
+      {/* TODO: Connect to actual debug toggle */}
+      {false && (
+        <div className="pb-4">
+          {/* WorkoutDebugPanel will be added here when debug items are collected */}
+        </div>
+      )}
     </div>
   );
 }
