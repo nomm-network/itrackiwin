@@ -40,5 +40,5 @@ export default function WorkoutPage() {
     );
   }
 
-  return <EnhancedWorkoutSession />;
+  return <EnhancedWorkoutSession workout={workout} />;
 }

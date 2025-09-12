@@ -91,6 +91,16 @@ export function WarmupBlock({
 
   return (
     <div>
+      {/* Debug info */}
+      <details style={{opacity: 0.6, fontSize: 12, marginBottom: 8}}>
+        <summary>debug: warmup</summary>
+        <pre>{JSON.stringify({
+          weId: workoutExerciseId,
+          topKg: plan.baseWeight,
+          warmup: plan.steps,
+          planStrategy: plan.strategy
+        }, null, 2)}</pre>
+      </details>
       
       <Card className="mb-4">
         <CardHeader className="pb-2">
