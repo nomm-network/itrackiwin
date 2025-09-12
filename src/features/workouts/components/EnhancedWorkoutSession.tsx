@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getEquipmentRefId, getLoadType } from '@/lib/exercises/equipmentRef';
 import { 
   Play, 
   Pause, 
@@ -750,13 +751,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     <div><strong>Exercise Name:</strong> {getExerciseName()}</div>
                     <div><strong>Exercise ID:</strong> {currentExercise?.exercise_id}</div>
                     <div><strong>Load Type (exercise):</strong> {currentExercise?.exercise?.load_type || 'not found'}</div>
-                    <div><strong>Load Type (direct):</strong> {currentExercise?.load_type || 'not found'}</div>
-                    <div><strong>Equipment Ref:</strong> {(() => {
-                      console.log('🚨 DEBUG currentExercise:', currentExercise);
-                      console.log('🚨 DEBUG currentExercise.exercise:', currentExercise?.exercise);
-                      console.log('🚨 DEBUG equipment_ref_id:', currentExercise?.exercise?.equipment_ref_id);
-                      return currentExercise?.exercise?.equipment_ref_id || 'not found';
-                    })()}</div>
+                    <div><strong>Load Type (direct):</strong> {getLoadType(currentExercise) || 'not found'}</div>
+                    <div><strong>Equipment Ref:</strong> {getEquipmentRefId(currentExercise) || 'not found'}</div>
                     <div><strong>Equipment ID:</strong> {currentExercise?.exercise?.equipment_id || 'not found'}</div>
                     <div><strong>Is Dual Load:</strong> {(currentExercise?.exercise?.load_type === 'dual_load' || currentExercise?.load_type === 'dual_load') ? 'YES' : 'NO'}</div>
                     <div><strong>Current Exercise Object:</strong></div>

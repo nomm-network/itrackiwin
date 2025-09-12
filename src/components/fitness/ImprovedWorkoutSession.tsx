@@ -5,6 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { getEquipmentRefId, getLoadType } from '@/lib/exercises/equipmentRef';
 import { ChevronDown, ChevronUp, Plus, Minus, Hand, Target, Trash2, Edit, AlertTriangle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
@@ -547,12 +548,7 @@ export default function ImprovedWorkoutSession({
                 <div className="text-xs font-mono space-y-1">
                   <div>Exercise: {exercise.name}</div>
                   <div>Load Type: {exercise.load_type}</div>
-                  <div>Equipment Ref ID: {(() => {
-                    console.log('🔧 DEBUG exercise:', exercise);
-                    console.log('🔧 DEBUG exercise.exercise:', (exercise as any).exercise);
-                    console.log('🔧 DEBUG equipment_ref_id:', (exercise as any).exercise?.equipment_ref_id);
-                    return (exercise as any).exercise?.equipment_ref_id || 'not found';
-                  })()}</div>
+                  <div>Equipment Ref ID: {getEquipmentRefId(exercise) || 'not found'}</div>
                   <div>Input Weight: {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Current Set: {currentSetNumber}</div>
                   <div>Target Reps: {currentSetData.reps}</div>
