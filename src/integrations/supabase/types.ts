@@ -1679,20 +1679,32 @@ export type Database = {
       exercise_equipment_profiles: {
         Row: {
           created_at: string | null
+          default_bar_weight_kg: number | null
+          default_entry_mode: string | null
           equipment_slug: string
           exercise_id: string
+          is_active: boolean | null
+          plate_profile_id: string | null
           updated_at: string | null
         }
         Insert: {
           created_at?: string | null
+          default_bar_weight_kg?: number | null
+          default_entry_mode?: string | null
           equipment_slug: string
           exercise_id: string
+          is_active?: boolean | null
+          plate_profile_id?: string | null
           updated_at?: string | null
         }
         Update: {
           created_at?: string | null
+          default_bar_weight_kg?: number | null
+          default_entry_mode?: string | null
           equipment_slug?: string
           exercise_id?: string
+          is_active?: boolean | null
+          plate_profile_id?: string | null
           updated_at?: string | null
         }
         Relationships: [
@@ -1715,6 +1727,13 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: true
             referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_equipment_profiles_plate_profile_id_fkey"
+            columns: ["plate_profile_id"]
+            isOneToOne: false
+            referencedRelation: "plate_profiles"
             referencedColumns: ["id"]
           },
         ]

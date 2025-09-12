@@ -13,6 +13,8 @@ import { ImplementChooser } from "./ImplementChooser";
 import { useTargetCalculation } from "@/features/health/fitness/hooks/useTargetCalculation";
 import { inferBarWeight } from "@/lib/equipment/inferBarWeight";
 import { resolveAchievableLoad } from "@/lib/equipment/resolveLoad";
+import { resolveAchievableLoadEnhanced } from "@/lib/equipment/equipmentProfileResolver";
+import { useEntryModeStore, type EntryMode } from "@/hooks/useEntryModeStore";
 import WorkoutExerciseDebug from "./WorkoutExerciseDebug";
 
 interface SetRowProps {
@@ -104,8 +106,10 @@ export default function SetRow({
   const [loadoutSnap, setLoadoutSnap] = useState<ResolveResult | null>(null);
   const [selectedImplement, setSelectedImplement] = useState<string>(supportedImplements[0] || 'barbell');
   
-  // Dual-load mode state - per-side vs total input
-  const [perSideMode, setPerSideMode] = useState(false);
+  // Enhanced dual-load with persistent entry mode
+  const defaultMode: EntryMode = 'per_side';
+  const [entryMode, setEntryMode] = useEntryModeStore(exerciseId || 'unknown', defaultMode);
+  const [enhancedResolution, setEnhancedResolution] = useState<any>(null);
   const [debugItems, setDebugItems] = useState<any[]>([]);
 
   const selectedBar = barTypes?.find(bar => bar.id === barTypeId);
@@ -119,21 +123,29 @@ export default function SetRow({
   
   const barWeight = inferBarWeight(mockExercise);
 
-  // Calculate weights for dual-load mode
-  const inputKg = perSideMode ? oneSideWeight : weight;
-  const desiredTotalKg = perSideMode ? barWeight + (inputKg * 2) : inputKg;
-  const displayPerSideKg = perSideMode ? inputKg : Math.max(0, (desiredTotalKg - barWeight) / 2);
+  // Calculate weights using enhanced resolver
+  const inputKg = entryMode === 'per_side' ? weight : weight;
+  const enhancedBar = enhancedResolution?.barWeightKg || barWeight;
+  const enhancedTotal = enhancedResolution?.totalKg || weight;
+  const enhancedPerSide = enhancedResolution?.perSideKg || Math.max(0, (weight - enhancedBar) / 2);
 
-  // Calculate total weight when mode or inputs change
+  // Enhanced weight resolution for dual-load exercises
   useEffect(() => {
-    if (loadEntryMode === 'one_side' && selectedBar) {
-      const calculated = selectedBar.default_weight + (oneSideWeight * 2);
-      setTotalWeight(calculated);
-      setWeight(calculated);
-    } else if (loadEntryMode === 'total') {
-      setTotalWeight(perSideMode ? desiredTotalKg : weight);
+    if (loadType === 'dual_load' && weight > 0 && exerciseId) {
+      let active = true;
+      
+      resolveAchievableLoadEnhanced(exerciseId, weight, gymId, entryMode).then(result => {
+        if (active) {
+          setEnhancedResolution(result);
+          setTotalWeight(result.totalKg);
+        }
+      }).catch(console.error);
+      
+      return () => { active = false; };
+    } else {
+      setTotalWeight(weight);
     }
-  }, [loadEntryMode, oneSideWeight, selectedBar, weight, perSideMode, desiredTotalKg]);
+  }, [loadType, exerciseId, weight, gymId, entryMode]);
 
   // Resolve loadout when weight or context changes
   useEffect(() => {
@@ -156,20 +168,20 @@ export default function SetRow({
         if (alive) {
           setLoadoutSnap(result);
           
-          // Add debug entry with detailed dual-load info
+          // Add debug entry with enhanced dual-load info
           const debugItem = {
             exerciseId: exerciseId || 'unknown',
             name: `Set ${setNumber}`,
             loadType: loadType || 'unknown',
-            barWeight,
-            perSide: perSideMode,
-            inputKg: perSideMode ? oneSideWeight : weight,
-            desiredTotalKg,
+            barWeight: enhancedBar,
+            entryMode: entryMode,
+            inputKg: weight,
+            totalKg: enhancedTotal,
             resolved: {
               totalKg: result.targetDisplay,
               implement: selectedImplement,
               source: 'gym',
-              residualKg: Math.abs(result.targetDisplay - desiredTotalKg)
+              residualKg: Math.abs(result.targetDisplay - enhancedTotal)
             },
             profiles: {
               plateProfile: profile ? 'active' : 'none',
@@ -189,7 +201,7 @@ export default function SetRow({
     })();
     
     return () => { alive = false; };
-  }, [totalWeight, equipmentId, loadType, exerciseId, setNumber, barWeight, perSideMode, inputKg, desiredTotalKg, selectedImplement, gymId]);
+  }, [totalWeight, equipmentId, loadType, exerciseId, setNumber, enhancedBar, entryMode, inputKg, enhancedTotal, selectedImplement, gymId]);
 
   const handleLogSet = () => {
     const logData = {
@@ -234,30 +246,30 @@ export default function SetRow({
           </Select>
         )}
 
-        {/* Dual-load toggle - show for dual_load exercises */}
+        {/* Enhanced dual-load toggle */}
         {loadType === 'dual_load' && (
           <button
             type="button"
-            onClick={() => setPerSideMode(!perSideMode)}
+            onClick={() => setEntryMode(entryMode === 'per_side' ? 'total' : 'per_side')}
             className="text-xs rounded px-2 py-1 border border-border hover:bg-accent transition-colors"
-            title={perSideMode ? 'Per-side entry' : 'Total weight entry'}
+            title={entryMode === 'per_side' ? 'Per-side entry' : 'Total weight entry'}
           >
-            {perSideMode ? 'per-side' : 'total'}
+            {entryMode === 'per_side' ? 'per-side' : 'total'}
           </button>
         )}
 
         <SmartWeightInput
-          value={perSideMode ? (oneSideWeight || 0) : (weight || 0)}
+          value={weight || 0}
           onChange={handleWeightChange}
           exerciseId={exerciseId}
           gymId={gymId}
-          placeholder={perSideMode ? "Per side" : "Weight"}
+          placeholder={entryMode === 'per_side' ? "Per side" : "Total"}
           className="w-20"
           onResolutionChange={(resolved) => {
             // Could store resolution details for loadout modal
           }}
         />
-        <span className="text-xs">{perSideMode ? 'kg/side' : 'kg'}</span>
+        <span className="text-xs">{entryMode === 'per_side' ? 'kg/side' : 'kg'}</span>
         
         <Input
           type="number"
@@ -301,12 +313,16 @@ export default function SetRow({
         </div>
       )}
 
-      {/* Dual-load hint */}
-      {loadType === 'dual_load' && (
-        <div className="text-xs text-muted-foreground ml-8">
-          {perSideMode 
-            ? `Total this set ≈ ${desiredTotalKg.toFixed(1)} kg ${barWeight > 0 ? `(incl. ${barWeight} kg bar)` : ''}`
-            : `Per-side ≈ ${displayPerSideKg.toFixed(1)} kg ${barWeight > 0 ? `(bar ${barWeight} kg)` : ''}`}
+      {/* Enhanced dual-load breakdown */}
+      {loadType === 'dual_load' && enhancedResolution && (
+        <div className="text-xs text-muted-foreground ml-8 space-y-1">
+          <div>Bar: {enhancedResolution.barWeightKg}kg | Mode: {enhancedResolution.entryMode}</div>
+          <div>Total: {enhancedResolution.totalKg}kg (= {enhancedResolution.barWeightKg}kg + 2×{enhancedResolution.perSideKg}kg)</div>
+          {Math.abs(enhancedResolution.residualKg) > 0.1 && (
+            <div className="text-amber-600">
+              Residual: {enhancedResolution.residualKg >= 0 ? '+' : ''}{enhancedResolution.residualKg.toFixed(1)}kg
+            </div>
+          )}
         </div>
       )}
 
