@@ -77,7 +77,9 @@ export const useGetWorkout = (workoutId?: string) => {
               default_grip_ids,
               equipment_id,
               primary_muscle_id,
-              body_part_id
+              body_part_id,
+              load_type,
+              equipment_ref_id
             ),
             sets:workout_sets(
               id,
