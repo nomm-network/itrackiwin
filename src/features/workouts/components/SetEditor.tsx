@@ -161,7 +161,7 @@ export function SetEditor({
                   perSideKg: Number(e.target.value) || undefined,
                   weightKg: undefined
                 })}
-                className="w-20 text-center"
+                className="w-16 text-center"
               />
               <Button 
                 type="button"
@@ -207,7 +207,7 @@ export function SetEditor({
                   weightKg: Number(e.target.value) || undefined,
                   perSideKg: undefined
                 })}
-                className="w-24 text-center"
+                className="w-20 text-center"
               />
               <Button 
                 type="button"
@@ -249,7 +249,7 @@ export function SetEditor({
                 ...value, 
                 reps: Number(e.target.value) || undefined 
               })}
-              className="w-16 text-center"
+              className="w-14 text-center"
             />
             <Button 
               type="button"
@@ -268,7 +268,7 @@ export function SetEditor({
       </div>
 
       {isDual && value.entryMode === 'per_side' && (
-        <div className="text-sm text-muted-foreground mt-0.5">
+        <div className="text-sm text-muted-foreground">
           {hasBar ? `${barKg}kg bar + 2×${formatKg(perSide || 0)}` : `2×${formatKg(perSide || 0)}`} = {formatKg(totalFromSide)} kg total
         </div>
       )}
