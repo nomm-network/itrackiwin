@@ -11,6 +11,9 @@ import { openLoadoutModal } from "./LoadoutModal";
 import { SmartWeightInput } from "./SmartWeightInput";
 import { ImplementChooser } from "./ImplementChooser";
 import { useTargetCalculation } from "@/features/health/fitness/hooks/useTargetCalculation";
+import { inferBarWeight } from "@/lib/equipment/inferBarWeight";
+import { resolveAchievableLoad } from "@/lib/equipment/resolveLoad";
+import WorkoutExerciseDebug from "./WorkoutExerciseDebug";
 
 interface SetRowProps {
   setNumber: number;
@@ -100,19 +103,37 @@ export default function SetRow({
   const [totalWeight, setTotalWeight] = useState(weight);
   const [loadoutSnap, setLoadoutSnap] = useState<ResolveResult | null>(null);
   const [selectedImplement, setSelectedImplement] = useState<string>(supportedImplements[0] || 'barbell');
+  
+  // Dual-load mode state - per-side vs total input
+  const [perSideMode, setPerSideMode] = useState(false);
+  const [debugItems, setDebugItems] = useState<any[]>([]);
 
   const selectedBar = barTypes?.find(bar => bar.id === barTypeId);
+  
+  // Mock exercise for bar weight calculation
+  const mockExercise = {
+    bar_type: selectedBar?.name?.toLowerCase().includes('ez') ? 'ezbar' as const : 'olympic' as const,
+    is_machine: selectedImplement === 'machine',
+    load_type: loadType
+  };
+  
+  const barWeight = inferBarWeight(mockExercise);
 
-  // Calculate total weight when one-side mode changes
+  // Calculate weights for dual-load mode
+  const inputKg = perSideMode ? oneSideWeight : weight;
+  const desiredTotalKg = perSideMode ? barWeight + (inputKg * 2) : inputKg;
+  const displayPerSideKg = perSideMode ? inputKg : Math.max(0, (desiredTotalKg - barWeight) / 2);
+
+  // Calculate total weight when mode or inputs change
   useEffect(() => {
     if (loadEntryMode === 'one_side' && selectedBar) {
       const calculated = selectedBar.default_weight + (oneSideWeight * 2);
       setTotalWeight(calculated);
       setWeight(calculated);
     } else if (loadEntryMode === 'total') {
-      setTotalWeight(weight);
+      setTotalWeight(perSideMode ? desiredTotalKg : weight);
     }
-  }, [loadEntryMode, oneSideWeight, selectedBar, weight]);
+  }, [loadEntryMode, oneSideWeight, selectedBar, weight, perSideMode, desiredTotalKg]);
 
   // Resolve loadout when weight or context changes
   useEffect(() => {
@@ -134,6 +155,29 @@ export default function SetRow({
         
         if (alive) {
           setLoadoutSnap(result);
+          
+          // Add debug entry
+          const debugItem = {
+            exerciseId: exerciseId || 'unknown',
+            name: `Set ${setNumber}`,
+            loadType: loadType || 'unknown',
+            barWeight,
+            perSide: perSideMode,
+            inputKg,
+            desiredTotalKg,
+            resolved: {
+              totalKg: result.targetDisplay,
+              implement: selectedImplement,
+              source: 'gym',
+              residualKg: 0
+            },
+            gymId
+          };
+          
+          setDebugItems(prev => {
+            const filtered = prev.filter(item => item.name !== debugItem.name);
+            return [...filtered, debugItem];
+          });
         }
       } catch (error) {
         console.error('Error resolving loadout:', error);
@@ -141,7 +185,7 @@ export default function SetRow({
     })();
     
     return () => { alive = false; };
-  }, [totalWeight, equipmentId, loadType]);
+  }, [totalWeight, equipmentId, loadType, exerciseId, setNumber, barWeight, perSideMode, inputKg, desiredTotalKg, selectedImplement, gymId]);
 
   const handleLogSet = () => {
     const logData = {
@@ -188,33 +232,28 @@ export default function SetRow({
 
         {/* Dual-load toggle - show for dual_load exercises */}
         {loadType === 'dual_load' && (
-          <ToggleGroup
-            type="single"
-            value={loadEntryMode}
-            onValueChange={(value) => value && setLoadEntryMode(value as 'total' | 'one_side')}
-            className="h-8"
+          <button
+            type="button"
+            onClick={() => setPerSideMode(!perSideMode)}
+            className="text-xs rounded px-2 py-1 border border-border hover:bg-accent transition-colors"
+            title={perSideMode ? 'Per-side entry' : 'Total weight entry'}
           >
-            <ToggleGroupItem value="one_side" className="text-xs px-2">
-              per-side
-            </ToggleGroupItem>
-            <ToggleGroupItem value="total" className="text-xs px-2">
-              total
-            </ToggleGroupItem>
-          </ToggleGroup>
+            {perSideMode ? 'per-side' : 'total'}
+          </button>
         )}
 
         <SmartWeightInput
-          value={loadEntryMode === 'one_side' ? (oneSideWeight || 0) : (weight || 0)}
+          value={perSideMode ? (oneSideWeight || 0) : (weight || 0)}
           onChange={handleWeightChange}
           exerciseId={exerciseId}
           gymId={gymId}
-          placeholder={loadEntryMode === 'one_side' ? "Per side" : "Weight"}
+          placeholder={perSideMode ? "Per side" : "Weight"}
           className="w-20"
           onResolutionChange={(resolved) => {
             // Could store resolution details for loadout modal
           }}
         />
-        <span className="text-xs">kg</span>
+        <span className="text-xs">{perSideMode ? 'kg/side' : 'kg'}</span>
         
         <Input
           type="number"
@@ -261,11 +300,17 @@ export default function SetRow({
       {/* Dual-load hint */}
       {loadType === 'dual_load' && (
         <div className="text-xs text-muted-foreground ml-8">
-          {loadEntryMode === 'one_side' 
-            ? `Total this set ≈ ${totalWeight.toFixed(1)} kg ${selectedBar ? `(incl. ${selectedBar.default_weight} kg bar)` : ''}`
-            : `Per-side ≈ ${((totalWeight - (selectedBar?.default_weight || 0)) / 2).toFixed(1)} kg ${selectedBar ? `(bar ${selectedBar.default_weight} kg)` : ''}`}
+          {perSideMode 
+            ? `Total this set ≈ ${desiredTotalKg.toFixed(1)} kg ${barWeight > 0 ? `(incl. ${barWeight} kg bar)` : ''}`
+            : `Per-side ≈ ${displayPerSideKg.toFixed(1)} kg ${barWeight > 0 ? `(bar ${barWeight} kg)` : ''}`}
         </div>
       )}
+
+      {/* Debug panel */}
+      <WorkoutExerciseDebug 
+        enabled={process.env.NODE_ENV === 'development'} 
+        debugItems={debugItems} 
+      />
     </div>
   );
 }

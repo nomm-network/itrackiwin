@@ -733,8 +733,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* Removed session-level warmup to prevent duplication */}
-                {/* Only inline warmup remains in ExerciseCard */}
+                {/* SESSION-LEVEL WARMUP REMOVED - warmup only shows in exercise cards */}
                 {/* Debug exercise data */}
                 {console.log('🔧 Exercise data for dual-load check:', {
                   exerciseId: currentExercise?.exercise_id,
