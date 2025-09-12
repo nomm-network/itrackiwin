@@ -10,6 +10,7 @@ import { resolveLoadout, type LoadType, type ResolveResult } from "@/lib/loadout
 import { openLoadoutModal } from "./LoadoutModal";
 import { SmartWeightInput } from "./SmartWeightInput";
 import { ImplementChooser } from "./ImplementChooser";
+import { useTargetCalculation } from "@/features/health/fitness/hooks/useTargetCalculation";
 
 interface SetRowProps {
   setNumber: number;
@@ -35,6 +36,9 @@ interface SetRowProps {
   suggestedWeight?: number;
   gymId?: string;
   supportedImplements?: ('barbell' | 'dumbbell' | 'machine')[];
+  userId?: string;
+  templateTargetReps?: number;
+  templateTargetWeight?: number;
 }
 
 export default function SetRow({ 
@@ -47,12 +51,47 @@ export default function SetRow({
   loadType = 'dual_load',
   suggestedWeight,
   gymId,
-  supportedImplements = ['barbell']
+  supportedImplements = ['barbell'],
+  userId,
+  templateTargetReps,
+  templateTargetWeight
 }: SetRowProps) {
   const { data: barTypes } = useBarTypes();
   
-  const [weight, setWeight] = useState(lastSet?.weight || suggestedWeight || 0);
-  const [reps, setReps] = useState(lastSet?.reps || 0);
+  console.log('🎯 SetRow: Component initialized with debug logging enabled:', {
+    setNumber,
+    exerciseId,
+    userId,
+    lastSet,
+    suggestedWeight,
+    templateTargetReps,
+    templateTargetWeight,
+    gymId
+  });
+
+  // Use target calculation hook for smart weight/rep suggestions
+  const { target: calculatedTarget } = useTargetCalculation({
+    userId,
+    exerciseId,
+    setIndex: setNumber - 1, // Convert to 0-based index
+    templateTargetReps,
+    templateTargetWeight,
+    onApplyTarget: (weight, reps) => {
+      console.log('🎯 SetRow: Target calculation callback triggered:', { weight, reps });
+      setWeight(weight);
+      setReps(reps);
+      setTotalWeight(weight);
+    }
+  });
+  
+  console.log('🎯 SetRow: Target calculation result:', {
+    calculatedTarget,
+    fallbackWeight: lastSet?.weight || suggestedWeight || 0,
+    fallbackReps: lastSet?.reps || 0
+  });
+  
+  const [weight, setWeight] = useState(lastSet?.weight || suggestedWeight || calculatedTarget?.weight || 0);
+  const [reps, setReps] = useState(lastSet?.reps || calculatedTarget?.reps || 0);
   const [barTypeId, setBarTypeId] = useState<string | undefined>(lastSet?.bar_type_id);
   const [loadEntryMode, setLoadEntryMode] = useState<'total' | 'one_side'>(
     lastSet?.load_entry_mode || 'total'
