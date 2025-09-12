@@ -548,7 +548,17 @@ export default function ImprovedWorkoutSession({
                 <div className="text-xs font-mono space-y-1">
                   <div>Exercise: {exercise.name}</div>
                   <div>Load Type: {exercise.load_type}</div>
-                  <div>Equipment Ref ID: {exercise.equipment_ref || getEquipmentRefId(exercise) || 'not found'}</div>
+                  <div>Equipment Ref ID: {(() => {
+                    const directRef = exercise.equipment_ref;
+                    const helperRef = getEquipmentRefId(exercise);
+                    console.log('🔧 DUAL LOAD DEBUG - Equipment Ref:', {
+                      directRef,
+                      helperRef,
+                      exercise,
+                      exerciseKeys: Object.keys(exercise)
+                    });
+                    return directRef || helperRef || 'not found';
+                  })()}</div>
                   <div>Input Weight: {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Current Set: {currentSetNumber}</div>
                   <div>Target Reps: {currentSetData.reps}</div>
