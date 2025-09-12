@@ -19,6 +19,7 @@ import { useGrips } from '@/hooks/useGrips';
 import RestTimerPill from './RestTimerPill';
 import { useSessionTiming } from '@/stores/sessionTiming';
 import { WarmupBlock } from './WarmupBlock';
+import { getBarMeta } from '@/lib/equipment/barMeta';
 
 interface SetData {
   weight: number;
@@ -551,11 +552,11 @@ export default function ImprovedWorkoutSession({
                   <div>Weight (total): {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Per-side Weight: {currentSetData.perSideKg} kg</div>
                   <div>Bar Weight: {(() => {
-                    const { hasBar, barKg } = require('@/lib/equipment/barMeta').getBarMeta(exercise.equipment_ref);
+                    const { hasBar, barKg } = getBarMeta(exercise.equipment_ref);
                     return hasBar ? `${barKg} kg` : '0 kg (no bar)';
                   })()}</div>
                   <div>Calculated Total: {(() => {
-                    const { hasBar, barKg } = require('@/lib/equipment/barMeta').getBarMeta(exercise.equipment_ref);
+                    const { hasBar, barKg } = getBarMeta(exercise.equipment_ref);
                     if (currentSetData.entryMode === 'per_side' && currentSetData.perSideKg) {
                       return `${(hasBar ? barKg : 0) + currentSetData.perSideKg * 2} kg (${hasBar ? barKg : 0} + 2×${currentSetData.perSideKg})`;
                     }
