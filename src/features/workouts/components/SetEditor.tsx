@@ -180,10 +180,7 @@ export function SetEditor({
             </div>
           </div>
             <div className="text-xs text-muted-foreground pb-2 flex-shrink-0">
-              {hasBar ? `${barKg}kg bar + 2×side` : `2×side`}
-            </div>
-            <div className="text-sm font-medium pb-2 flex-shrink-0">
-              = {formatKg(totalFromSide)} kg total
+              {hasBar ? `${barKg}kg bar + 2×${formatKg(perSide || 0)}` : `2×${formatKg(perSide || 0)}`} = {formatKg(totalFromSide)} kg total
             </div>
           </>
         ) : (
