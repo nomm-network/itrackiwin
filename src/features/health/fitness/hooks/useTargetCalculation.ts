@@ -217,6 +217,7 @@ export function useTargetCalculation({
 
   // Equipment-aware target resolution with smart snapping
   const [equipmentResolvedTarget, setEquipmentResolvedTarget] = React.useState(target);
+  const [resolvedDetails, setResolvedDetails] = React.useState<any>(null);
   
   React.useEffect(() => {
     console.log('🎯 DEBUG: useTargetCalculation - Equipment resolution effect triggered:', {
@@ -241,10 +242,11 @@ export function useTargetCalculation({
           console.log('🎯 DEBUG: useTargetCalculation - Calling resolveAchievableLoad:', {
             exerciseId,
             targetWeight: target.weight,
-            gymId
+            gymId,
+            snapStrategy: 'down'
           });
           
-          const resolved = await resolveAchievableLoad(exerciseId, target.weight, gymId);
+          const resolved = await resolveAchievableLoad(exerciseId, target.weight, gymId, { snapStrategy: 'down' });
           
           console.log('🎯 DEBUG: useTargetCalculation - Equipment resolution completed:', {
             original: target.weight,
@@ -265,6 +267,12 @@ export function useTargetCalculation({
           console.log('🎯 DEBUG: useTargetCalculation - Setting equipment-resolved target:', equipmentTarget);
           
           setEquipmentResolvedTarget(equipmentTarget);
+          setResolvedDetails({
+            ...resolved.details,
+            snappedFrom: Math.abs(resolved.residualKg) >= 0.25 ? target.weight : null,
+            totalKg: resolved.totalKg,
+            residualKg: resolved.residualKg
+          });
         }
       } catch (error) {
         console.error('🎯 DEBUG: useTargetCalculation - Equipment resolution failed:', error);
@@ -328,6 +336,8 @@ export function useTargetCalculation({
 
   return {
     target: equipmentResolvedTarget,
+    equipmentResolvedTarget,
+    resolvedDetails,
     lastSet,
     isLoading: isLoadingLastSet || isLoadingEstimate,
   };

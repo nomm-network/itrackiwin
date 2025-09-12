@@ -25,7 +25,8 @@ export interface LoadResolutionResult {
 async function resolveAchievableLoadV2(
   exerciseId: string,
   desiredKg: number,
-  gymId?: string
+  gymId?: string,
+  opts?: { equipmentRefId?: string; snapStrategy?: 'down' | 'nearest' | 'up' }
 ): Promise<LoadResolutionResult> {
   console.log('🎯 DEBUG: resolveAchievableLoadV2 - Starting V2 resolution', {
     exerciseId,
@@ -76,9 +77,10 @@ async function resolveAchievableLoadV2(
       break;
     default:
       console.log('🎯 DEBUG: resolveAchievableLoadV2 - Resolving barbell load', {
-        barType: exerciseData?.default_bar_type_id || 'standard'
+        barType: exerciseData?.default_bar_type_id || 'standard',
+        snapStrategy: opts?.snapStrategy || 'down'
       });
-      result = await resolveBarbellLoad(desiredKg, inventory, unitPreference, exerciseData?.default_bar_type_id || 'standard');
+      result = await resolveBarbellLoad(desiredKg, inventory, unitPreference, exerciseData?.default_bar_type_id || 'standard', opts?.snapStrategy || 'down');
       break;
   }
   
@@ -157,7 +159,8 @@ async function resolveAchievableLoadV1(
 export async function resolveAchievableLoad(
   exerciseId: string,
   desiredKg: number,
-  gymId?: string
+  gymId?: string,
+  opts?: { equipmentRefId?: string; snapStrategy?: 'down' | 'nearest' | 'up' }
 ): Promise<LoadResolutionResult> {
   console.log('🎯 DEBUG: resolveAchievableLoad - Starting weight resolution', {
     exerciseId,
@@ -174,7 +177,7 @@ export async function resolveAchievableLoad(
     });
     
     const result = v2Enabled 
-      ? await resolveAchievableLoadV2(exerciseId, desiredKg, gymId)
+      ? await resolveAchievableLoadV2(exerciseId, desiredKg, gymId, opts)
       : await resolveAchievableLoadV1(exerciseId, desiredKg, gymId);
     
     console.log('🎯 DEBUG: resolveAchievableLoad - Resolution completed:', {
@@ -256,7 +259,8 @@ async function resolveBarbellLoad(
   desiredKg: number,
   inventory: any,
   unitPreference: string,
-  barTypeId: string = 'standard'
+  barTypeId: string = 'standard',
+  snapStrategy: 'down' | 'nearest' | 'up' = 'down'
 ): Promise<LoadResolutionResult> {
   const barWeight = barTypeId === 'ezbar' ? 7.5 : 20; // kg
   

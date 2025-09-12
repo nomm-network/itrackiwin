@@ -59,7 +59,7 @@ export function SetEditor({
   });
 
   // Use target calculation hook for smart weight/rep suggestions
-  const { target: calculatedTarget } = useTargetCalculation({
+  const { target: calculatedTarget, equipmentResolvedTarget, resolvedDetails } = useTargetCalculation({
     userId,
     exerciseId: exercise?.id,
     setIndex: setIndex,
@@ -270,6 +270,13 @@ export function SetEditor({
       {isDual && value.entryMode === 'per_side' && (
         <div className="text-sm text-muted-foreground">
           {hasBar ? `${barKg}kg bar + 2×${formatKg(perSide || 0)}` : `2×${formatKg(perSide || 0)}`} = {formatKg(totalFromSide)} kg total
+        </div>
+      )}
+
+      {resolvedDetails && resolvedDetails.snappedFrom && (
+        <div className="text-xs text-muted-foreground">
+          Snapped {resolvedDetails.snappedFrom}kg → {resolvedDetails.totalKg}kg based on gym plates
+          {resolvedDetails.barWeight ? ` (bar ${resolvedDetails.barWeight}kg)` : ''}
         </div>
       )}
     </div>
