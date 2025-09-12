@@ -540,19 +540,18 @@ export default function ImprovedWorkoutSession({
               className="space-y-4"
             />
 
-            {/* DUAL LOAD DEBUG PANEL - SIMPLIFIED */}
+            {/* ENHANCED DUAL LOAD DEBUG PANEL */}
             {exercise.load_type === 'dual_load' && (
               <div className="mt-4 p-3 border rounded-lg bg-muted/20">
                 <h4 className="text-sm font-medium mb-2">🔧 DUAL LOAD DEBUG</h4>
                 <div className="text-xs font-mono space-y-1">
                   <div>Exercise: {exercise.name}</div>
                   <div>Load Type: {exercise.load_type}</div>
-                  <div>Equipment Ref: {exercise.equipment_ref}</div>
-                  <div>Entry Mode: {currentSetData.entryMode}</div>
-                  <div>Weight (total): {currentSetData.weightKg || currentSetData.weight} kg</div>
-                  <div>Per-side Weight: {currentSetData.perSideKg} kg</div>
+                  <div>Equipment Ref: {exercise.equipment_ref || 'not set'}</div>
+                  <div>Input Weight: {currentSetData.weightKg || currentSetData.weight} kg</div>
                   <div>Current Set: {currentSetNumber}</div>
                   <div>Target Reps: {currentSetData.reps}</div>
+                  <div className="mt-2 text-amber-600">Note: Enhanced resolution data shows in SetRow component below</div>
                 </div>
               </div>
             )}
