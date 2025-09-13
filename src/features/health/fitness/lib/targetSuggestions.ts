@@ -34,6 +34,15 @@ export function suggestTarget(options: TargetSuggestionOptions) {
     stepKg = 2.5
   } = options;
 
+  console.log('🎯 DEBUG: suggestTarget - Starting with inputs:', {
+    lastWeight,
+    lastReps,
+    feel,
+    templateTargetReps,
+    templateTargetWeight,
+    stepKg
+  });
+
   // Base weight to start from
   let weight = lastWeight ?? templateTargetWeight ?? 0;
   let reps = templateTargetReps ?? lastReps ?? 10;
@@ -117,6 +126,16 @@ export function suggestTarget(options: TargetSuggestionOptions) {
         }
     }
   }
+
+  console.log('🎯 DEBUG: suggestTarget - Final result:', {
+    inputWeight: lastWeight,
+    inputReps: lastReps,
+    inputFeel: feel,
+    outputWeight: weight,
+    outputReps: reps,
+    weightChange: weight - (lastWeight || 0),
+    repsChange: reps - (lastReps || 0)
+  });
 
   return { weight, reps };
 }
