@@ -13,11 +13,11 @@ export function feelToRpe(feel?: Feel | null): number | null {
 
 export function feelEmoji(feel?: Feel | null): string {
   switch (feel) {
-    case '++': return '😄';
-    case '+':  return '🙂';
-    case '=':  return '😐';
-    case '-':  return '😮‍💨';
-    case '--': return '😵‍💫';
+    case '++': return '😎';  // Very Easy - consistent with FEEL_OPTIONS
+    case '+':  return '😄';  // Easy - consistent with FEEL_OPTIONS  
+    case '=':  return '🙂';  // Just Right - consistent with FEEL_OPTIONS
+    case '-':  return '😣';  // Hard - consistent with FEEL_OPTIONS
+    case '--': return '😵'; // Very Hard - consistent with FEEL_OPTIONS
     default:   return '';
   }
 }

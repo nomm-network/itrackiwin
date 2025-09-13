@@ -16,35 +16,35 @@ const effortOptions = [
   {
     value: 'very_easy' as const,
     label: 'Very Easy',
-    symbol: '😌',
+    symbol: '😎',  // Consistent with FEEL_OPTIONS
     description: 'Could do this all day',
     colorClass: 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200'
   },
   {
     value: 'easy' as const,
     label: 'Easy',
-    symbol: '🙂',
+    symbol: '😄',  // Consistent with FEEL_OPTIONS
     description: 'Light effort, breathing normal',
     colorClass: 'bg-green-100 border-green-300 text-green-800 hover:bg-green-200'
   },
   {
     value: 'moderate' as const,
     label: 'Moderate',
-    symbol: '😐',
+    symbol: '🙂',  // Consistent with FEEL_OPTIONS
     description: 'Noticeable effort, slightly out of breath',
     colorClass: 'bg-yellow-100 border-yellow-300 text-yellow-800 hover:bg-yellow-200'
   },
   {
     value: 'hard' as const,
     label: 'Hard',
-    symbol: '😤',
+    symbol: '😣',  // Consistent with FEEL_OPTIONS
     description: 'Difficult, breathing heavy',
     colorClass: 'bg-orange-100 border-orange-300 text-orange-800 hover:bg-orange-200'
   },
   {
     value: 'very_hard' as const,
     label: 'Very Hard',
-    symbol: '😮‍💨',
+    symbol: '😵',  // Consistent with FEEL_OPTIONS
     description: 'Maximum effort, very difficult',
     colorClass: 'bg-red-100 border-red-300 text-red-800 hover:bg-red-200'
   }

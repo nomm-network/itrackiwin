@@ -235,11 +235,11 @@ export const QuickSetEntry: React.FC<QuickSetEntryProps> = ({
                 onChange={(e) => setFeel(e.target.value as Feel)}
                 className="w-full p-2 border rounded-md text-center"
               >
-                <option value="++">😄 Very Easy</option>
-                <option value="+">🙂 Easy</option>
-                <option value="=">😐 Just Right</option>
-                <option value="-">😮‍💨 Hard</option>
-                <option value="--">😵‍💫 Maximal</option>
+                <option value="++">😎 Very Easy</option>
+                <option value="+">😄 Easy</option>
+                <option value="=">🙂 Just Right</option>
+                <option value="-">😣 Hard</option>
+                <option value="--">😵 Very Hard</option>
               </select>
             </div>
             <div>
