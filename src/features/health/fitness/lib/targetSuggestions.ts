@@ -1,18 +1,25 @@
 import { Feel, FEEL_TO_RPE } from './feelToRpe';
 
 export function parseFeelFromNotes(notes?: string | null): Feel | undefined {
+  console.log('🎯 DEBUG: parseFeelFromNotes - Input notes:', notes);
   if (!notes) return undefined;
   const feelMatch = notes.match(/Feel:\s*(\+\+|\+|=|--|-)/i);
-  return feelMatch?.[1] as Feel || undefined;
+  const result = feelMatch?.[1] as Feel || undefined;
+  console.log('🎯 DEBUG: parseFeelFromNotes - Parsed result:', { feelMatch, result });
+  return result;
 }
 
 export function parseFeelFromRPE(rpe?: number | null): Feel | undefined {
+  console.log('🎯 DEBUG: parseFeelFromRPE - Input RPE:', rpe);
   if (!rpe) return undefined;
-  if (rpe >= 9.5) return '--';
-  if (rpe >= 8.5) return '-';
-  if (rpe >= 7.5) return '=';
-  if (rpe >= 6.5) return '+';
-  return '++';
+  let result: Feel;
+  if (rpe >= 9.5) result = '--';
+  else if (rpe >= 8.5) result = '-';
+  else if (rpe >= 7.5) result = '=';
+  else if (rpe >= 6.5) result = '+';
+  else result = '++';
+  console.log('🎯 DEBUG: parseFeelFromRPE - Parsed result:', { rpe, result });
+  return result;
 }
 
 export interface TargetSuggestionOptions {
