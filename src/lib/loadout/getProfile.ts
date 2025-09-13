@@ -92,10 +92,16 @@ export async function getCurrentGymContext(): Promise<{ gymId: string | null; us
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return { gymId: null, userUnit: 'kg' };
 
-    // For now, use defaults since we need to establish proper user profile schema
-    // This would be replaced with proper user preference lookup
+    // Get user's default gym
+    const { data: defaultGym } = await supabase
+      .from('user_gyms')
+      .select('id')
+      .eq('user_id', user.id)
+      .eq('is_default', true)
+      .maybeSingle();
+
     return {
-      gymId: null, // Would get from user's current gym selection
+      gymId: defaultGym?.id || null,
       userUnit: 'kg' // Would get from user preferences
     };
   } catch (error) {
