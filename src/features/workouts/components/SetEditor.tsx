@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { Plus, Minus } from 'lucide-react';
 import { useTargetCalculation } from "@/features/health/fitness/hooks/useTargetCalculation";
+import { getPlateStepInfo, getWeightStep } from '@/lib/equipment/steps';
+import { getCurrentGymContext } from '@/lib/loadout/getProfile';
 
 interface SetValue {
   weightKg?: number;
@@ -83,15 +85,42 @@ export function SetEditor({
   });
   const isDual = exercise?.load_type === 'dual_load';
   
-  // Get bar weight from database (async) and fallback to meta for now
+  // Get bar weight and plate step info
   const [barKg, setBarKg] = React.useState(20); // Default Olympic bar
+  const [plateStep, setPlateStep] = React.useState(1.25); // Default step
+  
   React.useEffect(() => {
-    if (exercise?.equipment_ref) {
-      getBarWeightKg({ equipment_ref_id: exercise.equipment_ref })
-        .then(weight => setBarKg(weight))
-        .catch(() => setBarKg(20)); // Fallback to 20kg
-    }
-  }, [exercise?.equipment_ref]);
+    const loadEquipmentData = async () => {
+      try {
+        // Get gym context and bar weight in parallel
+        const [gymContext, barWeight] = await Promise.all([
+          getCurrentGymContext(),
+          exercise?.equipment_ref ? getBarWeightKg({ equipment_ref_id: exercise.equipment_ref }) : Promise.resolve(20)
+        ]);
+        
+        setBarKg(barWeight);
+        
+        // Get plate step info for this gym
+        const stepInfo = await getPlateStepInfo(gymContext.gymId);
+        const step = getWeightStep(exercise?.load_type || 'dual_load', stepInfo);
+        setPlateStep(step);
+        
+        console.log('🎯 SetEditor: Equipment data loaded:', {
+          barWeight,
+          gymId: gymContext.gymId,
+          plateStep: step,
+          loadType: exercise?.load_type,
+          stepInfo
+        });
+      } catch (error) {
+        console.error('Error loading equipment data:', error);
+        setBarKg(20);
+        setPlateStep(1.25);
+      }
+    };
+    
+    loadEquipmentData();
+  }, [exercise?.equipment_ref, exercise?.load_type]);
   
   const hasBar = isDual && barKg > 0;
 
@@ -144,7 +173,7 @@ export function SetEditor({
                 size="sm"
                 onClick={() => onChange({ 
                   ...value, 
-                  perSideKg: Math.max(0, (perSide || 0) - 2.5),
+                  perSideKg: Math.max(0, (perSide || 0) - plateStep),
                   weightKg: undefined
                 })}
                 className="w-8 h-8 p-0"
@@ -154,7 +183,8 @@ export function SetEditor({
               <Input
                 type="number"
                 inputMode="decimal"
-                step="0.5"
+                step={plateStep}
+                min="0"
                 value={perSide ?? ''}
                 onChange={e => onChange({ 
                   ...value, 
@@ -169,7 +199,7 @@ export function SetEditor({
                 size="sm"
                 onClick={() => onChange({ 
                   ...value, 
-                  perSideKg: (perSide || 0) + 2.5,
+                  perSideKg: (perSide || 0) + plateStep,
                   weightKg: undefined
                 })}
                 className="w-8 h-8 p-0"
@@ -190,7 +220,7 @@ export function SetEditor({
                 size="sm"
                 onClick={() => onChange({ 
                   ...value, 
-                  weightKg: Math.max(0, (value.weightKg || 0) - 2.5),
+                  weightKg: Math.max(0, (value.weightKg || 0) - (isDual ? plateStep * 2 : plateStep)),
                   perSideKg: undefined
                 })}
                 className="w-8 h-8 p-0"
@@ -200,7 +230,8 @@ export function SetEditor({
               <Input
                 type="number"
                 inputMode="decimal"
-                step="0.5"
+                step={isDual ? plateStep * 2 : plateStep}
+                min="0"
                 value={value.weightKg ?? ''}
                 onChange={e => onChange({ 
                   ...value, 
@@ -215,7 +246,7 @@ export function SetEditor({
                 size="sm"
                 onClick={() => onChange({ 
                   ...value, 
-                  weightKg: (value.weightKg || 0) + 2.5,
+                  weightKg: (value.weightKg || 0) + (isDual ? plateStep * 2 : plateStep),
                   perSideKg: undefined
                 })}
                 className="w-8 h-8 p-0"
@@ -274,7 +305,7 @@ export function SetEditor({
       )}
 
       {resolvedDetails && resolvedDetails.snappedFrom && (
-        <div className="text-xs text-muted-foreground">
+        <div className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded border border-amber-200">
           Snapped {resolvedDetails.snappedFrom}kg → {resolvedDetails.totalKg}kg based on gym plates
           {resolvedDetails.barWeight ? ` (bar ${resolvedDetails.barWeight}kg)` : ''}
         </div>

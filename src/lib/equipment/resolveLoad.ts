@@ -276,7 +276,7 @@ async function resolveBarbellLoad(
   }
   
   if (!inventory?.plates?.length) {
-    // Use global defaults
+    // Use global defaults - always snap down for safety
     const profile: PlateProfile = {
       unit: 'kg',
       barbell_weight: barWeight,
@@ -287,46 +287,108 @@ async function resolveBarbellLoad(
     };
     
     const result = closestBarbellWeightKg(profile, desiredKg, barWeight);
+    
+    // Apply snap strategy for default plates
+    let finalWeight = result.total_kg;
+    if (snapStrategy === 'down' && result.total_kg > desiredKg) {
+      // Find highest achievable weight <= desired
+      const candidates = [];
+      for (let plates = 0; plates <= 8; plates++) {
+        for (const plateWeight of profile.sides) {
+          const total = barWeight + (plates * plateWeight * 2);
+          if (total <= desiredKg) candidates.push(total);
+        }
+      }
+      finalWeight = candidates.length > 0 ? Math.max(...candidates) : barWeight;
+    }
+    
     return {
       implement: 'barbell',
-      totalKg: result.total_kg,
+      totalKg: finalWeight,
       details: {
-        barWeight: result.bar_kg,
-        perSidePlates: result.per_side,
+        barWeight,
+        perSidePlates: finalWeight > barWeight ? [(finalWeight - barWeight) / 2] : [],
         unit: 'kg'
       },
       source: 'default',
-      achievable: Math.abs(result.residual_kg) < 0.1,
-      residualKg: result.residual_kg
+      achievable: Math.abs(finalWeight - desiredKg) < 0.1,
+      residualKg: desiredKg - finalWeight
     };
   }
   
-  // Use gym inventory
+  // Use gym inventory with proper snapping
   const plates = inventory.plates
-    .map((p: any) => convertWeight(p.weight, p.native_unit, 'kg'))
+    .map((p: any) => convertWeight(p.weight, p.unit || 'kg', 'kg'))
     .sort((a: number, b: number) => b - a);
   
-  const profile: PlateProfile = {
-    unit: 'kg',
-    barbell_weight: barWeight,
-    ezbar_weight: 7.5,
-    fixedbar_weight: 20,
-    sides: plates,
-    micro: []
-  };
+  // Generate all possible plate combinations
+  const candidates: number[] = [barWeight]; // Start with bare bar
   
-  const result = closestBarbellWeightKg(profile, desiredKg, barWeight);
+  // Try all combinations of plates (up to reasonable limit)
+  for (let totalPlates = 1; totalPlates <= 16; totalPlates += 2) { // Pairs only for dual load
+    for (const plateWeight of plates) {
+      const platesPerSide = totalPlates / 2;
+      const total = barWeight + (platesPerSide * plateWeight * 2);
+      if (total <= desiredKg * 1.1) { // Don't go too far over
+        candidates.push(total);
+      }
+    }
+    
+    // Mixed plate combinations (2 different plate types per side)
+    if (totalPlates >= 4) {
+      for (let i = 0; i < plates.length; i++) {
+        for (let j = i; j < plates.length; j++) {
+          const heavyPlates = Math.floor(totalPlates / 4);
+          const lightPlates = totalPlates / 2 - heavyPlates;
+          const total = barWeight + (heavyPlates * plates[i] * 2) + (lightPlates * plates[j] * 2);
+          if (total <= desiredKg * 1.1) {
+            candidates.push(total);
+          }
+        }
+      }
+    }
+  }
+  
+  // Apply snap strategy
+  const uniqueCandidates = [...new Set(candidates)].sort((a, b) => a - b);
+  let finalWeight: number;
+  
+  if (snapStrategy === 'down') {
+    const validCandidates = uniqueCandidates.filter(w => w <= desiredKg);
+    finalWeight = validCandidates.length > 0 ? Math.max(...validCandidates) : barWeight;
+  } else if (snapStrategy === 'up') {
+    const validCandidates = uniqueCandidates.filter(w => w >= desiredKg);
+    finalWeight = validCandidates.length > 0 ? Math.min(...validCandidates) : Math.min(...uniqueCandidates);
+  } else { // nearest
+    finalWeight = uniqueCandidates.reduce((best, current) => 
+      Math.abs(current - desiredKg) < Math.abs(best - desiredKg) ? current : best
+    );
+  }
+  
+  // Calculate plate breakdown for final weight
+  const plateLoad = (finalWeight - barWeight) / 2;
+  const perSidePlates: number[] = [];
+  let remaining = plateLoad;
+  
+  for (const plate of plates) {
+    const count = Math.floor(remaining / plate);
+    for (let i = 0; i < count; i++) {
+      perSidePlates.push(plate);
+    }
+    remaining -= count * plate;
+  }
+  
   return {
     implement: 'barbell',
-    totalKg: result.total_kg,
+    totalKg: finalWeight,
     details: {
-      barWeight: result.bar_kg,
-      perSidePlates: result.per_side,
+      barWeight,
+      perSidePlates,
       unit: 'kg'
     },
     source: 'gym',
-    achievable: Math.abs(result.residual_kg) < 0.1,
-    residualKg: result.residual_kg
+    achievable: Math.abs(finalWeight - desiredKg) < 0.1,
+    residualKg: desiredKg - finalWeight
   };
 }
 
