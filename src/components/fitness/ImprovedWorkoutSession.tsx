@@ -504,28 +504,6 @@ export default function ImprovedWorkoutSession({
               }}
             />
 
-            {/* Debug exercise data for SetEditor */}
-            {(() => {
-              console.log('🔍 SetEditor DEBUG - Exercise data:', {
-                exerciseName: exercise.name,
-                load_type: exercise.load_type,
-                equipment_ref: exercise.equipment_ref,
-                isDual: exercise.load_type === 'dual_load'
-              });
-              return null;
-            })()}
-            
-            {/* DEBUG: SetEditor visibility */}
-            <div className="p-4 border-4 border-blue-500 rounded-lg bg-blue-100">
-              <h4 className="text-xl font-bold mb-3 text-blue-700">🔍 SetEditor DEBUG</h4>
-              <div className="text-sm text-blue-900">
-                <div>Load Type: {exercise.load_type}</div>
-                <div>Equipment Ref: {exercise.equipment_ref}</div>
-                <div>Is Dual: {exercise.load_type === 'dual_load' ? 'YES' : 'NO'}</div>
-                <div>Current Weight: {currentSetData.weight}</div>
-                <div>Entry Mode: {currentSetData.entryMode || 'total'}</div>
-              </div>
-            </div>
             
             {/* SetEditor for dual-load support */}
             <SetEditor
