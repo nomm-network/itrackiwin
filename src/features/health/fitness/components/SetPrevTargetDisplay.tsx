@@ -45,8 +45,8 @@ function RestTimer() {
   if (!restStartedAt) return null;
 
   return (
-    <div className="bg-secondary/30 border border-border rounded-full px-3 py-2 flex items-center justify-center">
-      <span className="text-xl font-mono font-bold">
+    <div className="bg-secondary/20 border border-border rounded-full px-4 py-2 flex items-center justify-center min-w-[80px]">
+      <span className="text-lg font-mono font-bold text-foreground">
         {minutes}:{secs.toString().padStart(2, '0')}
       </span>
     </div>
@@ -102,6 +102,7 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
+            <RestTimer />
           </div>
         </>
       )}

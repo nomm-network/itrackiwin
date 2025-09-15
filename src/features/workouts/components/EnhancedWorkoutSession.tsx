@@ -92,9 +92,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Warmup context manager for dynamic warm-up counts
   const { resetSessionContext, logWorkingSet } = useWarmupManager();
   
-  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(
-    workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null
-  );
+  const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => {
+    // Try to restore from localStorage first
+    const key = `workout_${workout?.id}_currentExercise`;
+    try {
+      const stored = localStorage.getItem(key);
+      if (stored && workout?.exercises?.some((ex: any) => ex.id === stored)) {
+        return stored;
+      }
+    } catch {}
+    // Fallback to first exercise
+    return workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null;
+  });
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
@@ -102,7 +111,16 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [warmupCompleted, setWarmupCompleted] = useState(false);
   const [hasExistingWarmupData, setHasExistingWarmupData] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
-  const [readinessScore, setReadinessScore] = useState<number | undefined>();
+  const [readinessScore, setReadinessScore] = useState<number | undefined>(() => {
+    // Try to restore readiness score from localStorage
+    const key = `workout_${workout?.id}_readiness`;
+    try {
+      const stored = localStorage.getItem(key);
+      return stored ? parseFloat(stored) : undefined;
+    } catch {
+      return undefined;
+    }
+  });
 
   // Grip selection state - per exercise
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
@@ -117,6 +135,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     notes: '',
     pain: false
   });
+
+  // Cleanup localStorage on component unmount (page refresh/navigation)
+  useEffect(() => {
+    return () => {
+      // Don't clear on unmount since user might be refreshing
+      // Only clear when workout is actually completed via handleWorkoutComplete
+    };
+  }, []);
 
   // Get user ID on mount (backup to auth hook)
   React.useEffect(() => {
@@ -462,12 +488,22 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       const nextExercise = sortedExercises[currentIndex + 1];
       if (nextExercise?.id) {
         setCurrentExerciseId(nextExercise.id);
+        // Persist the exercise progression
+        try {
+          localStorage.setItem(`workout_${workout?.id}_currentExercise`, nextExercise.id);
+        } catch (error) {
+          console.warn('Failed to persist current exercise:', error);
+        }
       }
     }
   };
 
   const handleWorkoutComplete = async () => {
     try {
+      // Clean up localStorage when workout is completed
+      localStorage.removeItem(`workout_${workout?.id}_currentExercise`);
+      localStorage.removeItem(`workout_${workout?.id}_readiness`);
+      
       // Mark workout as completed in the database
       const { error } = await supabase
         .from('workouts')
@@ -538,8 +574,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       console.log('✅ Pre-workout checkin created:', checkinResponse);
       
-      // Store readiness score for header display
+      // Store readiness score for header display AND persistence
       setReadinessScore(realScore);
+      try {
+        localStorage.setItem(`workout_${workout?.id}_readiness`, realScore.toString());
+      } catch (error) {
+        console.warn('Failed to persist readiness score:', error);
+      }
       
       toastUtils({
         title: "Check-in complete",
@@ -825,7 +866,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       key={ex.id}
                       variant={isActive ? "default" : "outline"}
                       size="sm"
-                      onClick={() => setCurrentExerciseId(ex.id)}
+                      onClick={() => {
+                        setCurrentExerciseId(ex.id);
+                        // Persist the current exercise selection
+                        try {
+                          localStorage.setItem(`workout_${workout?.id}_currentExercise`, ex.id);
+                        } catch (error) {
+                          console.warn('Failed to persist current exercise:', error);
+                        }
+                      }}
                       className="flex-shrink-0"
                     >
                       {label}
