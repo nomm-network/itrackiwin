@@ -45,8 +45,8 @@ function RestTimer() {
   if (!restStartedAt) return null;
 
   return (
-    <div className="bg-secondary/20 border border-border rounded-full px-4 py-2 flex items-center justify-center min-w-[80px]">
-      <span className="text-lg font-mono font-bold text-foreground">
+    <div className="bg-secondary/20 border border-border rounded-xl px-6 py-4 flex items-center justify-center min-w-[120px]">
+      <span className="text-2xl font-mono font-bold text-green-500">
         {minutes}:{secs.toString().padStart(2, '0')}
       </span>
     </div>
@@ -76,6 +76,11 @@ export function SetPrevTargetDisplay({
         <div>Loading…</div>
       ) : (
         <>
+          {/* Single big timer spanning both rows */}
+          <div className="flex justify-end mb-3">
+            <RestTimer />
+          </div>
+          
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
               <span>📜</span>
@@ -90,7 +95,6 @@ export function SetPrevTargetDisplay({
                 </span>
               )}
             </div>
-            <RestTimer />
           </div>
           <div className="mt-1 flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
@@ -102,7 +106,6 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
-            <RestTimer />
           </div>
         </>
       )}

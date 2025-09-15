@@ -13,10 +13,12 @@ export type ReadinessState = {
 
 type ReadinessStore = ReadinessState & {
   setReadiness: (state: ReadinessState) => void;
+  setScore: (score: number) => void;
   clearReadiness: () => void;
 };
 
 export const useReadinessStore = create<ReadinessStore>((set) => ({
   setReadiness: (state) => set(state),
+  setScore: (score) => set({ score }),
   clearReadiness: () => set({}),
 }));

@@ -136,6 +136,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     pain: false
   });
 
+  // Initialize readiness store from localStorage and populate store on mount
+  useEffect(() => {
+    const initializeReadiness = async () => {
+      if (readinessScore) {
+        const { useReadinessStore } = await import('@/stores/readinessStore');
+        useReadinessStore.getState().setScore(readinessScore);
+      }
+    };
+    initializeReadiness();
+  }, [readinessScore]);
+
   // Cleanup localStorage on component unmount (page refresh/navigation)
   useEffect(() => {
     return () => {
@@ -576,6 +587,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       // Store readiness score for header display AND persistence
       setReadinessScore(realScore);
+      
+      // Update the readiness store as well
+      const { useReadinessStore } = await import('@/stores/readinessStore');
+      useReadinessStore.getState().setScore(realScore);
+      
       try {
         localStorage.setItem(`workout_${workout?.id}_readiness`, realScore.toString());
       } catch (error) {
