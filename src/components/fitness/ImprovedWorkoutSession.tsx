@@ -487,8 +487,6 @@ export default function ImprovedWorkoutSession({
                 </Badge>
                 <span className="font-medium">Current Set</span>
               </div>
-              {/* Show rest timer only for Set >= 2 */}
-              {currentSetNumber >= 2 && <RestTimerPill />}
             </div>
 
             {/* Previous Set and Target Display */}

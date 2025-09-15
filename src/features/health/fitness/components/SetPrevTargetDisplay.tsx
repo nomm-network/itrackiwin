@@ -1,8 +1,9 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Feel, FEEL_OPTIONS } from '../lib/feelToRpe';
 import { parseFeelFromNotes } from '../lib/targetSuggestions';
 import { feelEmoji } from '@/features/workouts/utils/feel';
 import { useTargetCalculation } from '../hooks/useTargetCalculation';
+import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface SetPrevTargetDisplayProps {
   userId?: string;
@@ -24,6 +25,31 @@ function FeelBadge({ feel }: { feel?: Feel }) {
       <span className="mr-1">{feelOption.emoji}</span>
       <span>{feel}</span>
     </span>
+  );
+}
+
+function RestTimer() {
+  const { restStartedAt } = useSessionTiming();
+  const [tick, setTick] = useState(0);
+
+  useEffect(() => {
+    if (!restStartedAt) return;
+    const id = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(id);
+  }, [restStartedAt]);
+
+  const seconds = Math.floor(((restStartedAt ? Date.now() - restStartedAt : 0) / 1000));
+  const minutes = Math.floor(seconds / 60);
+  const secs = seconds % 60;
+
+  if (!restStartedAt) return null;
+
+  return (
+    <div className="bg-secondary/30 border border-border rounded-full px-3 py-2 flex items-center justify-center">
+      <span className="text-xl font-mono font-bold">
+        {minutes}:{secs.toString().padStart(2, '0')}
+      </span>
+    </div>
   );
 }
 
@@ -64,20 +90,19 @@ export function SetPrevTargetDisplay({
                 </span>
               )}
             </div>
-            {last && (
-              <span className="text-muted-foreground text-xs">
-                {new Date(last.completed_at).toLocaleDateString()}
-              </span>
-            )}
+            <RestTimer />
           </div>
-          <div className="mt-1 flex items-center gap-2 text-sm">
-            <span>🎯</span>
-            <span>
-              Target&nbsp;
-              <strong>
-                {target.weight}kg × {target.reps}
-              </strong>
-            </span>
+          <div className="mt-1 flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <span>🎯</span>
+              <span>
+                Target&nbsp;
+                <strong>
+                  {target.weight}kg × {target.reps}
+                </strong>
+              </span>
+            </div>
+            <RestTimer />
           </div>
         </>
       )}
