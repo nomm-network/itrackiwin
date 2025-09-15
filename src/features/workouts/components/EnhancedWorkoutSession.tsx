@@ -517,7 +517,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         soreness: readiness.soreness,
         stress: readiness.stress,
         mood: readiness.mood || 6, // Use actual mood value from form
-        energizers: readiness.energisers_taken,
+        energizers: readiness.energisers_taken, // Fixed: use US spelling for saveTodayReadiness
         illness: readiness.illness || false, // Use actual illness value from form
         alcohol: readiness.alcohol || false, // Use actual alcohol value from form
         workout_id: workout.id, // Link to this specific workout
