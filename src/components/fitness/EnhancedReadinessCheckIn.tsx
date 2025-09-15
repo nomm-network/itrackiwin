@@ -13,7 +13,7 @@ import { useMissingEstimates, type MissingEstimate } from "@/features/workouts/h
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
-import { saveTodayReadiness } from "@/lib/api/readiness";
+import { saveReadiness, saveTodayReadiness } from "@/lib/api/readiness";
 
 export interface ReadinessData {
   energy: number;
@@ -91,28 +91,24 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
       console.log('🔍 ALCOHOL VALUE:', readinessData.alcohol, typeof readinessData.alcohol);
       console.log('🔍 ENERGISERS_TAKEN VALUE:', readinessData.energisers_taken, typeof readinessData.energisers_taken);
       
-      // Ensure all values are within valid ranges and not null/undefined
-      // CRITICAL: Map form field names to API parameter names correctly!
-      const cleanData = {
+      // CRITICAL: Use the NEW API with exact parameter matching
+      const readinessPayload = {
         energy: Math.max(1, Math.min(10, readinessData.energy || 7)),
         sleep_quality: Math.max(1, Math.min(10, readinessData.sleep_quality || 7)),
         sleep_hours: Math.max(0, Math.min(24, readinessData.sleep_hours || 8)),
         soreness: Math.max(1, Math.min(10, readinessData.soreness || 3)),
         stress: Math.max(1, Math.min(10, readinessData.stress || 3)),
         mood: Math.max(1, Math.min(10, readinessData.mood || 6)),
-        energizers: Boolean(readinessData.energisers_taken), // Form field: energisers_taken -> API: energizers
+        energisers_taken: Boolean(readinessData.energisers_taken), // EXACT match for RPC parameter
         illness: Boolean(readinessData.illness),
         alcohol: Boolean(readinessData.alcohol),
         workout_id: workoutId, // Include workout_id in the payload
       };
       
-      console.log('🔍 FINAL CLEAN DATA SENT TO API:', cleanData);
-      console.log('🔍 FINAL ILLNESS:', cleanData.illness, typeof cleanData.illness);
-      console.log('🔍 FINAL ALCOHOL:', cleanData.alcohol, typeof cleanData.alcohol);
-      console.log('🔍 FINAL ENERGIZERS:', cleanData.energizers, typeof cleanData.energizers);
+      console.log('🔍 FINAL PAYLOAD FOR NEW API:', readinessPayload);
       
-      // Save readiness data using the new API
-      const score = await saveTodayReadiness(cleanData);
+      // Save readiness data using the NEW API that matches RPC parameters exactly
+      const score = await saveReadiness(readinessPayload);
       toast.success(`Readiness logged: ${score}/100`);
       
       // Save estimates to database if any exist
@@ -151,11 +147,27 @@ const EnhancedReadinessCheckIn: React.FC<EnhancedReadinessCheckInProps> = ({
     } catch (error) {
       console.error('🔍 EnhancedReadinessCheckIn: Error in form submission:', error);
       
-      // Set detailed debug error
+      // EXTRACT ACTUAL SUPABASE RPC ERROR DETAILS
+      let actualError = error;
+      let rpcErrorDetails = null;
+      
+      // Check if this is a Supabase RPC error with detailed information
+      if (error && typeof error === 'object') {
+        rpcErrorDetails = {
+          message: (error as any).message || 'No message',
+          details: (error as any).details || 'No details',
+          hint: (error as any).hint || 'No hint', 
+          code: (error as any).code || 'No code',
+          originalError: error
+        };
+      }
+      
+      // Set detailed debug error with ALL available information
       const errorDetails = {
-        message: error instanceof Error ? error.message : 'Unknown error',
+        message: error instanceof Error ? error.message : (typeof error === 'string' ? error : JSON.stringify(error)),
         stack: error instanceof Error ? error.stack : null,
-        name: error instanceof Error ? error.name : 'UnknownError',
+        name: error instanceof Error ? error.name : 'SupabaseRPCError',
+        rpcError: rpcErrorDetails, // Include RPC-specific error details
         user: user ? { id: user.id, email: user.email } : 'Not authenticated',
         workoutId: workoutId,
         timestamp: new Date().toISOString(),
