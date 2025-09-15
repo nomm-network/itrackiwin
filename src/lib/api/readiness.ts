@@ -1,37 +1,54 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// Frontend contract (thin & stable)
+// Frontend contract matching exact RPC parameter names
 export async function saveReadiness({
-  energy, sleep_quality, sleep_hours,
-  soreness, stress, mood,
-  energizers, illness, alcohol,
+  energy,
+  sleep_quality,
+  sleep_hours,
+  soreness,
+  stress,
+  mood,
+  energisers_taken,
+  illness,
+  alcohol,
   workout_id,
 }: {
-  energy: number; 
-  sleep_quality: number; 
+  energy: number;
+  sleep_quality: number;
   sleep_hours: number;
-  soreness: number; 
-  stress: number; 
+  soreness: number;
+  stress: number;
   mood: number;
-  energizers: boolean; 
-  illness: boolean; 
+  energisers_taken: boolean;
+  illness: boolean;
   alcohol: boolean;
   workout_id?: string | null;
-}): Promise<number> {
+}) {
   const { data, error } = await supabase.rpc('upsert_readiness_today', {
-    p_energy: energy,
-    p_sleep_quality: sleep_quality,
-    p_sleep_hours: sleep_hours,
-    p_soreness: soreness,
-    p_stress: stress,
-    p_mood: mood,
-    p_energizers: energizers,
-    p_illness: illness,
-    p_alcohol: alcohol,
-    p_workout_id: workout_id ?? null,
+    energy,
+    sleep_quality,
+    sleep_hours,
+    soreness,
+    stress,
+    mood,
+    energisers_taken,
+    illness,
+    alcohol,
+    workout_id: workout_id ?? null,
   });
-  if (error) throw error;
-  return Number(data ?? 0); // 0..100
+
+  if (error) {
+    // Surface *why* — you'll see constraint names / cast problems here
+    console.error('upsert_readiness_today RPC error:', {
+      message: error.message,
+      details: (error as any).details,
+      hint: (error as any).hint,
+      code: (error as any).code,
+    });
+    throw error;
+  }
+  // DB returns 0..100; keep UI on the same scale
+  return Number(data ?? 0);
 }
 
 // Legacy compatibility - use saveReadiness instead
@@ -54,7 +71,7 @@ export async function saveTodayReadiness(p: {
     soreness: p.soreness,
     stress: p.stress,
     mood: p.mood,
-    energizers: p.energizers,
+    energisers_taken: p.energizers, // Map US to UK spelling
     illness: p.illness,
     alcohol: p.alcohol,
     workout_id: p.workout_id,
