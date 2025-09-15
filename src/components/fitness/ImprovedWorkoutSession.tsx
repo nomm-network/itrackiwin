@@ -78,7 +78,7 @@ export default function ImprovedWorkoutSession({
   const [showGripsDialog, setShowGripsDialog] = useState(false);
   const [showSetsDialog, setShowSetsDialog] = useState(false);
   const [targetSets, setTargetSets] = useState(exercise.target_sets);
-  const [showWarmupDialog, setShowWarmupDialog] = useState(true); // Show by default
+  const [showWarmupDialog, setShowWarmupDialog] = useState(false); // Start closed - will be set based on feedback check
   const [warmupFeedback, setWarmupFeedback] = useState<string | null>(null);
   const [currentSetData, setCurrentSetData] = useState<SetData & {
     weightKg?: number;
@@ -188,7 +188,14 @@ export default function ImprovedWorkoutSession({
           .maybeSingle();
         
         if (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan) {
+          // Feedback already exists - don't show warmup dialog
           setWarmupFeedback(data.warmup_plan.feedback as string);
+          setShowWarmupDialog(false);
+          console.log('🏋️ Warmup feedback already exists, keeping dialog closed');
+        } else {
+          // No feedback yet - show warmup dialog for Set 1
+          setShowWarmupDialog(true);
+          console.log('🏋️ No warmup feedback found, showing dialog');
         }
       }
     };

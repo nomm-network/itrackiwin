@@ -87,9 +87,10 @@ export function SetPrevTargetDisplay({
       {isLoading ? (
         <div>Loading…</div>
       ) : (
-        <>
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
+        <div className="flex items-stretch gap-3">
+          {/* Left side: Previous and Target info */}
+          <div className="flex-1 space-y-1">
+            <div className="flex items-center gap-2 text-sm">
               <span>📜</span>
               {!last ? (
                 <span>No previous data</span>
@@ -102,11 +103,7 @@ export function SetPrevTargetDisplay({
                 </span>
               )}
             </div>
-            {/* Show timer only if not Set 1 */}
-            {currentSetNumber > 1 && <RestTimer />}
-          </div>
-          <div className="mt-1 flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 text-sm">
               <span>🎯</span>
               <span>
                 Target&nbsp;
@@ -115,10 +112,15 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
-            {/* Show timer only if not Set 1 */}
-            {currentSetNumber > 1 && <RestTimer />}
           </div>
-        </>
+          
+          {/* Right side: ONE timer spanning both rows - only show if not Set 1 */}
+          {currentSetNumber > 1 && (
+            <div className="flex items-center">
+              <RestTimer />
+            </div>
+          )}
+        </div>
       )}
     </div>
   );
