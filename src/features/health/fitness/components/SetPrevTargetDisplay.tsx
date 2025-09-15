@@ -4,6 +4,7 @@ import { parseFeelFromNotes } from '../lib/targetSuggestions';
 import { feelEmoji } from '@/features/workouts/utils/feel';
 import { useTargetCalculation } from '../hooks/useTargetCalculation';
 import { useSessionTiming } from '@/stores/sessionTiming';
+import { Clock } from 'lucide-react';
 
 interface SetPrevTargetDisplayProps {
   userId?: string;
@@ -56,8 +57,12 @@ function RestTimer() {
   const displayColor = restStartedAt ? "text-green-500" : "text-muted-foreground";
   
   return (
-    <div className="bg-secondary/20 border border-border rounded-xl px-6 py-3 flex items-center justify-center min-w-[120px]">
-      <span className={`text-2xl font-mono font-bold ${displayColor}`}>
+    <div className="bg-secondary/20 border border-border rounded-xl px-4 py-3 flex items-center justify-center gap-2 min-w-[140px]">
+      <Clock 
+        size={24} 
+        className={displayColor}
+      />
+      <span className={`text-3xl font-mono font-bold ${displayColor} leading-none`}>
         {minutes}:{secs.toString().padStart(2, '0')}
       </span>
     </div>
