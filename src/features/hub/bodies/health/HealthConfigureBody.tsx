@@ -164,6 +164,30 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
+              {/* Sex Selection */}
+              <div className="space-y-3">
+                <Label>Sex</Label>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                  {[
+                    { value: 'male', label: 'Male', icon: '♂️' },
+                    { value: 'female', label: 'Female', icon: '♀️' },
+                    { value: 'other', label: 'Other', icon: '⚧️' },
+                    { value: 'prefer_not_to_say', label: 'Prefer not to say', icon: '🤐' }
+                  ].map(sex => (
+                    <Button
+                      key={sex.value}
+                      variant={fitnessProfile.sex === sex.value ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFitnessProfile(prev => ({ ...prev, sex: sex.value }))}
+                      className="flex flex-col h-auto py-3"
+                    >
+                      <span className="text-lg mb-1">{sex.icon}</span>
+                      <span className="text-xs">{sex.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               {/* Stats & Schedule */}
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
