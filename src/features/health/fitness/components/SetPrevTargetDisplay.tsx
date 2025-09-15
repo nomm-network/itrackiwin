@@ -42,11 +42,12 @@ function RestTimer() {
   const minutes = Math.floor(seconds / 60);
   const secs = seconds % 60;
 
-  if (!restStartedAt) return null;
-
+  // Always show timer - either running or stopped
+  const displayColor = restStartedAt ? "text-green-500" : "text-muted-foreground";
+  
   return (
     <div className="bg-secondary/20 border border-border rounded-xl px-6 py-4 flex items-center justify-center min-w-[120px]">
-      <span className="text-2xl font-mono font-bold text-green-500">
+      <span className={`text-2xl font-mono font-bold ${displayColor}`}>
         {minutes}:{secs.toString().padStart(2, '0')}
       </span>
     </div>

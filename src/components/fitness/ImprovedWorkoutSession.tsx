@@ -99,7 +99,22 @@ export default function ImprovedWorkoutSession({
   const currentSetNumber = exercise.completed_sets.length + 1;
   
   // Session timing for rest tracking
-  const { startRest, stopRest } = useSessionTiming();
+  const { startRest, stopRest, restStartedAt } = useSessionTiming();
+  
+  // Auto-start rest timer if there are completed sets but no active timer (for refreshed pages)
+  React.useEffect(() => {
+    const hasCompletedSets = exercise.completed_sets.length > 0;
+    const isLastSet = currentSetNumber >= exercise.target_sets;
+    
+    if (hasCompletedSets && !isLastSet && !restStartedAt) {
+      // Only auto-start if it's been less than 10 minutes since page load (recent refresh)
+      const pageLoadTime = Date.now() - (window.performance?.timing?.navigationStart || Date.now());
+      if (pageLoadTime < 10 * 60 * 1000) { // 10 minutes
+        startRest();
+        console.log('🎯 Auto-started rest timer for continued workout');
+      }
+    }
+  }, [exercise.completed_sets.length, currentSetNumber, exercise.target_sets, restStartedAt, startRest]);
   
   // Use the new warmup hooks
   const warmupFeedbackMutation = useWarmupFeedback();

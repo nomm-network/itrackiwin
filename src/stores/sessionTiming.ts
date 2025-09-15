@@ -50,6 +50,8 @@ export const useSessionTiming = create<SessionTiming & {
     }),
     {
       name: 'session-timing-storage',
+      // Add version for migration compatibility
+      version: 1,
     }
   )
 );
