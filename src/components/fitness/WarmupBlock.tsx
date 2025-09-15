@@ -56,6 +56,7 @@ export function WarmupBlock({
 
   // Update local feedback when existingFeedback changes
   useEffect(() => {
+    console.log('🔧 WarmupBlock: Setting local feedback from prop:', { existingFeedback, currentLocal: localFeedback });
     setLocalFeedback(existingFeedback);
   }, [existingFeedback]);
 
@@ -95,6 +96,8 @@ export function WarmupBlock({
   };
 
   if (!plan) return null;
+
+  console.log('🎯 WarmupBlock: Rendering with feedback:', { localFeedback, existingFeedback });
 
   return (
     <div>

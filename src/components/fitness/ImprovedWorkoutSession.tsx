@@ -401,23 +401,26 @@ export default function ImprovedWorkoutSession({
       </div>
 
       {/* Warmup Block - Positioned below exercise name, open by default */}
-      {showWarmupDialog && (
-        <div className="mb-4">
-          <WarmupBlock
-            workoutExerciseId={exercise.workout_exercise_id}
-            unit={unit}
-            suggestedTopWeight={templateTargetWeight || currentSetData.weight || 60}
-            suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
-            existingFeedback={warmupFeedback} // Pass the existing feedback
-            onFeedbackGiven={() => {
-              // Close warmup after feedback is given
-              setShowWarmupDialog(false);
-              console.log('Warmup feedback given - closing warmup');
-            }}
-            onClose={() => setShowWarmupDialog(false)}
-          />
-        </div>
-      )}
+      {showWarmupDialog && (() => {
+        console.log('🚀 Rendering WarmupBlock with feedback:', warmupFeedback);
+        return (
+          <div className="mb-4">
+            <WarmupBlock
+              workoutExerciseId={exercise.workout_exercise_id}
+              unit={unit}
+              suggestedTopWeight={templateTargetWeight || currentSetData.weight || 60}
+              suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
+              existingFeedback={warmupFeedback} // Pass the existing feedback
+              onFeedbackGiven={() => {
+                // Close warmup after feedback is given
+                setShowWarmupDialog(false);
+                console.log('Warmup feedback given - closing warmup');
+              }}
+              onClose={() => setShowWarmupDialog(false)}
+            />
+          </div>
+        );
+      })()}
 
       {/* Completed Sets - Ordered with Set labels */}
       {exercise.completed_sets.map((set, index) => (
