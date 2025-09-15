@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -7,21 +7,43 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { MapPin, Edit3, Trash2, Search, Plus, User, Calendar, Clock, Dumbbell, Heart, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useFitnessProfile, useUpsertFitnessProfile, SexType } from '@/features/health/fitness/hooks/useFitnessProfile.hook';
 
 export default function HealthConfigureBody() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('fitness');
+  
+  // Fitness profile hooks
+  const { data: fitnessProfileData } = useFitnessProfile();
+  const upsertProfile = useUpsertFitnessProfile();
 
   // Fitness Profile State
   const [fitnessProfile, setFitnessProfile] = useState({
     primaryWeightGoal: '',
     trainingFocus: '',
     experienceLevel: '',
+    sex: '',
     bodyweight: '',
     height: '',
     daysPerWeek: '',
     sessionLength: ''
   });
+
+  // Load existing fitness profile data
+  useEffect(() => {
+    if (fitnessProfileData) {
+      setFitnessProfile({
+        primaryWeightGoal: fitnessProfileData.goal || '',
+        trainingFocus: fitnessProfileData.training_goal || '',
+        experienceLevel: fitnessProfileData.experience_level || '',
+        sex: fitnessProfileData.sex || '',
+        bodyweight: fitnessProfileData.bodyweight?.toString() || '',
+        height: fitnessProfileData.height_cm?.toString() || '',
+        daysPerWeek: fitnessProfileData.days_per_week?.toString() || '',
+        sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || ''
+      });
+    }
+  }, [fitnessProfileData]);
 
   // Nutrition Profile State  
   const [nutritionProfile, setNutritionProfile] = useState({
@@ -39,11 +61,29 @@ export default function HealthConfigureBody() {
     healthConditions: []
   });
 
-  const handleSaveProfile = (profileType: string) => {
-    toast({
-      title: "Profile saved",
-      description: `Your ${profileType} profile has been updated successfully.`,
-    });
+  const handleSaveProfile = async (profileType: string) => {
+    if (profileType === 'fitness') {
+      try {
+        await upsertProfile.mutateAsync({
+          goal: fitnessProfile.primaryWeightGoal,
+          training_goal: fitnessProfile.trainingFocus,
+          experience_level: fitnessProfile.experienceLevel as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
+          sex: fitnessProfile.sex as SexType | undefined,
+          bodyweight: fitnessProfile.bodyweight ? Number(fitnessProfile.bodyweight) : undefined,
+          height_cm: fitnessProfile.height ? Number(fitnessProfile.height) : undefined,
+          days_per_week: fitnessProfile.daysPerWeek ? Number(fitnessProfile.daysPerWeek) : undefined,
+          preferred_session_minutes: fitnessProfile.sessionLength ? Number(fitnessProfile.sessionLength) : undefined,
+        });
+      } catch (error) {
+        console.error('Error saving fitness profile:', error);
+      }
+    } else {
+      // For other profiles, just show toast for now
+      toast({
+        title: "Profile saved",
+        description: `Your ${profileType} profile has been updated successfully.`,
+      });
+    }
   };
 
   return (
@@ -81,10 +121,10 @@ export default function HealthConfigureBody() {
                 <Label>Primary Weight Goal</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {[
-                    { value: 'lose', label: 'Lose Weight', icon: '📉' },
+                    { value: 'lose_weight', label: 'Lose Weight', icon: '📉' },
                     { value: 'maintain', label: 'Maintain', icon: '⚖️' },
                     { value: 'recomp', label: 'Body Recomp', icon: '🔄' },
-                    { value: 'gain', label: 'Gain Weight', icon: '📈' }
+                    { value: 'gain_weight', label: 'Gain Weight', icon: '📈' }
                   ].map(goal => (
                     <Button
                       key={goal.value}
@@ -152,15 +192,18 @@ export default function HealthConfigureBody() {
                     <Calendar className="h-3 w-3" />
                     Workout Days/Week
                   </Label>
-                  <Select value={fitnessProfile.daysPerWeek} onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, daysPerWeek: value }))}>
+              <Select value={fitnessProfile.daysPerWeek} onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, daysPerWeek: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select days" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="1">1 day</SelectItem>
+                      <SelectItem value="2">2 days</SelectItem>
                       <SelectItem value="3">3 days</SelectItem>
                       <SelectItem value="4">4 days</SelectItem>
                       <SelectItem value="5">5 days</SelectItem>
                       <SelectItem value="6">6 days</SelectItem>
+                      <SelectItem value="7">7 days</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -169,15 +212,17 @@ export default function HealthConfigureBody() {
                     <Clock className="h-3 w-3" />
                     Session Length
                   </Label>
-                  <Select value={fitnessProfile.sessionLength} onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, sessionLength: value }))}>
+              <Select value={fitnessProfile.sessionLength} onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, sessionLength: value }))}>
                     <SelectTrigger>
                       <SelectValue placeholder="Select duration" />
                     </SelectTrigger>
                     <SelectContent>
+                      <SelectItem value="30">30 minutes</SelectItem>
                       <SelectItem value="45">45 minutes</SelectItem>
                       <SelectItem value="60">60 minutes</SelectItem>
                       <SelectItem value="75">75 minutes</SelectItem>
                       <SelectItem value="90">90 minutes</SelectItem>
+                      <SelectItem value="120">120 minutes</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
