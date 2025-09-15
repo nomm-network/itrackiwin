@@ -15,6 +15,7 @@ type WarmupProps = {
   suggestedTopReps?: number;
   onFeedbackGiven?: () => void;
   onClose?: () => void;
+  existingFeedback?: string | null; // Add this to receive existing feedback
 };
 
 export function WarmupBlock({
@@ -24,11 +25,12 @@ export function WarmupBlock({
   suggestedTopReps = 8,
   onFeedbackGiven,
   onClose,
+  existingFeedback = null,
 }: WarmupProps) {
   const { user } = useAuth();
   const [plan, setPlan] = useState<SmartWarmupPlan | null>(null);
   const [isExpanded, setIsExpanded] = useState(true);
-  const [localFeedback, setLocalFeedback] = useState<string | null>(null);
+  const [localFeedback, setLocalFeedback] = useState<string | null>(existingFeedback);
   const { saveFeedback, isLoading: isSaving } = useWarmupManager();
 
   // Generate smart warmup plan
@@ -51,6 +53,11 @@ export function WarmupBlock({
       }
     })();
   }, [workoutExerciseId, suggestedTopWeight, suggestedTopReps, user?.id]);
+
+  // Update local feedback when existingFeedback changes
+  useEffect(() => {
+    setLocalFeedback(existingFeedback);
+  }, [existingFeedback]);
 
   // Calculate total warmup time
   const totalWarmupTime = useMemo(() => {

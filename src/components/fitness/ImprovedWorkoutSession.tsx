@@ -402,6 +402,7 @@ export default function ImprovedWorkoutSession({
             unit={unit}
             suggestedTopWeight={templateTargetWeight || currentSetData.weight || 60}
             suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
+            existingFeedback={warmupFeedback} // Pass the existing feedback
             onFeedbackGiven={() => {
               // Close warmup after feedback is given
               setShowWarmupDialog(false);
