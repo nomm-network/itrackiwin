@@ -48,25 +48,48 @@ export const useUpsertFitnessProfile = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data, error } = await supabase
+      // First check if profile exists
+      const { data: existingProfile } = await supabase
         .from('user_profile_fitness')
-        .upsert({
-          user_id: user.id,
-          goal: profile.goal,
-          training_goal: profile.training_goal,
-          experience_level: profile.experience_level,
-          sex: profile.sex,
-          bodyweight: profile.bodyweight,
-          height_cm: profile.height_cm,
-          height: profile.height,
-          injuries: profile.injuries,
-          days_per_week: profile.days_per_week,
-          preferred_session_minutes: profile.preferred_session_minutes
-        }, {
-          onConflict: 'user_id'
-        })
-        .select()
-        .single();
+        .select('id')
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      const profileData = {
+        user_id: user.id,
+        goal: profile.goal,
+        training_goal: profile.training_goal,
+        experience_level: profile.experience_level,
+        sex: profile.sex,
+        bodyweight: profile.bodyweight,
+        height_cm: profile.height_cm,
+        days_per_week: profile.days_per_week,
+        preferred_session_minutes: profile.preferred_session_minutes,
+        weight_entry_style: 'per_side' // Required field with default
+      };
+
+      let data, error;
+
+      if (existingProfile) {
+        // Update existing profile
+        const result = await supabase
+          .from('user_profile_fitness')
+          .update(profileData)
+          .eq('user_id', user.id)
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      } else {
+        // Insert new profile
+        const result = await supabase
+          .from('user_profile_fitness')
+          .insert(profileData)
+          .select()
+          .single();
+        data = result.data;
+        error = result.error;
+      }
 
       if (error) throw error;
       return data;
