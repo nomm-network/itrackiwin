@@ -10904,6 +10904,21 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      _upsert_readiness_internal: {
+        Args: {
+          p_alcohol: boolean
+          p_energisers_taken: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+          p_workout_id?: string
+        }
+        Returns: number
+      }
       add_set: {
         Args: { p_payload: Json; p_workout_exercise_id: string }
         Returns: string
