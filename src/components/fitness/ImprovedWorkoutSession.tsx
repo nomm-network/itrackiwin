@@ -106,13 +106,18 @@ export default function ImprovedWorkoutSession({
     const hasCompletedSets = exercise.completed_sets.length > 0;
     const isLastSet = currentSetNumber >= exercise.target_sets;
     
+    console.log('🕐 Auto-start check:', {
+      hasCompletedSets,
+      isLastSet,
+      restStartedAt,
+      currentSetNumber,
+      targetSets: exercise.target_sets,
+      completedSetsLength: exercise.completed_sets.length
+    });
+    
     if (hasCompletedSets && !isLastSet && !restStartedAt) {
-      // Only auto-start if it's been less than 10 minutes since page load (recent refresh)
-      const pageLoadTime = Date.now() - (window.performance?.timing?.navigationStart || Date.now());
-      if (pageLoadTime < 10 * 60 * 1000) { // 10 minutes
-        startRest();
-        console.log('🎯 Auto-started rest timer for continued workout');
-      }
+      console.log('🎯 Auto-starting rest timer for continued workout');
+      startRest();
     }
   }, [exercise.completed_sets.length, currentSetNumber, exercise.target_sets, restStartedAt, startRest]);
   
