@@ -25,16 +25,16 @@ export async function saveReadiness({
   workout_id?: string | null;
 }) {
   const { data, error } = await supabase.rpc('upsert_readiness_today', {
-    energy,
-    sleep_quality,
-    sleep_hours,
-    soreness,
-    stress,
-    mood,
-    energisers_taken,
-    illness,
-    alcohol,
-    workout_id: workout_id ?? null,
+    p_energy: energy,
+    p_sleep_quality: sleep_quality,
+    p_sleep_hours: sleep_hours,
+    p_soreness: soreness,
+    p_stress: stress,
+    p_mood: mood,
+    p_energisers_taken: energisers_taken,
+    p_illness: illness,
+    p_alcohol: alcohol,
+    p_workout_id: workout_id ?? null,
   });
 
   if (error) {

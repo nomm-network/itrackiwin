@@ -13492,16 +13492,16 @@ export type Database = {
       }
       upsert_readiness_today: {
         Args: {
-          alcohol: boolean
-          energisers_taken: boolean
-          energy: number
-          illness: boolean
-          mood: number
-          sleep_hours: number
-          sleep_quality: number
-          soreness: number
-          stress: number
-          workout_id?: string
+          p_alcohol: boolean
+          p_energisers_taken: boolean
+          p_energy: number
+          p_illness: boolean
+          p_mood: number
+          p_sleep_hours: number
+          p_sleep_quality: number
+          p_soreness: number
+          p_stress: number
+          p_workout_id?: string
         }
         Returns: number
       }
