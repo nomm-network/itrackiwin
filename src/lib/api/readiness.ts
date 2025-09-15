@@ -1,6 +1,6 @@
 import { supabase } from '@/integrations/supabase/client';
 
-// src/lib/api/readiness.ts
+// Frontend contract (thin & stable) - parameter names EXACTLY match RPC function
 export async function saveReadiness({
   energy,
   sleep_quality,
@@ -11,7 +11,7 @@ export async function saveReadiness({
   energisers_taken,
   illness,
   alcohol,
-  workout_id,          // pass undefined or the UUID
+  workout_id,
 }: {
   energy: number;
   sleep_quality: number;
