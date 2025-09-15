@@ -12,6 +12,7 @@ import { useFitnessProfile, useUpsertFitnessProfile, SexType } from '@/features/
 export default function HealthConfigureBody() {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('fitness');
+  const [debugError, setDebugError] = useState<string | null>(null);
   
   // Fitness profile hooks
   const { data: fitnessProfileData } = useFitnessProfile();
@@ -64,6 +65,7 @@ export default function HealthConfigureBody() {
   const handleSaveProfile = async (profileType: string) => {
     if (profileType === 'fitness') {
       try {
+        setDebugError(null); // Clear previous errors
         await upsertProfile.mutateAsync({
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
@@ -76,6 +78,7 @@ export default function HealthConfigureBody() {
         });
       } catch (error) {
         console.error('Error saving fitness profile:', error);
+        setDebugError(JSON.stringify(error, null, 2));
       }
     } else {
       // For other profiles, just show toast for now
@@ -487,6 +490,20 @@ export default function HealthConfigureBody() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Debug Error Box */}
+      {debugError && (
+        <Card className="bg-red-50 border-red-200">
+          <CardHeader>
+            <CardTitle className="text-red-800">Debug Error</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <pre className="text-xs text-red-700 overflow-auto max-h-40 whitespace-pre-wrap">
+              {debugError}
+            </pre>
+          </CardContent>
+        </Card>
+      )}
     </div>
   );
 }
