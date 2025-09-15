@@ -15,7 +15,7 @@ import { inferBarWeight } from "@/lib/equipment/inferBarWeight";
 import { resolveAchievableLoad } from "@/lib/equipment/resolveLoad";
 import { resolveAchievableLoadEnhanced } from "@/lib/equipment/equipmentProfileResolver";
 import { useEntryModeStore, type EntryMode } from "@/hooks/useEntryModeStore";
-import WorkoutExerciseDebug from "./WorkoutExerciseDebug";
+
 
 interface SetRowProps {
   setNumber: number;
@@ -326,11 +326,6 @@ export default function SetRow({
         </div>
       )}
 
-      {/* Debug panel - always enabled for dual load debugging */}
-      <WorkoutExerciseDebug 
-        enabled={true} 
-        debugItems={debugItems} 
-      />
     </div>
   );
 }
