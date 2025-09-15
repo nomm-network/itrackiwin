@@ -11140,16 +11140,28 @@ export type Database = {
         Returns: number
       }
       compute_readiness_score: {
-        Args: {
-          p_alcohol: boolean
-          p_energy: number
-          p_illness: boolean
-          p_sleep_hours: number
-          p_sleep_quality: number
-          p_soreness: number
-          p_stress: number
-          p_supplements: Json
-        }
+        Args:
+          | {
+              p_alcohol: boolean
+              p_energizers: boolean
+              p_energy: number
+              p_illness: boolean
+              p_mood: number
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+            }
+          | {
+              p_alcohol: boolean
+              p_energy: number
+              p_illness: boolean
+              p_sleep_hours: number
+              p_sleep_quality: number
+              p_soreness: number
+              p_stress: number
+              p_supplements: Json
+            }
         Returns: number
       }
       compute_readiness_score_v2: {
