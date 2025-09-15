@@ -68,7 +68,7 @@ export default function HealthConfigureBody() {
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
           experience_level: fitnessProfile.experienceLevel as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
-          sex: fitnessProfile.sex as SexType | undefined,
+          sex: (fitnessProfile.sex || undefined) as SexType | undefined,
           bodyweight: fitnessProfile.bodyweight ? Number(fitnessProfile.bodyweight) : undefined,
           height_cm: fitnessProfile.height ? Number(fitnessProfile.height) : undefined,
           days_per_week: fitnessProfile.daysPerWeek ? Number(fitnessProfile.daysPerWeek) : undefined,
