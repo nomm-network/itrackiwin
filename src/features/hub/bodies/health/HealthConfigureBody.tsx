@@ -164,15 +164,14 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
-              {/* Sex Selection */}
+              {/* Biological Sex Selection */}
               <div className="space-y-3">
-                <Label>Sex</Label>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                <Label>Biological Sex</Label>
+                <p className="text-sm text-muted-foreground">Used to optimize workout recommendations based on biological differences</p>
+                <div className="grid grid-cols-2 gap-2">
                   {[
                     { value: 'male', label: 'Male', icon: '♂️' },
-                    { value: 'female', label: 'Female', icon: '♀️' },
-                    { value: 'other', label: 'Other', icon: '⚧️' },
-                    { value: 'prefer_not_to_say', label: 'Prefer not to say', icon: '🤐' }
+                    { value: 'female', label: 'Female', icon: '♀️' }
                   ].map(sex => (
                     <Button
                       key={sex.value}
