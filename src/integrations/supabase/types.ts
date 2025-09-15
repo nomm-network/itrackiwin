@@ -13503,23 +13503,7 @@ export type Database = {
               _user_id: string
             }
           | { p_exercise_id: string; p_pretty_text: string; p_source?: Json }
-        Returns: {
-          adaptation_history: Json | null
-          created_at: string
-          exercise_id: string
-          id: string
-          last_feedback: Database["public"]["Enums"]["warmup_feedback"] | null
-          notes: string | null
-          plan_text: string
-          preferred_intensity_adjustment: number | null
-          preferred_set_count: number | null
-          source: string
-          success_streak: number
-          updated_at: string
-          user_id: string
-          warmup_sets_done: number | null
-          workout_exercise_id: string | null
-        }
+        Returns: string
       }
       upsert_warmup_bias: {
         Args: { p_delta: number; p_exercise_id: string; p_user_id: string }
