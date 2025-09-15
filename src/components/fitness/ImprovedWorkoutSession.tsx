@@ -515,6 +515,7 @@ export default function ImprovedWorkoutSession({
               setIndex={currentSetNumber - 1} // Convert to 0-based index for set queries
               templateTargetReps={templateTargetReps}
               templateTargetWeight={templateTargetWeight}
+              currentSetNumber={currentSetNumber} // Pass current set number for timer visibility
               onApplyTarget={(weight, reps) => {
                 console.log('🎯 Applying target from SetPrevTargetDisplay:', { weight, reps });
                 setCurrentSetData(prev => ({ ...prev, weight, reps }));

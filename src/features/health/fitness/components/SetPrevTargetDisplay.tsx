@@ -12,6 +12,7 @@ interface SetPrevTargetDisplayProps {
   templateTargetReps?: number;
   templateTargetWeight?: number;
   onApplyTarget?: (w: number, r: number) => void;
+  currentSetNumber?: number; // Add this to determine if we should show timer
 }
 
 function FeelBadge({ feel }: { feel?: Feel }) {
@@ -55,8 +56,8 @@ function RestTimer() {
   const displayColor = restStartedAt ? "text-green-500" : "text-muted-foreground";
   
   return (
-    <div className="bg-secondary/20 border border-border rounded-xl px-4 py-2 flex items-center justify-center min-w-[100px]">
-      <span className={`text-xl font-mono font-bold ${displayColor}`}>
+    <div className="bg-secondary/20 border border-border rounded-xl px-6 py-3 flex items-center justify-center min-w-[120px]">
+      <span className={`text-2xl font-mono font-bold ${displayColor}`}>
         {minutes}:{secs.toString().padStart(2, '0')}
       </span>
     </div>
@@ -70,6 +71,7 @@ export function SetPrevTargetDisplay({
   templateTargetReps,
   templateTargetWeight,
   onApplyTarget,
+  currentSetNumber = 1,
 }: SetPrevTargetDisplayProps) {
   const { target, lastSet: last, isLoading } = useTargetCalculation({
     userId,
@@ -100,7 +102,8 @@ export function SetPrevTargetDisplay({
                 </span>
               )}
             </div>
-            <RestTimer />
+            {/* Show timer only if not Set 1 */}
+            {currentSetNumber > 1 && <RestTimer />}
           </div>
           <div className="mt-1 flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
@@ -112,6 +115,8 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
+            {/* Show timer only if not Set 1 */}
+            {currentSetNumber > 1 && <RestTimer />}
           </div>
         </>
       )}
