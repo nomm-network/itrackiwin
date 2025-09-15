@@ -62,6 +62,8 @@ export const useUpsertFitnessProfile = () => {
           injuries: profile.injuries,
           days_per_week: profile.days_per_week,
           preferred_session_minutes: profile.preferred_session_minutes
+        }, {
+          onConflict: 'user_id'
         })
         .select()
         .single();
