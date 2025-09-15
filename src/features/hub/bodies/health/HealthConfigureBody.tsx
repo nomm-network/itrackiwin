@@ -212,6 +212,26 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
+              {/* Experience Level */}
+              <div className="space-y-3">
+                <Label>Experience Level</Label>
+                <Select 
+                  value={fitnessProfile.experienceLevel || ''} 
+                  onValueChange={(value) => setFitnessProfile(prev => ({ ...prev, experienceLevel: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select your experience level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">New to Exercise</SelectItem>
+                    <SelectItem value="returning">Returning</SelectItem>
+                    <SelectItem value="intermediate">Intermediate</SelectItem>
+                    <SelectItem value="advanced">Advanced</SelectItem>
+                    <SelectItem value="very_experienced">Very Experienced</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-1">

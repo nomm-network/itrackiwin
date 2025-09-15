@@ -44,7 +44,7 @@ export const useUpsertFitnessProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced"; sex?: SexType }) => {
+    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level?: "new" | "returning" | "intermediate" | "advanced" | "very_experienced"; sex?: SexType }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -59,13 +59,16 @@ export const useUpsertFitnessProfile = () => {
         user_id: user.id,
         goal: profile.goal,
         training_goal: profile.training_goal,
-        experience_level: profile.experience_level,
         sex: profile.sex,
         bodyweight: profile.bodyweight,
         height_cm: profile.height_cm,
         days_per_week: profile.days_per_week,
         preferred_session_minutes: profile.preferred_session_minutes,
-        weight_entry_style: 'per_side' // Required field with default
+        weight_entry_style: 'per_side', // Required field with default
+        // Only include experience_level if it's not empty
+        ...(profile.experience_level && profile.experience_level.trim() !== '' && {
+          experience_level: profile.experience_level
+        })
       };
 
       let data, error;
