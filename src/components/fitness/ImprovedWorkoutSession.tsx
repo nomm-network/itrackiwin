@@ -17,7 +17,6 @@ import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/
 import { SetEditor } from '@/features/workouts/components/SetEditor';
 import { noteWorkingSet } from '@/lib/training/warmupManager';
 import { useGrips } from '@/hooks/useGrips';
-import RestTimerPill from './RestTimerPill';
 import { useSessionTiming } from '@/stores/sessionTiming';
 import { WarmupBlock } from './WarmupBlock';
 import { getBarMeta } from '@/lib/equipment/barMeta';

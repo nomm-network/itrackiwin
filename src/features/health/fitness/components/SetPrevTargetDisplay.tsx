@@ -102,7 +102,6 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
-            <RestTimer />
           </div>
         </>
       )}
