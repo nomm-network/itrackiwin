@@ -183,15 +183,21 @@ export default function ImprovedWorkoutSession({
       if (exercise.workout_exercise_id && currentSetNumber === 1) {
         const { data } = await supabase
           .from('workout_exercises')
-          .select('warmup_plan')
+          .select('warmup_feedback, warmup_plan')
           .eq('id', exercise.workout_exercise_id)
           .maybeSingle();
         
-        if (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan) {
+        console.log('🔍 Checking warmup feedback:', { data });
+        
+        // Check for feedback in warmup_feedback column first, then warmup_plan.feedback
+        const existingFeedback = data?.warmup_feedback || 
+          (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan ? data.warmup_plan.feedback : null);
+        
+        if (existingFeedback) {
           // Feedback already exists - don't show warmup dialog
-          setWarmupFeedback(data.warmup_plan.feedback as string);
+          setWarmupFeedback(existingFeedback as string);
           setShowWarmupDialog(false);
-          console.log('🏋️ Warmup feedback already exists, keeping dialog closed');
+          console.log('🏋️ Warmup feedback already exists, keeping dialog closed:', existingFeedback);
         } else {
           // No feedback yet - show warmup dialog for Set 1
           setShowWarmupDialog(true);
