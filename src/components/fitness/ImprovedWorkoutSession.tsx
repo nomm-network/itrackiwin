@@ -177,34 +177,37 @@ export default function ImprovedWorkoutSession({
     loadCurrentGrip();
   }, [exercise.workout_exercise_id]);
 
+  // Function to check warmup feedback from database
+  const checkWarmupFeedback = async () => {
+    if (exercise.workout_exercise_id && currentSetNumber === 1) {
+      const { data } = await supabase
+        .from('workout_exercises')
+        .select('warmup_feedback, warmup_plan')
+        .eq('id', exercise.workout_exercise_id)
+        .maybeSingle();
+      
+      console.log('🔍 Checking warmup feedback:', { data });
+      
+      // Check for feedback in warmup_feedback column first, then warmup_plan.feedback
+      const existingFeedback = data?.warmup_feedback || 
+        (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan ? data.warmup_plan.feedback : null);
+      
+      if (existingFeedback) {
+        // Feedback already exists - don't show warmup dialog
+        setWarmupFeedback(existingFeedback as string);
+        setShowWarmupDialog(false);
+        console.log('🏋️ Warmup feedback already exists, keeping dialog closed:', existingFeedback);
+      } else {
+        // No feedback yet - show warmup dialog for Set 1
+        setShowWarmupDialog(true);
+        setWarmupFeedback(null);
+        console.log('🏋️ No warmup feedback found, showing dialog');
+      }
+    }
+  };
+
   // Check warmup feedback from database
   React.useEffect(() => {
-    const checkWarmupFeedback = async () => {
-      if (exercise.workout_exercise_id && currentSetNumber === 1) {
-        const { data } = await supabase
-          .from('workout_exercises')
-          .select('warmup_feedback, warmup_plan')
-          .eq('id', exercise.workout_exercise_id)
-          .maybeSingle();
-        
-        console.log('🔍 Checking warmup feedback:', { data });
-        
-        // Check for feedback in warmup_feedback column first, then warmup_plan.feedback
-        const existingFeedback = data?.warmup_feedback || 
-          (data?.warmup_plan && typeof data.warmup_plan === 'object' && 'feedback' in data.warmup_plan ? data.warmup_plan.feedback : null);
-        
-        if (existingFeedback) {
-          // Feedback already exists - don't show warmup dialog
-          setWarmupFeedback(existingFeedback as string);
-          setShowWarmupDialog(false);
-          console.log('🏋️ Warmup feedback already exists, keeping dialog closed:', existingFeedback);
-        } else {
-          // No feedback yet - show warmup dialog for Set 1
-          setShowWarmupDialog(true);
-          console.log('🏋️ No warmup feedback found, showing dialog');
-        }
-      }
-    };
     checkWarmupFeedback();
   }, [exercise.workout_exercise_id, currentSetNumber]);
   
@@ -412,9 +415,11 @@ export default function ImprovedWorkoutSession({
               suggestedTopReps={templateTargetReps || currentSetData.reps || 8}
               existingFeedback={warmupFeedback} // Pass the existing feedback
               onFeedbackGiven={() => {
-                // Close warmup after feedback is given
+                // Close warmup after feedback is given and refetch feedback
                 setShowWarmupDialog(false);
-                console.log('Warmup feedback given - closing warmup');
+                // Refetch the latest feedback when it's saved
+                checkWarmupFeedback();
+                console.log('Warmup feedback given - closing warmup and refetching');
               }}
               onClose={() => setShowWarmupDialog(false)}
             />
