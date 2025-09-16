@@ -126,6 +126,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                         { name: "Progress", href: "/progress", icon: TrendingUp },
                         { name: "Insights", href: "/insights", icon: Target },
                         { name: "Analytics", href: "/analytics", icon: Award },
+                        { name: "Settings", href: "/settings", icon: Settings },
                       ].map((item) => {
                         const Icon = item.icon;
                         return (
@@ -208,6 +209,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
                   { name: "Progress", href: "/progress", icon: TrendingUp },
                   { name: "Insights", href: "/insights", icon: Target },
                   { name: "Analytics", href: "/analytics", icon: Award },
+                  { name: "Settings", href: "/settings", icon: Settings },
                 ].map((item) => {
                   const Icon = item.icon;
                   return (
