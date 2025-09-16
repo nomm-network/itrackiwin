@@ -17,7 +17,7 @@ type Mode = "template" | "program";
 export default function TrainingCenterCard() {
   const navigate = useNavigate();
   const { loading, templates, programs, error } = useFavorites();
-  const [mode, setMode] = useState<Mode>("template");
+  const [mode, setMode] = useState<Mode>("program");
   const [templateId, setTemplateId] = useState<string>("");
   const [programId, setProgramId] = useState<string>("");
   const [isStarting, setIsStarting] = useState(false);
@@ -88,23 +88,6 @@ export default function TrainingCenterCard() {
         <div className="flex rounded-md border p-1 bg-background">
           <button
             className={`flex-1 px-3 py-2 text-sm font-medium rounded-sm transition-colors flex items-center justify-center gap-2 ${
-              mode === "template" 
-                ? "bg-primary text-primary-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-            }`}
-            onClick={() => setMode("template")}
-            disabled={loading || !templates.length}
-          >
-            <Dumbbell className="h-4 w-4" />
-            Template
-            {templates.length > 0 && (
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {templates.length}
-              </Badge>
-            )}
-          </button>
-          <button
-            className={`flex-1 px-3 py-2 text-sm font-medium rounded-sm transition-colors flex items-center justify-center gap-2 ${
               mode === "program" 
                 ? "bg-primary text-primary-foreground shadow-sm" 
                 : "text-muted-foreground hover:text-foreground"
@@ -117,6 +100,23 @@ export default function TrainingCenterCard() {
             {programs.length > 0 && (
               <Badge variant="secondary" className="ml-1 text-xs">
                 {programs.length}
+              </Badge>
+            )}
+          </button>
+          <button
+            className={`flex-1 px-3 py-2 text-sm font-medium rounded-sm transition-colors flex items-center justify-center gap-2 ${
+              mode === "template" 
+                ? "bg-primary text-primary-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+            }`}
+            onClick={() => setMode("template")}
+            disabled={loading || !templates.length}
+          >
+            <Dumbbell className="h-4 w-4" />
+            Template
+            {templates.length > 0 && (
+              <Badge variant="secondary" className="ml-1 text-xs">
+                {templates.length}
               </Badge>
             )}
           </button>

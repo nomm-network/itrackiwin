@@ -75,23 +75,44 @@ export function ProgramEditDialog({ open, onOpenChange, program }: ProgramEditDi
     mutationFn: async (reorderedTemplates: any[]) => {
       console.log('Reordering templates:', reorderedTemplates);
       
-      const updates = reorderedTemplates.map((template, index) => ({
+      // First, set all order_index to negative values to avoid unique constraint violations
+      const tempUpdates = reorderedTemplates.map((template, index) => ({
+        id: template.id,
+        temp_order: -(index + 1)
+      }));
+
+      console.log('Temp updates to apply:', tempUpdates);
+
+      // Step 1: Set temporary negative order_index values
+      for (const update of tempUpdates) {
+        const { error } = await supabase
+          .from('training_program_blocks')
+          .update({ order_index: update.temp_order })
+          .eq('id', update.id);
+        
+        if (error) {
+          console.error('Failed to update template (temp):', update, error);
+          throw new Error(`Failed to update template (temp): ${error.message}`);
+        }
+      }
+
+      // Step 2: Set final positive order_index values
+      const finalUpdates = reorderedTemplates.map((template, index) => ({
         id: template.id,
         order_index: index + 1
       }));
 
-      console.log('Updates to apply:', updates);
+      console.log('Final updates to apply:', finalUpdates);
 
-      // Update all templates with new order
-      for (const update of updates) {
+      for (const update of finalUpdates) {
         const { error } = await supabase
           .from('training_program_blocks')
           .update({ order_index: update.order_index })
           .eq('id', update.id);
         
         if (error) {
-          console.error('Failed to update template:', update, error);
-          throw new Error(`Failed to update template: ${error.message}`);
+          console.error('Failed to update template (final):', update, error);
+          throw new Error(`Failed to update template (final): ${error.message}`);
         }
       }
     },
