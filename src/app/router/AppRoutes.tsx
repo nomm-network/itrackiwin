@@ -14,7 +14,7 @@ import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 const HubPage = lazy(() => import('@/features/hub/HubPage'));
 
 // Public pages
-const Index = lazy(() => import('@/pages/Index'));
+import Index from '@/pages/Index';
 const Auth = lazy(() => import('@/pages/Auth'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
