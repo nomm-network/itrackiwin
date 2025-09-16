@@ -9,6 +9,8 @@ import { startFromProgram, startFromTemplate } from "../hooks/useLaunchers";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProgramTemplatePicker } from "@/features/programs/components/ProgramTemplatePicker";
+import { getNextProgramTemplate } from "@/features/programs/api/programs";
+import { useQuery } from "@tanstack/react-query";
 
 type Mode = "template" | "program";
 
@@ -20,6 +22,13 @@ export default function TrainingCenterCard() {
   const [programId, setProgramId] = useState<string>("");
   const [isStarting, setIsStarting] = useState(false);
   const [showTemplatePicker, setShowTemplatePicker] = useState(false);
+
+  // Get next template for selected program
+  const { data: nextTemplate } = useQuery({
+    queryKey: ['next-program-template', programId],
+    queryFn: () => getNextProgramTemplate(programId),
+    enabled: !!programId && mode === 'program',
+  });
 
   // Default to first favorite when loaded
   const ready = !loading && !error;
@@ -181,7 +190,7 @@ export default function TrainingCenterCard() {
                 disabled={!canStart || isStarting}
               >
                 <ChevronDown className="h-4 w-4 mr-2" />
-                Pick Different Template
+                {nextTemplate?.template_name ? `Next: ${nextTemplate.template_name}` : 'Pick Different Template'}
               </Button>
             )}
           </div>

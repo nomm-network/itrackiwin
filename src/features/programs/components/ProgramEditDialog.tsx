@@ -73,10 +73,14 @@ export function ProgramEditDialog({ open, onOpenChange, program }: ProgramEditDi
   // Reorder templates mutation
   const reorderTemplates = useMutation({
     mutationFn: async (reorderedTemplates: any[]) => {
+      console.log('Reordering templates:', reorderedTemplates);
+      
       const updates = reorderedTemplates.map((template, index) => ({
         id: template.id,
         order_index: index + 1
       }));
+
+      console.log('Updates to apply:', updates);
 
       // Update all templates with new order
       for (const update of updates) {
@@ -85,7 +89,10 @@ export function ProgramEditDialog({ open, onOpenChange, program }: ProgramEditDi
           .update({ order_index: update.order_index })
           .eq('id', update.id);
         
-        if (error) throw error;
+        if (error) {
+          console.error('Failed to update template:', update, error);
+          throw new Error(`Failed to update template: ${error.message}`);
+        }
       }
     },
     onSuccess: () => {
@@ -94,7 +101,7 @@ export function ProgramEditDialog({ open, onOpenChange, program }: ProgramEditDi
     },
     onError: (error) => {
       console.error('Failed to reorder templates:', error);
-      toast.error('Failed to reorder templates');
+      toast.error(`Failed to reorder templates: ${error.message}`);
     }
   });
 

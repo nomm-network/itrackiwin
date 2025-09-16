@@ -10,7 +10,23 @@ export async function getNextProgramTemplate(programId: string) {
   });
 
   if (error) throw error;
-  return data?.[0];
+  
+  // Get the template details
+  const nextTemplate = data?.[0];
+  if (!nextTemplate) return null;
+  
+  const { data: templateData, error: templateError } = await supabase
+    .from('workout_templates')
+    .select('name')
+    .eq('id', nextTemplate.template_id)
+    .single();
+    
+  if (templateError) throw templateError;
+  
+  return {
+    ...nextTemplate,
+    template_name: templateData.name
+  };
 }
 
 export async function advanceProgramProgress(programId: string, position: number, workoutId: string) {
