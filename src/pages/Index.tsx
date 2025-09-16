@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from "react";
-import { Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import FitnessFirstLanding from "@/components/FitnessFirstLanding";
 
 const Index: React.FC = () => {
   const [checked, setChecked] = useState(false);
   const [session, setSession] = useState<any>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -13,6 +14,13 @@ const Index: React.FC = () => {
       setChecked(true);
     });
   }, []);
+
+  // Authenticated - redirect to dashboard
+  useEffect(() => {
+    if (session?.user && checked) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [session, checked, navigate]);
 
   // Show loading state while checking auth
   if (!checked) {
@@ -28,21 +36,12 @@ const Index: React.FC = () => {
     return <FitnessFirstLanding />;
   }
 
-  // Authenticated - redirect to dashboard
-  useEffect(() => {
-    if (session?.user && checked) {
-      window.location.href = '/dashboard';
-    }
-  }, [session, checked]);
-
-  // Show landing while redirecting
-  if (session?.user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
+  // Show loading while redirecting authenticated users
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center">
+      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+    </div>
+  );
 };
 
 export default Index;
