@@ -1,5 +1,5 @@
 import { Link, useLocation, useSearchParams } from "react-router-dom";
-import { Users, Check, Trophy, CreditCard, Settings, Dumbbell, UserCog, Globe, Wrench, FileText, Code, Activity, Cog, Shield } from "lucide-react";
+import { Users, Check, Trophy, CreditCard, Settings, Dumbbell, UserCog, Globe, Wrench, FileText, Code, Activity, Cog } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface SidebarItem {
@@ -48,7 +48,6 @@ const CATEGORY_ITEMS = {
         { label: "Attribute Schemas", to: "/admin/attribute-schemas?cat=settings", icon: Code },
         { label: "Coach Logs", to: "/admin/coach-logs?cat=settings", icon: Activity },
         { label: "Settings", to: "/admin/settings?cat=settings", icon: Cog },
-        { label: "Apple Secrets", to: "/admin/apple-secrets?cat=settings", icon: Shield },
       ]
     },
   ],

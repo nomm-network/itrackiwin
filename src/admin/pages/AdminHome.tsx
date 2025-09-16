@@ -65,7 +65,8 @@ const AdminHome: React.FC = () => {
       items: [
         { name: "Translations", path: "/admin/translations", description: "Manage multi-language content" },
         { name: "Attribute Schemas", path: "/admin/schemas", description: "Configure data structures" },
-        { name: "Naming Templates", path: "/admin/templates", description: "Standardize naming conventions" }
+        { name: "Naming Templates", path: "/admin/templates", description: "Standardize naming conventions" },
+        { name: "Apple Secrets", path: "/admin/apple-secrets", description: "Generate Apple Sign In JWT tokens" }
       ]
     }
   ];
