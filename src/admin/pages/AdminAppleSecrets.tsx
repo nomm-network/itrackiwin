@@ -37,9 +37,7 @@ const AdminAppleSecrets: React.FC = () => {
     setIsLoading(true);
     
     try {
-      // Import jwt library dynamically
-      const jwt = await import('jsonwebtoken');
-      
+      // Create JWT using Web Crypto API (browser-compatible)
       const now = Math.floor(Date.now() / 1000);
       const payload = {
         iss: formData.teamId,
@@ -49,23 +47,83 @@ const AdminAppleSecrets: React.FC = () => {
         sub: formData.clientId,
       };
 
-      const clientSecret = jwt.sign(payload, privateKeyTrimmed, {
-        algorithm: 'ES256',
-        header: { kid: formData.keyId },
-      });
+      // Create JWT header
+      const header = {
+        alg: 'ES256',
+        kid: formData.keyId,
+        typ: 'JWT'
+      };
 
-      setGeneratedSecret(clientSecret);
+      // Base64URL encode header and payload
+      const base64UrlEncode = (obj: any) => {
+        return btoa(JSON.stringify(obj))
+          .replace(/\+/g, '-')
+          .replace(/\//g, '_')
+          .replace(/=/g, '');
+      };
+
+      const encodedHeader = base64UrlEncode(header);
+      const encodedPayload = base64UrlEncode(payload);
+      const message = `${encodedHeader}.${encodedPayload}`;
+
+      // Import the private key
+      const pemHeader = "-----BEGIN PRIVATE KEY-----";
+      const pemFooter = "-----END PRIVATE KEY-----";
+      const pemContents = privateKeyTrimmed
+        .replace(pemHeader, '')
+        .replace(pemFooter, '')
+        .replace(/\s/g, '');
+      
+      const binaryDer = atob(pemContents);
+      const keyData = new Uint8Array(binaryDer.length);
+      for (let i = 0; i < binaryDer.length; i++) {
+        keyData[i] = binaryDer.charCodeAt(i);
+      }
+
+      // Import the key for signing
+      const cryptoKey = await window.crypto.subtle.importKey(
+        'pkcs8',
+        keyData,
+        {
+          name: 'ECDSA',
+          namedCurve: 'P-256'
+        },
+        false,
+        ['sign']
+      );
+
+      // Sign the message
+      const signature = await window.crypto.subtle.sign(
+        {
+          name: 'ECDSA',
+          hash: 'SHA-256'
+        },
+        cryptoKey,
+        new TextEncoder().encode(message)
+      );
+
+      // Convert signature to base64url
+      const signatureArray = new Uint8Array(signature);
+      const signatureBase64 = btoa(String.fromCharCode(...signatureArray))
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=/g, '');
+
+      const jwt = `${message}.${signatureBase64}`;
+      setGeneratedSecret(jwt);
       toast.success('Apple client secret generated successfully!');
     } catch (error: any) {
       console.error('Error generating secret:', error);
       
       let errorMessage = 'Failed to generate secret. ';
-      if (error.message?.includes('invalid key') || error.message?.includes('key')) {
-        errorMessage += 'Invalid private key format or content. Make sure you copied the entire .p8 file content.';
-      } else if (error.message?.includes('algorithm')) {
-        errorMessage += 'Algorithm mismatch. Make sure your key supports ES256.';
+      if (error.message?.includes('invalid key') || error.message?.includes('key format')) {
+        errorMessage += 'Invalid private key format. Make sure it\'s a valid P-256 ECDSA key.';
+      } else if (error.message?.includes('importKey')) {
+        errorMessage += 'Could not import the private key. Verify the .p8 file format.';
+      } else if (error.message?.includes('sign')) {
+        errorMessage += 'Signing failed. Check if the key supports ES256 algorithm.';
       } else {
-        errorMessage += 'Please check your credentials and private key format.';
+        errorMessage += `Crypto error: ${error.message}`;
       }
       
       toast.error(errorMessage);
