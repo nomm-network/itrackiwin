@@ -107,6 +107,45 @@ export type Database = {
         }
         Relationships: []
       }
+      admin_notifications: {
+        Row: {
+          created_at: string
+          expires_at: string | null
+          id: string
+          is_read: boolean
+          message: string
+          metadata: Json | null
+          notification_type: string
+          priority: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string | null
+          id?: string
+          is_read?: boolean
+          message?: string
+          metadata?: Json | null
+          notification_type?: string
+          priority?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       ambassador_commission_accruals: {
         Row: {
           agreement_id: string
@@ -5985,6 +6024,33 @@ export type Database = {
         }
         Relationships: []
       }
+      system_info: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          value: Json
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          value?: Json
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          value?: Json
+        }
+        Relationships: []
+      }
       template_exercise_grips: {
         Row: {
           created_at: string
@@ -11213,6 +11279,10 @@ export type Database = {
       }
       check_achievements: {
         Args: { p_user_id: string }
+        Returns: undefined
+      }
+      check_apple_key_expiration: {
+        Args: Record<PropertyKey, never>
         Returns: undefined
       }
       check_idempotency: {

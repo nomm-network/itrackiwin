@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import PageNav from "@/components/PageNav";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -6,8 +6,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, Key, Shield, Upload, X } from "lucide-react";
+import { Copy, Key, Shield, Upload, X, Calendar, Clock, AlertTriangle } from "lucide-react";
 import { toast } from "sonner";
+import { supabase } from "@/integrations/supabase/client";
 
 const AdminAppleSecrets: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -19,6 +20,67 @@ const AdminAppleSecrets: React.FC = () => {
   const [generatedSecret, setGeneratedSecret] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [uploadedFileName, setUploadedFileName] = useState<string>('');
+  const [keyInfo, setKeyInfo] = useState<{
+    lastGenerated: string | null;
+    expirationDate: string | null;
+    daysUntilExpiry: number | null;
+  }>({ lastGenerated: null, expirationDate: null, daysUntilExpiry: null });
+
+  useEffect(() => {
+    loadKeyInfo();
+  }, []);
+
+  const loadKeyInfo = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('system_info')
+        .select('value')
+        .eq('key', 'apple_siwa_key_info')
+        .single();
+
+      if (error) {
+        console.error('Error loading key info:', error);
+        return;
+      }
+
+      const info = data?.value as any;
+      if (info?.last_generated_at) {
+        const lastGenerated = new Date(info.last_generated_at);
+        const expirationDate = new Date(lastGenerated.getTime() + (179 * 24 * 60 * 60 * 1000));
+        const daysUntilExpiry = Math.ceil((expirationDate.getTime() - Date.now()) / (24 * 60 * 60 * 1000));
+
+        setKeyInfo({
+          lastGenerated: lastGenerated.toLocaleDateString(),
+          expirationDate: expirationDate.toLocaleDateString(),
+          daysUntilExpiry
+        });
+      }
+    } catch (error) {
+      console.error('Error loading key info:', error);
+    }
+  };
+
+  const updateKeyInfo = async () => {
+    try {
+      await supabase
+        .from('system_info')
+        .update({
+          value: {
+            last_generated_at: new Date().toISOString(),
+            expiration_days: 179
+          }
+        })
+        .eq('key', 'apple_siwa_key_info');
+
+      // Trigger the expiration check function
+      await supabase.rpc('check_apple_key_expiration');
+
+      // Reload key info
+      await loadKeyInfo();
+    } catch (error) {
+      console.error('Error updating key info:', error);
+    }
+  };
 
   const generateSecret = async () => {
     if (!formData.privateKey.trim()) {
@@ -111,6 +173,7 @@ const AdminAppleSecrets: React.FC = () => {
 
       const jwt = `${message}.${signatureBase64}`;
       setGeneratedSecret(jwt);
+      await updateKeyInfo(); // Update the database with generation timestamp
       toast.success('Apple client secret generated successfully!');
     } catch (error: any) {
       console.error('Error generating secret:', error);
@@ -184,6 +247,56 @@ const AdminAppleSecrets: React.FC = () => {
             Generate JWT tokens for Apple Sign In authentication
           </p>
         </div>
+
+        {/* Key Status Information */}
+        {keyInfo.lastGenerated && (
+          <Card className={`${keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 30 ? 'border-orange-500' : keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 0 ? 'border-red-500' : 'border-green-500'}`}>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Calendar className="h-5 w-5" />
+                Current Apple SIWA Key Status
+                {keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 30 && (
+                  <AlertTriangle className="h-5 w-5 text-orange-500" />
+                )}
+                {keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 0 && (
+                  <AlertTriangle className="h-5 w-5 text-red-500" />
+                )}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Last Generated</Label>
+                  <p className="text-sm text-muted-foreground">{keyInfo.lastGenerated}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Expiration Date</Label>
+                  <p className="text-sm text-muted-foreground">{keyInfo.expirationDate}</p>
+                </div>
+                <div className="space-y-1">
+                  <Label className="text-sm font-medium">Days Until Expiry</Label>
+                  <p className={`text-sm font-medium ${keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 0 ? 'text-red-600' : keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 30 ? 'text-orange-600' : 'text-green-600'}`}>
+                    {keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 0 
+                      ? `Expired ${Math.abs(keyInfo.daysUntilExpiry)} days ago`
+                      : `${keyInfo.daysUntilExpiry} days`
+                    }
+                  </p>
+                </div>
+              </div>
+              {keyInfo.daysUntilExpiry !== null && keyInfo.daysUntilExpiry <= 30 && (
+                <Alert className="mt-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    {keyInfo.daysUntilExpiry <= 0 
+                      ? "Your Apple SIWA key has expired! Apple authentication will not work until you regenerate the key."
+                      : `Your Apple SIWA key will expire in ${keyInfo.daysUntilExpiry} days. Please regenerate it before expiration.`
+                    }
+                  </AlertDescription>
+                </Alert>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         <Card>
           <CardHeader>
