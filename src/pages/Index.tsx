@@ -25,12 +25,10 @@ const Index: React.FC = () => {
     console.log('Index: Auth effect triggered, session:', !!session?.user, 'checked:', checked);
     if (session?.user && checked) {
       console.log('Index: Redirecting to dashboard');
-      // Use setTimeout for Safari compatibility
-      setTimeout(() => {
-        navigate('/dashboard', { replace: true });
-      }, 100);
+      // Force navigation for Safari compatibility
+      window.location.replace('/dashboard');
     }
-  }, [session, checked, navigate]);
+  }, [session, checked]);
 
   // Show loading state while checking auth
   if (!checked) {
