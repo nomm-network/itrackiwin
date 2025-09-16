@@ -42,7 +42,7 @@ const AdminAppleSecrets: React.FC = () => {
       const payload = {
         iss: formData.teamId,
         iat: now,
-        exp: now + 60 * 60 * 24 * 30, // 30 days expiration
+        exp: now + 60 * 60 * 24 * 179, // 179 days expiration
         aud: 'https://appleid.apple.com',
         sub: formData.clientId,
       };
@@ -336,7 +336,7 @@ const AdminAppleSecrets: React.FC = () => {
               
               <Alert>
                 <AlertDescription>
-                  <strong>Important:</strong> This token expires in 30 days. Make sure to regenerate it before expiration. 
+                  <strong>Important:</strong> This token expires in 179 days. Make sure to regenerate it before expiration. 
                   Apple requires client secrets to be refreshed regularly for security.
                 </AlertDescription>
               </Alert>
@@ -354,7 +354,7 @@ const AdminAppleSecrets: React.FC = () => {
             <p>3. Find your Key ID in Apple Developer → Keys section</p>
             <p>4. Upload your .p8 private key file OR copy its entire content (including BEGIN/END lines)</p>
             <p>5. Generate the JWT and copy it to Supabase Auth settings</p>
-            <p>6. Remember to regenerate the token every 30 days</p>
+            <p>6. Remember to regenerate the token every 179 days</p>
           </CardContent>
         </Card>
       </div>
