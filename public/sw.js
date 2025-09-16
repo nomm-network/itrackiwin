@@ -16,12 +16,33 @@ self.addEventListener('install', (event) => {
   );
 });
 
-// Listen for requests
+// Listen for requests - network first strategy for dynamic content
 self.addEventListener('fetch', (event) => {
+  // Skip non-GET requests
+  if (event.request.method !== 'GET') {
+    return;
+  }
+  
+  // Network first for HTML pages and API calls
+  if (event.request.headers.get('accept')?.includes('text/html') || 
+      event.request.url.includes('/api/') ||
+      event.request.url.includes('supabase.co')) {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          return response;
+        })
+        .catch(() => {
+          return caches.match(event.request);
+        })
+    );
+    return;
+  }
+  
+  // Cache first for static assets
   event.respondWith(
     caches.match(event.request)
       .then((response) => {
-        // Cache hit - return response
         if (response) {
           return response;
         }

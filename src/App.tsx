@@ -38,14 +38,14 @@ export default function App() {
 
     setSecurityHeaders();
 
-    // Register service worker for PWA
-    if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js')
-          .then(() => console.log('SW registered'))
-          .catch(() => console.log('SW registration failed'));
-      });
-    }
+    // Register service worker for PWA - disabled temporarily to fix caching issues
+    // if ('serviceWorker' in navigator) {
+    //   window.addEventListener('load', () => {
+    //     navigator.serviceWorker.register('/sw.js')
+    //       .then(() => console.log('SW registered'))
+    //       .catch(() => console.log('SW registration failed'));
+    //   });
+    // }
   }, []);
 
   return (
