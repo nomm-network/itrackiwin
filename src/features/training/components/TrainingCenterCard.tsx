@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Play, Dumbbell, Calendar, Settings } from "lucide-react";
+import { Play, Dumbbell, Calendar, Settings, ChevronDown } from "lucide-react";
 import { useFavorites } from "../hooks/useFavorites";
 import { startFromProgram, startFromTemplate } from "../hooks/useLaunchers";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { ProgramTemplatePicker } from "@/features/programs/components/ProgramTemplatePicker";
 
 type Mode = "template" | "program";
 
@@ -18,6 +19,7 @@ export default function TrainingCenterCard() {
   const [templateId, setTemplateId] = useState<string>("");
   const [programId, setProgramId] = useState<string>("");
   const [isStarting, setIsStarting] = useState(false);
+  const [showTemplatePicker, setShowTemplatePicker] = useState(false);
 
   // Default to first favorite when loaded
   const ready = !loading && !error;
@@ -159,18 +161,41 @@ export default function TrainingCenterCard() {
         )}
 
         {/* START BUTTON */}
-        <Button
-          onClick={onStart}
-          className="w-full bg-primary hover:bg-primary/90"
-          disabled={!canStart || isStarting}
-          size="lg"
-        >
-          <Play className="h-4 w-4 mr-2" />
-          {isStarting 
-            ? 'Starting...' 
-            : `Start ${mode === "template" ? "Workout" : "Program Day"}`
-          }
-        </Button>
+        {mode === "program" ? (
+          <div className="space-y-2">
+            <Button
+              onClick={onStart}
+              className="w-full bg-primary hover:bg-primary/90"
+              disabled={!canStart || isStarting}
+              size="lg"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              {isStarting ? 'Starting...' : 'Start Next in Program'}
+            </Button>
+            
+            {programId && (
+              <Button
+                variant="outline"
+                onClick={() => setShowTemplatePicker(true)}
+                className="w-full"
+                disabled={!canStart || isStarting}
+              >
+                <ChevronDown className="h-4 w-4 mr-2" />
+                Pick Different Template
+              </Button>
+            )}
+          </div>
+        ) : (
+          <Button
+            onClick={onStart}
+            className="w-full bg-primary hover:bg-primary/90"
+            disabled={!canStart || isStarting}
+            size="lg"
+          >
+            <Play className="h-4 w-4 mr-2" />
+            {isStarting ? 'Starting...' : 'Start Workout'}
+          </Button>
+        )}
 
         {/* ERROR/EMPTY STATES */}
         {error && (
@@ -195,6 +220,16 @@ export default function TrainingCenterCard() {
             <div className="h-4 bg-muted rounded animate-pulse" />
             <div className="h-10 bg-muted rounded animate-pulse" />
           </div>
+        )}
+
+        {/* PROGRAM TEMPLATE PICKER */}
+        {showTemplatePicker && programId && (
+          <ProgramTemplatePicker
+            open={showTemplatePicker}
+            onOpenChange={setShowTemplatePicker}
+            programId={programId}
+            programName={programs.find(p => p.id === programId)?.name || 'Program'}
+          />
         )}
       </CardContent>
     </Card>

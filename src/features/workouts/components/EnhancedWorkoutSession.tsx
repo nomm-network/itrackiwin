@@ -770,7 +770,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 <div className="flex items-center gap-2 mb-1">
                   <Calendar className="h-4 w-4 text-primary" />
                   <span className="text-sm text-primary font-medium">
-                    Program Workout
+                    Program: {workout.training_programs?.name || 'Unknown Program'}
                   </span>
                 </div>
               )}
