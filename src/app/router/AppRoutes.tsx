@@ -16,6 +16,7 @@ const HubPage = lazy(() => import('@/features/hub/HubPage'));
 // Public pages
 import Index from '@/pages/Index';
 const Auth = lazy(() => import('@/pages/Auth'));
+const AuthCallback = lazy(() => import('@/pages/auth/callback'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
 // Onboarding pages
@@ -122,6 +123,7 @@ export function AppRoutes() {
           {/* Public routes */}
           <Route path={Paths.root} element={<Index />} />
           <Route path={Paths.auth} element={<Auth />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
           
           {/* Onboarding routes */}
           <Route path="/onboarding" element={<Onboarding />} />

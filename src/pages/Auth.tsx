@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { supabase } from "@/integrations/supabase/client";
 import { cleanupAuthState } from "@/lib/auth";
+import { AppleSignInButton } from "@/components/auth/AppleSignInButton";
 
 const setSeo = () => {
   const title = "Login | I Track I Win";
@@ -102,12 +103,13 @@ const Auth: React.FC = () => {
       <header className="mb-6">
         <h1 className="text-2xl font-semibold">Sign {mode === 'signin' ? 'In' : 'Up'}</h1>
         <p className="text-sm text-muted-foreground">
-          Use email & password or continue with Google, Facebook, or Twitter.
+          Use email & password or continue with Apple, Google, Facebook, or Twitter.
         </p>
       </header>
 
       <section className="space-y-4">
         <div className="grid grid-cols-1 gap-2">
+          <AppleSignInButton redirectTo={`${window.location.origin}/auth/callback`} />
           <Button variant="outline" onClick={() => oauth("google")}>Continue with Google</Button>
           <Button variant="outline" onClick={() => oauth("facebook")}>Continue with Facebook</Button>
           <Button variant="outline" onClick={() => oauth("twitter")}>Continue with Twitter</Button>
@@ -146,7 +148,7 @@ const Auth: React.FC = () => {
         </div>
 
         <aside className="text-xs text-muted-foreground">
-          Note: Instagram login isn't supported by Supabase. Facebook, Google, and Twitter are available.
+          Note: Instagram login isn't supported by Supabase. Apple, Facebook, Google, and Twitter are available.
         </aside>
       </section>
     </main>
