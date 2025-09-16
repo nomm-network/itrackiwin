@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Copy, Key, Shield } from "lucide-react";
+import { Copy, Key, Shield, Upload, X } from "lucide-react";
 import { toast } from "sonner";
 
 const AdminAppleSecrets: React.FC = () => {
@@ -18,10 +18,11 @@ const AdminAppleSecrets: React.FC = () => {
   });
   const [generatedSecret, setGeneratedSecret] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [uploadedFileName, setUploadedFileName] = useState<string>('');
 
   const generateSecret = async () => {
     if (!formData.privateKey.trim()) {
-      toast.error('Please paste your private key (.p8 file content)');
+      toast.error('Please upload a .p8 file or paste the private key content');
       return;
     }
 
@@ -71,6 +72,39 @@ const AdminAppleSecrets: React.FC = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // Validate file extension
+    if (!file.name.endsWith('.p8')) {
+      toast.error('Please select a .p8 file');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      setFormData(prev => ({ ...prev, privateKey: content }));
+      setUploadedFileName(file.name);
+      toast.success('Private key file uploaded successfully!');
+    };
+    
+    reader.onerror = () => {
+      toast.error('Error reading file');
+    };
+    
+    reader.readAsText(file);
+    
+    // Clear the input so the same file can be uploaded again
+    event.target.value = '';
+  };
+
+  const clearUploadedFile = () => {
+    setFormData(prev => ({ ...prev, privateKey: '' }));
+    setUploadedFileName('');
   };
 
   const copyToClipboard = () => {
@@ -136,16 +170,71 @@ const AdminAppleSecrets: React.FC = () => {
               </div>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="privateKey">Private Key (.p8 file content)</Label>
-              <Textarea
-                id="privateKey"
-                rows={8}
-                value={formData.privateKey}
-                onChange={(e) => setFormData({...formData, privateKey: e.target.value})}
-                placeholder="-----BEGIN PRIVATE KEY-----&#10;MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkw...&#10;-----END PRIVATE KEY-----"
-                className="font-mono text-sm"
-              />
+            <div className="space-y-4">
+              <Label>Private Key (.p8 file)</Label>
+              
+              {/* File Upload Option */}
+              <div className="border-2 border-dashed border-muted-foreground/25 rounded-lg p-6">
+                <div className="text-center">
+                  <Upload className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                  <div className="mt-4">
+                    <Label 
+                      htmlFor="p8-file-upload" 
+                      className="cursor-pointer inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90"
+                    >
+                      Upload .p8 File
+                    </Label>
+                    <input
+                      id="p8-file-upload"
+                      type="file"
+                      accept=".p8"
+                      onChange={handleFileUpload}
+                      className="sr-only"
+                    />
+                  </div>
+                  <p className="mt-2 text-sm text-muted-foreground">
+                    Upload your AuthKey_XXXXXXXXXX.p8 file directly
+                  </p>
+                  
+                  {uploadedFileName && (
+                    <div className="mt-3 flex items-center justify-center gap-2 text-sm text-green-600">
+                      <Key className="h-4 w-4" />
+                      <span>{uploadedFileName}</span>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearUploadedFile}
+                        className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">or paste content</span>
+                </div>
+              </div>
+
+              {/* Manual Paste Option */}
+              <div className="space-y-2">
+                <Label htmlFor="privateKey">Paste .p8 file content manually</Label>
+                <Textarea
+                  id="privateKey"
+                  rows={6}
+                  value={formData.privateKey}
+                  onChange={(e) => setFormData({...formData, privateKey: e.target.value})}
+                  placeholder="-----BEGIN PRIVATE KEY-----&#10;MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkw...&#10;-----END PRIVATE KEY-----"
+                  className="font-mono text-sm"
+                />
+              </div>
             </div>
             
             <Button 
@@ -205,7 +294,7 @@ const AdminAppleSecrets: React.FC = () => {
             <p>1. Get your Team ID from the top-right of your Apple Developer portal</p>
             <p>2. Use your Services ID (e.g., com.itrackiwin.web) as the Client ID</p>
             <p>3. Find your Key ID in Apple Developer → Keys section</p>
-            <p>4. Copy the entire content of your .p8 private key file (including BEGIN/END lines)</p>
+            <p>4. Upload your .p8 private key file OR copy its entire content (including BEGIN/END lines)</p>
             <p>5. Generate the JWT and copy it to Supabase Auth settings</p>
             <p>6. Remember to regenerate the token every 30 days</p>
           </CardContent>
