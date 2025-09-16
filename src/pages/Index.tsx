@@ -9,16 +9,26 @@ const Index: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    console.log('Index: Starting auth check');
     supabase.auth.getSession().then(({ data }) => {
+      console.log('Index: Session data:', !!data.session?.user);
       setSession(data.session);
+      setChecked(true);
+    }).catch((error) => {
+      console.error('Index: Session check error:', error);
       setChecked(true);
     });
   }, []);
 
   // Authenticated - redirect to dashboard
   useEffect(() => {
+    console.log('Index: Auth effect triggered, session:', !!session?.user, 'checked:', checked);
     if (session?.user && checked) {
-      navigate('/dashboard', { replace: true });
+      console.log('Index: Redirecting to dashboard');
+      // Use setTimeout for Safari compatibility
+      setTimeout(() => {
+        navigate('/dashboard', { replace: true });
+      }, 100);
     }
   }, [session, checked, navigate]);
 
