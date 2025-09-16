@@ -19,7 +19,8 @@ import {
   Plus,
   ChevronDown,
   Hand
-} from 'lucide-react';
+  } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './ExerciseCard';
 import TouchOptimizedSetInput from '@/components/workout/TouchOptimizedSetInput';
@@ -545,7 +546,21 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     }
   };
 
-  const handleFinishWorkout = () => {
+  const handleFinishWorkout = async () => {
+    // If this workout is part of a program, advance the progress
+    if (workout.program_id && workout.program_position) {
+      try {
+        await supabase.rpc('advance_program_progress', {
+          p_program_id: workout.program_id,
+          p_user_id: workout.user_id,
+          p_position: workout.program_position,
+          p_workout_id: workout.id
+        });
+      } catch (progError) {
+        console.error('Failed to advance program progress:', progError);
+        // Don't fail the workout completion if this fails
+      }
+    }
     navigate('/dashboard');
   };
 
@@ -750,9 +765,19 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">
-            <h1 className="text-lg font-semibold">
-              {workout?.title || workout?.template?.name || 'Free Session'}
-            </h1>
+            <div>
+              {workout.program_id && (
+                <div className="flex items-center gap-2 mb-1">
+                  <Calendar className="h-4 w-4 text-primary" />
+                  <span className="text-sm text-primary font-medium">
+                    Program Workout
+                  </span>
+                </div>
+              )}
+              <h1 className="text-lg font-semibold">
+                {workout?.title || workout?.template?.name || 'Free Session'}
+              </h1>
+            </div>
           </div>
           <div className="flex items-center gap-2">
             <SessionHeaderMeta 

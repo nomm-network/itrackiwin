@@ -7903,6 +7903,80 @@ export type Database = {
         }
         Relationships: []
       }
+      user_program_progress: {
+        Row: {
+          last_position: number
+          last_workout_id: string | null
+          program_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          last_position?: number
+          last_workout_id?: string | null
+          program_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          last_position?: number
+          last_workout_id?: string | null
+          program_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "mv_workout_details"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_current_workout"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_last_working_set"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_pre_checkin_exists"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_has_checkin"
+            referencedColumns: ["workout_id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_last_workout_id_fkey"
+            columns: ["last_workout_id"]
+            isOneToOne: false
+            referencedRelation: "workouts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_program_progress_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_program_state: {
         Row: {
           last_completed_index: number
@@ -9093,6 +9167,9 @@ export type Database = {
           id: string
           notes: string | null
           perceived_exertion: number | null
+          program_id: string | null
+          program_position: number | null
+          program_template_id: string | null
           readiness_score: number | null
           resolution_source: string | null
           session_unit: string
@@ -9110,6 +9187,9 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          program_id?: string | null
+          program_position?: number | null
+          program_template_id?: string | null
           readiness_score?: number | null
           resolution_source?: string | null
           session_unit?: string
@@ -9127,6 +9207,9 @@ export type Database = {
           id?: string
           notes?: string | null
           perceived_exertion?: number | null
+          program_id?: string | null
+          program_position?: number | null
+          program_template_id?: string | null
           readiness_score?: number | null
           resolution_source?: string | null
           session_unit?: string
@@ -9138,6 +9221,27 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "workouts_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_program_template_id_fkey"
+            columns: ["program_template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workouts_program_template_id_fkey"
+            columns: ["program_template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "workouts_template_id_fkey"
             columns: ["template_id"]
@@ -10998,6 +11102,15 @@ export type Database = {
         Args: { p_payload: Json }
         Returns: string
       }
+      advance_program_progress: {
+        Args: {
+          p_position: number
+          p_program_id: string
+          p_user_id: string
+          p_workout_id: string
+        }
+        Returns: undefined
+      }
       advance_program_state: {
         Args: { _completed_block_id: string; _user_id: string }
         Returns: boolean
@@ -11770,6 +11883,13 @@ export type Database = {
           template_name: string
           total_blocks: number
           workout_template_id: string
+        }[]
+      }
+      get_next_program_template: {
+        Args: { p_program_id: string; p_user_id: string }
+        Returns: {
+          order_position: number
+          template_id: string
         }[]
       }
       get_next_set_index: {
