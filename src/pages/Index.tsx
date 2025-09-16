@@ -29,7 +29,20 @@ const Index: React.FC = () => {
   }
 
   // Authenticated - redirect to dashboard
-  return <Navigate to="/dashboard" replace />;
+  useEffect(() => {
+    if (session?.user && checked) {
+      window.location.href = '/dashboard';
+    }
+  }, [session, checked]);
+
+  // Show landing while redirecting
+  if (session?.user) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
 };
 
 export default Index;
