@@ -28,6 +28,7 @@ const AdminMenu: React.FC = () => {
         { label: 'Naming Templates', href: '/admin/naming-templates' },
         { label: 'Coach Logs', href: '/admin/coach-logs' },
         { label: 'Settings', href: '/admin/settings' },
+        { label: 'Apple Secrets', href: '/admin/apple-secrets' },
       ]
     },
   ];

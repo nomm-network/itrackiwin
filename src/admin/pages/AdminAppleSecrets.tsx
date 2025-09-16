@@ -1,0 +1,200 @@
+import React, { useState } from "react";
+import PageNav from "@/components/PageNav";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Copy, Key, Shield } from "lucide-react";
+import { toast } from "sonner";
+
+const AdminAppleSecrets: React.FC = () => {
+  const [formData, setFormData] = useState({
+    teamId: 'P57CS74KT4',
+    clientId: 'com.itrackiwin.web',
+    keyId: '45Y8P8ASJG',
+    privateKey: ''
+  });
+  const [generatedSecret, setGeneratedSecret] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
+  const generateSecret = async () => {
+    if (!formData.privateKey.trim()) {
+      toast.error('Please paste your private key (.p8 file content)');
+      return;
+    }
+
+    setIsLoading(true);
+    
+    try {
+      // Import jwt library dynamically
+      const jwt = await import('jsonwebtoken');
+      
+      const now = Math.floor(Date.now() / 1000);
+      const payload = {
+        iss: formData.teamId,
+        iat: now,
+        exp: now + 60 * 60 * 24 * 30, // 30 days expiration
+        aud: 'https://appleid.apple.com',
+        sub: formData.clientId,
+      };
+
+      const clientSecret = jwt.sign(payload, formData.privateKey, {
+        algorithm: 'ES256',
+        header: { kid: formData.keyId },
+      });
+
+      setGeneratedSecret(clientSecret);
+      toast.success('Apple client secret generated successfully!');
+    } catch (error) {
+      console.error('Error generating secret:', error);
+      toast.error('Failed to generate secret. Please check your private key format.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const copyToClipboard = () => {
+    navigator.clipboard.writeText(generatedSecret);
+    toast.success('Secret copied to clipboard!');
+  };
+
+  return (
+    <main className="container py-6">
+      <PageNav current="Admin / Apple Secrets" />
+      
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Shield className="h-8 w-8" />
+            Apple Client Secret Generator
+          </h1>
+          <p className="text-muted-foreground mt-2">
+            Generate JWT tokens for Apple Sign In authentication
+          </p>
+        </div>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5" />
+              Apple Developer Credentials
+            </CardTitle>
+            <CardDescription>
+              Enter your Apple Developer account information to generate a client secret JWT
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="teamId">Team ID</Label>
+                <Input
+                  id="teamId"
+                  value={formData.teamId}
+                  onChange={(e) => setFormData({...formData, teamId: e.target.value})}
+                  placeholder="P57CS74KT4"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="clientId">Client ID (Services ID)</Label>
+                <Input
+                  id="clientId"
+                  value={formData.clientId}
+                  onChange={(e) => setFormData({...formData, clientId: e.target.value})}
+                  placeholder="com.itrackiwin.web"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="keyId">Key ID</Label>
+                <Input
+                  id="keyId"
+                  value={formData.keyId}
+                  onChange={(e) => setFormData({...formData, keyId: e.target.value})}
+                  placeholder="45Y8P8ASJG"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="privateKey">Private Key (.p8 file content)</Label>
+              <Textarea
+                id="privateKey"
+                rows={8}
+                value={formData.privateKey}
+                onChange={(e) => setFormData({...formData, privateKey: e.target.value})}
+                placeholder="-----BEGIN PRIVATE KEY-----&#10;MIGTAgEAMBMGByqGSM49AgEGCCqGSM49AwEHBHkw...&#10;-----END PRIVATE KEY-----"
+                className="font-mono text-sm"
+              />
+            </div>
+            
+            <Button 
+              onClick={generateSecret} 
+              disabled={isLoading}
+              className="w-full"
+            >
+              {isLoading ? 'Generating...' : 'Generate Client Secret JWT'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {generatedSecret && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Key className="h-5 w-5" />
+                Generated Client Secret
+              </CardTitle>
+              <CardDescription>
+                Copy this JWT token and paste it into Supabase → Auth → Providers → Apple → Secret Key
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="relative">
+                <Textarea
+                  value={generatedSecret}
+                  readOnly
+                  rows={4}
+                  className="font-mono text-sm pr-12"
+                />
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={copyToClipboard}
+                  className="absolute top-2 right-2"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <Alert>
+                <AlertDescription>
+                  <strong>Important:</strong> This token expires in 30 days. Make sure to regenerate it before expiration. 
+                  Apple requires client secrets to be refreshed regularly for security.
+                </AlertDescription>
+              </Alert>
+            </CardContent>
+          </Card>
+        )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Instructions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-2 text-sm text-muted-foreground">
+            <p>1. Get your Team ID from the top-right of your Apple Developer portal</p>
+            <p>2. Use your Services ID (e.g., com.itrackiwin.web) as the Client ID</p>
+            <p>3. Find your Key ID in Apple Developer → Keys section</p>
+            <p>4. Copy the entire content of your .p8 private key file (including BEGIN/END lines)</p>
+            <p>5. Generate the JWT and copy it to Supabase Auth settings</p>
+            <p>6. Remember to regenerate the token every 30 days</p>
+          </CardContent>
+        </Card>
+      </div>
+    </main>
+  );
+};
+
+export default AdminAppleSecrets;

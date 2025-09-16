@@ -26,6 +26,7 @@ const AdminCoachLogs = lazy(() => import("./pages/AdminCoachLogs"));
 const AdminAttributeSchemas = lazy(() => import("./pages/AdminAttributeSchemas"));
 const AdminNamingTemplates = lazy(() => import("./pages/AdminNamingTemplates"));
 const AdminSettings = lazy(() => import("./pages/AdminSettings"));
+const AdminAppleSecrets = lazy(() => import("./pages/AdminAppleSecrets"));
 
 const AdminUsersListPage = lazy(() => import("./users/AdminUsersListPage"));
 const AdminUserDetailPage = lazy(() => import("./users/AdminUserDetailPage"));
@@ -95,6 +96,7 @@ export function AdminRoutes() {
       <Route path="attribute-schemas" element={<AdminAttributeSchemas />} />
       <Route path="naming-templates" element={<AdminNamingTemplates />} />
       <Route path="settings" element={<AdminSettings />} />
+      <Route path="apple-secrets" element={<AdminAppleSecrets />} />
       <Route path="translations/*" element={<AdminTranslations />} />
           <Route path="coach-logs" element={<AdminCoachLogs />} />
           <Route path="category/:categoryId" element={<AdminCategoryPage />} />
