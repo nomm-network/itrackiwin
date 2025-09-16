@@ -139,11 +139,6 @@ export function AppRoutes() {
               <HubPage />
             </ProtectedMobileLayout>
           } />
-          <Route path={Paths.dashboard} element={
-            <ProtectedMobileLayout>
-              <HubPage />
-            </ProtectedMobileLayout>
-          } />
           
           <Route path="/user-dashboard" element={
             <ProtectedMobileLayout>
