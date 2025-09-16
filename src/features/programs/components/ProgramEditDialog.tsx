@@ -23,6 +23,14 @@ export function ProgramEditDialog({ open, onOpenChange, program }: ProgramEditDi
   const [programGoal, setProgramGoal] = useState(program?.goal || '');
   const queryClient = useQueryClient();
 
+  // Update state when program prop changes
+  React.useEffect(() => {
+    if (program) {
+      setProgramName(program.name || '');
+      setProgramGoal(program.goal || '');
+    }
+  }, [program]);
+
   // Fetch program templates
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['program-templates', program?.id],
