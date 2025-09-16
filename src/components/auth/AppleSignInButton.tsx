@@ -27,7 +27,15 @@ export const AppleSignInButton: React.FC<AppleSignInButtonProps> = ({
 
       if (error) {
         console.error('Apple Sign In error:', error);
-        toast.error('Failed to sign in with Apple. Please try again.');
+        
+        // Handle specific error cases
+        if (error.message.includes('signup_disabled') || error.message.includes('Email not confirmed')) {
+          toast.error('Please use your existing email/password account or contact support.');
+        } else if (error.message.includes('identity_already_exists')) {
+          toast.error('This Apple account is already linked to another user.');
+        } else {
+          toast.error('Failed to sign in with Apple. Try using your email/password instead.');
+        }
       }
     } catch (error) {
       console.error('Apple Sign In error:', error);
