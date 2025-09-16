@@ -25,6 +25,14 @@ const AdminAppleSecrets: React.FC = () => {
       return;
     }
 
+    // Validate private key format
+    const privateKeyTrimmed = formData.privateKey.trim();
+    if (!privateKeyTrimmed.includes('-----BEGIN PRIVATE KEY-----') || 
+        !privateKeyTrimmed.includes('-----END PRIVATE KEY-----')) {
+      toast.error('Invalid private key format. Please paste the complete .p8 file content including BEGIN/END lines.');
+      return;
+    }
+
     setIsLoading(true);
     
     try {
@@ -40,16 +48,26 @@ const AdminAppleSecrets: React.FC = () => {
         sub: formData.clientId,
       };
 
-      const clientSecret = jwt.sign(payload, formData.privateKey, {
+      const clientSecret = jwt.sign(payload, privateKeyTrimmed, {
         algorithm: 'ES256',
         header: { kid: formData.keyId },
       });
 
       setGeneratedSecret(clientSecret);
       toast.success('Apple client secret generated successfully!');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error generating secret:', error);
-      toast.error('Failed to generate secret. Please check your private key format.');
+      
+      let errorMessage = 'Failed to generate secret. ';
+      if (error.message?.includes('invalid key') || error.message?.includes('key')) {
+        errorMessage += 'Invalid private key format or content. Make sure you copied the entire .p8 file content.';
+      } else if (error.message?.includes('algorithm')) {
+        errorMessage += 'Algorithm mismatch. Make sure your key supports ES256.';
+      } else {
+        errorMessage += 'Please check your credentials and private key format.';
+      }
+      
+      toast.error(errorMessage);
     } finally {
       setIsLoading(false);
     }
