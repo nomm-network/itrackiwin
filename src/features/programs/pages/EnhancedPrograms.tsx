@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Play, Settings, Plus, Trash2, Edit } from 'lucide-react';
 import { EnhancedProgramBuilder } from '../components/EnhancedProgramBuilder';
+import { ProgramEditDialog } from '../components/ProgramEditDialog';
 import { useTrainingPrograms, useSetActiveProgram, useNextProgramBlock, useDeleteTrainingProgram, useUpdateTrainingProgram } from '@/hooks/useTrainingPrograms';
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -48,7 +49,6 @@ export default function EnhancedPrograms() {
 
   const handleEditProgram = (program: any) => {
     setEditingProgram(program);
-    setEditForm({ name: program.name, goal: program.goal || '' });
   };
 
   const handleUpdateProgram = async () => {
@@ -244,53 +244,12 @@ export default function EnhancedPrograms() {
         )}
       </div>
 
-      {/* Edit Program Dialog */}
-      <Dialog open={!!editingProgram} onOpenChange={(open) => !open && setEditingProgram(null)}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Edit Program</DialogTitle>
-            <DialogDescription>
-              Update your training program details
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="edit-name">Program Name</Label>
-              <Input
-                id="edit-name"
-                value={editForm.name}
-                onChange={(e) => setEditForm(prev => ({ ...prev, name: e.target.value }))}
-              />
-            </div>
-            <div>
-              <Label htmlFor="edit-goal">Goal</Label>
-              <Select 
-                value={editForm.goal} 
-                onValueChange={(value) => setEditForm(prev => ({ ...prev, goal: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a goal" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No goal</SelectItem>
-                  <SelectItem value="strength">Strength</SelectItem>
-                  <SelectItem value="hypertrophy">Muscle Building</SelectItem>
-                  <SelectItem value="endurance">Endurance</SelectItem>
-                  <SelectItem value="general">General Fitness</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex gap-3">
-              <Button variant="outline" onClick={() => setEditingProgram(null)}>
-                Cancel
-              </Button>
-              <Button onClick={handleUpdateProgram} disabled={updateProgram.isPending}>
-                {updateProgram.isPending ? 'Updating...' : 'Update Program'}
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+      {/* Enhanced Edit Program Dialog */}
+      <ProgramEditDialog
+        open={!!editingProgram}
+        onOpenChange={(open) => !open && setEditingProgram(null)}
+        program={editingProgram}
+      />
     </div>
   );
 }
