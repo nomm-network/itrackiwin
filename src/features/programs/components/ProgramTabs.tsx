@@ -49,9 +49,6 @@ export function ProgramTabs() {
     <div className="max-w-6xl mx-auto p-6">
       <div className="mb-8">
         <h1 className="text-3xl font-bold mb-2">Workout Programs</h1>
-        <p className="text-muted-foreground">
-          Create custom programs manually or let Bro AI build the perfect program for you
-        </p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
