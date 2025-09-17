@@ -88,10 +88,10 @@ serve(async (req) => {
       const { data: programId, error: generateError } = await supabase
         .rpc('generate_ai_program', {
           p_user_id: user.id,
-          p_goal: requestData.goal as any,
-          p_experience_level: requestData.experience_level as any,
+          p_goal: requestData.goal,
+          p_experience_level: requestData.experience_level,
           p_training_days: requestData.training_days_per_week,
-          p_location_type: requestData.location_type as any,
+          p_location_type: requestData.location_type,
           p_equipment: requestData.available_equipment || [],
           p_priority_muscles: requestData.priority_muscle_groups || [],
           p_session_duration: requestData.time_per_session_min || 60

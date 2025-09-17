@@ -11912,27 +11912,16 @@ export type Database = {
         }[]
       }
       generate_ai_program: {
-        Args:
-          | {
-              p_equipment: string[]
-              p_experience_level: Database["public"]["Enums"]["experience_level"]
-              p_goal: Database["public"]["Enums"]["program_goal"]
-              p_location_type: Database["public"]["Enums"]["location_type"]
-              p_priority_muscles: string[]
-              p_session_duration?: number
-              p_training_days: number
-              p_user_id: string
-            }
-          | {
-              p_equipment: string[]
-              p_experience_level: string
-              p_goal: string
-              p_location_type: string
-              p_priority_muscles: string[]
-              p_session_duration?: number
-              p_training_days: number
-              p_user_id: string
-            }
+        Args: {
+          p_equipment: string[]
+          p_experience_level: Database["public"]["Enums"]["experience_level"]
+          p_goal: Database["public"]["Enums"]["program_goal"]
+          p_location_type: Database["public"]["Enums"]["location_type"]
+          p_priority_muscles: string[]
+          p_session_duration?: number
+          p_training_days: number
+          p_user_id: string
+        }
         Returns: string
       }
       generate_warmup_json: {
