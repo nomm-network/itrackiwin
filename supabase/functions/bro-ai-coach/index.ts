@@ -25,8 +25,21 @@ Deno.serve(async (req) => {
       return json({ error: 'Server not configured (env missing).' }, 500)
     }
 
-    // Create supabase client with service role key
-    const supabase = createClient(url, serviceRoleKey)
+    // Get the authorization header from the request
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      console.error('Missing Authorization header')
+      return json({ error: 'Authorization required' }, 401)
+    }
+
+    // Create supabase client with user's auth token for RPC calls
+    const supabase = createClient(url, serviceRoleKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    })
 
     // Detailed logging for debugging
     console.log('=== BRO AI COACH DEBUG START ===')
