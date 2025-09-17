@@ -11902,6 +11902,19 @@ export type Database = {
           step_kg: number
         }[]
       }
+      generate_ai_program: {
+        Args: {
+          p_equipment: string[]
+          p_experience_level: Database["public"]["Enums"]["experience_level"]
+          p_goal: Database["public"]["Enums"]["program_goal"]
+          p_location_type: Database["public"]["Enums"]["location_type"]
+          p_priority_muscles: string[]
+          p_session_duration?: number
+          p_training_days: number
+          p_user_id: string
+        }
+        Returns: string
+      }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
         Returns: Json
