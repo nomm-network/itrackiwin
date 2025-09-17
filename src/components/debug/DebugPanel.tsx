@@ -23,6 +23,13 @@ interface DebugPanelProps {
 const DebugPanel: React.FC<DebugPanelProps> = ({ className = '', forceOpen = false }) => {
   const [logs, setLogs] = useState<DebugLog[]>([]);
   const [isOpen, setIsOpen] = useState(forceOpen);
+  
+  // Keep panel open if forceOpen is true
+  React.useEffect(() => {
+    if (forceOpen) {
+      setIsOpen(true);
+    }
+  }, [forceOpen]);
   const [filter, setFilter] = useState<'all' | 'error' | 'warn' | 'info'>('all');
 
   // Global error handler
@@ -106,14 +113,14 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ className = '', forceOpen = fal
   const errorCount = logs.filter(log => log.level === 'error').length;
   const warnCount = logs.filter(log => log.level === 'warn').length;
 
-  // Always show the panel if there are errors or if forced open
-  if (logs.length === 0 && !isOpen && !forceOpen) {
+  // Always show the panel if forced open, even without logs
+  if (!forceOpen && logs.length === 0 && !isOpen) {
     return null;
   }
 
   return (
-    <div className={`fixed bottom-4 right-4 z-50 max-w-lg ${className}`}>
-      <Card className="shadow-lg border-2">
+    <div className={`fixed bottom-0 left-0 right-0 z-50 p-4 ${className}`}>
+      <Card className="shadow-lg border-2 max-w-full bg-background/95 backdrop-blur">
         <Collapsible open={isOpen} onOpenChange={setIsOpen}>
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors">
@@ -180,7 +187,7 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ className = '', forceOpen = fal
 
               {filteredLogs.length === 0 ? (
                 <div className="text-center text-muted-foreground text-sm py-4">
-                  No {filter === 'all' ? 'logs' : filter + 's'} found
+                  {forceOpen && logs.length === 0 ? 'Debug panel ready - waiting for logs...' : `No ${filter === 'all' ? 'logs' : filter + 's'} found`}
                 </div>
               ) : (
                 <div className="space-y-2">
