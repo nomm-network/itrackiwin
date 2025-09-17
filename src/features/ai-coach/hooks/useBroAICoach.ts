@@ -32,12 +32,85 @@ export interface AIProgram {
 export const useGenerateProgram = () => {
   return useMutation({
     mutationFn: async (params: ProgramGenerationRequest) => {
-      const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-        body: params,
-      });
+      try {
+        // Add debug logging for request
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'info',
+            message: 'Generating AI Program',
+            details: params,
+            source: 'BroAICoach'
+          });
+        }
 
-      if (error) throw error;
-      return data;
+        const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
+          body: params,
+        });
+
+        if (error) {
+          // Log detailed error for debugging
+          if ((window as any).debugLog) {
+            (window as any).debugLog({
+              level: 'error',
+              message: 'Program Generation Failed',
+              details: {
+                error: error,
+                request: params,
+                timestamp: new Date().toISOString()
+              },
+              source: 'BroAICoach Edge Function'
+            });
+          }
+          throw new Error(`Edge Function Error: ${error.message}`);
+        }
+
+        // Check if response contains error
+        if (data?.error) {
+          if ((window as any).debugLog) {
+            (window as any).debugLog({
+              level: 'error',
+              message: 'Program Generation API Error',
+              details: {
+                apiError: data.error,
+                details: data.details,
+                request: params
+              },
+              source: 'BroAICoach API'
+            });
+          }
+          throw new Error(`API Error: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
+        }
+
+        // Log success
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'info',
+            message: 'Program Generated Successfully',
+            details: {
+              programId: data?.program_id,
+              hasProgram: !!data?.program
+            },
+            source: 'BroAICoach'
+          });
+        }
+
+        return data;
+      } catch (error: any) {
+        // Final error logging
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'error',
+            message: 'Program Generation Exception',
+            details: {
+              error: error.message,
+              stack: error.stack,
+              request: params
+            },
+            source: 'BroAICoach Exception'
+          });
+        }
+        throw error;
+      }
     },
     onSuccess: (data) => {
       toast({

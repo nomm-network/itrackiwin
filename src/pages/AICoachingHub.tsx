@@ -4,6 +4,7 @@ import { Brain, CheckCircle, BarChart3, MessageCircle } from "lucide-react";
 import AICoach from "@/components/ai/AICoach";
 import FormCoach from "@/components/ai/FormCoach";
 import ProgressInsights from "@/components/ai/ProgressInsights";
+import DebugPanel from "@/components/debug/DebugPanel";
 
 const AICoachingHub: React.FC = () => {
   return (
@@ -45,6 +46,8 @@ const AICoachingHub: React.FC = () => {
           </Tabs>
         </div>
       </div>
+      
+      <DebugPanel />
     </div>
   );
 };

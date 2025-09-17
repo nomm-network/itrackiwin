@@ -5,6 +5,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dumbbell, Brain, Zap, Plus, History } from 'lucide-react';
 import { ProgramBuilderForm, ProgramPreview, useAIPrograms } from '@/features/ai-coach';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 
 export default function BroAICoach() {
@@ -164,6 +165,8 @@ export default function BroAICoach() {
             </TabsContent>
           </Tabs>
         </div>
+        
+        <DebugPanel />
       </div>
     </>
   );
