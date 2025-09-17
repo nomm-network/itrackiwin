@@ -11895,13 +11895,13 @@ export type Database = {
       }
       generate_ai_program: {
         Args: {
-          available_equipment: string[]
-          experience_level: string
-          goal: string
-          location_type: string
-          priority_muscle_groups: string[]
-          time_per_session_min: number
-          training_days_per_week: number
+          p_available_equipment: string[]
+          p_experience_level: string
+          p_goal: string
+          p_location_type: string
+          p_priority_muscle_groups: string[]
+          p_time_per_session_min: number
+          p_training_days_per_week: number
         }
         Returns: Json
       }
