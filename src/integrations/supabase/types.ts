@@ -8203,6 +8203,7 @@ export type Database = {
       }
       user_profile_fitness: {
         Row: {
+          available_equipment: string[] | null
           bodyweight: number | null
           created_at: string | null
           days_per_week: number | null
@@ -8212,7 +8213,9 @@ export type Database = {
           height_cm: number | null
           id: string
           injuries: string[] | null
+          location_type: string | null
           preferred_session_minutes: number | null
+          priority_muscle_groups: string[] | null
           readiness_data: Json | null
           sex: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
@@ -8221,6 +8224,7 @@ export type Database = {
           weight_entry_style: string
         }
         Insert: {
+          available_equipment?: string[] | null
           bodyweight?: number | null
           created_at?: string | null
           days_per_week?: number | null
@@ -8230,7 +8234,9 @@ export type Database = {
           height_cm?: number | null
           id?: string
           injuries?: string[] | null
+          location_type?: string | null
           preferred_session_minutes?: number | null
+          priority_muscle_groups?: string[] | null
           readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal: string
@@ -8239,6 +8245,7 @@ export type Database = {
           weight_entry_style?: string
         }
         Update: {
+          available_equipment?: string[] | null
           bodyweight?: number | null
           created_at?: string | null
           days_per_week?: number | null
@@ -8248,7 +8255,9 @@ export type Database = {
           height_cm?: number | null
           id?: string
           injuries?: string[] | null
+          location_type?: string | null
           preferred_session_minutes?: number | null
+          priority_muscle_groups?: string[] | null
           readiness_data?: Json | null
           sex?: Database["public"]["Enums"]["sex_type"] | null
           training_goal?: string
