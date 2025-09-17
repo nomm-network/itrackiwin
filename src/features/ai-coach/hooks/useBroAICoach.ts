@@ -55,8 +55,37 @@ export const useGenerateProgram = () => {
           });
         }
 
+        // Ensure we have required parameters or get from fitness profile
+        if (!params || Object.keys(params).length === 0) {
+          throw new Error('Program generation parameters are required');
+        }
+
+        // Prepare the request payload with all required fields
+        const payload = {
+          goal: params.goal,
+          experience_level: params.experience_level,
+          training_days_per_week: params.training_days_per_week,
+          location_type: params.location_type,
+          available_equipment: params.available_equipment || [],
+          priority_muscle_groups: params.priority_muscle_groups || [],
+          time_per_session_min: params.time_per_session_min || 60,
+        };
+
+        // Validate required fields
+        const required = ['goal', 'experience_level', 'training_days_per_week', 'location_type'];
+        for (const field of required) {
+          if (!payload[field as keyof typeof payload]) {
+            throw new Error(`Missing required field: ${field}`);
+          }
+        }
+
+        console.log('📤 Sending payload to edge function:', payload);
+
         const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-          body: params || {},
+          body: payload,
+          headers: {
+            'Content-Type': 'application/json',
+          },
         });
 
         // Log the comprehensive response for debugging
