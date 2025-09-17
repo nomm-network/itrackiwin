@@ -68,14 +68,51 @@ Deno.serve(async (req) => {
 
     console.log('Validated payload:', payload)
 
+    // Map equipment UUIDs to slugs
+    let equipmentSlugs = []
+    if (payload.available_equipment && payload.available_equipment.length > 0) {
+      const { data: equipmentData, error: equipmentError } = await supabase
+        .from('equipment')
+        .select('slug')
+        .in('id', payload.available_equipment)
+      
+      if (equipmentError) {
+        console.error('Equipment lookup error:', equipmentError)
+        return json({ error: 'Failed to resolve equipment', details: equipmentError }, 500)
+      }
+      
+      equipmentSlugs = equipmentData?.map(e => e.slug) || []
+    }
+
+    // Map goal values to expected format
+    const goalMapping = {
+      'muscle_gain': 'muscle_gain',
+      'fat_loss': 'fat_loss', 
+      'strength': 'strength',
+      'recomp': 'muscle_gain', // Map recomp to muscle_gain for now
+      'endurance': 'endurance',
+      'general_fitness': 'general_fitness'
+    }
+
+    const mappedGoal = goalMapping[payload.goal] || 'muscle_gain'
+
     // Call the Postgres function via RPC
-    console.log('Calling generate_ai_program RPC with data:', payload)
-    const { data, error } = await supabase.rpc('generate_ai_program', {
-      goal: payload.goal,
+    console.log('Calling generate_ai_program RPC with mapped data:', {
+      goal: mappedGoal,
       experience_level: payload.experience_level,
       training_days_per_week: payload.training_days_per_week,
       location_type: payload.location_type,
-      available_equipment: payload.available_equipment,
+      available_equipment: equipmentSlugs,
+      priority_muscle_groups: payload.priority_muscle_groups,
+      time_per_session_min: payload.time_per_session_min,
+    })
+    
+    const { data, error } = await supabase.rpc('generate_ai_program', {
+      goal: mappedGoal,
+      experience_level: payload.experience_level,
+      training_days_per_week: payload.training_days_per_week,
+      location_type: payload.location_type,
+      available_equipment: equipmentSlugs,
       priority_muscle_groups: payload.priority_muscle_groups,
       time_per_session_min: payload.time_per_session_min,
     })
