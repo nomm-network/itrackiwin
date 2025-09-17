@@ -10,7 +10,7 @@ export const Paths = {
       session: (id = ':id') => `/fitness/session/${id}`,
       templates: '/fitness/templates',
       templateEdit: (templateId = ':templateId') => `/fitness/templates/${templateId}/edit`,
-      configure: '/fitness/configure',
+      configure: '/dashboard?cat=health&sub=configure',
       
       myGym: '/fitness/my-gym',
       templatesRotation: '/fitness/templates/rotation',

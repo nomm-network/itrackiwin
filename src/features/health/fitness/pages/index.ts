@@ -6,6 +6,6 @@ export { default as TemplatesPage } from './Templates.page';
 export { default as TemplateEditPage } from './TemplateEdit.page';
 export { default as HistoryPage } from './History.page';
 export { default as WorkoutDetailPage } from './WorkoutDetail.page';
-export { default as FitnessConfigurePage } from './FitnessConfigure.page';
+
 export { default as MyGymPage } from './MyGym.page';
 export { default as TemplateRotationPage } from './TemplateRotation.page';

@@ -100,7 +100,7 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
               <p className="text-muted-foreground">
                 Configure your fitness goals and preferences in{' '}
                 <a 
-                  href="/fitness/configure" 
+                  href="/dashboard?cat=health&sub=configure" 
                   className="text-primary hover:underline font-medium"
                 >
                   Fitness Configuration
