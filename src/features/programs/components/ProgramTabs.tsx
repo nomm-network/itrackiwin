@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import DebugPanel from '@/components/debug/DebugPanel';
+import { EdgeFunctionDebugPanel } from '@/components/debug/EdgeFunctionDebugPanel';
 
 export function ProgramTabs() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -318,6 +319,8 @@ export function ProgramTabs() {
         </TabsContent>
       </Tabs>
       
+      
+      <EdgeFunctionDebugPanel />
       <DebugPanel forceOpen={true} />
     </div>
   );
