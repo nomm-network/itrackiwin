@@ -11912,27 +11912,16 @@ export type Database = {
         }[]
       }
       generate_ai_program: {
-        Args:
-          | {
-              available_equipment: string[]
-              experience_level: string
-              goal: string
-              location_type: string
-              priority_muscle_groups: string[]
-              time_per_session_min: number
-              training_days_per_week: number
-              user_id: string
-            }
-          | {
-              available_equipment: string[]
-              experience_level: string
-              goal: string
-              location_type: string
-              priority_muscle_groups: string[]
-              time_per_session_min?: number
-              training_days_per_week: number
-            }
-        Returns: string
+        Args: {
+          available_equipment: string[]
+          experience_level: string
+          goal: string
+          location_type: string
+          priority_muscle_groups: string[]
+          time_per_session_min: number
+          training_days_per_week: number
+        }
+        Returns: Json
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
