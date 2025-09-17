@@ -37,7 +37,23 @@ export default function HealthConfigureBody() {
 
   // Load existing fitness profile data
   useEffect(() => {
-    if (fitnessProfileData) {
+    if (fitnessProfileData && homeEquipment) {
+      // Convert any legacy string equipment values to UUIDs
+      let equipmentUuids: string[] = [];
+      if (fitnessProfileData.available_equipment) {
+        equipmentUuids = fitnessProfileData.available_equipment
+          .map(item => {
+            // If it's already a UUID, keep it
+            if (item.length === 36 && item.includes('-')) {
+              return item;
+            }
+            // If it's a string slug, convert to UUID
+            const equipment = homeEquipment.find(eq => eq.slug === item);
+            return equipment?.id;
+          })
+          .filter((id): id is string => Boolean(id));
+      }
+
       setFitnessProfile({
         primaryWeightGoal: fitnessProfileData.goal || '',
         trainingFocus: fitnessProfileData.training_goal || '',
@@ -48,11 +64,11 @@ export default function HealthConfigureBody() {
         daysPerWeek: fitnessProfileData.days_per_week?.toString() || '',
         sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || '',
         locationType: fitnessProfileData.location_type || '',
-        availableEquipment: fitnessProfileData.available_equipment || [],
+        availableEquipment: equipmentUuids,
         priorityMuscleGroups: fitnessProfileData.priority_muscle_groups || []
       });
     }
-  }, [fitnessProfileData]);
+  }, [fitnessProfileData, homeEquipment]);
 
   // Nutrition Profile State  
   const [nutritionProfile, setNutritionProfile] = useState({
@@ -74,6 +90,14 @@ export default function HealthConfigureBody() {
     if (profileType === 'fitness') {
       try {
         setDebugError(null); // Clear previous errors
+        
+        // Validate that equipment IDs are valid UUIDs
+        const validEquipmentIds = fitnessProfile.availableEquipment.filter(id => {
+          return id.length === 36 && id.includes('-') && id.match(/^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/);
+        });
+
+        console.log('Saving equipment IDs:', validEquipmentIds);
+        
         await upsertProfile.mutateAsync({
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
@@ -84,7 +108,7 @@ export default function HealthConfigureBody() {
           days_per_week: fitnessProfile.daysPerWeek ? Number(fitnessProfile.daysPerWeek) : undefined,
           preferred_session_minutes: fitnessProfile.sessionLength ? Number(fitnessProfile.sessionLength) : undefined,
           location_type: fitnessProfile.locationType as "home" | "gym" | undefined,
-          available_equipment: fitnessProfile.availableEquipment,
+          available_equipment: validEquipmentIds.length > 0 ? validEquipmentIds : undefined,
           priority_muscle_groups: fitnessProfile.priorityMuscleGroups,
         });
       } catch (error) {
