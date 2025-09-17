@@ -82,7 +82,7 @@ export const useGenerateProgram = () => {
         console.log('📤 Sending payload to edge function:', payload);
 
         const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-          body: payload,
+          body: JSON.stringify(payload),
           headers: {
             'Content-Type': 'application/json',
           },
@@ -247,12 +247,23 @@ export const useAIPrograms = () => {
   return useQuery({
     queryKey: ['ai-programs'],
     queryFn: async () => {
-      const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-        method: 'GET',
-      });
+      const { data, error } = await supabase
+        .from('ai_programs')
+        .select(`
+          *,
+          ai_program_weeks(
+            week_number,
+            ai_program_workouts(
+              day_of_week,
+              title,
+              focus_tags
+            )
+          )
+        `)
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
 
       if (error) throw error;
-      return data.programs as AIProgram[];
+      return data as AIProgram[];
     },
   });
 };
