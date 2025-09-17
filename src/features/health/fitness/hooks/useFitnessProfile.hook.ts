@@ -17,6 +17,9 @@ export interface FitnessProfile {
   injuries?: string[];
   days_per_week?: number;
   preferred_session_minutes?: number;
+  location_type?: "home" | "gym";
+  available_equipment?: string[];
+  priority_muscle_groups?: string[];
   created_at: string;
   updated_at: string;
 }
@@ -44,7 +47,7 @@ export const useUpsertFitnessProfile = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level?: "new" | "returning" | "intermediate" | "advanced" | "very_experienced"; sex?: SexType }) => {
+    mutationFn: async (profile: Partial<FitnessProfile> & { goal: string; training_goal: string; experience_level?: "new" | "returning" | "intermediate" | "advanced" | "very_experienced"; sex?: SexType; location_type?: "home" | "gym"; available_equipment?: string[]; priority_muscle_groups?: string[] }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -64,6 +67,9 @@ export const useUpsertFitnessProfile = () => {
         height_cm: profile.height_cm,
         days_per_week: profile.days_per_week,
         preferred_session_minutes: profile.preferred_session_minutes,
+        location_type: profile.location_type,
+        available_equipment: profile.available_equipment,
+        priority_muscle_groups: profile.priority_muscle_groups,
         weight_entry_style: 'per_side', // Required field with default
         // Only include experience_level if it's not empty
         ...(profile.experience_level && profile.experience_level.trim() !== '' && {

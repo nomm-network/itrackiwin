@@ -27,7 +27,10 @@ export default function HealthConfigureBody() {
     bodyweight: '',
     height: '',
     daysPerWeek: '',
-    sessionLength: ''
+    sessionLength: '',
+    locationType: '',
+    availableEquipment: [] as string[],
+    priorityMuscleGroups: [] as string[]
   });
 
   // Load existing fitness profile data
@@ -41,7 +44,10 @@ export default function HealthConfigureBody() {
         bodyweight: fitnessProfileData.bodyweight?.toString() || '',
         height: fitnessProfileData.height_cm?.toString() || '',
         daysPerWeek: fitnessProfileData.days_per_week?.toString() || '',
-        sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || ''
+        sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || '',
+        locationType: fitnessProfileData.location_type || '',
+        availableEquipment: fitnessProfileData.available_equipment || [],
+        priorityMuscleGroups: fitnessProfileData.priority_muscle_groups || []
       });
     }
   }, [fitnessProfileData]);
@@ -75,6 +81,9 @@ export default function HealthConfigureBody() {
           height_cm: fitnessProfile.height ? Number(fitnessProfile.height) : undefined,
           days_per_week: fitnessProfile.daysPerWeek ? Number(fitnessProfile.daysPerWeek) : undefined,
           preferred_session_minutes: fitnessProfile.sessionLength ? Number(fitnessProfile.sessionLength) : undefined,
+          location_type: fitnessProfile.locationType as "home" | "gym" | undefined,
+          available_equipment: fitnessProfile.availableEquipment,
+          priority_muscle_groups: fitnessProfile.priorityMuscleGroups,
         });
       } catch (error) {
         console.error('Error saving fitness profile:', error);
@@ -274,8 +283,129 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
-              <Button onClick={() => handleSaveProfile('fitness')} className="w-full">
-                Save Fitness Profile
+              {/* Training Location */}
+              <div className="space-y-3">
+                <Label>Training Location</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  {[
+                    { value: 'gym', label: 'Gym', icon: '🏋️', description: 'Full equipment access' },
+                    { value: 'home', label: 'Home', icon: '🏠', description: 'Limited equipment' }
+                  ].map(location => (
+                    <Button
+                      key={location.value}
+                      variant={fitnessProfile.locationType === location.value ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setFitnessProfile(prev => ({ ...prev, locationType: location.value }))}
+                      className="flex flex-col h-auto py-4"
+                    >
+                      <span className="text-2xl mb-2">{location.icon}</span>
+                      <span className="font-medium">{location.label}</span>
+                      <span className="text-xs text-muted-foreground">{location.description}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Available Equipment (shown only for Home) */}
+              {fitnessProfile.locationType === 'home' && (
+                <div className="space-y-3">
+                  <Label>Available Equipment</Label>
+                  <p className="text-sm text-muted-foreground">Select all equipment you have access to at home</p>
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {[
+                      { value: 'bodyweight', label: 'Bodyweight', icon: '🤸' },
+                      { value: 'dumbbells', label: 'Dumbbells', icon: '🏋️' },
+                      { value: 'barbell', label: 'Barbell', icon: '🏋️‍♂️' },
+                      { value: 'kettlebells', label: 'Kettlebells', icon: '⚖️' },
+                      { value: 'resistance-bands', label: 'Resistance Bands', icon: '🔗' },
+                      { value: 'pull-up-bar', label: 'Pull-up Bar', icon: '🚪' },
+                      { value: 'bench', label: 'Bench', icon: '🪑' },
+                      { value: 'squat-rack', label: 'Squat Rack', icon: '🏗️' },
+                      { value: 'cable-machine', label: 'Cable Machine', icon: '🔌' }
+                    ].map(equipment => (
+                      <Button
+                        key={equipment.value}
+                        variant={fitnessProfile.availableEquipment.includes(equipment.value) ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => {
+                          const current = fitnessProfile.availableEquipment;
+                          if (current.includes(equipment.value)) {
+                            setFitnessProfile(prev => ({
+                              ...prev,
+                              availableEquipment: current.filter(e => e !== equipment.value)
+                            }));
+                          } else {
+                            setFitnessProfile(prev => ({
+                              ...prev,
+                              availableEquipment: [...current, equipment.value]
+                            }));
+                          }
+                        }}
+                        className="flex flex-col h-auto py-3"
+                      >
+                        <span className="text-lg mb-1">{equipment.icon}</span>
+                        <span className="text-xs">{equipment.label}</span>
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Priority Muscle Groups */}
+              <div className="space-y-3">
+                <Label>Priority Muscle Groups</Label>
+                <p className="text-sm text-muted-foreground">Select muscle groups you want to focus on (optional)</p>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                  {[
+                    { value: 'chest', label: 'Chest', icon: '💪' },
+                    { value: 'back', label: 'Back', icon: '🔙' },
+                    { value: 'shoulders', label: 'Shoulders', icon: '👐' },
+                    { value: 'biceps', label: 'Biceps', icon: '💪' },
+                    { value: 'triceps', label: 'Triceps', icon: '💪' },
+                    { value: 'quads', label: 'Quadriceps', icon: '🦵' },
+                    { value: 'hamstrings', label: 'Hamstrings', icon: '🦵' },
+                    { value: 'glutes', label: 'Glutes', icon: '🍑' },
+                    { value: 'calves', label: 'Calves', icon: '🦵' },
+                    { value: 'abs', label: 'Abs', icon: '🏺' }
+                  ].map(muscle => (
+                    <Button
+                      key={muscle.value}
+                      variant={fitnessProfile.priorityMuscleGroups.includes(muscle.value) ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => {
+                        const current = fitnessProfile.priorityMuscleGroups;
+                        if (current.includes(muscle.value)) {
+                          setFitnessProfile(prev => ({
+                            ...prev,
+                            priorityMuscleGroups: current.filter(m => m !== muscle.value)
+                          }));
+                        } else {
+                          setFitnessProfile(prev => ({
+                            ...prev,
+                            priorityMuscleGroups: [...current, muscle.value]
+                          }));
+                        }
+                      }}
+                      className="flex flex-col h-auto py-3"
+                    >
+                      <span className="text-lg mb-1">{muscle.icon}</span>
+                      <span className="text-xs">{muscle.label}</span>
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
+              <Button onClick={() => handleSaveProfile('fitness')} className="w-full" disabled={upsertProfile.isPending}>
+                {upsertProfile.isPending ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                    Saving Profile...
+                  </>
+                ) : (
+                  <>
+                    Save Fitness Profile
+                  </>
+                )}
               </Button>
             </CardContent>
           </Card>
