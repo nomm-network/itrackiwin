@@ -25,7 +25,32 @@ Deno.serve(async (req) => {
       return json({ error: 'Server not configured (env missing).' }, 500)
     }
 
-    const supabase = createClient(url, serviceRoleKey)
+    // Get user from auth header
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      console.error('Missing or invalid auth header')
+      return json({ error: 'Authentication required' }, 401)
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Create supabase client with the user's token for user context
+    const supabase = createClient(url, serviceRoleKey, {
+      global: {
+        headers: {
+          authorization: `Bearer ${token}`
+        }
+      }
+    })
+
+    // Verify the user
+    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
+    if (userError || !user) {
+      console.error('Auth verification failed', userError)
+      return json({ error: 'Invalid authentication token' }, 401)
+    }
+
+    console.log('Authenticated user:', user.id)
 
     let payload: any
     try {
@@ -57,7 +82,7 @@ Deno.serve(async (req) => {
 
     console.log('Incoming payload', payload)
 
-    // Call the Postgres function via RPC
+    // Call the Postgres function via RPC with user_id
     const { data, error } = await supabase.rpc('generate_ai_program', {
       goal: payload.goal,
       experience_level: payload.experience_level,
@@ -66,6 +91,7 @@ Deno.serve(async (req) => {
       available_equipment: payload.available_equipment,
       priority_muscle_groups: payload.priority_muscle_groups,
       time_per_session_min: payload.time_per_session_min,
+      user_id: user.id,
     })
 
     if (error) {
