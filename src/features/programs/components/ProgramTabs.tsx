@@ -7,6 +7,7 @@ import { useTrainingPrograms } from '@/hooks/useTrainingPrograms';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import DebugPanel from '@/components/debug/DebugPanel';
 
 export function ProgramTabs() {
   const [activeTab, setActiveTab] = useState('overview');
@@ -316,6 +317,8 @@ export function ProgramTabs() {
           </div>
         </TabsContent>
       </Tabs>
+      
+      <DebugPanel forceOpen={true} />
     </div>
   );
 }

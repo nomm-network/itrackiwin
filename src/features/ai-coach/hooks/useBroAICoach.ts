@@ -33,13 +33,25 @@ export const useGenerateProgram = () => {
   return useMutation({
     mutationFn: async (params: ProgramGenerationRequest) => {
       try {
-        // Add debug logging for request
+        // Add comprehensive debug logging for request
         if ((window as any).debugLog) {
           (window as any).debugLog({
             level: 'info',
-            message: 'Generating AI Program',
-            details: params,
-            source: 'BroAICoach'
+            message: 'Starting AI Program Generation',
+            details: {
+              fullRequest: params,
+              goal: params.goal,
+              experienceLevel: params.experience_level,
+              trainingDays: params.training_days_per_week,
+              locationType: params.location_type,
+              equipment: params.available_equipment,
+              priorityMuscles: params.priority_muscle_groups,
+              sessionDuration: params.time_per_session_min,
+              timestamp: new Date().toISOString(),
+              userAgent: navigator.userAgent,
+              url: window.location.href
+            },
+            source: 'BroAICoach Request'
           });
         }
 
@@ -47,42 +59,53 @@ export const useGenerateProgram = () => {
           body: params,
         });
 
-        // Log the raw response for debugging
+        // Log the comprehensive response for debugging
         if ((window as any).debugLog) {
           (window as any).debugLog({
             level: 'info',
-            message: 'Edge Function Raw Response',
+            message: 'Edge Function Complete Response',
             details: {
-              data: data,
-              error: error,
+              rawData: data,
+              rawError: error,
               hasData: !!data,
-              hasError: !!error
+              hasError: !!error,
+              dataType: typeof data,
+              errorType: typeof error,
+              dataKeys: data ? Object.keys(data) : null,
+              errorKeys: error ? Object.keys(error) : null,
+              originalRequest: params,
+              responseTime: new Date().toISOString()
             },
-            source: 'BroAICoach Response'
+            source: 'BroAICoach Full Response'
           });
         }
 
         if (error) {
-          // Log detailed error for debugging
+          // Log ultra-detailed error for debugging
           if ((window as any).debugLog) {
             (window as any).debugLog({
               level: 'error',
-              message: 'Supabase Edge Function Error',
+              message: 'Supabase Edge Function Critical Error',
               details: {
                 error: error,
-                errorMessage: error.message,
-                errorCode: error.code,
-                errorDetails: error.details,
-                request: params,
-                timestamp: new Date().toISOString()
+                errorMessage: error.message || 'No message provided',
+                errorCode: error.code || 'No code provided',
+                errorDetails: error.details || 'No details provided',
+                errorHint: error.hint || 'No hint provided',
+                errorStatus: error.status || 'No status provided',
+                originalRequest: params,
+                requestSerialized: JSON.stringify(params),
+                timestamp: new Date().toISOString(),
+                stackTrace: error.stack || 'No stack trace',
+                fullErrorObject: JSON.stringify(error, null, 2)
               },
-              source: 'Supabase Functions'
+              source: 'Supabase Edge Function Error'
             });
           }
-          throw new Error(`Edge Function Error: ${error.message}`);
+          throw new Error(`Edge Function Error: ${error.message || error.code || 'Unknown error'}`);
         }
 
-        // Check if response contains error
+        // Check if response contains error in data
         if (data?.error) {
           if ((window as any).debugLog) {
             (window as any).debugLog({
@@ -90,47 +113,76 @@ export const useGenerateProgram = () => {
               message: 'Program Generation API Error',
               details: {
                 apiError: data.error,
-                details: data.details,
-                request: params
+                apiDetails: data.details || 'No API details provided',
+                fullApiResponse: data,
+                request: params,
+                timestamp: new Date().toISOString()
               },
-              source: 'BroAICoach API'
+              source: 'BroAICoach API Error'
             });
           }
           throw new Error(`API Error: ${data.error}${data.details ? ` - ${data.details}` : ''}`);
         }
 
-        // Log success
+        // Log successful response with all details
         if ((window as any).debugLog) {
           (window as any).debugLog({
             level: 'info',
             message: 'Program Generated Successfully',
             details: {
               programId: data?.program_id,
-              hasProgram: !!data?.program
+              programData: data?.program,
+              hasProgram: !!data?.program,
+              programTitle: data?.program?.title,
+              programWeeks: data?.program?.weeks,
+              programStatus: data?.program?.status,
+              fullResponse: data,
+              originalRequest: params,
+              successTimestamp: new Date().toISOString()
             },
-            source: 'BroAICoach'
+            source: 'BroAICoach Success'
           });
         }
 
         return data;
       } catch (error: any) {
-        // Final error logging
+        // Final comprehensive error logging
         if ((window as any).debugLog) {
           (window as any).debugLog({
             level: 'error',
-            message: 'Program Generation Exception',
+            message: 'Program Generation Fatal Exception',
             details: {
-              error: error.message,
-              stack: error.stack,
-              request: params
+              errorMessage: error.message || 'No error message',
+              errorName: error.name || 'No error name',
+              errorStack: error.stack || 'No stack trace',
+              errorCause: error.cause || 'No cause',
+              originalRequest: params,
+              requestJSON: JSON.stringify(params, null, 2),
+              browserInfo: navigator.userAgent,
+              timestamp: new Date().toISOString(),
+              currentUrl: window.location.href,
+              fullErrorObject: JSON.stringify(error, Object.getOwnPropertyNames(error), 2)
             },
-            source: 'BroAICoach Exception'
+            source: 'BroAICoach Fatal Exception'
           });
         }
         throw error;
       }
     },
     onSuccess: (data) => {
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'info',
+          message: 'Program Generation Success Callback',
+          details: {
+            successData: data,
+            programCreated: !!data?.program,
+            timestamp: new Date().toISOString()
+          },
+          source: 'BroAICoach Success Callback'
+        });
+      }
+      
       toast({
         title: "Program Generated! 💪",
         description: `Bro AI has created your custom ${data.program?.weeks}-week program.`,
@@ -138,6 +190,21 @@ export const useGenerateProgram = () => {
     },
     onError: (error: any) => {
       console.error('Error generating program:', error);
+      
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'error',
+          message: 'Program Generation Error Callback',
+          details: {
+            errorInCallback: error,
+            errorMessage: error.message,
+            errorStack: error.stack,
+            timestamp: new Date().toISOString()
+          },
+          source: 'BroAICoach Error Callback'
+        });
+      }
+      
       toast({
         title: "Generation Failed",
         description: error.message || "Failed to generate your program. Please try again.",

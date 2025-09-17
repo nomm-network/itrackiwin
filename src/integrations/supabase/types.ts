@@ -11929,7 +11929,7 @@ export type Database = {
               p_goal: string
               p_location_type: string
               p_priority_muscles: string[]
-              p_session_duration: number
+              p_session_duration?: number
               p_training_days: number
               p_user_id: string
             }
