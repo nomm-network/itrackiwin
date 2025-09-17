@@ -353,37 +353,64 @@ export type Database = {
       }
       ai_programs: {
         Row: {
+          available_equipment: string[] | null
           created_at: string
           created_by: Database["public"]["Enums"]["program_creator"]
+          experience_level:
+            | Database["public"]["Enums"]["experience_level"]
+            | null
           goal: Database["public"]["Enums"]["program_goal"]
           id: string
+          location_type: Database["public"]["Enums"]["location_type"] | null
           notes: string | null
+          priority_muscle_groups: string[] | null
+          program_data: Json | null
           status: Database["public"]["Enums"]["program_status"]
+          time_per_session_min: number | null
           title: string
+          training_days_per_week: number | null
           updated_at: string
           user_id: string
           weeks: number
         }
         Insert: {
+          available_equipment?: string[] | null
           created_at?: string
           created_by?: Database["public"]["Enums"]["program_creator"]
+          experience_level?:
+            | Database["public"]["Enums"]["experience_level"]
+            | null
           goal: Database["public"]["Enums"]["program_goal"]
           id?: string
+          location_type?: Database["public"]["Enums"]["location_type"] | null
           notes?: string | null
+          priority_muscle_groups?: string[] | null
+          program_data?: Json | null
           status?: Database["public"]["Enums"]["program_status"]
+          time_per_session_min?: number | null
           title: string
+          training_days_per_week?: number | null
           updated_at?: string
           user_id: string
           weeks?: number
         }
         Update: {
+          available_equipment?: string[] | null
           created_at?: string
           created_by?: Database["public"]["Enums"]["program_creator"]
+          experience_level?:
+            | Database["public"]["Enums"]["experience_level"]
+            | null
           goal?: Database["public"]["Enums"]["program_goal"]
           id?: string
+          location_type?: Database["public"]["Enums"]["location_type"] | null
           notes?: string | null
+          priority_muscle_groups?: string[] | null
+          program_data?: Json | null
           status?: Database["public"]["Enums"]["program_status"]
+          time_per_session_min?: number | null
           title?: string
+          training_days_per_week?: number | null
           updated_at?: string
           user_id?: string
           weeks?: number
