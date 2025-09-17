@@ -49,12 +49,12 @@ export const EdgeFunctionDebugPanel: React.FC = () => {
       }
       
       // If it's an edge function related error, capture it
-      if (level === 'error' && (message.includes('Edge Function') || message.includes('Supabase'))) {
+      if (level === 'error' && (message.includes('Edge Function') || message.includes('Supabase') || message.includes('FunctionsHttpError'))) {
         const error: EdgeFunctionError = {
           id: Date.now().toString(),
           timestamp: new Date().toLocaleTimeString(),
           title: message,
-          message: details?.errorMessage || details?.message || 'No detailed message',
+          message: details?.errorMessage || details?.message || details?.error || 'No detailed message',
           level: 'error',
           details: details || {}
         };
@@ -63,8 +63,27 @@ export const EdgeFunctionDebugPanel: React.FC = () => {
       }
     };
 
+    // Also listen for direct error events
+    const handleRuntimeError = (event: ErrorEvent) => {
+      if (event.error && (event.error.message.includes('Edge Function') || event.error.message.includes('Supabase'))) {
+        const error: EdgeFunctionError = {
+          id: Date.now().toString(),
+          timestamp: new Date().toLocaleTimeString(),
+          title: 'Runtime Error',
+          message: event.error.message,
+          level: 'error',
+          details: { stack: event.error.stack }
+        };
+        
+        setErrors(prev => [error, ...prev.slice(0, 19)]);
+      }
+    };
+
+    window.addEventListener('error', handleRuntimeError);
+
     return () => {
       (window as any).debugLog = originalDebugLog;
+      window.removeEventListener('error', handleRuntimeError);
     };
   }, []);
 
