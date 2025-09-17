@@ -77,49 +77,53 @@ Deno.serve(async (req) => {
       }, 400)
     }
 
-    // Minimal schema guard + defaults
-    const expected = [
-      'goal',
-      'experience_level',
-      'training_days_per_week',
-      'location_type',
-      'available_equipment',
-      'priority_muscle_groups',
-      'time_per_session_min',
-    ]
-    for (const k of expected) {
-      if (!(k in payload)) {
-        return json({ error: `Missing field: ${k}` }, 400)
-      }
+    // Get user's fitness profile from database instead of requiring payload
+    console.log('Getting user fitness profile from database...')
+    
+    // Get current user from Supabase auth
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+    if (authError || !user) {
+      console.error('Failed to get authenticated user:', authError)
+      return json({ error: 'Authentication failed' }, 401)
+    }
+    
+    const { data: fitnessProfile, error: profileError } = await supabase
+      .from('fitness_profile')
+      .select('*')
+      .eq('user_id', user.id)
+      .single()
+
+    if (profileError) {
+      console.error('Failed to get fitness profile:', profileError)
+      return json({ 
+        error: 'No fitness profile found. Please complete your fitness configuration first.',
+        details: profileError.message 
+      }, 400)
     }
 
-    // Ensure arrays are arrays
-    payload.available_equipment ||= []
-    payload.priority_muscle_groups ||= []
+    if (!fitnessProfile) {
+      return json({ 
+        error: 'No fitness profile found. Please complete your fitness configuration first.' 
+      }, 400)
+    }
 
-    console.log('Incoming payload', payload)
+    console.log('Retrieved fitness profile:', fitnessProfile)
 
-    // Map fitness_goal to program_goal enum values
-    const goalMapping = {
-      'recomp': 'recomp',
-      'fat_loss': 'fat_loss', 
-      'muscle_gain': 'muscle_gain',
-      'strength': 'strength',
-      'general_fitness': 'general_fitness'
-    };
+    // Use data from saved fitness profile
+    const programData = {
+      goal: fitnessProfile.goal,
+      experience_level: fitnessProfile.experience_level,
+      training_days_per_week: fitnessProfile.training_days_per_week,
+      location_type: fitnessProfile.location_type,
+      available_equipment: fitnessProfile.available_equipment || [],
+      priority_muscle_groups: fitnessProfile.priority_muscle_groups || [],
+      time_per_session_min: fitnessProfile.time_per_session_min || 60,
+    }
 
-    const mappedGoal = goalMapping[payload.goal as keyof typeof goalMapping] || payload.goal;
+    console.log('Program data from fitness profile:', programData)
 
     // Call the Postgres function via RPC (user_id comes from auth.uid() in RLS)
-    const { data, error } = await supabase.rpc('generate_ai_program', {
-      goal: mappedGoal,
-      experience_level: payload.experience_level,
-      training_days_per_week: payload.training_days_per_week,
-      location_type: payload.location_type,
-      available_equipment: payload.available_equipment,
-      priority_muscle_groups: payload.priority_muscle_groups,
-      time_per_session_min: payload.time_per_session_min,
-    })
+    const { data, error } = await supabase.rpc('generate_ai_program', programData)
 
     if (error) {
       console.error('RPC error', error)

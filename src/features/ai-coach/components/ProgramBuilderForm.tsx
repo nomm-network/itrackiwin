@@ -16,24 +16,12 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
   const generateProgram = useGenerateProgram();
 
   const handleGenerateProgram = async () => {
-    if (!profile) return;
-    
     try {
-      // Map fitness profile to program generation request
-      const programData: ProgramGenerationRequest = {
-        goal: profile.goal as "recomp" | "fat_loss" | "muscle_gain" | "strength" | "general_fitness",
-        experience_level: profile.experience_level as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
-        training_days_per_week: profile.days_per_week || 3,
-        location_type: (profile.location_type || 'gym') as "home" | "gym",
-        available_equipment: profile.available_equipment || ['dumbbells'],
-        priority_muscle_groups: profile.priority_muscle_groups || [],
-        time_per_session_min: profile.preferred_session_minutes || 60,
-      };
-
-      console.log('Generating program with data:', programData);
-      const result = await generateProgram.mutateAsync(programData);
-      if (result.program_id && onProgramGenerated) {
-        onProgramGenerated(result.program_id);
+      console.log('Generating program using saved fitness profile...');
+      // Send empty object since edge function reads from user's fitness profile
+      const result = await generateProgram.mutateAsync({});
+      if (result.data?.program_id && onProgramGenerated) {
+        onProgramGenerated(result.data.program_id);
       }
     } catch (error) {
       console.error('Program generation failed:', error);

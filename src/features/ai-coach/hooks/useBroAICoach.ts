@@ -31,7 +31,7 @@ export interface AIProgram {
 
 export const useGenerateProgram = () => {
   return useMutation({
-    mutationFn: async (params: ProgramGenerationRequest) => {
+    mutationFn: async (params?: Partial<ProgramGenerationRequest>) => {
       try {
         // Add comprehensive debug logging for request
         if ((window as any).debugLog) {
