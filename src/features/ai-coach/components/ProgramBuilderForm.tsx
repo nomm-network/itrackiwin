@@ -108,231 +108,46 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
           Bro AI Coach - Program Builder
         </CardTitle>
         <p className="text-muted-foreground">
-          Create your perfect workout program based on your goals and experience
+          Generate your perfect workout program with AI
         </p>
       </CardHeader>
       
       <CardContent>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-            {/* Goal Selection */}
-            <FormField
-              control={form.control}
-              name="goal"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Target className="h-4 w-4" />
-                    What's your main goal?
-                  </FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                      {goalOptions.map((option) => (
-                        <Button
-                          key={option.value}
-                          type="button"
-                          variant={field.value === option.value ? "default" : "outline"}
-                          className="h-auto p-4"
-                          onClick={() => field.onChange(option.value)}
-                        >
-                          <div className="text-center">
-                            <div className="text-2xl mb-1">{option.icon}</div>
-                            <div className="text-sm">{option.label}</div>
-                          </div>
-                        </Button>
-                      ))}
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <div className="space-y-6">
+          {/* Fitness Config Required */}
+          <Card className="border-2 border-orange-200 bg-orange-50">
+            <CardContent className="pt-6">
+              <div className="flex items-center gap-3 mb-4">
+                <Target className="h-5 w-5 text-orange-600" />
+                <h3 className="font-semibold text-orange-800">Complete Your Fitness Configuration First</h3>
+              </div>
+              <p className="text-orange-700 mb-4">
+                To generate a personalized AI program, you need to complete your fitness configuration including goals, experience level, available equipment, and preferences.
+              </p>
+              <Button asChild variant="outline" className="border-orange-300 text-orange-700 hover:bg-orange-100">
+                <a href="/fitness-config">
+                  <Target className="h-4 w-4 mr-2" />
+                  Complete Fitness Configuration
+                </a>
+              </Button>
+            </CardContent>
+          </Card>
 
-            {/* Experience Level */}
-            <FormField
-              control={form.control}
-              name="experience_level"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Experience Level</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select your experience level" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {experienceOptions.map((option) => (
-                        <SelectItem key={option.value} value={option.value}>
-                          <div>
-                            <div className="font-medium">{option.label}</div>
-                            <div className="text-sm text-muted-foreground">{option.description}</div>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Training Days */}
-            <FormField
-              control={form.control}
-              name="training_days_per_week"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4" />
-                    Training Days Per Week: {field.value}
-                  </FormLabel>
-                  <FormControl>
-                    <Slider
-                      min={1}
-                      max={7}
-                      step={1}
-                      value={[field.value]}
-                      onValueChange={(values) => field.onChange(values[0])}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Location */}
-            <FormField
-              control={form.control}
-              name="location_type"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Home className="h-4 w-4" />
-                    Where will you train?
-                  </FormLabel>
-                  <FormControl>
-                    <div className="grid grid-cols-2 gap-4">
-                      <Button
-                        type="button"
-                        variant={field.value === "gym" ? "default" : "outline"}
-                        className="h-16"
-                        onClick={() => field.onChange("gym")}
-                      >
-                        <div className="text-center">
-                          <div className="text-2xl mb-1">🏋️</div>
-                          <div>Gym</div>
-                        </div>
-                      </Button>
-                      <Button
-                        type="button"
-                        variant={field.value === "home" ? "default" : "outline"}
-                        className="h-16"
-                        onClick={() => field.onChange("home")}
-                      >
-                        <div className="text-center">
-                          <div className="text-2xl mb-1">🏠</div>
-                          <div>Home</div>
-                        </div>
-                      </Button>
-                    </div>
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Equipment */}
-            <FormField
-              control={form.control}
-              name="available_equipment"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Available Equipment</FormLabel>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-                    {equipmentOptions.map((equipment) => (
-                      <FormField
-                        key={equipment}
-                        control={form.control}
-                        name="available_equipment"
-                        render={({ field }) => {
-                          return (
-                            <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                              <FormControl>
-                                <Checkbox
-                                  checked={field.value?.includes(equipment)}
-                                  onCheckedChange={(checked) => {
-                                    return checked
-                                      ? field.onChange([...field.value, equipment])
-                                      : field.onChange(
-                                          field.value?.filter(
-                                            (value) => value !== equipment
-                                          )
-                                        )
-                                  }}
-                                />
-                              </FormControl>
-                              <FormLabel className="text-sm font-normal capitalize">
-                                {equipment.replace('-', ' ')}
-                              </FormLabel>
-                            </FormItem>
-                          )
-                        }}
-                      />
-                    ))}
-                  </div>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            {/* Session Duration */}
-            <FormField
-              control={form.control}
-              name="time_per_session_min"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="flex items-center gap-2">
-                    <Clock className="h-4 w-4" />
-                    Session Duration: {field.value} minutes
-                  </FormLabel>
-                  <FormControl>
-                    <Slider
-                      min={15}
-                      max={180}
-                      step={15}
-                      value={[field.value || 60]}
-                      onValueChange={(values) => field.onChange(values[0])}
-                      className="w-full"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-
+          {/* Program Generation */}
+          <div className="text-center space-y-4">
             <Button 
-              type="submit" 
               className="w-full" 
               size="lg"
-              disabled={generateProgram.isPending}
+              disabled={true}
             >
-              {generateProgram.isPending ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
-                  Generating Your Program...
-                </>
-              ) : (
-                <>
-                  <Dumbbell className="h-4 w-4 mr-2" />
-                  Generate My Program
-                </>
-              )}
+              <Dumbbell className="h-4 w-4 mr-2" />
+              Complete Fitness Config to Generate Program
             </Button>
-          </form>
-        </Form>
+            <p className="text-sm text-muted-foreground">
+              Your AI program will be generated based on your fitness configuration
+            </p>
+          </div>
+        </div>
       </CardContent>
     </Card>
   );
