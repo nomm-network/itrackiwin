@@ -56,7 +56,7 @@ export const useGenerateProgram = () => {
         }
 
         const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-          body: params,
+          body: params || {},
         });
 
         // Log the comprehensive response for debugging

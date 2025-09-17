@@ -34,20 +34,16 @@ Deno.serve(async (req) => {
 
     const userToken = authHeader.replace('Bearer ', '')
     
-    // Create supabase client with user's token (RLS will handle auth)
-    const supabase = createClient(url, serviceRoleKey, {
-      global: {
-        headers: {
-          authorization: `Bearer ${userToken}`
-        }
-      }
-    })
+    // Create supabase client with user's token for RLS
+    const supabase = createClient(url, userToken)
 
     // Detailed logging for debugging
     console.log('=== BRO AI COACH DEBUG START ===')
     console.log('Request method:', req.method)
     console.log('Request URL:', req.url)
     console.log('Content-Type:', req.headers.get('content-type'))
+    console.log('Auth header present:', !!authHeader)
+    console.log('User token length:', userToken.length)
     console.log('Request headers:', Object.fromEntries(req.headers.entries()))
 
     let payload: any
@@ -60,13 +56,13 @@ Deno.serve(async (req) => {
       console.log('Raw body length:', rawBody.length)
       
       if (!rawBody || rawBody.length === 0) {
-        console.error('Empty request body received')
-        return json({ error: 'Empty request body. Please provide program parameters.' }, 400)
+        console.log('Empty request body - proceeding with fitness profile lookup')
+        payload = {} // Accept empty body
+      } else {
+        // Try to parse JSON
+        payload = JSON.parse(rawBody)
+        console.log('Successfully parsed JSON payload:', payload)
       }
-      
-      // Try to parse JSON
-      payload = JSON.parse(rawBody)
-      console.log('Successfully parsed JSON payload:', payload)
     } catch (e) {
       console.error('JSON parsing failed:', e)
       console.error('Raw body that failed to parse:', rawBody)
@@ -80,12 +76,14 @@ Deno.serve(async (req) => {
     // Get user's fitness profile from database instead of requiring payload
     console.log('Getting user fitness profile from database...')
     
-    // Get current user from Supabase auth
+    // Get current user from Supabase auth (token already set in client)
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       console.error('Failed to get authenticated user:', authError)
       return json({ error: 'Authentication failed' }, 401)
     }
+    
+    console.log('Authenticated user:', user.id)
     
     const { data: fitnessProfile, error: profileError } = await supabase
       .from('user_profile_fitness')
@@ -123,6 +121,7 @@ Deno.serve(async (req) => {
     console.log('Program data from fitness profile:', programData)
 
     // Call the Postgres function via RPC (user_id comes from auth.uid() in RLS)
+    console.log('Calling generate_ai_program RPC with data:', programData)
     const { data, error } = await supabase.rpc('generate_ai_program', programData)
 
     if (error) {
