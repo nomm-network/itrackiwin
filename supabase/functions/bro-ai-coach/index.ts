@@ -99,9 +99,20 @@ Deno.serve(async (req) => {
 
     console.log('Incoming payload', payload)
 
+    // Map fitness_goal to program_goal enum values
+    const goalMapping = {
+      'recomp': 'recomp',
+      'fat_loss': 'fat_loss', 
+      'muscle_gain': 'muscle_gain',
+      'strength': 'strength',
+      'general_fitness': 'general_fitness'
+    };
+
+    const mappedGoal = goalMapping[payload.goal as keyof typeof goalMapping] || payload.goal;
+
     // Call the Postgres function via RPC (user_id comes from auth.uid() in RLS)
     const { data, error } = await supabase.rpc('generate_ai_program', {
-      goal: payload.goal,
+      goal: mappedGoal,
       experience_level: payload.experience_level,
       training_days_per_week: payload.training_days_per_week,
       location_type: payload.location_type,
