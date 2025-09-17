@@ -90,7 +90,7 @@ export default function HealthConfigureBody() {
   };
 
   return (
-    <div className="p-4 space-y-6">
+    <div className="p-4 space-y-6 pb-24">
       <div className="space-y-2">
         <h1 className="text-2xl font-bold">Health Configuration</h1>
         <p className="text-muted-foreground">
@@ -124,10 +124,10 @@ export default function HealthConfigureBody() {
                 <Label>Primary Weight Goal</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {[
-                    { value: 'lose_weight', label: 'Lose Weight', icon: '📉' },
-                    { value: 'maintain', label: 'Maintain', icon: '⚖️' },
+                    { value: 'fat_loss', label: 'Lose Weight', icon: '📉' },
+                    { value: 'general_fitness', label: 'Maintain', icon: '⚖️' },
                     { value: 'recomp', label: 'Body Recomp', icon: '🔄' },
-                    { value: 'gain_weight', label: 'Gain Weight', icon: '📈' }
+                    { value: 'muscle_gain', label: 'Gain Weight', icon: '📈' }
                   ].map(goal => (
                     <Button
                       key={goal.value}
@@ -148,10 +148,10 @@ export default function HealthConfigureBody() {
                 <Label>Training Focus</Label>
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
                   {[
-                    { value: 'muscle', label: 'Muscle Building', icon: '💪' },
+                    { value: 'muscle_gain', label: 'Muscle Building', icon: '💪' },
                     { value: 'strength', label: 'Strength', icon: '🏋️' },
-                    { value: 'cardio', label: 'Cardio Fitness', icon: '🏃' },
-                    { value: 'flexibility', label: 'Flexibility', icon: '🧘' }
+                    { value: 'general_fitness', label: 'General Fitness', icon: '🏃' },
+                    { value: 'fat_loss', label: 'Fat Loss', icon: '🔥' }
                   ].map(focus => (
                     <Button
                       key={focus.value}
