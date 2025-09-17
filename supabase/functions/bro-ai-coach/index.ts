@@ -32,14 +32,8 @@ Deno.serve(async (req) => {
       return json({ error: 'Authorization required' }, 401)
     }
 
-    // Create supabase client with user's auth token for RPC calls
-    const supabase = createClient(url, serviceRoleKey, {
-      global: {
-        headers: {
-          Authorization: authHeader
-        }
-      }
-    })
+    // Create supabase client with service role key but preserve auth context
+    const supabase = createClient(url, serviceRoleKey)
 
     // Detailed logging for debugging
     console.log('=== BRO AI COACH DEBUG START ===')
@@ -109,7 +103,19 @@ Deno.serve(async (req) => {
 
     const mappedGoal = goalMapping[payload.goal] || 'muscle_gain'
 
-    // Call the Postgres function via RPC
+    // Extract JWT token from Authorization header
+    const jwt = authHeader.replace('Bearer ', '')
+    
+    // Create a user-context client for RPC calls that need auth
+    const userClient = createClient(url, serviceRoleKey, {
+      global: {
+        headers: {
+          Authorization: `Bearer ${jwt}`
+        }
+      }
+    })
+
+    // Call the Postgres function via RPC with user context
     console.log('Calling generate_ai_program RPC with mapped data:', {
       goal: mappedGoal,
       experience_level: payload.experience_level,
@@ -120,7 +126,7 @@ Deno.serve(async (req) => {
       time_per_session_min: payload.time_per_session_min,
     })
     
-    const { data, error } = await supabase.rpc('generate_ai_program', {
+    const { data, error } = await userClient.rpc('generate_ai_program', {
       goal: mappedGoal,
       experience_level: payload.experience_level,
       training_days_per_week: payload.training_days_per_week,
