@@ -40,7 +40,7 @@ const DataQualityReport = lazy(() => import('@/pages/DataQualityReport'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
 const Achievements = lazy(() => import('@/pages/Achievements'));
-const AICoachingHub = lazy(() => import('@/pages/AICoachingHub'));
+
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 // Inline component for subcategory redirects (no dynamic import to avoid build issues)
@@ -185,11 +185,6 @@ export function AppRoutes() {
           <Route path={Paths.achievements} element={
             <ProtectedMobileLayout>
               <Achievements />
-            </ProtectedMobileLayout>
-          } />
-          <Route path={Paths.aiCoach} element={
-            <ProtectedMobileLayout>
-              <AICoachingHub />
             </ProtectedMobileLayout>
           } />
           <Route path={Paths.social} element={

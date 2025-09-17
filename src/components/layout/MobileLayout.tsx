@@ -61,7 +61,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
   const bottomNavigation = [
     { name: "Training", href: "/dashboard", icon: Home },
     { name: "Social", href: "/social", icon: Users },
-    { name: "AI Coach", href: "/ai-coach", icon: Target },
+    { name: "Programs", href: "/app/programs", icon: Target },
     { name: "Achievements", href: "/achievements", icon: Award },
     { name: "Profile", href: "/profile", icon: User },
   ];

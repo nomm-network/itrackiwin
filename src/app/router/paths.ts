@@ -19,7 +19,7 @@ export const Paths = {
     },
   },
   social: '/social',
-  aiCoach: '/ai-coach',
+  
   progress: '/progress',
   journal: '/journal',
   insights: '/insights',
