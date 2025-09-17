@@ -17,11 +17,12 @@ interface DebugLog {
 
 interface DebugPanelProps {
   className?: string;
+  forceOpen?: boolean;
 }
 
-const DebugPanel: React.FC<DebugPanelProps> = ({ className = '' }) => {
+const DebugPanel: React.FC<DebugPanelProps> = ({ className = '', forceOpen = false }) => {
   const [logs, setLogs] = useState<DebugLog[]>([]);
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(forceOpen);
   const [filter, setFilter] = useState<'all' | 'error' | 'warn' | 'info'>('all');
 
   // Global error handler
@@ -105,7 +106,8 @@ const DebugPanel: React.FC<DebugPanelProps> = ({ className = '' }) => {
   const errorCount = logs.filter(log => log.level === 'error').length;
   const warnCount = logs.filter(log => log.level === 'warn').length;
 
-  if (logs.length === 0 && !isOpen) {
+  // Always show the panel if there are errors or if forced open
+  if (logs.length === 0 && !isOpen && !forceOpen) {
     return null;
   }
 

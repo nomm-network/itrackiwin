@@ -47,7 +47,7 @@ const AICoachingHub: React.FC = () => {
         </div>
       </div>
       
-      <DebugPanel />
+      <DebugPanel forceOpen={true} />
     </div>
   );
 };

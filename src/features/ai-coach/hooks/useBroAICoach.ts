@@ -47,18 +47,36 @@ export const useGenerateProgram = () => {
           body: params,
         });
 
+        // Log the raw response for debugging
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'info',
+            message: 'Edge Function Raw Response',
+            details: {
+              data: data,
+              error: error,
+              hasData: !!data,
+              hasError: !!error
+            },
+            source: 'BroAICoach Response'
+          });
+        }
+
         if (error) {
           // Log detailed error for debugging
           if ((window as any).debugLog) {
             (window as any).debugLog({
               level: 'error',
-              message: 'Program Generation Failed',
+              message: 'Supabase Edge Function Error',
               details: {
                 error: error,
+                errorMessage: error.message,
+                errorCode: error.code,
+                errorDetails: error.details,
                 request: params,
                 timestamp: new Date().toISOString()
               },
-              source: 'BroAICoach Edge Function'
+              source: 'Supabase Functions'
             });
           }
           throw new Error(`Edge Function Error: ${error.message}`);

@@ -166,7 +166,7 @@ export default function BroAICoach() {
           </Tabs>
         </div>
         
-        <DebugPanel />
+        <DebugPanel forceOpen={true} />
       </div>
     </>
   );
