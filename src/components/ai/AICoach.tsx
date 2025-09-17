@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Brain, MessageCircle, TrendingUp, Target, Loader2, Sparkles } from "lucide-react";
+import DebugPanel from "@/components/debug/DebugPanel";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useRecentWorkouts } from "@/features/health/fitness/services/fitness.api";
@@ -46,6 +47,20 @@ const AICoach: React.FC = () => {
 
     setIsAnalyzing(true);
     try {
+      // Add debug logging for request
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'info',
+          message: 'Starting AI Coach Analysis',
+          details: {
+            userId: user.id,
+            userGoals: userGoals.split(',').map(g => g.trim()).filter(Boolean),
+            workoutCount: recentWorkouts.length
+          },
+          source: 'AI Coach'
+        });
+      }
+
       const { data, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           userId: user.id,
@@ -59,18 +74,65 @@ const AICoach: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      // Log the raw response for debugging
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'info',
+          message: 'AI Coach Raw Response',
+          details: {
+            data: data,
+            error: error,
+            hasData: !!data,
+            hasError: !!error
+          },
+          source: 'AI Coach Response'
+        });
+      }
+
+      if (error) {
+        // Log detailed error for debugging
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'error',
+            message: 'AI Coach Edge Function Error',
+            details: {
+              error: error,
+              errorMessage: error.message,
+              errorCode: error.code,
+              errorDetails: error.details,
+              timestamp: new Date().toISOString()
+            },
+            source: 'AI Coach Functions'
+          });
+        }
+        throw error;
+      }
 
       setCoachingResponse(data);
       toast({
         title: "Coaching analysis complete!",
         description: "Your personalized insights are ready",
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Coaching error:', error);
+      
+      // Final error logging
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'error',
+          message: 'AI Coach Analysis Exception',
+          details: {
+            error: error.message,
+            stack: error.stack,
+            userGoals: userGoals
+          },
+          source: 'AI Coach Exception'
+        });
+      }
+
       toast({
         title: "Analysis failed",
-        description: "Unable to generate coaching insights. Please try again.",
+        description: error.message || "Unable to generate coaching insights. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -83,6 +145,20 @@ const AICoach: React.FC = () => {
 
     setIsAnalyzing(true);
     try {
+      // Add debug logging for question
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'info',
+          message: 'Asking AI Coach Question',
+          details: {
+            question: question,
+            userId: user?.id || 'anonymous',
+            workoutCount: recentWorkouts.length
+          },
+          source: 'AI Coach Question'
+        });
+      }
+
       const { data, error } = await supabase.functions.invoke('ai-coach', {
         body: {
           userId: user?.id || 'anonymous',
@@ -92,15 +168,63 @@ const AICoach: React.FC = () => {
         }
       });
 
-      if (error) throw error;
+      // Log the raw response for debugging
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'info',
+          message: 'AI Coach Question Response',
+          details: {
+            data: data,
+            error: error,
+            hasData: !!data,
+            hasError: !!error
+          },
+          source: 'AI Coach Question Response'
+        });
+      }
+
+      if (error) {
+        // Log detailed error for debugging
+        if ((window as any).debugLog) {
+          (window as any).debugLog({
+            level: 'error',
+            message: 'AI Coach Question Error',
+            details: {
+              error: error,
+              errorMessage: error.message,
+              errorCode: error.code,
+              errorDetails: error.details,
+              question: question,
+              timestamp: new Date().toISOString()
+            },
+            source: 'AI Coach Question Error'
+          });
+        }
+        throw error;
+      }
 
       setCoachingResponse(data);
       setQuestion("");
-    } catch (error) {
+    } catch (error: any) {
       console.error('Question error:', error);
+      
+      // Final error logging
+      if ((window as any).debugLog) {
+        (window as any).debugLog({
+          level: 'error',
+          message: 'AI Coach Question Exception',
+          details: {
+            error: error.message,
+            stack: error.stack,
+            question: question
+          },
+          source: 'AI Coach Question Exception'
+        });
+      }
+
       toast({
         title: "Unable to answer",
-        description: "Please try rephrasing your question",
+        description: error.message || "Please try rephrasing your question",
         variant: "destructive",
       });
     } finally {
@@ -275,6 +399,8 @@ const AICoach: React.FC = () => {
           </div>
         </CardContent>
       </Card>
+      
+      <DebugPanel forceOpen={true} />
     </div>
   );
 };
