@@ -82,10 +82,7 @@ export const useGenerateProgram = () => {
         console.log('📤 Sending payload to edge function:', payload);
 
         const { data, error } = await supabase.functions.invoke('bro-ai-coach', {
-          body: JSON.stringify(payload),
-          headers: {
-            'Content-Type': 'application/json',
-          },
+          body: payload,
         });
 
         // Log the comprehensive response for debugging

@@ -36,29 +36,20 @@ Deno.serve(async (req) => {
     console.log('Request headers:', Object.fromEntries(req.headers.entries()))
 
     let payload: any
-    let rawBody: string = ''
     
     try {
-      // Get raw text first for debugging
-      rawBody = await req.text()
-      console.log('Raw request body:', rawBody)
-      console.log('Raw body length:', rawBody.length)
+      payload = await req.json()
+      console.log('Successfully parsed JSON payload:', payload)
       
-      if (!rawBody || rawBody.length === 0) {
+      if (!payload || Object.keys(payload).length === 0) {
         console.log('Empty request body detected')
         return json({ error: 'Request body is required with program parameters' }, 400)
-      } else {
-        // Try to parse JSON
-        payload = JSON.parse(rawBody)
-        console.log('Successfully parsed JSON payload:', payload)
       }
     } catch (e) {
       console.error('JSON parsing failed:', e)
-      console.error('Raw body that failed to parse:', rawBody)
       return json({ 
         error: 'Invalid JSON body. Could not parse request data.', 
-        details: e.message,
-        receivedBody: rawBody 
+        details: e.message
       }, 400)
     }
 
