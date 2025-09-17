@@ -2757,51 +2757,6 @@ export type Database = {
         }
         Relationships: []
       }
-      fitness_profile: {
-        Row: {
-          available_equipment: string[] | null
-          created_at: string
-          experience_level: Database["public"]["Enums"]["experience_level"]
-          id: string
-          injury_limits: string[] | null
-          location_type: Database["public"]["Enums"]["location_type"]
-          priority_muscle_groups: string[] | null
-          selected_gym_id: string | null
-          time_per_session_min: number | null
-          training_days_per_week: number
-          updated_at: string
-          user_id: string
-        }
-        Insert: {
-          available_equipment?: string[] | null
-          created_at?: string
-          experience_level?: Database["public"]["Enums"]["experience_level"]
-          id?: string
-          injury_limits?: string[] | null
-          location_type?: Database["public"]["Enums"]["location_type"]
-          priority_muscle_groups?: string[] | null
-          selected_gym_id?: string | null
-          time_per_session_min?: number | null
-          training_days_per_week: number
-          updated_at?: string
-          user_id: string
-        }
-        Update: {
-          available_equipment?: string[] | null
-          created_at?: string
-          experience_level?: Database["public"]["Enums"]["experience_level"]
-          id?: string
-          injury_limits?: string[] | null
-          location_type?: Database["public"]["Enums"]["location_type"]
-          priority_muscle_groups?: string[] | null
-          selected_gym_id?: string | null
-          time_per_session_min?: number | null
-          training_days_per_week?: number
-          updated_at?: string
-          user_id?: string
-        }
-        Relationships: []
-      }
       fixed_bars: {
         Row: {
           default_unit: Database["public"]["Enums"]["weight_unit"]
