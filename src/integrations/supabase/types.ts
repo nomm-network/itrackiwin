@@ -11913,14 +11913,13 @@ export type Database = {
       }
       generate_ai_program: {
         Args: {
-          p_equipment: string[]
-          p_experience_level: Database["public"]["Enums"]["experience_level"]
-          p_goal: Database["public"]["Enums"]["program_goal"]
-          p_location_type: Database["public"]["Enums"]["location_type"]
-          p_priority_muscles: string[]
-          p_session_duration?: number
-          p_training_days: number
-          p_user_id: string
+          available_equipment: string[]
+          experience_level: string
+          goal: string
+          location_type: string
+          priority_muscle_groups: string[]
+          time_per_session_min?: number
+          training_days_per_week: number
         }
         Returns: string
       }
