@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { MapPin, Edit3, Trash2, Search, Plus, User, Calendar, Clock, Dumbbell, Heart, Brain } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useFitnessProfile, useUpsertFitnessProfile, SexType } from '@/features/health/fitness/hooks/useFitnessProfile.hook';
+import { useHomeEquipment, EQUIPMENT_DISPLAY_MAP } from '@/features/health/fitness/hooks/useEquipment.hook';
 
 export default function HealthConfigureBody() {
   const { toast } = useToast();
@@ -16,6 +17,7 @@ export default function HealthConfigureBody() {
   
   // Fitness profile hooks
   const { data: fitnessProfileData } = useFitnessProfile();
+  const { data: homeEquipment, isLoading: isLoadingEquipment } = useHomeEquipment();
   const upsertProfile = useUpsertFitnessProfile();
 
   // Fitness Profile State
@@ -311,43 +313,46 @@ export default function HealthConfigureBody() {
                 <div className="space-y-3">
                   <Label>Available Equipment</Label>
                   <p className="text-sm text-muted-foreground">Select all equipment you have access to at home</p>
-                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                    {[
-                      { value: 'bodyweight', label: 'Bodyweight', icon: '🤸' },
-                      { value: 'dumbbells', label: 'Dumbbells', icon: '🏋️' },
-                      { value: 'barbell', label: 'Barbell', icon: '🏋️‍♂️' },
-                      { value: 'kettlebells', label: 'Kettlebells', icon: '⚖️' },
-                      { value: 'resistance-bands', label: 'Resistance Bands', icon: '🔗' },
-                      { value: 'pull-up-bar', label: 'Pull-up Bar', icon: '🚪' },
-                      { value: 'bench', label: 'Bench', icon: '🪑' },
-                      { value: 'squat-rack', label: 'Squat Rack', icon: '🏗️' },
-                      { value: 'cable-machine', label: 'Cable Machine', icon: '🔌' }
-                    ].map(equipment => (
-                      <Button
-                        key={equipment.value}
-                        variant={fitnessProfile.availableEquipment.includes(equipment.value) ? 'default' : 'outline'}
-                        size="sm"
-                        onClick={() => {
-                          const current = fitnessProfile.availableEquipment;
-                          if (current.includes(equipment.value)) {
-                            setFitnessProfile(prev => ({
-                              ...prev,
-                              availableEquipment: current.filter(e => e !== equipment.value)
-                            }));
-                          } else {
-                            setFitnessProfile(prev => ({
-                              ...prev,
-                              availableEquipment: [...current, equipment.value]
-                            }));
-                          }
-                        }}
-                        className="flex flex-col h-auto py-3"
-                      >
-                        <span className="text-lg mb-1">{equipment.icon}</span>
-                        <span className="text-xs">{equipment.label}</span>
-                      </Button>
-                    ))}
-                  </div>
+                  {isLoadingEquipment ? (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {Array.from({ length: 6 }).map((_, i) => (
+                        <div key={i} className="h-16 bg-muted animate-pulse rounded-md" />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {homeEquipment?.map(equipment => {
+                        const displayInfo = EQUIPMENT_DISPLAY_MAP[equipment.slug as keyof typeof EQUIPMENT_DISPLAY_MAP];
+                        if (!displayInfo) return null;
+                        
+                        return (
+                          <Button
+                            key={equipment.id}
+                            variant={fitnessProfile.availableEquipment.includes(equipment.id) ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              const current = fitnessProfile.availableEquipment;
+                              if (current.includes(equipment.id)) {
+                                setFitnessProfile(prev => ({
+                                  ...prev,
+                                  availableEquipment: current.filter(e => e !== equipment.id)
+                                }));
+                              } else {
+                                setFitnessProfile(prev => ({
+                                  ...prev,
+                                  availableEquipment: [...current, equipment.id]
+                                }));
+                              }
+                            }}
+                            className="flex flex-col h-auto py-3"
+                          >
+                            <span className="text-lg mb-1">{displayInfo.icon}</span>
+                            <span className="text-xs">{displayInfo.label}</span>
+                          </Button>
+                        );
+                      })}
+                    </div>
+                  )}
                 </div>
               )}
 
