@@ -312,18 +312,6 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
               )}
             />
 
-            <div className="text-center mb-6">
-              <p className="text-muted-foreground">
-                Configure your fitness goals and preferences in{' '}
-                <a 
-                  href="/dashboard?cat=health&sub=configure" 
-                  className="text-primary hover:underline font-medium"
-                >
-                  Fitness Configuration
-                </a>{' '}
-                to generate better programs, or proceed with current settings.
-              </p>
-            </div>
 
             <Button 
               type="submit" 
