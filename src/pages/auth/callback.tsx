@@ -12,7 +12,7 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the OAuth callback
+        // Handle the OAuth callback - this processes the hash/query params from the OAuth provider
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
