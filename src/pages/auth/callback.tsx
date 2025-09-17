@@ -12,11 +12,45 @@ const AuthCallback: React.FC = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Handle the OAuth callback - this processes the hash/query params from the OAuth provider
+        // Get the current URL to check for OAuth callback parameters
+        const url = window.location.href;
+        console.log('Callback URL:', url);
+        
+        // Check if we have OAuth callback parameters
+        const hasAuthParams = url.includes('access_token') || url.includes('code') || url.includes('error');
+        
+        if (hasAuthParams) {
+          console.log('Processing OAuth callback...');
+          // Let Supabase process the OAuth callback automatically
+          const { data, error } = await supabase.auth.getSession();
+          
+          if (error) {
+            console.error('OAuth callback error:', error);
+            setStatus('error');
+            setErrorMessage(error.message);
+            toast.error('Authentication failed: ' + error.message);
+            return;
+          }
+
+          if (data.session) {
+            console.log('Session established:', data.session.user);
+            setStatus('success');
+            toast.success('Successfully signed in with Apple!');
+            
+            // Redirect to dashboard
+            const redirectTo = searchParams.get('redirect_to') || '/dashboard';
+            setTimeout(() => {
+              navigate(redirectTo, { replace: true });
+            }, 1000);
+            return;
+          }
+        }
+        
+        // If no OAuth params or session, check existing session
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Auth callback error:', error);
+          console.error('Session check error:', error);
           setStatus('error');
           setErrorMessage(error.message);
           toast.error('Authentication failed: ' + error.message);
@@ -24,22 +58,12 @@ const AuthCallback: React.FC = () => {
         }
 
         if (data.session) {
-          // Successfully authenticated
+          // Already authenticated
           setStatus('success');
-          toast.success('Successfully signed in with Apple!');
-          
-          // Store user info if this is first time login (Apple only sends name on first auth)
-          const user = data.session.user;
-          console.log('Authenticated user:', user);
-          
-          // Redirect to dashboard or intended destination
           const redirectTo = searchParams.get('redirect_to') || '/dashboard';
-          setTimeout(() => {
-            navigate(redirectTo, { replace: true });
-          }, 2000);
-          
+          navigate(redirectTo, { replace: true });
         } else {
-          // No session but no error - might be a cancelled auth
+          // No session found
           setStatus('error');
           setErrorMessage('No authentication session found');
           toast.error('Authentication was cancelled or failed');

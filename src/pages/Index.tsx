@@ -10,6 +10,15 @@ const Index: React.FC = () => {
 
   useEffect(() => {
     console.log('Index: Starting auth check');
+    
+    // Listen for auth state changes first
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Index: Auth state changed:', event, !!session?.user);
+      setSession(session);
+      setChecked(true);
+    });
+    
+    // Then check current session
     supabase.auth.getSession().then(({ data }) => {
       console.log('Index: Session data:', !!data.session?.user);
       setSession(data.session);
@@ -18,6 +27,8 @@ const Index: React.FC = () => {
       console.error('Index: Session check error:', error);
       setChecked(true);
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   // Authenticated - redirect to dashboard
