@@ -109,6 +109,8 @@ const LazyTemplatesPage = lazy(() => import('@/app/templates/page'));
 const LazyTemplateAddPage = lazy(() => import('@/app/templates/add/page'));
 const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
+const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
+const FitnessConfigure = lazy(() => import('@/pages/FitnessConfigure'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -274,6 +276,13 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
           
+          {/* Bro AI Coach */}
+          <Route path="/bro-ai-coach" element={
+            <ProtectedMobileLayout>
+              <BroAICoach />
+            </ProtectedMobileLayout>
+          } />
+          
           {/* Templates Routes */}
           <Route path="/app/templates" element={
             <ProtectedMobileLayout>
@@ -295,6 +304,13 @@ export function AppRoutes() {
             <Route index element={<StartOrContinue />} />
             <Route path=":workoutId" element={<LazyWorkoutPage />} />
           </Route>
+
+          {/* Fitness Configure */}
+          <Route path="/fitness/configure" element={
+            <ProtectedMobileLayout>
+              <FitnessConfigure />
+            </ProtectedMobileLayout>
+          } />
 
           {/* Fitness sub-routes still work for admin/configuration */}
           <Route path={`${Paths.health.fitness.root}/*`} element={
