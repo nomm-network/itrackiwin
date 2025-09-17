@@ -34,8 +34,14 @@ Deno.serve(async (req) => {
 
     const userToken = authHeader.replace('Bearer ', '')
     
-    // Create supabase client with user's token for RLS
-    const supabase = createClient(url, userToken)
+    // Create supabase client with service role key and user token in headers for RLS
+    const supabase = createClient(url, serviceRoleKey, {
+      global: {
+        headers: {
+          authorization: `Bearer ${userToken}`
+        }
+      }
+    })
 
     // Detailed logging for debugging
     console.log('=== BRO AI COACH DEBUG START ===')
