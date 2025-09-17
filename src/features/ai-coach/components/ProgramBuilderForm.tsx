@@ -108,7 +108,7 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
           Bro AI Coach - Program Builder
         </CardTitle>
         <p className="text-muted-foreground">
-          Let's create your perfect workout program based on your goals and experience
+          Create your perfect workout program based on your goals and experience
         </p>
       </CardHeader>
       
