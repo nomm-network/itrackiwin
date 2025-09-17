@@ -146,6 +146,250 @@ export type Database = {
         }
         Relationships: []
       }
+      ai_exercises: {
+        Row: {
+          body_position: string | null
+          created_at: string
+          difficulty: number
+          experience_min: Database["public"]["Enums"]["experience_level"]
+          grip_type: string | null
+          id: string
+          instructions: string | null
+          is_bodyweight: boolean | null
+          is_unilateral: boolean | null
+          movement_type: Database["public"]["Enums"]["movement_type"]
+          name: string
+          primary_muscle: Database["public"]["Enums"]["primary_muscle"]
+          required_equipment: string[] | null
+          secondary_muscles: string[] | null
+          slug: string | null
+          updated_at: string
+          video_url: string | null
+        }
+        Insert: {
+          body_position?: string | null
+          created_at?: string
+          difficulty?: number
+          experience_min?: Database["public"]["Enums"]["experience_level"]
+          grip_type?: string | null
+          id?: string
+          instructions?: string | null
+          is_bodyweight?: boolean | null
+          is_unilateral?: boolean | null
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          name: string
+          primary_muscle: Database["public"]["Enums"]["primary_muscle"]
+          required_equipment?: string[] | null
+          secondary_muscles?: string[] | null
+          slug?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Update: {
+          body_position?: string | null
+          created_at?: string
+          difficulty?: number
+          experience_min?: Database["public"]["Enums"]["experience_level"]
+          grip_type?: string | null
+          id?: string
+          instructions?: string | null
+          is_bodyweight?: boolean | null
+          is_unilateral?: boolean | null
+          movement_type?: Database["public"]["Enums"]["movement_type"]
+          name?: string
+          primary_muscle?: Database["public"]["Enums"]["primary_muscle"]
+          required_equipment?: string[] | null
+          secondary_muscles?: string[] | null
+          slug?: string | null
+          updated_at?: string
+          video_url?: string | null
+        }
+        Relationships: []
+      }
+      ai_program_weeks: {
+        Row: {
+          created_at: string
+          id: string
+          program_id: string
+          week_number: number
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          program_id: string
+          week_number: number
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          program_id?: string
+          week_number?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_program_weeks_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "ai_programs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_program_workout_exercises: {
+        Row: {
+          created_at: string
+          exercise_id: string | null
+          id: string
+          movement_type: Database["public"]["Enums"]["movement_type"] | null
+          order_index: number
+          placeholder_name: string | null
+          primary_muscle: Database["public"]["Enums"]["primary_muscle"] | null
+          priority: number | null
+          reps_max: number | null
+          reps_min: number | null
+          required_equipment: string[] | null
+          rest_sec: number | null
+          rpe: number | null
+          sets: number
+          tags: string[] | null
+          tempo: string | null
+          updated_at: string
+          workout_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"] | null
+          order_index?: number
+          placeholder_name?: string | null
+          primary_muscle?: Database["public"]["Enums"]["primary_muscle"] | null
+          priority?: number | null
+          reps_max?: number | null
+          reps_min?: number | null
+          required_equipment?: string[] | null
+          rest_sec?: number | null
+          rpe?: number | null
+          sets?: number
+          tags?: string[] | null
+          tempo?: string | null
+          updated_at?: string
+          workout_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string | null
+          id?: string
+          movement_type?: Database["public"]["Enums"]["movement_type"] | null
+          order_index?: number
+          placeholder_name?: string | null
+          primary_muscle?: Database["public"]["Enums"]["primary_muscle"] | null
+          priority?: number | null
+          reps_max?: number | null
+          reps_min?: number | null
+          required_equipment?: string[] | null
+          rest_sec?: number | null
+          rpe?: number | null
+          sets?: number
+          tags?: string[] | null
+          tempo?: string | null
+          updated_at?: string
+          workout_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_program_workout_exercises_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "ai_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "ai_program_workout_exercises_workout_id_fkey"
+            columns: ["workout_id"]
+            isOneToOne: false
+            referencedRelation: "ai_program_workouts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_program_workouts: {
+        Row: {
+          created_at: string
+          day_of_week: number
+          focus_tags: string[] | null
+          id: string
+          program_week_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          day_of_week: number
+          focus_tags?: string[] | null
+          id?: string
+          program_week_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          day_of_week?: number
+          focus_tags?: string[] | null
+          id?: string
+          program_week_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ai_program_workouts_program_week_id_fkey"
+            columns: ["program_week_id"]
+            isOneToOne: false
+            referencedRelation: "ai_program_weeks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ai_programs: {
+        Row: {
+          created_at: string
+          created_by: Database["public"]["Enums"]["program_creator"]
+          goal: Database["public"]["Enums"]["program_goal"]
+          id: string
+          notes: string | null
+          status: Database["public"]["Enums"]["program_status"]
+          title: string
+          updated_at: string
+          user_id: string
+          weeks: number
+        }
+        Insert: {
+          created_at?: string
+          created_by?: Database["public"]["Enums"]["program_creator"]
+          goal: Database["public"]["Enums"]["program_goal"]
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["program_status"]
+          title: string
+          updated_at?: string
+          user_id: string
+          weeks?: number
+        }
+        Update: {
+          created_at?: string
+          created_by?: Database["public"]["Enums"]["program_creator"]
+          goal?: Database["public"]["Enums"]["program_goal"]
+          id?: string
+          notes?: string | null
+          status?: Database["public"]["Enums"]["program_status"]
+          title?: string
+          updated_at?: string
+          user_id?: string
+          weeks?: number
+        }
+        Relationships: []
+      }
       ambassador_commission_accruals: {
         Row: {
           agreement_id: string
@@ -2483,6 +2727,51 @@ export type Database = {
           warmup_set_count_max?: number
           warmup_set_count_min?: number
           weekly_progress_pct?: number
+        }
+        Relationships: []
+      }
+      fitness_profile: {
+        Row: {
+          available_equipment: string[] | null
+          created_at: string
+          experience_level: Database["public"]["Enums"]["experience_level"]
+          id: string
+          injury_limits: string[] | null
+          location_type: Database["public"]["Enums"]["location_type"]
+          priority_muscle_groups: string[] | null
+          selected_gym_id: string | null
+          time_per_session_min: number | null
+          training_days_per_week: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          available_equipment?: string[] | null
+          created_at?: string
+          experience_level?: Database["public"]["Enums"]["experience_level"]
+          id?: string
+          injury_limits?: string[] | null
+          location_type?: Database["public"]["Enums"]["location_type"]
+          priority_muscle_groups?: string[] | null
+          selected_gym_id?: string | null
+          time_per_session_min?: number | null
+          training_days_per_week: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          available_equipment?: string[] | null
+          created_at?: string
+          experience_level?: Database["public"]["Enums"]["experience_level"]
+          id?: string
+          injury_limits?: string[] | null
+          location_type?: Database["public"]["Enums"]["location_type"]
+          priority_muscle_groups?: string[] | null
+          selected_gym_id?: string | null
+          time_per_session_min?: number | null
+          training_days_per_week?: number
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -13784,8 +14073,10 @@ export type Database = {
         | "stack"
         | "bodyweight"
         | "fixed"
+      location_type: "home" | "gym"
       mentor_type: "mentor" | "coach"
       metric_value_type: "int" | "numeric" | "text" | "bool" | "enum"
+      movement_type: "compound" | "isolation"
       post_reaction:
         | "like"
         | "dislike"
@@ -13796,7 +14087,26 @@ export type Database = {
         | "heart"
         | "cheers"
         | "thumbsup"
+      primary_muscle:
+        | "chest"
+        | "back"
+        | "quads"
+        | "hamstrings"
+        | "glutes"
+        | "shoulders"
+        | "biceps"
+        | "triceps"
+        | "calves"
+        | "abs"
       primary_weight_goal: "lose" | "maintain" | "recomp" | "gain"
+      program_creator: "bro_ai" | "coach" | "user"
+      program_goal:
+        | "recomp"
+        | "fat_loss"
+        | "muscle_gain"
+        | "strength"
+        | "general_fitness"
+      program_status: "draft" | "active" | "archived"
       progression_algo:
         | "rep_range_linear"
         | "percent_1rm"
@@ -13832,6 +14142,7 @@ export type Database = {
       warmup_feedback: "not_enough" | "excellent" | "too_much"
       warmup_quality: "not_enough" | "excellent" | "too_much"
       weight_unit: "kg" | "lb"
+      workout_block_type: "straight" | "superset" | "circuit"
     }
     CompositeTypes: {
       geometry_dump: {
@@ -14011,8 +14322,10 @@ export const Constants = {
         "bodyweight",
         "fixed",
       ],
+      location_type: ["home", "gym"],
       mentor_type: ["mentor", "coach"],
       metric_value_type: ["int", "numeric", "text", "bool", "enum"],
+      movement_type: ["compound", "isolation"],
       post_reaction: [
         "like",
         "dislike",
@@ -14024,7 +14337,28 @@ export const Constants = {
         "cheers",
         "thumbsup",
       ],
+      primary_muscle: [
+        "chest",
+        "back",
+        "quads",
+        "hamstrings",
+        "glutes",
+        "shoulders",
+        "biceps",
+        "triceps",
+        "calves",
+        "abs",
+      ],
       primary_weight_goal: ["lose", "maintain", "recomp", "gain"],
+      program_creator: ["bro_ai", "coach", "user"],
+      program_goal: [
+        "recomp",
+        "fat_loss",
+        "muscle_gain",
+        "strength",
+        "general_fitness",
+      ],
+      program_status: ["draft", "active", "archived"],
       progression_algo: [
         "rep_range_linear",
         "percent_1rm",
@@ -14064,6 +14398,7 @@ export const Constants = {
       warmup_feedback: ["not_enough", "excellent", "too_much"],
       warmup_quality: ["not_enough", "excellent", "too_much"],
       weight_unit: ["kg", "lb"],
+      workout_block_type: ["straight", "superset", "circuit"],
     },
   },
 } as const
