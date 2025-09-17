@@ -88,7 +88,7 @@ Deno.serve(async (req) => {
     }
     
     const { data: fitnessProfile, error: profileError } = await supabase
-      .from('fitness_profile')
+      .from('user_profile_fitness')
       .select('*')
       .eq('user_id', user.id)
       .single()

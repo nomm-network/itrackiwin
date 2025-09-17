@@ -236,7 +236,7 @@ export const useFitnessProfile = () => {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
-        .from('fitness_profile')
+        .from('user_profile_fitness')
         .select('*')
         .eq('user_id', user.id)
         .single();
@@ -254,15 +254,17 @@ export const useUpsertFitnessProfile = () => {
       if (!user) throw new Error('Not authenticated');
 
       const { data, error } = await supabase
-        .from('fitness_profile')
+        .from('user_profile_fitness')
         .upsert({
           user_id: user.id,
+          goal: 'muscle_gain', // Default goal
+          training_goal: 'general_fitness', // Default training goal  
           experience_level: profile.experience_level,
-          training_days_per_week: profile.training_days_per_week,
+          days_per_week: profile.training_days_per_week,
           location_type: profile.location_type,
           available_equipment: profile.available_equipment || [],
           priority_muscle_groups: profile.priority_muscle_groups || [],
-          time_per_session_min: profile.time_per_session_min || 60
+          preferred_session_minutes: profile.time_per_session_min || 60
         }, {
           onConflict: 'user_id'
         })
