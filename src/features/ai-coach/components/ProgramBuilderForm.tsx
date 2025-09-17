@@ -17,9 +17,20 @@ export function ProgramBuilderForm({ onProgramGenerated }: ProgramBuilderFormPro
 
   const handleGenerateProgram = async () => {
     try {
-      console.log('Generating program using saved fitness profile...');
-      // Send empty object since edge function reads from user's fitness profile
-      const result = await generateProgram.mutateAsync({});
+      console.log('Generating program using fitness profile or defaults...');
+      
+      // Use fitness profile data if available, otherwise provide sensible defaults
+      const params: ProgramGenerationRequest = {
+        goal: (profile?.goal as 'muscle_gain') || 'muscle_gain',
+        experience_level: (profile?.experience_level as 'new') || 'new',
+        training_days_per_week: profile?.days_per_week || 3,
+        location_type: (profile?.location_type as 'gym') || 'gym',
+        available_equipment: profile?.available_equipment || [],
+        priority_muscle_groups: profile?.priority_muscle_groups || [],
+        time_per_session_min: profile?.preferred_session_minutes || 60
+      };
+      
+      const result = await generateProgram.mutateAsync(params);
       if (result.data?.program_id && onProgramGenerated) {
         onProgramGenerated(result.data.program_id);
       }
