@@ -23,25 +23,46 @@ serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    console.log('Edge function started, method:', req.method);
+    
+    const supabaseUrl = Deno.env.get('SUPABASE_URL');
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey
+    });
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing required environment variables');
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get auth header and validate user
     const authHeader = req.headers.get('Authorization');
+    console.log('Auth header present:', !!authHeader);
+    
     if (!authHeader) {
+      console.error('No authorization header found');
       return new Response(
         JSON.stringify({ error: 'Missing authorization header' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
+    console.log('Validating user with Supabase...');
     const { data: { user }, error: authError } = await supabase.auth.getUser(
       authHeader.replace('Bearer ', '')
     );
+    console.log('User validation result:', { userId: user?.id, hasError: !!authError });
 
     if (authError || !user) {
+      console.error('Auth error:', authError);
       return new Response(
         JSON.stringify({ error: 'Invalid authorization token' }),
         { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
@@ -49,12 +70,29 @@ serve(async (req) => {
     }
 
     if (req.method === 'POST') {
-      const requestData: ProgramGenerationRequest = await req.json();
+      console.log('Processing POST request...');
+      let requestData: ProgramGenerationRequest;
+      
+      try {
+        requestData = await req.json();
+        console.log('Request data parsed successfully:', requestData);
+      } catch (parseError) {
+        console.error('Failed to parse request JSON:', parseError);
+        return new Response(
+          JSON.stringify({ error: 'Invalid JSON in request body' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
       
       console.log('Generating program for user:', user.id, 'with params:', requestData);
 
       // Validate required fields
       if (!requestData.goal || !requestData.experience_level || !requestData.training_days_per_week) {
+        console.error('Missing required fields:', { 
+          goal: requestData.goal, 
+          experience_level: requestData.experience_level, 
+          training_days_per_week: requestData.training_days_per_week 
+        });
         return new Response(
           JSON.stringify({ error: 'Missing required fields: goal, experience_level, training_days_per_week' }),
           { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
