@@ -43,12 +43,38 @@ Deno.serve(async (req) => {
       }
     })
 
+    // Detailed logging for debugging
+    console.log('=== BRO AI COACH DEBUG START ===')
+    console.log('Request method:', req.method)
+    console.log('Request URL:', req.url)
+    console.log('Content-Type:', req.headers.get('content-type'))
+    console.log('Request headers:', Object.fromEntries(req.headers.entries()))
+
     let payload: any
+    let rawBody: string = ''
+    
     try {
-      payload = await req.json()
+      // Get raw text first for debugging
+      rawBody = await req.text()
+      console.log('Raw request body:', rawBody)
+      console.log('Raw body length:', rawBody.length)
+      
+      if (!rawBody || rawBody.length === 0) {
+        console.error('Empty request body received')
+        return json({ error: 'Empty request body. Please provide program parameters.' }, 400)
+      }
+      
+      // Try to parse JSON
+      payload = JSON.parse(rawBody)
+      console.log('Successfully parsed JSON payload:', payload)
     } catch (e) {
-      console.error('Bad JSON', e)
-      return json({ error: 'Invalid JSON body.' }, 400)
+      console.error('JSON parsing failed:', e)
+      console.error('Raw body that failed to parse:', rawBody)
+      return json({ 
+        error: 'Invalid JSON body. Could not parse request data.', 
+        details: e.message,
+        receivedBody: rawBody 
+      }, 400)
     }
 
     // Minimal schema guard + defaults
