@@ -157,6 +157,7 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
         notes: notes || undefined,
         rpe: rpe ? Number(rpe) : undefined,
         effort: effortMode, // Set the effort enum to match UI choice
+        load_mode: loadMode, // Pass load_mode for validation
       };
 
       // Add effort-specific metrics

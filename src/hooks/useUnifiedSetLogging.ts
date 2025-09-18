@@ -14,6 +14,7 @@ interface SetMetrics {
   settings?: Record<string, any>;
   load_meta?: Record<string, any>;
   rest_seconds?: number;
+  load_mode?: string; // For validation purposes
 }
 
 interface UnifiedSetLogOptions {
@@ -32,66 +33,81 @@ export const useUnifiedSetLogging = () => {
     setError(null);
 
     try {
-      // Normalize metrics to match database schema
-      const normalizedMetrics: Record<string, any> = {};
-      
-      if (options.metrics.weight !== undefined) {
-        const weightData = createWeightData(
-          options.metrics.weight, 
-          options.metrics.weight_unit || 'kg'
-        );
-        normalizedMetrics.weight = { number: weightData.weight_kg };
-        normalizedMetrics.input_weight = { number: weightData.input_weight };
-        normalizedMetrics.input_unit = { text: weightData.input_unit };
+      // Defensive validation (mirror form validation)
+      if (options.metrics.effort === 'reps' && !options.metrics.reps) {
+        throw new Error('Reps required for reps-based effort');
       }
       
+      if (options.metrics.effort === 'time' && !options.metrics.duration_seconds) {
+        throw new Error('Duration required for time-based effort');
+      }
+      
+      if (options.metrics.effort === 'distance' && !options.metrics.distance) {
+        throw new Error('Distance required for distance-based effort');
+      }
+      
+      // Load mode validation is handled at the form level
+      // The hook focuses on data mapping and basic effort validation
+
+      // Build payload matching exact DB column names
+      const payload: Record<string, any> = {
+        workout_exercise_id: options.workoutExerciseId,
+        set_index: options.setIndex,
+        is_completed: true
+      };
+
+      // Map metrics to exact DB columns
       if (options.metrics.reps !== undefined) {
-        normalizedMetrics.reps = { number: options.metrics.reps };
-      }
-      
-      if (options.metrics.rpe !== undefined) {
-        normalizedMetrics.rpe = { number: options.metrics.rpe };
+        payload.reps = options.metrics.reps;
       }
       
       if (options.metrics.duration_seconds !== undefined) {
-        normalizedMetrics.duration_seconds = { number: options.metrics.duration_seconds };
+        payload.duration_seconds = options.metrics.duration_seconds;
       }
       
       if (options.metrics.distance !== undefined) {
-        normalizedMetrics.distance = { number: options.metrics.distance };
+        payload.distance = options.metrics.distance;
+      }
+      
+      if (options.metrics.weight !== undefined) {
+        payload.weight_kg = options.metrics.weight; // Important: weight_kg, not weight
+        payload.input_weight = options.metrics.weight; // Raw input value
+        payload.input_unit = options.metrics.weight_unit || 'kg'; // UI echo
+      }
+      
+      if (options.metrics.effort) {
+        payload.effort = options.metrics.effort;
+      }
+      
+      if (options.metrics.rpe !== undefined) {
+        payload.rpe = options.metrics.rpe;
+      }
+      
+      if (options.metrics.rest_seconds !== undefined) {
+        payload.rest_seconds = options.metrics.rest_seconds;
       }
       
       if (options.metrics.notes) {
-        normalizedMetrics.notes = { text: options.metrics.notes };
+        payload.notes = options.metrics.notes;
+      }
+      
+      // JSON fields - always send objects, never null
+      payload.settings = options.metrics.settings || {};
+      payload.load_meta = options.metrics.load_meta || {}; // NOT NULL constraint
+      
+      // Add grip handling if provided
+      if (options.gripIds && options.gripIds.length > 0) {
+        payload.grip_ids = options.gripIds;
       }
 
-      if (options.metrics.effort) {
-        normalizedMetrics.effort = { text: options.metrics.effort };
-      }
-
-      if (options.metrics.settings) {
-        normalizedMetrics.settings = { jsonb: options.metrics.settings };
-      }
-
-      if (options.metrics.load_meta !== undefined) {
-        normalizedMetrics.load_meta = { jsonb: options.metrics.load_meta };
-      }
-
-      if (options.metrics.rest_seconds !== undefined) {
-        normalizedMetrics.rest_seconds = { number: options.metrics.rest_seconds };
-      }
-
-      // Use the unified set logging function
-      const { data: setId, error: rpcError } = await supabase.rpc('log_workout_set', {
-        p_workout_exercise_id: options.workoutExerciseId,
-        p_set_index: options.setIndex,
-        p_metrics: normalizedMetrics,
-        p_grip_ids: options.gripIds || null
+      // Use the set_log RPC function which handles the insert
+      const { data: setId, error: rpcError } = await supabase.rpc('set_log', {
+        p_payload: payload
       });
 
       if (rpcError) throw rpcError;
 
-      // Trigger PR upsert after successful set insert
+      // Trigger PR upsert after successful set insert (only for weight + reps)
       if (options.metrics.weight && options.metrics.reps) {
         await upsertPersonalRecord({
           workoutExerciseId: options.workoutExerciseId,
