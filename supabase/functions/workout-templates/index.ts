@@ -268,6 +268,8 @@ serve(async (req) => {
                 target_reps: exercise.target_reps,
                 target_weight: exercise.target_weight,
                 rest_seconds: exercise.rest_seconds,
+                weight_unit: 'kg',
+                attribute_values_json: {},
               }))
             );
 
