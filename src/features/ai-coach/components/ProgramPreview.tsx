@@ -11,12 +11,27 @@ interface ProgramPreviewProps {
 }
 
 export function ProgramPreview({ program, onStartProgram }: ProgramPreviewProps) {
+  // Add safety checks to prevent undefined errors
+  if (!program) {
+    return (
+      <Card className="max-w-4xl mx-auto">
+        <CardContent className="text-center py-8">
+          <p className="text-muted-foreground">Program data not available</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  const programName = program.name || 'Unnamed Program';
+  const programDescription = program.description || 'AI generated training program customized for your goals and preferences.';
+  const createdDate = program.created_at ? new Date(program.created_at).toLocaleDateString() : 'Unknown';
+  
   return (
     <Card className="max-w-4xl mx-auto">
       <CardHeader className="text-center">
         <CardTitle className="flex items-center justify-center gap-2 text-2xl">
           <Target className="h-6 w-6 text-primary" />
-          {program.name}
+          {programName}
         </CardTitle>
         <div className="flex items-center justify-center gap-4 text-sm text-muted-foreground">
           <div className="flex items-center gap-1">
@@ -48,7 +63,7 @@ export function ProgramPreview({ program, onStartProgram }: ProgramPreviewProps)
               </div>
               <div className="flex justify-between">
                 <span className="text-muted-foreground">Created:</span>
-                <span className="font-medium">{new Date(program.created_at).toLocaleDateString()}</span>
+                <span className="font-medium">{createdDate}</span>
               </div>
             </CardContent>
           </Card>
@@ -59,7 +74,7 @@ export function ProgramPreview({ program, onStartProgram }: ProgramPreviewProps)
             </CardHeader>
             <CardContent>
               <p className="text-sm text-muted-foreground">
-                {program.description || 'AI generated training program customized for your goals and preferences.'}
+                {programDescription}
               </p>
             </CardContent>
           </Card>
