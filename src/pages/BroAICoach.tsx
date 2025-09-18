@@ -132,18 +132,18 @@ export default function BroAICoach() {
                         >
                           <CardHeader className="pb-3">
                             <div className="flex items-start justify-between">
-                              <CardTitle className="text-lg">{program.title}</CardTitle>
+                              <CardTitle className="text-lg">{program.name}</CardTitle>
                               <Badge 
-                                variant={program.status === 'active' ? 'default' : 'outline'}
+                                variant={program.is_active ? 'default' : 'outline'}
                                 className="text-xs"
                               >
-                                {program.status}
+                                {program.is_active ? 'Active' : 'Inactive'}
                               </Badge>
                             </div>
                             <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                              <span>{program.weeks} weeks</span>
+                              <span>AI Generated</span>
                               <span>•</span>
-                              <span className="capitalize">{program.goal.replace('_', ' ')}</span>
+                              <span>{program.description ? program.description.slice(0, 50) + '...' : 'Training Program'}</span>
                             </div>
                           </CardHeader>
                           <CardContent>

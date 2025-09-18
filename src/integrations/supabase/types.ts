@@ -206,217 +206,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_program_weeks: {
-        Row: {
-          created_at: string
-          id: string
-          program_id: string
-          week_number: number
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          program_id: string
-          week_number: number
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          program_id?: string
-          week_number?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_program_weeks_program_id_fkey"
-            columns: ["program_id"]
-            isOneToOne: false
-            referencedRelation: "ai_programs"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_program_workout_exercises: {
-        Row: {
-          created_at: string
-          exercise_id: string | null
-          id: string
-          movement_type: Database["public"]["Enums"]["movement_type"] | null
-          order_index: number
-          placeholder_name: string | null
-          primary_muscle: Database["public"]["Enums"]["primary_muscle"] | null
-          priority: number | null
-          reps_max: number | null
-          reps_min: number | null
-          required_equipment: string[] | null
-          rest_sec: number | null
-          rpe: number | null
-          sets: number
-          tags: string[] | null
-          tempo: string | null
-          updated_at: string
-          workout_id: string
-        }
-        Insert: {
-          created_at?: string
-          exercise_id?: string | null
-          id?: string
-          movement_type?: Database["public"]["Enums"]["movement_type"] | null
-          order_index?: number
-          placeholder_name?: string | null
-          primary_muscle?: Database["public"]["Enums"]["primary_muscle"] | null
-          priority?: number | null
-          reps_max?: number | null
-          reps_min?: number | null
-          required_equipment?: string[] | null
-          rest_sec?: number | null
-          rpe?: number | null
-          sets?: number
-          tags?: string[] | null
-          tempo?: string | null
-          updated_at?: string
-          workout_id: string
-        }
-        Update: {
-          created_at?: string
-          exercise_id?: string | null
-          id?: string
-          movement_type?: Database["public"]["Enums"]["movement_type"] | null
-          order_index?: number
-          placeholder_name?: string | null
-          primary_muscle?: Database["public"]["Enums"]["primary_muscle"] | null
-          priority?: number | null
-          reps_max?: number | null
-          reps_min?: number | null
-          required_equipment?: string[] | null
-          rest_sec?: number | null
-          rpe?: number | null
-          sets?: number
-          tags?: string[] | null
-          tempo?: string | null
-          updated_at?: string
-          workout_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_program_workout_exercises_exercise_id_fkey"
-            columns: ["exercise_id"]
-            isOneToOne: false
-            referencedRelation: "ai_exercises"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "ai_program_workout_exercises_workout_id_fkey"
-            columns: ["workout_id"]
-            isOneToOne: false
-            referencedRelation: "ai_program_workouts"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_program_workouts: {
-        Row: {
-          created_at: string
-          day_of_week: number
-          focus_tags: string[] | null
-          id: string
-          program_week_id: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          created_at?: string
-          day_of_week: number
-          focus_tags?: string[] | null
-          id?: string
-          program_week_id: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          created_at?: string
-          day_of_week?: number
-          focus_tags?: string[] | null
-          id?: string
-          program_week_id?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "ai_program_workouts_program_week_id_fkey"
-            columns: ["program_week_id"]
-            isOneToOne: false
-            referencedRelation: "ai_program_weeks"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      ai_programs: {
-        Row: {
-          available_equipment: string[] | null
-          created_at: string
-          created_by: Database["public"]["Enums"]["program_creator"]
-          experience_level:
-            | Database["public"]["Enums"]["experience_level"]
-            | null
-          goal: Database["public"]["Enums"]["program_goal"]
-          id: string
-          location_type: Database["public"]["Enums"]["location_type"] | null
-          notes: string | null
-          priority_muscle_groups: string[] | null
-          program_data: Json | null
-          status: Database["public"]["Enums"]["program_status"]
-          time_per_session_min: number | null
-          title: string
-          training_days_per_week: number | null
-          updated_at: string
-          user_id: string
-          weeks: number
-        }
-        Insert: {
-          available_equipment?: string[] | null
-          created_at?: string
-          created_by?: Database["public"]["Enums"]["program_creator"]
-          experience_level?:
-            | Database["public"]["Enums"]["experience_level"]
-            | null
-          goal: Database["public"]["Enums"]["program_goal"]
-          id?: string
-          location_type?: Database["public"]["Enums"]["location_type"] | null
-          notes?: string | null
-          priority_muscle_groups?: string[] | null
-          program_data?: Json | null
-          status?: Database["public"]["Enums"]["program_status"]
-          time_per_session_min?: number | null
-          title: string
-          training_days_per_week?: number | null
-          updated_at?: string
-          user_id: string
-          weeks?: number
-        }
-        Update: {
-          available_equipment?: string[] | null
-          created_at?: string
-          created_by?: Database["public"]["Enums"]["program_creator"]
-          experience_level?:
-            | Database["public"]["Enums"]["experience_level"]
-            | null
-          goal?: Database["public"]["Enums"]["program_goal"]
-          id?: string
-          location_type?: Database["public"]["Enums"]["location_type"] | null
-          notes?: string | null
-          priority_muscle_groups?: string[] | null
-          program_data?: Json | null
-          status?: Database["public"]["Enums"]["program_status"]
-          time_per_session_min?: number | null
-          title?: string
-          training_days_per_week?: number | null
-          updated_at?: string
-          user_id?: string
-          weeks?: number
-        }
-        Relationships: []
-      }
       ambassador_commission_accruals: {
         Row: {
           agreement_id: string
@@ -1935,6 +1724,61 @@ export type Database = {
             columns: ["exercise_id"]
             isOneToOne: false
             referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exercise_candidates: {
+        Row: {
+          created_at: string | null
+          created_by: string | null
+          equipment_id: string | null
+          id: string
+          primary_muscle: string | null
+          proposed_name: string
+          secondary_muscles: string[] | null
+          status: string
+        }
+        Insert: {
+          created_at?: string | null
+          created_by?: string | null
+          equipment_id?: string | null
+          id?: string
+          primary_muscle?: string | null
+          proposed_name: string
+          secondary_muscles?: string[] | null
+          status?: string
+        }
+        Update: {
+          created_at?: string | null
+          created_by?: string | null
+          equipment_id?: string | null
+          id?: string
+          primary_muscle?: string | null
+          proposed_name?: string
+          secondary_muscles?: string[] | null
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exercise_candidates_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "equipment"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "exercise_candidates_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_effective"
+            referencedColumns: ["equipment_id"]
+          },
+          {
+            foreignKeyName: "exercise_candidates_equipment_id_fkey"
+            columns: ["equipment_id"]
+            isOneToOne: false
+            referencedRelation: "v_equipment_with_translations"
             referencedColumns: ["id"]
           },
         ]
@@ -6429,12 +6273,13 @@ export type Database = {
           attribute_values_json: Json
           backoff_percent: number | null
           backoff_sets: number | null
+          candidate_id: string | null
           created_at: string | null
           default_grip_ids: string[] | null
           default_sets: number
           default_warmup_plan: Json | null
           display_name: string | null
-          exercise_id: string
+          exercise_id: string | null
           grip_ids: string[] | null
           id: string
           notes: string | null
@@ -6459,12 +6304,13 @@ export type Database = {
           attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
+          candidate_id?: string | null
           created_at?: string | null
           default_grip_ids?: string[] | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
-          exercise_id: string
+          exercise_id?: string | null
           grip_ids?: string[] | null
           id?: string
           notes?: string | null
@@ -6489,12 +6335,13 @@ export type Database = {
           attribute_values_json?: Json
           backoff_percent?: number | null
           backoff_sets?: number | null
+          candidate_id?: string | null
           created_at?: string | null
           default_grip_ids?: string[] | null
           default_sets?: number
           default_warmup_plan?: Json | null
           display_name?: string | null
-          exercise_id?: string
+          exercise_id?: string | null
           grip_ids?: string[] | null
           id?: string
           notes?: string | null
@@ -6516,6 +6363,13 @@ export type Database = {
           weight_unit?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "template_exercises_candidate_id_fkey"
+            columns: ["candidate_id"]
+            isOneToOne: false
+            referencedRelation: "exercise_candidates"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "template_exercises_exercise_id_fkey"
             columns: ["exercise_id"]
@@ -6659,6 +6513,7 @@ export type Database = {
       }
       training_programs: {
         Row: {
+          ai_generated: boolean
           created_at: string
           goal: string | null
           id: string
@@ -6668,6 +6523,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          ai_generated?: boolean
           created_at?: string
           goal?: string | null
           id?: string
@@ -6677,6 +6533,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          ai_generated?: boolean
           created_at?: string
           goal?: string | null
           id?: string

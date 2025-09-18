@@ -14,19 +14,12 @@ export interface ProgramGenerationRequest {
 
 export interface AIProgram {
   id: string;
-  title: string;
-  goal: string;
-  weeks: number;
-  status: string;
+  name: string;
+  description: string;
+  is_active: boolean;
+  ai_generated: boolean;
   created_at: string;
-  ai_program_weeks: Array<{
-    week_number: number;
-    ai_program_workouts: Array<{
-      day_of_week: number;
-      title: string;
-      focus_tags: string[];
-    }>;
-  }>;
+  updated_at: string;
 }
 
 export const useGenerateProgram = () => {
@@ -245,22 +238,22 @@ export const useAIPrograms = () => {
     queryKey: ['ai-programs'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('ai_programs')
+        .from('training_programs')
         .select(`
-          *,
-          ai_program_weeks(
-            week_number,
-            ai_program_workouts(
-              day_of_week,
-              title,
-              focus_tags
-            )
-          )
+          id,
+          name,
+          description,
+          is_active,
+          ai_generated,
+          created_at,
+          updated_at
         `)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id);
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('ai_generated', true)
+        .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data as AIProgram[];
+      return data || [];
     },
   });
 };
