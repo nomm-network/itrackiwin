@@ -173,8 +173,12 @@ const AdminExerciseEdit: React.FC = () => {
 
   React.useEffect(() => {
     const loadExercise = async () => {
-      const id = params.id!;
-      if (!id) return;
+      const id = params.id;
+      if (!id) {
+        // In add mode, just set default values and stop loading
+        setLoading(false);
+        return;
+      }
       try {
         setLoading(true);
         const { data, error } = await supabase
