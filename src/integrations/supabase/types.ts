@@ -146,66 +146,6 @@ export type Database = {
         }
         Relationships: []
       }
-      ai_exercises: {
-        Row: {
-          body_position: string | null
-          created_at: string
-          difficulty: number
-          experience_min: Database["public"]["Enums"]["experience_level"]
-          grip_type: string | null
-          id: string
-          instructions: string | null
-          is_bodyweight: boolean | null
-          is_unilateral: boolean | null
-          movement_type: Database["public"]["Enums"]["movement_type"]
-          name: string
-          primary_muscle: Database["public"]["Enums"]["primary_muscle"]
-          required_equipment: string[] | null
-          secondary_muscles: string[] | null
-          slug: string | null
-          updated_at: string
-          video_url: string | null
-        }
-        Insert: {
-          body_position?: string | null
-          created_at?: string
-          difficulty?: number
-          experience_min?: Database["public"]["Enums"]["experience_level"]
-          grip_type?: string | null
-          id?: string
-          instructions?: string | null
-          is_bodyweight?: boolean | null
-          is_unilateral?: boolean | null
-          movement_type?: Database["public"]["Enums"]["movement_type"]
-          name: string
-          primary_muscle: Database["public"]["Enums"]["primary_muscle"]
-          required_equipment?: string[] | null
-          secondary_muscles?: string[] | null
-          slug?: string | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Update: {
-          body_position?: string | null
-          created_at?: string
-          difficulty?: number
-          experience_min?: Database["public"]["Enums"]["experience_level"]
-          grip_type?: string | null
-          id?: string
-          instructions?: string | null
-          is_bodyweight?: boolean | null
-          is_unilateral?: boolean | null
-          movement_type?: Database["public"]["Enums"]["movement_type"]
-          name?: string
-          primary_muscle?: Database["public"]["Enums"]["primary_muscle"]
-          required_equipment?: string[] | null
-          secondary_muscles?: string[] | null
-          slug?: string | null
-          updated_at?: string
-          video_url?: string | null
-        }
-        Relationships: []
-      }
       ambassador_commission_accruals: {
         Row: {
           agreement_id: string

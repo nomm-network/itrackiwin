@@ -179,6 +179,24 @@ Deno.serve(async (req) => {
       }
     })
 
+    // Get user's fitness profile goal first
+    let userGoal = mappedGoal; // fallback to payload goal
+    try {
+      const { data: profile } = await userClient
+        .from('user_profile_fitness')
+        .select('goal')
+        .maybeSingle();
+      
+      if (profile?.goal) {
+        userGoal = profile.goal;
+        console.log('Using goal from user fitness profile:', userGoal);
+      } else {
+        console.log('No goal found in user fitness profile, using payload goal:', userGoal);
+      }
+    } catch (error) {
+      console.log('Could not fetch user fitness profile goal, using payload goal:', error);
+    }
+
     // Call the Postgres function via RPC with user context
     console.log('=== FINAL RPC CALL PARAMETERS ===')
     console.log('Original goal:', payload.goal)
@@ -191,7 +209,7 @@ Deno.serve(async (req) => {
     console.log('Training days per week:', payload.training_days_per_week)
     
     const rpcParams = {
-      p_goal: mappedGoal,
+      p_goal: userGoal,
       p_experience_level: payload.experience_level,
       p_training_days_per_week: payload.training_days_per_week,
       p_location_type: payload.location_type,

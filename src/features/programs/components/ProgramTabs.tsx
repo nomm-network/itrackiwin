@@ -116,13 +116,13 @@ export function ProgramTabs() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-medium">{program.title}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {program.weeks} weeks • {program.goal.replace('_', ' ')}
-                                </p>
-                              </div>
-                              <Badge variant={program.status === 'active' ? 'default' : 'outline'}>
-                                {program.status}
+                                 <h4 className="font-medium">{program.name}</h4>
+                                 <p className="text-sm text-muted-foreground">
+                                   AI Generated Program
+                                 </p>
+                               </div>
+                               <Badge variant={program.is_active ? 'default' : 'outline'}>
+                                 {program.is_active ? 'Active' : 'Inactive'}
                               </Badge>
                             </div>
                           </CardContent>
