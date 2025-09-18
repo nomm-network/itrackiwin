@@ -11,3 +11,6 @@ verify_jwt = false
 
 [functions.refresh-exercise-views]
 verify_jwt = false
+
+[functions.generate-deterministic-template]
+verify_jwt = true
