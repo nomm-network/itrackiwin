@@ -134,17 +134,17 @@ Deno.serve(async (req) => {
     })
 
     // Call the Postgres function via RPC with user context
-    console.log('Calling generate_ai_program RPC with mapped data:', {
-      goal: mappedGoal,
-      experience_level: payload.experience_level,
-      training_days_per_week: payload.training_days_per_week,
-      location_type: payload.location_type,
-      available_equipment: equipmentSlugs,
-      priority_muscle_groups: payload.priority_muscle_groups,
-      time_per_session_min: payload.time_per_session_min,
-    })
+    console.log('=== FINAL RPC CALL PARAMETERS ===')
+    console.log('Original goal:', payload.goal)
+    console.log('Mapped goal:', mappedGoal)
+    console.log('Experience level:', payload.experience_level)
+    console.log('Location type:', payload.location_type)
+    console.log('Equipment slugs:', equipmentSlugs)
+    console.log('Priority muscle groups:', payload.priority_muscle_groups)
+    console.log('Time per session:', payload.time_per_session_min)
+    console.log('Training days per week:', payload.training_days_per_week)
     
-    const { data, error } = await userClient.rpc('generate_ai_program', {
+    const rpcParams = {
       p_goal: mappedGoal,
       p_experience_level: payload.experience_level,
       p_training_days_per_week: payload.training_days_per_week,
@@ -152,7 +152,12 @@ Deno.serve(async (req) => {
       p_available_equipment: equipmentSlugs,
       p_priority_muscle_groups: payload.priority_muscle_groups,
       p_time_per_session_min: payload.time_per_session_min,
-    })
+    }
+    
+    console.log('=== ACTUAL RPC PARAMETERS ===')
+    console.log(JSON.stringify(rpcParams, null, 2))
+    
+    const { data, error } = await userClient.rpc('generate_ai_program', rpcParams)
 
     if (error) {
       console.error('RPC error', error)
