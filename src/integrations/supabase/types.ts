@@ -2291,6 +2291,7 @@ export type Database = {
           default_grip_ids: string[] | null
           display_name: string | null
           display_name_tsv: unknown | null
+          effort_mode: Database["public"]["Enums"]["effort_mode"]
           equipment_id: string
           equipment_ref_id: string | null
           exercise_skill_level:
@@ -2301,6 +2302,7 @@ export type Database = {
           is_bar_loaded: boolean
           is_public: boolean
           is_unilateral: boolean | null
+          load_mode: Database["public"]["Enums"]["load_mode"]
           load_type: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint: string | null
           movement_id: string | null
@@ -2331,6 +2333,7 @@ export type Database = {
           default_grip_ids?: string[] | null
           display_name?: string | null
           display_name_tsv?: unknown | null
+          effort_mode?: Database["public"]["Enums"]["effort_mode"]
           equipment_id: string
           equipment_ref_id?: string | null
           exercise_skill_level?:
@@ -2341,6 +2344,7 @@ export type Database = {
           is_bar_loaded?: boolean
           is_public?: boolean
           is_unilateral?: boolean | null
+          load_mode?: Database["public"]["Enums"]["load_mode"]
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
           movement_id?: string | null
@@ -2371,6 +2375,7 @@ export type Database = {
           default_grip_ids?: string[] | null
           display_name?: string | null
           display_name_tsv?: unknown | null
+          effort_mode?: Database["public"]["Enums"]["effort_mode"]
           equipment_id?: string
           equipment_ref_id?: string | null
           exercise_skill_level?:
@@ -2381,6 +2386,7 @@ export type Database = {
           is_bar_loaded?: boolean
           is_public?: boolean
           is_unilateral?: boolean | null
+          load_mode?: Database["public"]["Enums"]["load_mode"]
           load_type?: Database["public"]["Enums"]["load_type_enum"] | null
           loading_hint?: string | null
           movement_id?: string | null
@@ -13840,6 +13846,7 @@ export type Database = {
       attr_scope: "global" | "movement" | "equipment"
       body_side: "left" | "right" | "bilateral" | "unspecified"
       effort_code: "++" | "+" | "-" | "--"
+      effort_mode: "reps" | "time" | "distance" | "calories"
       exercise_skill_level: "low" | "medium" | "high"
       experience_level:
         | "new"
@@ -13868,6 +13875,13 @@ export type Database = {
         | "band"
         | "chain"
         | "flywheel"
+      load_mode:
+        | "none"
+        | "bodyweight_plus_optional"
+        | "external_added"
+        | "external_assist"
+        | "machine_level"
+        | "band_level"
       load_type: "none" | "single_load" | "dual_load" | "stack"
       load_type_enum:
         | "barbell"
@@ -14085,6 +14099,7 @@ export const Constants = {
       attr_scope: ["global", "movement", "equipment"],
       body_side: ["left", "right", "bilateral", "unspecified"],
       effort_code: ["++", "+", "-", "--"],
+      effort_mode: ["reps", "time", "distance", "calories"],
       exercise_skill_level: ["low", "medium", "high"],
       experience_level: [
         "new",
@@ -14115,6 +14130,14 @@ export const Constants = {
         "band",
         "chain",
         "flywheel",
+      ],
+      load_mode: [
+        "none",
+        "bodyweight_plus_optional",
+        "external_added",
+        "external_assist",
+        "machine_level",
+        "band_level",
       ],
       load_type: ["none", "single_load", "dual_load", "stack"],
       load_type_enum: [
