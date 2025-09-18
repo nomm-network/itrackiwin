@@ -20,19 +20,20 @@ import { getExerciseNameFromTranslations, getExerciseDescriptionFromTranslations
 import { X } from "lucide-react";
 
 // Basic SEO
-const useSEO = (name?: string) => {
+const useSEO = (name?: string, isEdit?: boolean) => {
   React.useEffect(() => {
-    document.title = name ? `Edit Exercise | ${name} | Admin` : "Edit Exercise | Admin";
+    const mode = isEdit ? "Edit" : "Add";
+    document.title = name ? `${mode} Exercise | ${name} | Admin` : `${mode} Exercise | Admin`;
     const desc = document.querySelector('meta[name="description"]') || document.createElement('meta');
     desc.setAttribute('name', 'description');
-    desc.setAttribute('content', 'Edit exercise properties, muscles, equipment and configuration.');
+    desc.setAttribute('content', isEdit ? 'Edit exercise properties, muscles, equipment and configuration.' : 'Add new exercise with muscles, equipment and configuration.');
     document.head.appendChild(desc);
 
     const link = document.querySelector('link[rel="canonical"]') || document.createElement('link');
     link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', `${window.location.origin}/admin/exercises/edit`);
+    link.setAttribute('href', `${window.location.origin}/admin/exercises/${isEdit ? 'edit' : 'add'}`);
     document.head.appendChild(link);
-  }, [name]);
+  }, [name, isEdit]);
 };
 
 // Types for taxonomy
@@ -75,7 +76,8 @@ const AdminExerciseEdit: React.FC = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [exerciseName, setExerciseName] = React.useState<string>("");
-  useSEO(exerciseName);
+  const isEdit = !!params.id;
+  useSEO(exerciseName, isEdit);
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
@@ -430,7 +432,7 @@ const AdminExerciseEdit: React.FC = () => {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-semibold">Edit Exercise</h1>
+        <h1 className="text-2xl font-semibold">{isEdit ? 'Edit Exercise' : 'Add Exercise'}</h1>
         <Button variant="secondary" asChild>
           <Link to="/admin/exercises">Back to Exercise Management</Link>
         </Button>
