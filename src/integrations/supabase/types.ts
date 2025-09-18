@@ -6515,6 +6515,7 @@ export type Database = {
         Row: {
           ai_generated: boolean
           created_at: string
+          description: string | null
           goal: string | null
           id: string
           is_active: boolean
@@ -6525,6 +6526,7 @@ export type Database = {
         Insert: {
           ai_generated?: boolean
           created_at?: string
+          description?: string | null
           goal?: string | null
           id?: string
           is_active?: boolean
@@ -6535,6 +6537,7 @@ export type Database = {
         Update: {
           ai_generated?: boolean
           created_at?: string
+          description?: string | null
           goal?: string | null
           id?: string
           is_active?: boolean
