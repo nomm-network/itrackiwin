@@ -60,24 +60,63 @@ Deno.serve(async (req) => {
       }, 400)
     }
 
-    // Validate required fields
+    // Validate required fields and their types
     const required = ['goal', 'experience_level', 'training_days_per_week', 'location_type']
     for (const field of required) {
-      if (!(field in payload)) {
+      if (!(field in payload) || payload[field] === null || payload[field] === undefined) {
         console.error(`Missing required field: ${field}`)
         return json({ error: `Missing required field: ${field}` }, 400)
       }
     }
+    
+    // Validate field types
+    if (typeof payload.goal !== 'string') {
+      console.error(`Invalid goal type: ${typeof payload.goal}. Must be string`)
+      return json({ error: `Invalid goal type. Must be string` }, 400)
+    }
+    
+    if (typeof payload.experience_level !== 'string') {
+      console.error(`Invalid experience_level type: ${typeof payload.experience_level}. Must be string`)
+      return json({ error: `Invalid experience_level type. Must be string` }, 400)
+    }
+    
+    if (typeof payload.location_type !== 'string') {
+      console.error(`Invalid location_type type: ${typeof payload.location_type}. Must be string`)
+      return json({ error: `Invalid location_type type. Must be string` }, 400)
+    }
+    
+    if (!Array.isArray(payload.available_equipment)) {
+      console.error(`Invalid available_equipment type: ${typeof payload.available_equipment}. Must be array`)
+      return json({ error: `Invalid available_equipment type. Must be array` }, 400)
+    }
+    
+    if (!Array.isArray(payload.priority_muscle_groups)) {
+      console.error(`Invalid priority_muscle_groups type: ${typeof payload.priority_muscle_groups}. Must be array`)
+      return json({ error: `Invalid priority_muscle_groups type. Must be array` }, 400)
+    }
 
-    // Ensure arrays are properly set
+    // Ensure arrays are properly set and validate types
     payload.available_equipment = payload.available_equipment || []
     payload.priority_muscle_groups = payload.priority_muscle_groups || []
+    
+    // Validate training_days_per_week is a number
+    if (typeof payload.training_days_per_week !== 'number' || payload.training_days_per_week < 1 || payload.training_days_per_week > 7) {
+      console.error(`Invalid training_days_per_week: ${payload.training_days_per_week}. Must be number 1-7`)
+      return json({ error: `Invalid training_days_per_week: ${payload.training_days_per_week}. Must be number 1-7` }, 400)
+    }
+    
+    // Validate time_per_session_min if provided
+    if (payload.time_per_session_min !== undefined && (typeof payload.time_per_session_min !== 'number' || payload.time_per_session_min < 15 || payload.time_per_session_min > 300)) {
+      console.error(`Invalid time_per_session_min: ${payload.time_per_session_min}. Must be number 15-300`)
+      return json({ error: `Invalid time_per_session_min: ${payload.time_per_session_min}. Must be number 15-300` }, 400)
+    }
 
     console.log('Validated payload:', payload)
 
-    // Map equipment UUIDs to slugs
+    // Map equipment UUIDs to slugs - CRITICAL VALIDATION
     let equipmentSlugs = []
     if (payload.available_equipment && payload.available_equipment.length > 0) {
+      console.log('Looking up equipment for UUIDs:', payload.available_equipment)
       const { data: equipmentData, error: equipmentError } = await supabase
         .from('equipment')
         .select('slug')
@@ -89,6 +128,13 @@ Deno.serve(async (req) => {
       }
       
       equipmentSlugs = equipmentData?.map(e => e.slug) || []
+      console.log('Mapped equipment UUIDs to slugs:', equipmentSlugs)
+      
+      // Validate we got slugs for all UUIDs
+      if (equipmentSlugs.length !== payload.available_equipment.length) {
+        console.error(`Equipment mapping failed. Expected ${payload.available_equipment.length} slugs, got ${equipmentSlugs.length}`)
+        return json({ error: `Some equipment IDs not found in database. Expected ${payload.available_equipment.length}, found ${equipmentSlugs.length}` }, 400)
+      }
     }
 
     // Map goal values to match DB enum exactly
