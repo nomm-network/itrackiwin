@@ -91,17 +91,35 @@ Deno.serve(async (req) => {
       equipmentSlugs = equipmentData?.map(e => e.slug) || []
     }
 
-    // Map goal values to expected format
+    // Map goal values to match DB enum exactly
     const goalMapping = {
       'muscle_gain': 'muscle_gain',
       'fat_loss': 'fat_loss', 
       'strength': 'strength',
-      'recomp': 'muscle_gain', // Map recomp to muscle_gain for now
-      'endurance': 'endurance',
+      'recomp': 'recomp',
+      'endurance': 'general_fitness', // Map endurance to general_fitness
       'general_fitness': 'general_fitness'
     }
 
-    const mappedGoal = goalMapping[payload.goal] || 'muscle_gain'
+    const mappedGoal = goalMapping[payload.goal]
+    if (!mappedGoal) {
+      console.error(`Invalid goal: ${payload.goal}. Valid values: muscle_gain, fat_loss, strength, recomp, general_fitness`)
+      return json({ error: `Invalid goal: ${payload.goal}. Valid values: muscle_gain, fat_loss, strength, recomp, general_fitness` }, 400)
+    }
+
+    // Validate experience_level
+    const validExperienceLevels = ['new', 'returning', 'intermediate', 'advanced', 'very_experienced']
+    if (!validExperienceLevels.includes(payload.experience_level)) {
+      console.error(`Invalid experience_level: ${payload.experience_level}. Valid values: ${validExperienceLevels.join(', ')}`)
+      return json({ error: `Invalid experience_level: ${payload.experience_level}. Valid values: ${validExperienceLevels.join(', ')}` }, 400)
+    }
+
+    // Validate location_type
+    const validLocationTypes = ['home', 'gym']
+    if (!validLocationTypes.includes(payload.location_type)) {
+      console.error(`Invalid location_type: ${payload.location_type}. Valid values: ${validLocationTypes.join(', ')}`)
+      return json({ error: `Invalid location_type: ${payload.location_type}. Valid values: ${validLocationTypes.join(', ')}` }, 400)
+    }
 
     // Extract JWT token from Authorization header
     const jwt = authHeader.replace('Bearer ', '')
