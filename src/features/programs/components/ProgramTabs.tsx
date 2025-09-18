@@ -18,6 +18,10 @@ export function ProgramTabs() {
   const { data: aiPrograms = [], isLoading: aiLoading } = useAIPrograms();
   const { data: manualPrograms = [], isLoading: manualLoading } = useTrainingPrograms();
 
+  // Debug logging to help identify undefined values
+  console.log('AI Programs:', aiPrograms);
+  console.log('Manual Programs:', manualPrograms);
+
   const selectedAIProgram = aiPrograms.find(p => p.id === selectedAIProgramId);
 
   const handleAIProgramGenerated = (programId: string) => {
@@ -116,7 +120,7 @@ export function ProgramTabs() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                 <h4 className="font-medium">{program.name}</h4>
+                                 <h4 className="font-medium">{program.name || 'Unnamed Program'}</h4>
                                  <p className="text-sm text-muted-foreground">
                                    AI Generated Program
                                  </p>
@@ -175,10 +179,10 @@ export function ProgramTabs() {
                           <CardContent className="p-4">
                             <div className="flex items-center justify-between">
                               <div>
-                                <h4 className="font-medium">{program.name}</h4>
-                                <p className="text-sm text-muted-foreground">
-                                  {program.goal || 'Custom program'}
-                                </p>
+                                 <h4 className="font-medium">{program.name || 'Unnamed Program'}</h4>
+                                 <p className="text-sm text-muted-foreground">
+                                   {program.goal || 'Custom program'}
+                                 </p>
                               </div>
                               <Badge variant={program.is_active ? 'default' : 'outline'}>
                                 {program.is_active ? 'Active' : 'Inactive'}
@@ -270,12 +274,12 @@ export function ProgramTabs() {
                     <CardHeader>
                       <div className="flex items-start justify-between">
                         <div>
-                          <CardTitle className="text-lg">{program.name}</CardTitle>
-                          {program.goal && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              {program.goal}
-                            </p>
-                          )}
+                           <CardTitle className="text-lg">{program.name || 'Unnamed Program'}</CardTitle>
+                           {program.goal && (
+                             <p className="text-sm text-muted-foreground mt-1">
+                               {program.goal}
+                             </p>
+                           )}
                         </div>
                         
                         <div className="flex gap-2">
