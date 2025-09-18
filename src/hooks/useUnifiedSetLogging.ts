@@ -10,6 +10,10 @@ interface SetMetrics {
   duration_seconds?: number;
   distance?: number;
   notes?: string;
+  effort?: string;
+  settings?: Record<string, any>;
+  load_meta?: Record<string, any>;
+  rest_seconds?: number;
 }
 
 interface UnifiedSetLogOptions {
@@ -59,6 +63,22 @@ export const useUnifiedSetLogging = () => {
       
       if (options.metrics.notes) {
         normalizedMetrics.notes = { text: options.metrics.notes };
+      }
+
+      if (options.metrics.effort) {
+        normalizedMetrics.effort = { text: options.metrics.effort };
+      }
+
+      if (options.metrics.settings) {
+        normalizedMetrics.settings = { jsonb: options.metrics.settings };
+      }
+
+      if (options.metrics.load_meta !== undefined) {
+        normalizedMetrics.load_meta = { jsonb: options.metrics.load_meta };
+      }
+
+      if (options.metrics.rest_seconds !== undefined) {
+        normalizedMetrics.rest_seconds = { number: options.metrics.rest_seconds };
       }
 
       // Use the unified set logging function

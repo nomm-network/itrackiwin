@@ -47,6 +47,7 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
   const [weight, setWeight] = useState<number | ''>('');
   const [durationSeconds, setDurationSeconds] = useState<number | ''>('');
   const [distance, setDistance] = useState<number | ''>('');
+  const [calories, setCalories] = useState<number | ''>('');
   
   // Machine/equipment settings
   const [settings, setSettings] = useState<Record<string, any>>({});
@@ -123,10 +124,39 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
       return;
     }
 
+    if (effortMode === 'calories' && !calories) {
+      toast({
+        title: "Calories Required",
+        description: "Please enter the calories burned for this set.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation for load modes
+    if (loadMode === 'external_added' && weight !== '' && Number(weight) < 0) {
+      toast({
+        title: "Invalid Weight",
+        description: "External added load cannot be negative.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (loadMode === 'external_assist' && weight !== '' && Number(weight) > 0) {
+      toast({
+        title: "Invalid Weight", 
+        description: "Assisted exercises should use negative values for assistance.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     try {
       const metrics: any = {
         notes: notes || undefined,
         rpe: rpe ? Number(rpe) : undefined,
+        effort: effortMode, // Set the effort enum to match UI choice
       };
 
       // Add effort-specific metrics
@@ -149,25 +179,33 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
         metrics.duration_seconds = Number(durationSeconds);
       } else if (effortMode === 'distance') {
         metrics.distance = Number(distance);
+      } else if (effortMode === 'calories') {
+        // Store calories in settings since there's no dedicated column
+        metrics.settings = { calories: Number(calories) };
       }
 
       // Add equipment-specific settings if any are filled
-      const filledSettings = Object.entries(settings).reduce((acc, [key, value]) => {
-        if (value !== '' && value !== undefined && value !== null) {
-          acc[key] = value;
-        }
-        return acc;
-      }, {} as Record<string, any>);
+      if (effortMode !== 'calories') { // Don't overwrite calories settings
+        const filledSettings = Object.entries(settings).reduce((acc, [key, value]) => {
+          if (value !== '' && value !== undefined && value !== null) {
+            acc[key] = value;
+          }
+          return acc;
+        }, {} as Record<string, any>);
 
-      const setData = {
-        workout_exercise_id: workoutExerciseId,
-        set_index: setIndex,
-        is_completed: true,
-        ...metrics,
-        ...(Object.keys(filledSettings).length > 0 && { settings: filledSettings }),
-        ...(Object.keys(loadMeta).length > 0 && { load_meta: loadMeta }),
-        ...(restSeconds && { rest_seconds: Number(restSeconds) })
-      };
+        if (Object.keys(filledSettings).length > 0) {
+          metrics.settings = filledSettings;
+        }
+      }
+
+      // Ensure load_meta is always an object (NOT NULL constraint)
+      const finalLoadMeta = Object.keys(loadMeta).length > 0 ? loadMeta : {};
+      metrics.load_meta = finalLoadMeta;
+
+      // Add rest seconds if provided
+      if (restSeconds) {
+        metrics.rest_seconds = Number(restSeconds);
+      }
 
       await logSet({
         workoutExerciseId,
@@ -184,6 +222,8 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
         successMessage += `: ${Math.floor(Number(durationSeconds) / 60)}:${(Number(durationSeconds) % 60).toString().padStart(2, '0')}`;
       } else if (effortMode === 'distance' && distance) {
         successMessage += `: ${distance}m`;
+      } else if (effortMode === 'calories' && calories) {
+        successMessage += `: ${calories} calories`;
       }
 
       toast({
@@ -196,6 +236,7 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
       setWeight('');
       setDurationSeconds('');
       setDistance('');
+      setCalories('');
       setRpe('');
       setNotes('');
       setRestSeconds('');
@@ -326,6 +367,22 @@ const EffortModeSetForm: React.FC<EffortModeSetFormProps> = ({
               onChange={(e) => setDistance(e.target.value === '' ? '' : Number(e.target.value))}
               min={0}
               step={0.1}
+              placeholder="0"
+              required
+            />
+          </div>
+        )}
+
+        {effortMode === 'calories' && (
+          <div className="space-y-2 col-span-2">
+            <Label htmlFor="calories">Calories Burned *</Label>
+            <Input
+              id="calories"
+              type="number"
+              value={calories}
+              onChange={(e) => setCalories(e.target.value === '' ? '' : Number(e.target.value))}
+              min={0}
+              step={1}
               placeholder="0"
               required
             />
