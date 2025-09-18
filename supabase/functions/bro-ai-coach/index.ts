@@ -127,13 +127,13 @@ Deno.serve(async (req) => {
     })
     
     const { data, error } = await userClient.rpc('generate_ai_program', {
-      goal: mappedGoal,
-      experience_level: payload.experience_level,
-      training_days_per_week: payload.training_days_per_week,
-      location_type: payload.location_type,
-      available_equipment: equipmentSlugs,
-      priority_muscle_groups: payload.priority_muscle_groups,
-      time_per_session_min: payload.time_per_session_min,
+      p_goal: mappedGoal,
+      p_experience_level: payload.experience_level,
+      p_training_days_per_week: payload.training_days_per_week,
+      p_location_type: payload.location_type,
+      p_available_equipment: equipmentSlugs,
+      p_priority_muscle_groups: payload.priority_muscle_groups,
+      p_time_per_session_min: payload.time_per_session_min,
     })
 
     if (error) {
