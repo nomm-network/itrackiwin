@@ -53,6 +53,7 @@ export function AdminRoutes() {
             <Route path="plates/profiles" element={<PlateProfilesPage />} />
             <Route path="plates/profiles/:id" element={<EditPlateProfilePage />} />
             <Route path="exercises" element={<AdminExercisesManagement />} />
+            <Route path="exercises/add" element={<AdminExerciseEdit />} />
           <Route path="exercises/:id/edit" element={<AdminExerciseEdit />} />
           <Route path="users" element={<AdminUsersListPage />} />
           <Route path="users/:id" element={<AdminUserDetailPage />} />

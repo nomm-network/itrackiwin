@@ -564,11 +564,12 @@ const AdminExercisesManagement: React.FC = () => {
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-bold">Exercise Management</h1>
           <div className="flex flex-col gap-2">
-            <Button onClick={() => setIsCreateDialogOpen(true)}>
-              <Plus className="w-4 h-4 mr-2" />
-              Add Exercise
+            <Button asChild>
+              <Link to="/admin/exercises/add">
+                <Plus className="w-4 h-4 mr-2" />
+                Add Exercise
+              </Link>
             </Button>
-            {/* Exercise creation is now handled through the dialog only */}
           </div>
         </div>
 
