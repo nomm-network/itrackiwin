@@ -41,7 +41,7 @@ export function useBottomNav() {
           slot: 1,
           item_type: 'fixed',
           label: 'Dashboard',
-          slug: '',
+          slug: 'dashboard',
           icon: '🏠'
         },
         {
