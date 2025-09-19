@@ -28,40 +28,41 @@ export function useBottomNav() {
           )
         `)
         .eq('user_id', user.id)
-        .eq('nav_pinned', true)
         .eq('is_enabled', true)
         .order('display_order')
         .limit(3);
 
       if (error) throw error;
       
-      // Build nav items with fixed slots for Dashboard and Atlas, plus pinned categories
+      // Build nav items: Atlas, top 3 categories, Planets
       const navItems: NavItem[] = [
         {
           slot: 1,
           item_type: 'fixed',
-          label: 'Dashboard',
-          slug: 'dashboard',
-          icon: '🏠'
-        },
-        {
-          slot: 2,
-          item_type: 'fixed', 
           label: 'Atlas',
           slug: 'atlas',
           icon: '🗺️'
         }
       ];
 
-      // Add pinned categories starting from slot 3
+      // Add top 3 categories starting from slot 2 (linking to category dashboards)
       (data || []).forEach((item: any, index) => {
         navItems.push({
-          slot: 3 + index,
+          slot: 2 + index,
           item_type: 'category',
           label: item.life_categories.name,
-          slug: item.life_categories.slug, // Just the slug, getRouteForSlug will handle the /area/ prefix
+          slug: `category/${item.life_categories.slug}`, // Link to category dashboard
           icon: item.life_categories.icon
         });
+      });
+      
+      // Add Planets as the 5th item
+      navItems.push({
+        slot: 5,
+        item_type: 'fixed',
+        label: 'Planets',
+        slug: 'planets',
+        icon: '🪐'
       });
       
       return navItems;
