@@ -398,6 +398,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     });
     
     try {
+      console.log('🔍 About to call newLogSet with payload:', {
+        payload,
+        plannedSetIndex,
+        'payload.grip_ids': payload.grip_ids,
+        'payload.grip_ids.length': payload.grip_ids.length
+      });
+      
       const result = await newLogSet(payload, plannedSetIndex);
       
       // Only update warmup context for working sets (not warmup sets)
@@ -435,6 +442,19 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       
       // Note: Removed window.location.reload() to maintain exercise navigation state
     } catch (error) {
+      console.error('❌ DETAILED SET LOGGING ERROR:', {
+        error,
+        errorType: typeof error,
+        isErrorInstance: error instanceof Error,
+        payload,
+        plannedSetIndex,
+        workoutExerciseId,
+        setData,
+        currentSetIndex,
+        completedSetsCount,
+        totalSets: sets.length,
+        timestamp: new Date().toISOString()
+      });
       console.error('Failed to log set:', error);
       console.error('Full error object:', JSON.stringify(error, null, 2));
       
