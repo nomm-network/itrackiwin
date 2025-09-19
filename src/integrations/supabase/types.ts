@@ -1206,6 +1206,99 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_subscriptions: {
+        Row: {
+          coach_id: string
+          ends_at: string | null
+          id: string
+          starts_at: string | null
+          status: Database["public"]["Enums"]["subscription_status"]
+          user_id: string
+        }
+        Insert: {
+          coach_id: string
+          ends_at?: string | null
+          id?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          user_id: string
+        }
+        Update: {
+          coach_id?: string
+          ends_at?: string | null
+          id?: string
+          starts_at?: string | null
+          status?: Database["public"]["Enums"]["subscription_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_subscriptions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaches: {
+        Row: {
+          avatar_url: string | null
+          category_id: string | null
+          display_name: string
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          price_cents: number | null
+          type: Database["public"]["Enums"]["coach_type"]
+        }
+        Insert: {
+          avatar_url?: string | null
+          category_id?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          price_cents?: number | null
+          type?: Database["public"]["Enums"]["coach_type"]
+        }
+        Update: {
+          avatar_url?: string | null
+          category_id?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          price_cents?: number | null
+          type?: Database["public"]["Enums"]["coach_type"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaches_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaches_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaches_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_health_subs"
+            referencedColumns: ["hub_id"]
+          },
+        ]
+      }
       cycle_events: {
         Row: {
           created_at: string
@@ -6649,6 +6742,65 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_health_subs"
             referencedColumns: ["hub_id"]
+          },
+        ]
+      }
+      user_category_settings: {
+        Row: {
+          category_id: string
+          id: string
+          is_enabled: boolean
+          nav_pinned: boolean | null
+          priority_rank: number | null
+          selected_coach_id: string | null
+          user_id: string
+        }
+        Insert: {
+          category_id: string
+          id?: string
+          is_enabled?: boolean
+          nav_pinned?: boolean | null
+          priority_rank?: number | null
+          selected_coach_id?: string | null
+          user_id: string
+        }
+        Update: {
+          category_id?: string
+          id?: string
+          is_enabled?: boolean
+          nav_pinned?: boolean | null
+          priority_rank?: number | null
+          selected_coach_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_category_settings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "life_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_category_settings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_categories_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_category_settings_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "v_health_subs"
+            referencedColumns: ["hub_id"]
+          },
+          {
+            foreignKeyName: "user_category_settings_selected_coach_id_fkey"
+            columns: ["selected_coach_id"]
+            isOneToOne: false
+            referencedRelation: "coaches"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -13879,6 +14031,7 @@ export type Database = {
       app_role: "superadmin" | "admin" | "mentor" | "user"
       attr_scope: "global" | "movement" | "equipment"
       body_side: "left" | "right" | "bilateral" | "unspecified"
+      coach_type: "ai" | "human"
       effort_code: "++" | "+" | "-" | "--"
       effort_mode: "reps" | "time" | "distance" | "calories"
       exercise_skill_level: "low" | "medium" | "high"
@@ -13983,6 +14136,7 @@ export type Database = {
         | "backoff"
         | "cooldown"
       sex_type: "male" | "female" | "other" | "prefer_not_to_say"
+      subscription_status: "active" | "trialing" | "canceled"
       training_focus:
         | "muscle"
         | "strength"
@@ -14132,6 +14286,7 @@ export const Constants = {
       app_role: ["superadmin", "admin", "mentor", "user"],
       attr_scope: ["global", "movement", "equipment"],
       body_side: ["left", "right", "bilateral", "unspecified"],
+      coach_type: ["ai", "human"],
       effort_code: ["++", "+", "-", "--"],
       effort_mode: ["reps", "time", "distance", "calories"],
       exercise_skill_level: ["low", "medium", "high"],
@@ -14247,6 +14402,7 @@ export const Constants = {
         "cooldown",
       ],
       sex_type: ["male", "female", "other", "prefer_not_to_say"],
+      subscription_status: ["active", "trialing", "canceled"],
       training_focus: [
         "muscle",
         "strength",
