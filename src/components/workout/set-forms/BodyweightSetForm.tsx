@@ -199,26 +199,7 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     }, 100);
   };
 
-  const debugInfo = {
-    version: 'workout-flow-v0.5.4',
-    router: 'SmartSetForm',
-    logger: 'useUnifiedSetLogging',
-    restTimer: true,
-    grips: true,
-    gripKey: selectedGrip,
-    warmup: false,
-    entryMode: 'bodyweight' as const,
-    payloadPreview: {
-      effort: 'reps',
-      reps: Number(reps) || 0,
-      weight_kg: assistMode === 'assist' && inputMagnitude ? -Number(inputMagnitude) : Number(inputMagnitude) || 0,
-      set_kind: 'working',
-      rest_seconds: Number(restSeconds) || 120,
-      grip_key: selectedGrip,
-      settings: { assist_mode: assistMode, version: 'v0.5.4' },
-      load_meta: { assist_mode: assistMode, logged_bodyweight_kg: currentBodyweight }
-    }
-  };
+  // Debug info removed - handled by session level WorkoutDebugFooter
 
   return (
     <>
@@ -440,8 +421,7 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         currentWeight={currentBodyweight}
       />
 
-      {/* Debug Footer */}
-      <WorkoutDebugFooter debugInfo={debugInfo} />
+      {/* Debug Footer removed - handled by session level */}
     </>
   );
 };

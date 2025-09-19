@@ -15,7 +15,7 @@ import PerSideToggle from '../PerSideToggle';
 import QuickWeightChips from '../QuickWeightChips';
 import SetProgressDisplay from '../SetProgressDisplay';
 import FeelSelector from '../FeelSelector';
-import WorkoutDebugFooter from '../WorkoutDebugFooter';
+// Removed WorkoutDebugFooter import - debug handled by session level
 import ExerciseTitleRow from '../ExerciseTitleRow';
 import ExerciseGripMenu from '../ExerciseGripMenu';
 import ExerciseWarmupMenu from '../ExerciseWarmupMenu';
@@ -411,8 +411,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       </form>
 
-      {/* Debug Footer */}
-      <WorkoutDebugFooter debugInfo={debugInfo} />
+      {/* Debug Footer removed - handled by session level */}
     </>
   );
 };
