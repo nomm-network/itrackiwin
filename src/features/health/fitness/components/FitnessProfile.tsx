@@ -25,12 +25,17 @@ const FitnessProfile: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Fetch latest body metrics
-  const { data: latestMetrics } = useQuery({
+  // Fetch latest body metrics with debugging
+  const { data: latestMetrics, isLoading: metricsLoading, error: metricsError } = useQuery({
     queryKey: ['latest-body-metrics'],
     queryFn: async () => {
       const { data: user } = await supabase.auth.getUser();
-      if (!user.user?.id) return null;
+      console.log('🔍 Fetching body metrics for user:', user.user?.id);
+      
+      if (!user.user?.id) {
+        console.log('❌ No user ID found');
+        return null;
+      }
 
       const { data, error } = await supabase
         .from('user_body_metrics')
@@ -40,7 +45,12 @@ const FitnessProfile: React.FC = () => {
         .limit(1)
         .maybeSingle();
 
-      if (error && error.code !== 'PGRST116') throw error;
+      console.log('📊 Body metrics query result:', { data, error });
+      
+      if (error && error.code !== 'PGRST116') {
+        console.error('❌ Body metrics query error:', error);
+        throw error;
+      }
       return data;
     },
   });
@@ -128,8 +138,10 @@ const FitnessProfile: React.FC = () => {
   });
 
   React.useEffect(() => {
+    console.log('🔄 Form reset triggered with data:', { profile, latestMetrics });
+    
     if (profile || latestMetrics) {
-      reset({
+      const formData = {
         sex: profile?.sex as 'male' | 'female' | 'other' | null,
         // Get height/weight ONLY from body metrics table - NOT from profile
         bodyweight: latestMetrics?.weight_kg || null,
@@ -138,7 +150,10 @@ const FitnessProfile: React.FC = () => {
         goal: profile?.goal as 'hypertrophy' | 'strength' | 'fat_loss' | 'general' || 'hypertrophy',
         injuries: (profile?.injuries as Record<string, string>) || {},
         prefer_short_rests: profile?.prefer_short_rests || false,
-      });
+      };
+      
+      console.log('🎯 Setting form data:', formData);
+      reset(formData);
     }
   }, [profile, latestMetrics, reset]);
 
@@ -196,10 +211,9 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Metrics - Direct editing */}
+            {/* Body Metrics - Always show input fields */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Body Metrics</h3>
-              <p className="text-sm text-muted-foreground">Update your current weight and height measurements</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="bodyweight">Current Weight (kg)</Label>
@@ -278,6 +292,37 @@ const FitnessProfile: React.FC = () => {
               {upsertProfile.isPending ? 'Saving...' : 'Save Profile'}
             </Button>
           </form>
+
+          {/* DEBUG PANEL */}
+          <div className="mt-8 p-4 bg-muted rounded-lg">
+            <h3 className="font-bold mb-2 text-red-600">🐛 DEBUG INFO</h3>
+            <div className="space-y-2 text-xs">
+              <div>
+                <strong>Latest Metrics Query Result:</strong>
+                <pre className="whitespace-pre-wrap">{JSON.stringify(latestMetrics, null, 2)}</pre>
+              </div>
+              <div>
+                <strong>Profile Query Result:</strong>
+                <pre className="whitespace-pre-wrap">{JSON.stringify(profile, null, 2)}</pre>
+              </div>
+              <div>
+                <strong>Form Watch Values:</strong>
+                <pre className="whitespace-pre-wrap">{JSON.stringify({
+                  bodyweight: watch('bodyweight'),
+                  height_cm: watch('height_cm'),
+                  sex: watch('sex'),
+                  goal: watch('goal')
+                }, null, 2)}</pre>
+              </div>
+              <div>
+                <strong>Loading States:</strong>
+                <pre className="whitespace-pre-wrap">{JSON.stringify({
+                  isLoading,
+                  isPending: upsertProfile.isPending
+                }, null, 2)}</pre>
+              </div>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
