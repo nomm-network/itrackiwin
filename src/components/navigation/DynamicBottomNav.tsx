@@ -26,7 +26,9 @@ function getRouteForSlug(slug: string) {
     case 'dashboard':
       return '/dashboard';
     case 'atlas':
-      return '/planets';
+      return '/atlas'; // Updated to point to /atlas instead of /planets
+    case 'planets':
+      return '/planets'; // Keep planets pointing to the orbital planets page
     default:
       // For life categories, navigate to their respective areas
       return `/area/${slug}`;

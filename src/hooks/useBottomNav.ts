@@ -52,7 +52,7 @@ export function useBottomNav() {
           slot: 2 + index,
           item_type: 'category',
           label: firstName,
-          slug: `category/${item.life_categories.slug}`, // Link to category dashboard
+          slug: item.life_categories.slug, // Just the slug, getRouteForSlug will handle the /area/ prefix
           icon: item.life_categories.icon
         });
       });
@@ -62,7 +62,7 @@ export function useBottomNav() {
         slot: 5,
         item_type: 'fixed',
         label: 'Planets',
-        slug: 'planets',
+        slug: 'planets', // This will route to /planets via getRouteForSlug but we need it to be the Life Map
         icon: '🪐'
       });
       
