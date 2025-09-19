@@ -8025,13 +8025,11 @@ export type Database = {
       user_profile_fitness: {
         Row: {
           available_equipment: string[] | null
-          bodyweight: number | null
           created_at: string | null
           days_per_week: number | null
           experience_level: Database["public"]["Enums"]["experience_level"]
           goal: string
           height: number | null
-          height_cm: number | null
           id: string
           injuries: string[] | null
           location_type: string | null
@@ -8046,13 +8044,11 @@ export type Database = {
         }
         Insert: {
           available_equipment?: string[] | null
-          bodyweight?: number | null
           created_at?: string | null
           days_per_week?: number | null
           experience_level: Database["public"]["Enums"]["experience_level"]
           goal: string
           height?: number | null
-          height_cm?: number | null
           id?: string
           injuries?: string[] | null
           location_type?: string | null
@@ -8067,13 +8063,11 @@ export type Database = {
         }
         Update: {
           available_equipment?: string[] | null
-          bodyweight?: number | null
           created_at?: string | null
           days_per_week?: number | null
           experience_level?: Database["public"]["Enums"]["experience_level"]
           goal?: string
           height?: number | null
-          height_cm?: number | null
           id?: string
           injuries?: string[] | null
           location_type?: string | null
