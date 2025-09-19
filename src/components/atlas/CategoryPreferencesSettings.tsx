@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from "react";
+import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -179,14 +180,17 @@ export function CategoryPreferencesSettings() {
   }, [allSubcats]);
 
   const handleNavPinToggle = (categoryId: string, pinned: boolean) => {
-    setRows((prev) => prev.map((r) => 
-      r.category_id === categoryId 
-        ? { ...r, nav_pinned: pinned, is_enabled: pinned } 
-        : r
-    ));
+    // This function is no longer used since we auto-pin top 3
   };
 
-  const pinnedCount = rows.filter(r => r.nav_pinned).length;
+  // Auto-pin top 3 categories based on display order
+  React.useEffect(() => {
+    setRows((prev) => prev.map((r, idx) => ({
+      ...r,
+      nav_pinned: idx < 3, // Automatically pin top 3
+      is_enabled: idx < 3 || r.is_enabled // Enable if pinned or already enabled
+    })));
+  }, [categories]);
 
   return (
     <Dialog>
@@ -206,7 +210,7 @@ export function CategoryPreferencesSettings() {
             <CardHeader>
               <CardTitle className="text-lg">Navigation & Priority</CardTitle>
               <p className="text-sm text-muted-foreground">
-                Drag to reorder priorities and select which categories appear in navigation (max 3)
+                Drag to reorder priorities. The top 3 categories will automatically appear in navigation.
               </p>
             </CardHeader>
             <CardContent>
@@ -215,13 +219,12 @@ export function CategoryPreferencesSettings() {
                   <TableRow>
                     <TableHead className="w-16">Order</TableHead>
                     <TableHead>Category</TableHead>
-                    <TableHead className="w-32">In Navigation</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {rows.map((r, idx) => {
                     const c = categories.find((x) => x.id === r.category_id);
-                    const canPin = pinnedCount < 3 || r.nav_pinned;
+                    const isInTopThree = idx < 3;
                     
                     return (
                       <TableRow
@@ -230,23 +233,22 @@ export function CategoryPreferencesSettings() {
                         onDragStart={handleDragStart(r.category_id)}
                         onDragOver={handleDragOver(r.category_id)}
                         onDrop={handleDrop}
-                        className="cursor-grab"
+                        className={cn(
+                          "cursor-grab",
+                          isInTopThree && "bg-primary/5 border-l-4 border-l-primary"
+                        )}
                       >
                         <TableCell className="font-mono">{idx + 1}.</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
                             <GripVertical className="h-4 w-4 text-muted-foreground" />
                             <span>{c ? getTranslatedName(c) : 'Unknown'}</span>
+                            {isInTopThree && (
+                              <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                                In Navigation
+                              </span>
+                            )}
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Checkbox
-                            checked={r.nav_pinned}
-                            disabled={!canPin && !r.nav_pinned}
-                            onCheckedChange={(checked) => 
-                              handleNavPinToggle(r.category_id, !!checked)
-                            }
-                          />
                         </TableCell>
                       </TableRow>
                     );
@@ -254,14 +256,12 @@ export function CategoryPreferencesSettings() {
                 </TableBody>
               </Table>
               
-              {pinnedCount >= 3 && (
-                <div className="text-sm text-amber-600 bg-amber-50 dark:bg-amber-950/20 p-3 rounded-lg mt-4">
-                  Maximum of 3 categories can be pinned. Unpin a category to add a different one.
-                </div>
-              )}
+              <div className="text-sm text-blue-600 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg mt-4">
+                The top 3 categories in your priority list will automatically appear in the bottom navigation.
+              </div>
               
               <div className="mt-4 flex justify-end">
-                <Button onClick={() => upsertPrefs.mutate(rows.map((r, i) => ({ ...r, display_order: i + 1 })))}>
+                <Button onClick={() => upsertPrefs.mutate(rows.map((r, i) => ({ ...r, display_order: i + 1, nav_pinned: i < 3, is_enabled: i < 3 || r.is_enabled })))}>
                   Save Changes
                 </Button>
               </div>

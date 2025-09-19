@@ -59,7 +59,7 @@ export function useBottomNav() {
           slot: 3 + index,
           item_type: 'category',
           label: item.life_categories.name,
-          slug: `area/${item.life_categories.slug}`,
+          slug: item.life_categories.slug, // Just the slug, getRouteForSlug will handle the /area/ prefix
           icon: item.life_categories.icon
         });
       });
