@@ -73,6 +73,7 @@ interface WorkoutSessionProps {
 }
 
 export default function EnhancedWorkoutSession({ workout, source = "direct" }: WorkoutSessionProps) {
+  console.log('🔍 EnhancedWorkoutSession v0.6.0 entry:', { workout: !!workout, source, exerciseCount: workout?.exercises?.length });
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { mutate: updateSet } = useUpdateSet();

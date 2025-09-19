@@ -2,8 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLogSet } from "../hooks";
 import { useState } from "react";
-import { MobileWorkoutSession } from "@/components/mobile/MobileWorkoutSession";
-import { useIsMobile } from "@/hooks/use-mobile";
+// Removed mobile imports - unified to EnhancedWorkoutSession only
 
 interface WorkoutSessionProps {
   workout: any;
@@ -12,7 +11,7 @@ interface WorkoutSessionProps {
 export default function WorkoutSession({ workout }: WorkoutSessionProps) {
   const { mutate: logSet } = useLogSet();
   const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-  const isMobile = useIsMobile();
+  // Removed isMobile - unified flow for all devices
 
   if (!workout?.exercises?.length) {
     return <div>No exercises in this workout</div>;
