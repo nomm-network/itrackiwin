@@ -1081,7 +1081,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
       {/* Unified Debug Footer - v0.6.0 */}
       <WorkoutDebugFooter 
         debugInfo={{
-          version: 'workout-flow-v0.6.0',
+          version: 'workout-flow-v0.6.1',
           router: 'SmartSetForm',
           logger: 'useUnifiedSetLogging', 
           sessionSource: source,
