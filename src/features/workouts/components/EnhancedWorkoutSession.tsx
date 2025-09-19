@@ -363,9 +363,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes = notes ? `${notes}. Pain reported` : 'Pain reported';
     }
     
-    // Calculate planned set index (0-based: Set 1 → 0, Set 2 → 1, etc.)
-    const currentSetNumber = (currentExercise?.completed_sets_count || 0) + 1;
-    const plannedSetIndex = currentSetNumber - 1; // Convert to 0-based
+    // Calculate planned set index using the consistent currentSetIndex from useMemo
+    const plannedSetIndex = currentSetIndex; // Already 0-based and properly calculated
     
     const payload = {
       workout_exercise_id: workoutExerciseId,
