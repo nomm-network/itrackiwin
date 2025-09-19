@@ -483,7 +483,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         errorDetails = String(error);
       }
       
-      toast.error(`SET SAVE FAILED: ${errorDetails}`);
+      toast.error(`SET SAVE FAILED: ${errorDetails}`, {
+        duration: 15000 // Show for 15 seconds so you can read the full error
+      });
     }
   };
 
