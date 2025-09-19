@@ -1,15 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, Plus, Minus } from 'lucide-react';
 import { 
   BaseSetFormProps, 
   useBaseFormState,
   useUnifiedSetLogging,
   toast 
 } from './BaseSetForm';
+import RestTimerBadge from '../RestTimerBadge';
+import GripSelector from '../GripSelector';
+import WarmupBuilder from '../WarmupBuilder';
+import PerSideToggle from '../PerSideToggle';
+import QuickWeightChips from '../QuickWeightChips';
+import SetProgressDisplay from '../SetProgressDisplay';
+import FeelSelector from '../FeelSelector';
+import WorkoutDebugFooter from '../WorkoutDebugFooter';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -24,12 +32,26 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const { logSet, isLoading } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
   
-  // Weight & reps specific fields
+  // Enhanced state for all the restored features
   const [reps, setReps] = useState<number | ''>('');
   const [weight, setWeight] = useState<number | ''>('');
+  const [selectedGrip, setSelectedGrip] = useState<string | null>(null);
+  const [entryMode, setEntryMode] = useState<'per_side' | 'total'>('total');
+  const [selectedFeel, setSelectedFeel] = useState<string | null>(null);
+  const [restTimerActive, setRestTimerActive] = useState(false);
+  const [previousSet] = useState<any>(null); // TODO: fetch from workout history
+  const [targetSet] = useState<any>(null); // TODO: fetch from template
   
   const { rpe, notes, restSeconds } = baseState;
   const loadMode = exercise.load_mode;
+  const equipmentType = exercise.equipment?.slug || '';
+
+  // Initialize entry mode based on equipment
+  useEffect(() => {
+    const defaultMode = equipmentType.includes('dumbbell') || equipmentType.includes('cable') 
+      ? 'per_side' : 'total';
+    setEntryMode(defaultMode);
+  }, [equipmentType]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,24 +75,43 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
     }
 
     try {
+      const finalWeight = entryMode === 'per_side' && weight !== '' && weight !== 0 
+        ? Number(weight) * 2 : Number(weight) || 0;
+
       const metrics: any = {
         notes: notes || undefined,
         rpe: rpe ? Number(rpe) : undefined,
         effort: 'reps',
         load_mode: loadMode,
-        reps: Number(reps)
+        reps: Number(reps),
+        feel: selectedFeel || undefined,
+        rest_seconds: restSeconds ? Number(restSeconds) : 120,
+        grip_key: selectedGrip || null,
+        settings: {
+          entry_mode: entryMode,
+          version: 'v0.5.4'
+        },
+        load_meta: {
+          entry_mode: entryMode,
+          weight_per_side: entryMode === 'per_side' ? Number(weight) || 0 : undefined,
+          total_weight: finalWeight
+        }
       };
 
       // Add weight if specified
       if (weight !== '') {
-        metrics.weight = Number(weight);
+        metrics.weight = finalWeight;
         metrics.weight_unit = 'kg';
+        if (entryMode === 'per_side') {
+          metrics.weight_per_side = Number(weight);
+        }
       }
 
       await logSet({
         workoutExerciseId,
         setIndex,
-        metrics
+        metrics,
+        gripIds: selectedGrip ? [selectedGrip] : undefined
       });
       
       const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
@@ -79,9 +120,13 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         description: `Set ${setIndex + 1}: ${weightDisplay} × ${reps} reps`,
       });
 
+      // Start rest timer
+      setRestTimerActive(true);
+
       // Reset form
       setReps('');
       setWeight('');
+      setSelectedFeel(null);
       setBaseState(prev => ({ ...prev, rpe: '', notes: '' }));
       
       onLogged();
@@ -104,67 +149,222 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
     return 'Weight Training';
   };
 
+  const handleWarmupStepComplete = async (step: any, stepIndex: number) => {
+    try {
+      await logSet({
+        workoutExerciseId,
+        setIndex: stepIndex,
+        metrics: {
+          effort: 'reps',
+          load_mode: loadMode,
+          reps: step.reps,
+          weight: step.weight,
+          weight_unit: 'kg' as const,
+          set_kind: 'warmup',
+          grip_key: selectedGrip || null,
+          settings: { warmup_step: stepIndex, version: 'v0.5.4' }
+        }
+      });
+      toast({
+        title: "Warmup Step Logged",
+        description: `${step.weight}kg × ${step.reps} reps`,
+      });
+    } catch (error) {
+      console.error('Error logging warmup step:', error);
+    }
+  };
+
+  const debugInfo = {
+    version: 'workout-flow-v0.5.4',
+    router: 'SmartSetForm',
+    logger: 'useUnifiedSetLogging',
+    restTimer: true,
+    grips: true,
+    gripKey: selectedGrip,
+    warmup: true,
+    warmupSteps: 3,
+    entryMode,
+    payloadPreview: {
+      effort: 'reps',
+      reps: Number(reps) || 0,
+      weight_kg: entryMode === 'per_side' && weight ? Number(weight) * 2 : Number(weight) || 0,
+      weight_per_side: entryMode === 'per_side' ? Number(weight) || 0 : undefined,
+      set_kind: 'working',
+      rest_seconds: Number(restSeconds) || 120,
+      grip_key: selectedGrip,
+      settings: { entry_mode: entryMode, version: 'v0.5.4' },
+      load_meta: { entry_mode: entryMode }
+    }
+  };
+
   return (
-    <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
-
-      <div className="grid grid-cols-2 gap-4">
-        {/* Weight Input */}
-        <div className="space-y-2">
-          <Label htmlFor="weight">Weight (kg)</Label>
-          <Input
-            id="weight"
-            type="number"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
-            min={0}
-            step={2.5}
-            placeholder="0"
+    <>
+      <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+        {/* Rest Timer */}
+        {setIndex > 0 && (
+          <RestTimerBadge
+            initialSeconds={Number(restSeconds) || 120}
+            isActive={restTimerActive}
+            onComplete={() => setRestTimerActive(false)}
           />
-        </div>
+        )}
 
-        {/* Reps Input */}
-        <div className="space-y-2">
-          <Label htmlFor="reps">Reps *</Label>
-          <Input
-            id="reps"
-            type="number"
-            value={reps}
-            onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
-            min={0}
-            step={1}
-            placeholder="8"
-            required
+        {/* Previous/Target Set Display */}
+        <SetProgressDisplay
+          previousSet={previousSet}
+          targetSet={targetSet}
+          currentSet={{ weight: Number(weight) || 0, reps: Number(reps) || 0 }}
+        />
+
+        {/* Grips Selector */}
+        <GripSelector
+          selectedGrip={selectedGrip}
+          onGripChange={setSelectedGrip}
+          exerciseId={exercise.id}
+          allowsGrips={true}
+        />
+
+        {/* Warmup Builder - only show for first set */}
+        {setIndex === 0 && weight !== '' && Number(weight) > 20 && (
+          <WarmupBuilder
+            targetWeight={Number(weight)}
+            exerciseId={exercise.id}
+            onStepComplete={handleWarmupStepComplete}
           />
-        </div>
-      </div>
+        )}
 
-      {/* Load Summary */}
-      {weight !== '' && weight !== 0 && (
-        <div className="text-sm bg-muted p-3 rounded-md">
-          <div className="font-medium">Load: {weight}kg × {reps || '0'} reps</div>
-          <div className="text-xs text-muted-foreground mt-1">
-            Total Volume: {weight && reps ? (Number(weight) * Number(reps)).toFixed(1) : '0'}kg
+        {/* Per-side/Total Toggle */}
+        <PerSideToggle
+          mode={entryMode}
+          onModeChange={setEntryMode}
+          equipmentType={equipmentType}
+        />
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Weight Input */}
+          <div className="space-y-2">
+            <Label htmlFor="weight">
+              Weight ({entryMode === 'per_side' ? 'per side' : 'total'} kg)
+            </Label>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setWeight(prev => Math.max(0, Number(prev || 0) - 2.5))}
+                className="px-2 h-9"
+              >
+                <Minus className="w-3 h-3" />
+              </Button>
+              <Input
+                id="weight"
+                type="number"
+                value={weight}
+                onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                min={0}
+                step={2.5}
+                placeholder="0"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setWeight(prev => Number(prev || 0) + 2.5)}
+                className="px-2 h-9"
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Reps Input */}
+          <div className="space-y-2">
+            <Label htmlFor="reps">Reps *</Label>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setReps(prev => Math.max(0, Number(prev || 0) - 1))}
+                className="px-2 h-9"
+              >
+                <Minus className="w-3 h-3" />
+              </Button>
+              <Input
+                id="reps"
+                type="number"
+                value={reps}
+                onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
+                min={0}
+                step={1}
+                placeholder="8"
+                required
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setReps(prev => Number(prev || 0) + 1)}
+                className="px-2 h-9"
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
           </div>
         </div>
-      )}
 
+        {/* Quick Weight Chips */}
+        <QuickWeightChips
+          currentWeight={weight}
+          onWeightChange={setWeight}
+          mode="loaded"
+          equipmentIncrement={2.5}
+        />
 
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-            Cancel
-          </Button>
+        {/* Feel Selector */}
+        <FeelSelector
+          selectedFeel={selectedFeel}
+          onFeelChange={setSelectedFeel}
+        />
+
+        {/* Load Summary */}
+        {weight !== '' && weight !== 0 && (
+          <div className="text-sm bg-muted p-3 rounded-md">
+            <div className="font-medium">
+              Load: {entryMode === 'per_side' ? `${weight}kg per side (${Number(weight) * 2}kg total)` : `${weight}kg`} × {reps || '0'} reps
+            </div>
+            <div className="text-xs text-muted-foreground mt-1">
+              Volume: {weight && reps ? (
+                entryMode === 'per_side' 
+                  ? (Number(weight) * 2 * Number(reps)).toFixed(1)
+                  : (Number(weight) * Number(reps)).toFixed(1)
+              ) : '0'}kg
+            </div>
+          </div>
         )}
-        <Button 
-          type="submit" 
-          disabled={isLoading || !reps} 
-          className="flex-1"
-        >
-          {isLoading ? 'Logging...' : `Log Set ${setIndex + 1}`}
-        </Button>
-      </div>
-    </form>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              Cancel
+            </Button>
+          )}
+          <Button 
+            type="submit" 
+            disabled={isLoading || !reps} 
+            className="flex-1"
+          >
+            {isLoading ? 'Logging...' : `Log Set ${setIndex + 1}`}
+          </Button>
+        </div>
+      </form>
+
+      {/* Debug Footer */}
+      <WorkoutDebugFooter debugInfo={debugInfo} />
+    </>
   );
 };
 

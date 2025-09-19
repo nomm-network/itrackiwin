@@ -12,6 +12,11 @@ import {
   useUnifiedSetLogging,
   toast 
 } from './BaseSetForm';
+import RestTimerBadge from '../RestTimerBadge';
+import GripSelector from '../GripSelector';
+import SetProgressDisplay from '../SetProgressDisplay';
+import FeelSelector from '../FeelSelector';
+import WorkoutDebugFooter from '../WorkoutDebugFooter';
 
 interface BodyweightSetFormProps extends BaseSetFormProps {}
 
@@ -31,6 +36,11 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   // State for assist mode (bodyweight_plus_optional only)
   const [assistMode, setAssistMode] = useState<'added' | 'assist'>('added');
   const [inputMagnitude, setInputMagnitude] = useState<number | ''>('');
+  const [selectedGrip, setSelectedGrip] = useState<string | null>(null);
+  const [selectedFeel, setSelectedFeel] = useState<string | null>(null);
+  const [restTimerActive, setRestTimerActive] = useState(false);
+  const [previousSet] = useState<any>(null);
+  const [targetSet] = useState<any>(null);
   
   // Bodyweight-specific fields
   const [reps, setReps] = useState<number | ''>('');
@@ -100,7 +110,15 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         rpe: rpe ? Number(rpe) : undefined,
         effort: 'reps',
         load_mode: loadMode,
-        reps: Number(reps)
+        reps: Number(reps),
+        feel: selectedFeel || undefined,
+        rest_seconds: restSeconds ? Number(restSeconds) : 120,
+        grip_key: selectedGrip || null,
+        set_kind: 'working',
+        settings: {
+          assist_mode: assistMode,
+          version: 'v0.5.4'
+        }
       };
 
       // Handle weight based on assist/added mode for bodyweight_plus_optional
@@ -129,7 +147,8 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         workoutExerciseId,
         setIndex,
         metrics,
-        userBodyweight: userBodyweight || undefined
+        userBodyweight: userBodyweight || undefined,
+        gripIds: selectedGrip ? [selectedGrip] : undefined
       });
       
       const weightDisplay = getWeightDisplay(inputMagnitude, assistMode, assistType);
@@ -138,9 +157,13 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         description: `Set ${setIndex + 1}: ${weightDisplay} × ${reps} reps`,
       });
 
+      // Start rest timer
+      setRestTimerActive(true);
+
       // Reset form
       setReps('');
       setInputMagnitude('');
+      setSelectedFeel(null);
       setBaseState(prev => ({ ...prev, rpe: '', notes: '', assistType: null, loadMeta: {} }));
       
       onLogged();
@@ -176,9 +199,53 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     }, 100);
   };
 
+  const debugInfo = {
+    version: 'workout-flow-v0.5.4',
+    router: 'SmartSetForm',
+    logger: 'useUnifiedSetLogging',
+    restTimer: true,
+    grips: true,
+    gripKey: selectedGrip,
+    warmup: false,
+    entryMode: 'bodyweight' as const,
+    payloadPreview: {
+      effort: 'reps',
+      reps: Number(reps) || 0,
+      weight_kg: assistMode === 'assist' && inputMagnitude ? -Number(inputMagnitude) : Number(inputMagnitude) || 0,
+      set_kind: 'working',
+      rest_seconds: Number(restSeconds) || 120,
+      grip_key: selectedGrip,
+      settings: { assist_mode: assistMode, version: 'v0.5.4' },
+      load_meta: { assist_mode: assistMode, logged_bodyweight_kg: currentBodyweight }
+    }
+  };
+
   return (
     <>
       <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+        {/* Rest Timer */}
+        {setIndex > 0 && (
+          <RestTimerBadge
+            initialSeconds={Number(restSeconds) || 120}
+            isActive={restTimerActive}
+            onComplete={() => setRestTimerActive(false)}
+          />
+        )}
+
+        {/* Previous/Target Set Display */}
+        <SetProgressDisplay
+          previousSet={previousSet}
+          targetSet={targetSet}
+          currentSet={{ weight: Number(inputMagnitude) || 0, reps: Number(reps) || 0 }}
+        />
+
+        {/* Grips Selector */}
+        <GripSelector
+          selectedGrip={selectedGrip}
+          onGripChange={setSelectedGrip}
+          exerciseId={exercise.id}
+          allowsGrips={true}
+        />
 
         <div className="grid grid-cols-2 gap-4">
           {/* Weight Input - LEFT SIDE */}
@@ -300,6 +367,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
           </div>
         )}
 
+        {/* Feel Selector */}
+        <FeelSelector
+          selectedFeel={selectedFeel}
+          onFeelChange={setSelectedFeel}
+        />
+
         {/* Assistance Type Selector - only show in assist mode */}
         {assistMode === 'assist' && (
           <AssistanceSelector 
@@ -366,6 +439,9 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         onWeightRecorded={handleBodyweightRecorded}
         currentWeight={currentBodyweight}
       />
+
+      {/* Debug Footer */}
+      <WorkoutDebugFooter debugInfo={debugInfo} />
     </>
   );
 };

@@ -65,12 +65,16 @@ const useUserBodyweight = () => {
 interface SetMetrics {
   weight?: number;
   weight_unit?: 'kg' | 'lb';
+  weight_per_side?: number;
   reps?: number;
   rpe?: number;
   duration_seconds?: number;
   distance?: number;
   notes?: string;
   effort?: string;
+  feel?: string;
+  set_kind?: string;
+  grip_key?: string | null;
   settings?: Record<string, any>;
   load_meta?: Record<string, any>;
   rest_seconds?: number;
