@@ -8,6 +8,7 @@ interface DebugInfo {
   version: string;
   router: string;
   logger: string;
+  sessionSource?: string; // Track which wrapper/entry point was used
   restTimer: boolean;
   grips: boolean;
   gripKey?: string | null;
@@ -55,6 +56,7 @@ export const WorkoutDebugFooter: React.FC<WorkoutDebugFooterProps> = ({
         <CollapsibleContent>
           <div className="mt-2 p-4 bg-background border rounded-lg shadow-lg text-xs font-mono space-y-2">
             <div className="grid grid-cols-2 gap-2">
+              <div>sessionSource: {debugInfo.sessionSource || 'direct'}</div>
               <div>router: {debugInfo.router}</div>
               <div>logger: {debugInfo.logger}</div>
               <div>restTimer: {debugInfo.restTimer ? 'on' : 'off'}</div>

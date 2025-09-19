@@ -50,51 +50,7 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
     console.log('Workout completed!');
   };
 
-  // Use mobile-first component on mobile devices
-  if (isMobile) {
-    return (
-      <MobileWorkoutSession
-        exercises={workout.exercises.map((ex: any) => ({
-          id: ex.id,
-          name: ex.exercise_name,
-          order_index: ex.order_index || 0,
-          sets: ex.sets || [],
-          target_sets: ex.target_sets || 3,
-          notes: ex.notes,
-          load_type: ex.load_type,
-          equipment_ref: ex.equipment_ref
-        }))}
-        onSetComplete={handleSetComplete}
-        onWorkoutComplete={handleWorkoutComplete}
-      />
-    );
-  }
-
-  // Desktop fallback
-  return (
-    <div className="container mx-auto p-4">
-      <Card>
-        <CardHeader>
-          <CardTitle>
-            {currentExercise.exercise_name}
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Exercise {currentExerciseIndex + 1} of {workout.exercises.length}
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex gap-2">
-              <Button onClick={() => handleLogSet(100, 10)}>
-                Log Set: 100kg x 10
-              </Button>
-              <Button variant="outline" onClick={handleNextExercise}>
-                Next Exercise
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  // Step 2: Unified flow - always use EnhancedWorkoutSession
+  const { default: EnhancedWorkoutSession } = require('@/features/workouts/components/EnhancedWorkoutSession');
+  return <EnhancedWorkoutSession workout={workout} source="workout-session-wrapper" />;
 }

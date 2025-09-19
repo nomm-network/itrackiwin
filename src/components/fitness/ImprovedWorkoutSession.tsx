@@ -35,31 +35,12 @@ interface ImprovedWorkoutSessionProps {
 /**
  * Step 3: Simple pass-through to EnhancedSetEditor (will be removed in next step)
  */
-const ImprovedWorkoutSession: React.FC<ImprovedWorkoutSessionProps> = ({
-  exercise,
-  onSetComplete
-}) => {
-  console.log('⚠️ WARNING: Using deprecated ImprovedWorkoutSession - rogue router detected');
+const ImprovedWorkoutSession: React.FC<ImprovedWorkoutSessionProps> = (props) => {
+  console.warn('🚨 DEPRECATED: ImprovedWorkoutSession wrapper used - update to EnhancedWorkoutSession');
   
-  // Step 3: Simple pass-through to EnhancedSetEditor (will be removed in next step)
-  return (
-    <EnhancedSetEditor
-      workoutExerciseId={exercise.workout_exercise_id}
-      exercise={{
-        id: exercise.id,
-        effort_mode: (exercise.effort_mode as 'reps' | 'time' | 'distance' | 'calories') || 'reps',
-        load_mode: (exercise.load_mode as 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level') || 'external_added',
-        equipment_id: exercise.equipment_id,
-        equipment_ref: exercise.equipment_ref,
-        equipment: {
-          slug: exercise.equipment_ref,
-          equipment_type: undefined
-        }
-      }}
-      setIndex={0} // Will be properly managed in EnhancedWorkoutSession
-      onLogged={onSetComplete ? () => onSetComplete({}) : () => {}}
-    />
-  );
+  // Step 2: Pass-through to EnhancedWorkoutSession (unified flow)
+  const { EnhancedWorkoutSession } = require('@/features/workouts/components/EnhancedWorkoutSession');
+  return <EnhancedWorkoutSession source="improved-wrapper" {...props} />;
 };
 
 export default ImprovedWorkoutSession;

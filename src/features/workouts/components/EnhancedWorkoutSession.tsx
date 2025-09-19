@@ -39,10 +39,12 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
-import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
+// Removed deprecated ImprovedWorkoutSession import - unified to EnhancedWorkoutSession
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
+import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
+import { WorkoutDebugFooter } from '@/components/workout/WorkoutDebugFooter';
 import { recomputeWarmupPlan } from '../warmup/recalc';
 import { submitWarmupFeedback } from '../warmup/feedback';
 import { SessionHeaderMeta } from './SessionHeaderMeta';
@@ -67,9 +69,10 @@ import { WorkoutFormDebugPanel } from './WorkoutFormDebugPanel';
 
 interface WorkoutSessionProps {
   workout: any;
+  source?: string; // For debug tracking
 }
 
-export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
+export default function EnhancedWorkoutSession({ workout, source = "direct" }: WorkoutSessionProps) {
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { mutate: updateSet } = useUpdateSet();
@@ -79,6 +82,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
   const { logSet: newLogSet, error: setLoggingError, isLoading: setLoggingLoading } = useAdvancedSetLogging();
+  // Step 2: Add unified logger for v0.6.0 
+  const { logSet: unifiedLogSet } = useUnifiedSetLogging();
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
@@ -982,47 +987,22 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         </DialogContent>
       </Dialog>
 
-      {/* Debug Area */}
-      <div className="mt-8 p-4 bg-muted rounded-lg">
-        <h3 className="font-bold mb-2">🚨 DEBUG INFO</h3>
-        <div className="space-y-2 text-xs">
-          <div>
-            <strong>Workout ID:</strong> {workout?.id}
-          </div>
-          <div>
-            <strong>Current Exercise Index:</strong> {(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0)}
-          </div>
-          <div>
-            <strong>Total Exercises:</strong> {workout?.exercises?.length}
-          </div>
-          <div>
-            <strong>Exercise Translation Hook Result:</strong> 
-            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(exerciseTranslation, null, 2)}</pre>
-          </div>
-          <div>
-            <strong>Current Exercise Object:</strong>
-            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(currentExercise, null, 2)}</pre>
-          </div>
-          <div>
-            <strong>All Exercises with Names:</strong>
-            <pre className="whitespace-pre-wrap text-xs">{JSON.stringify(workout?.exercises?.map((ex: any, i: number) => ({
-              index: i,
-              id: ex.id,
-              exercise_id: ex.exercise_id,
-              exercise: ex.exercise,
-              displayName: getExerciseDisplayName(ex)
-            })), null, 2)}</pre>
-          </div>
-        </div>
-      </div>
-
-      {/* Debug Panel - Only show if debug mode is enabled */}
-      {/* TODO: Connect to actual debug toggle */}
-      {false && (
-        <div className="pb-4">
-          {/* WorkoutDebugPanel will be added here when debug items are collected */}
-        </div>
-      )}
+      {/* Unified Debug Footer - v0.6.0 */}
+      <WorkoutDebugFooter 
+        debugInfo={{
+          version: 'workout-flow-v0.6.0',
+          router: 'SmartSetForm',
+          logger: 'useUnifiedSetLogging', 
+          sessionSource: source,
+          restTimer: false, // TODO: Connect to actual rest timer state
+          grips: Object.keys(selectedGrips).length > 0,
+          gripKey: selectedGrips[currentExercise?.id]?.[0] || null,
+          warmup: !warmupCompleted,
+          warmupSteps: 0, // TODO: Connect to actual warmup steps
+          entryMode: 'total', // TODO: Connect to actual entry mode
+          payloadPreview: currentSetData
+        }}
+      />
     </div>
   );
 }
