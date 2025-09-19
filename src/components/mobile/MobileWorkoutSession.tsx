@@ -144,11 +144,21 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
   };
 
   const handleAddSet = () => {
+    console.log('🔍 MobileWorkoutSession handleAddSet called with:', {
+      newSetData,
+      currentExercise: currentExercise?.id,
+      nextSetIndex,
+      lastSet
+    });
+    
     const finalWeight = newSetData.entryMode === 'per_side' && newSetData.perSideKg 
       ? (currentExercise.equipment_ref === 'barbell_standard' ? 20 : 0) + newSetData.perSideKg * 2
       : newSetData.weightKg;
       
-    if (!finalWeight || !newSetData.reps) return;
+    if (!finalWeight || !newSetData.reps) {
+      console.log('🔍 Validation failed:', { finalWeight, reps: newSetData.reps });
+      return;
+    }
 
     const setData: SetData = {
       weight: finalWeight,
@@ -158,14 +168,25 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
       rest_seconds: lastSet?.rest_seconds || 180
     };
 
-    onSetComplete(currentExercise.id, setData);
-    
-    // Start rest timer
-    setRestTimerSeconds(setData.rest_seconds || 180);
-    setIsRestTimerActive(true);
-    
-    // Clear inputs
-    setNewSetData({});
+    console.log('🔍 About to call onSetComplete with:', {
+      exerciseId: currentExercise.id,
+      setData
+    });
+
+    try {
+      onSetComplete(currentExercise.id, setData);
+      
+      // Start rest timer
+      setRestTimerSeconds(setData.rest_seconds || 180);
+      setIsRestTimerActive(true);
+      
+      // Clear inputs
+      setNewSetData({});
+      
+      console.log('✅ MobileWorkoutSession handleAddSet completed successfully');
+    } catch (error) {
+      console.error('❌ MobileWorkoutSession handleAddSet error:', error);
+    }
   };
 
   const handleNextExercise = () => {
