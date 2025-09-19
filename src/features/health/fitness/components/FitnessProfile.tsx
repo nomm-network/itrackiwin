@@ -75,8 +75,8 @@ const FitnessProfile: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Save fitness profile
-      const payload = {
+      // Save fitness profile WITHOUT bodyweight/height - those go to body_metrics only
+      const profilePayload = {
         user_id: user.id,
         sex: data.sex,
         training_age_months: data.training_age_months,
@@ -88,11 +88,11 @@ const FitnessProfile: React.FC = () => {
 
       const { error: profileError } = await supabase
         .from('user_fitness_profile')
-        .upsert(payload);
+        .upsert(profilePayload);
 
       if (profileError) throw profileError;
 
-      // Save body metrics if provided
+      // Save body metrics SEPARATELY - this is the source of truth for height/weight
       if (data.bodyweight || data.height_cm) {
         const { error: metricsError } = await supabase
           .from('user_body_metrics')
@@ -128,8 +128,9 @@ const FitnessProfile: React.FC = () => {
     if (profile || latestMetrics) {
       reset({
         sex: profile?.sex as 'male' | 'female' | 'other' | null,
-        bodyweight: latestMetrics?.weight_kg,
-        height_cm: latestMetrics?.height_cm,
+        // Get height/weight ONLY from body metrics table - NOT from profile
+        bodyweight: latestMetrics?.weight_kg || null,
+        height_cm: latestMetrics?.height_cm || null,
         training_age_months: profile?.training_age_months,
         goal: profile?.goal as 'hypertrophy' | 'strength' | 'fat_loss' | 'general' || 'hypertrophy',
         injuries: (profile?.injuries as Record<string, string>) || {},

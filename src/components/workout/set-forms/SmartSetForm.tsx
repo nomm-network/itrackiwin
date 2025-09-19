@@ -30,13 +30,20 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
       return 'cardio';
     }
 
-    // SECONDARY: Bodyweight exercises based on load_mode (THE DEFINITIVE CHECK)
+    // CRITICAL: Bodyweight exercises based on load_mode (THE DEFINITIVE CHECK)
     if (load_mode === 'bodyweight_plus_optional' || load_mode === 'external_assist') {
-      console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'load_mode:', load_mode);
+      console.log('💪 BODYWEIGHT FORM SELECTED for exercise:', exercise.id, 'load_mode:', load_mode);
       return 'bodyweight';
     }
 
-    // FALLBACK: Default to weight & reps for external_added and other load modes
+    // Equipment-based fallback for bodyweight detection (backup)
+    const equipmentSlug = equipment?.slug;
+    if (equipmentSlug === 'dip-bars' || equipmentSlug === 'pull-up-bar' || equipmentSlug === 'bodyweight') {
+      console.log('💪 BODYWEIGHT FORM SELECTED (equipment fallback) for exercise:', exercise.id, 'equipment:', equipmentSlug);
+      return 'bodyweight';
+    }
+
+    // FALLBACK: Default to weight & reps
     console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, 'load_mode:', load_mode);
     return 'weightReps';
   };
