@@ -26,7 +26,7 @@ function getRouteForSlug(slug: string) {
     case 'dashboard':
       return '/dashboard';
     case 'atlas':
-      return '/dashboard'; // Atlas goes to main dashboard
+      return '/planets'; // Atlas goes to planets page (has AtlasChat)
     case 'planets':
       return '/planets'; // Planets goes to orbital planets page
     default:
