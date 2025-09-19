@@ -30,7 +30,9 @@ export default function HealthConfigureBody() {
     sessionLength: '',
     locationType: '',
     availableEquipment: [] as string[],
-    priorityMuscleGroups: [] as string[]
+    priorityMuscleGroups: [] as string[],
+    bodyweight: undefined as number | undefined,
+    height: undefined as number | undefined
   });
 
   // Load existing fitness profile data
@@ -61,7 +63,9 @@ export default function HealthConfigureBody() {
         sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || '',
         locationType: fitnessProfileData.location_type || '',
         availableEquipment: equipmentUuids,
-        priorityMuscleGroups: fitnessProfileData.priority_muscle_groups || []
+        priorityMuscleGroups: fitnessProfileData.priority_muscle_groups || [],
+        bodyweight: undefined, // Will load from body metrics
+        height: undefined // Will load from body metrics
       });
     }
   }, [fitnessProfileData, homeEquipment]);
@@ -219,12 +223,43 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
-              {/* Body Metrics Notice */}
-              <div className="bg-muted p-4 rounded-lg border border-dashed">
-                <p className="text-sm font-medium mb-1">Body Metrics Tracking</p>
-                <p className="text-xs text-muted-foreground">
-                  Weight and height tracking has been moved to the dedicated Body Metrics section for better historical tracking.
-                </p>
+              {/* Body Metrics Input Fields */}
+              <div className="space-y-4 border border-primary/20 bg-primary/5 p-4 rounded-lg">
+                <div>
+                  <Label className="text-base font-medium">Body Metrics</Label>
+                  <p className="text-sm text-muted-foreground">Update your current weight and height</p>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="body-weight">Current Weight (kg)</Label>
+                    <Input
+                      id="body-weight"
+                      type="number"
+                      step="0.1"
+                      placeholder="70.5"
+                      value={fitnessProfile.bodyweight || ''}
+                      onChange={(e) => setFitnessProfile(prev => ({ 
+                        ...prev, 
+                        bodyweight: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="body-height">Height (cm)</Label>
+                    <Input
+                      id="body-height"
+                      type="number"
+                      placeholder="175"
+                      value={fitnessProfile.height || ''}
+                      onChange={(e) => setFitnessProfile(prev => ({ 
+                        ...prev, 
+                        height: e.target.value ? Number(e.target.value) : undefined 
+                      }))}
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Experience Level */}
@@ -649,6 +684,25 @@ export default function HealthConfigureBody() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* DEBUG PANEL */}
+      <Card className="mt-8 bg-red-50 border-red-200">
+        <CardHeader>
+          <CardTitle className="text-red-800">🐛 DEBUG INFO</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4 text-xs">
+            <div>
+              <strong>Fitness Profile State:</strong>
+              <pre className="whitespace-pre-wrap text-red-700 mt-1">{JSON.stringify(fitnessProfile, null, 2)}</pre>
+            </div>
+            <div>
+              <strong>Profile Data from DB:</strong>
+              <pre className="whitespace-pre-wrap text-red-700 mt-1">{JSON.stringify(fitnessProfileData, null, 2)}</pre>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Debug Error Box */}
       {debugError && (
