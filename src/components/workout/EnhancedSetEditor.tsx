@@ -108,16 +108,6 @@ export const EnhancedSetEditor: React.FC<EnhancedSetEditorProps> = ({
 
   return (
     <div className={`space-y-4 ${className}`}>
-      {/* Exercise Type Indicator */}
-      <div className="flex items-center gap-2">
-        <Badge variant={typeInfo.variant} className="flex items-center gap-1">
-          {typeInfo.icon}
-          {typeInfo.label}
-        </Badge>
-        <span className="text-xs text-muted-foreground">
-          {typeInfo.description}
-        </span>
-      </div>
 
       {/* Smart Set Form */}
       <SmartSetForm

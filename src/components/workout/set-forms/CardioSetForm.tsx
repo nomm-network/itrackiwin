@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Clock, MapPin, Zap, Timer } from 'lucide-react';
 import { 
   BaseSetFormProps, 
-  CommonFields,
   useBaseFormState,
   useUnifiedSetLogging,
   toast 
@@ -174,12 +173,6 @@ const CardioSetForm: React.FC<CardioSetFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
-      {/* Exercise Type Badge */}
-      <div className="flex items-center gap-2">
-        {getEquipmentIcon()}
-        <Badge variant="secondary">Cardio</Badge>
-        <Badge variant="outline" className="capitalize">{effortMode}</Badge>
-      </div>
 
       {/* Primary Metrics Based on Effort Mode */}
       <div className="grid grid-cols-2 gap-4">
@@ -363,17 +356,6 @@ const CardioSetForm: React.FC<CardioSetFormProps> = ({
         )}
       </div>
 
-      {/* Common Fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <CommonFields
-          rpe={rpe}
-          notes={notes}
-          restSeconds={restSeconds}
-          onRpeChange={(value) => setBaseState(prev => ({ ...prev, rpe: value }))}
-          onNotesChange={(value) => setBaseState(prev => ({ ...prev, notes: value }))}
-          onRestSecondsChange={(value) => setBaseState(prev => ({ ...prev, restSeconds: value }))}
-        />
-      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-2">

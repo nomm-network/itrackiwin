@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Plus, Minus, Weight } from 'lucide-react';
 import { 
   BaseSetFormProps, 
-  CommonFields, 
   AssistanceSelector,
   useBaseFormState,
   useUnifiedSetLogging,
@@ -136,17 +135,6 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
-      {/* Exercise Type Badge */}
-      <div className="flex items-center gap-2">
-        <Weight className="h-4 w-4 text-primary" />
-        <Badge variant="secondary">Bodyweight Exercise</Badge>
-        {loadMode === 'bodyweight_plus_optional' && (
-          <Badge variant="outline">Optional Weight</Badge>
-        )}
-        {loadMode === 'external_assist' && (
-          <Badge variant="outline">Assisted</Badge>
-        )}
-      </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Reps Input */}
@@ -207,6 +195,39 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         )}
       </div>
 
+      {/* Load Mode Selector for bodyweight exercises */}
+      {(exercise.equipment?.slug === 'dip-bars' || exercise.equipment?.slug === 'pull-up-bar') && (
+        <div className="space-y-3">
+          <Label className="text-sm font-medium">Exercise Mode</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={loadMode === 'bodyweight_plus_optional' ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                // This would require parent component to handle the load mode change
+                setAdditionalWeight('');
+              }}
+              className="text-xs"
+            >
+              Add Weight
+            </Button>
+            <Button
+              type="button"
+              variant={loadMode === 'external_assist' ? "default" : "outline"}
+              size="sm"
+              onClick={() => {
+                // This would require parent component to handle the load mode change  
+                setAdditionalWeight('');
+              }}
+              className="text-xs"
+            >
+              Assisted
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Quick Weight Buttons for bodyweight_plus_optional */}
       {loadMode === 'bodyweight_plus_optional' && (
         <div className="space-y-2">
@@ -222,6 +243,27 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
                 className="text-xs px-3"
               >
                 {weight === 0 ? 'BW' : `+${weight}kg`}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Quick Assistance Buttons for external_assist */}
+      {loadMode === 'external_assist' && (
+        <div className="space-y-2">
+          <Label className="text-sm">Quick Assistance</Label>
+          <div className="flex gap-2 flex-wrap">
+            {[0, 5, 10, 15, 20, 25].map((weight) => (
+              <Button
+                key={weight}
+                type="button"
+                variant={additionalWeight === weight ? "default" : "outline"}
+                size="sm"
+                onClick={() => setAdditionalWeight(weight)}
+                className="text-xs px-3"
+              >
+                {weight === 0 ? 'No Assist' : `-${weight}kg`}
               </Button>
             ))}
           </div>
@@ -246,17 +288,6 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         )}
       </div>
 
-      {/* Common Fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <CommonFields
-          rpe={rpe}
-          notes={notes}
-          restSeconds={restSeconds}
-          onRpeChange={(value) => setBaseState(prev => ({ ...prev, rpe: value }))}
-          onNotesChange={(value) => setBaseState(prev => ({ ...prev, notes: value }))}
-          onRestSecondsChange={(value) => setBaseState(prev => ({ ...prev, restSeconds: value }))}
-        />
-      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-2">

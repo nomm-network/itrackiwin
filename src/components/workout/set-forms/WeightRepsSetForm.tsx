@@ -6,7 +6,6 @@ import { Badge } from '@/components/ui/badge';
 import { Dumbbell } from 'lucide-react';
 import { 
   BaseSetFormProps, 
-  CommonFields,
   useBaseFormState,
   useUnifiedSetLogging,
   toast 
@@ -107,12 +106,6 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
-      {/* Exercise Type Badge */}
-      <div className="flex items-center gap-2">
-        <Dumbbell className="h-4 w-4 text-primary" />
-        <Badge variant="secondary">{getEquipmentBadge()}</Badge>
-        <Badge variant="outline">Weight × Reps</Badge>
-      </div>
 
       <div className="grid grid-cols-2 gap-4">
         {/* Weight Input */}
@@ -155,17 +148,6 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       )}
 
-      {/* Common Fields */}
-      <div className="grid grid-cols-2 gap-4">
-        <CommonFields
-          rpe={rpe}
-          notes={notes}
-          restSeconds={restSeconds}
-          onRpeChange={(value) => setBaseState(prev => ({ ...prev, rpe: value }))}
-          onNotesChange={(value) => setBaseState(prev => ({ ...prev, notes: value }))}
-          onRestSecondsChange={(value) => setBaseState(prev => ({ ...prev, restSeconds: value }))}
-        />
-      </div>
 
       {/* Action Buttons */}
       <div className="flex gap-2">
