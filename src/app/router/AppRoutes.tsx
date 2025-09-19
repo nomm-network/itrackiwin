@@ -94,6 +94,7 @@ const SubcategoryRedirect = () => {
   return null;
 };
 const OrbitPlanetsPage = lazy(() => import('@/features/planets/OrbitPlanetsPage'));
+const AtlasPage = lazy(() => import('@/features/planets/AtlasPage'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
 const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 
@@ -145,6 +146,11 @@ export function AppRoutes() {
           <Route path="/planets" element={
             <ProtectedMobileLayout>
               <OrbitPlanetsPage />
+            </ProtectedMobileLayout>
+          } />
+          <Route path="/atlas" element={
+            <ProtectedMobileLayout>
+              <AtlasPage />
             </ProtectedMobileLayout>
           } />
           <Route path="/explore" element={
