@@ -32,6 +32,9 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   const [reps, setReps] = useState<number | ''>('');
   const [additionalWeight, setAdditionalWeight] = useState<number | ''>('');
   
+  // Add state for switching between assist and added modes
+  const [isAssistMode, setIsAssistMode] = useState(false);
+  
   const { rpe, notes, restSeconds, assistType, loadMeta } = baseState;
   const loadMode = exercise.load_mode;
 
@@ -73,11 +76,11 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
       return;
     }
 
-    // Validation for load modes
-    if (loadMode === 'external_assist' && additionalWeight !== '' && Number(additionalWeight) > 0) {
+    // Validation for assist mode with positive values
+    if (isAssistMode && additionalWeight !== '' && Number(additionalWeight) < 0) {
       toast({
         title: "Invalid Weight", 
-        description: "Assisted exercises should use negative values for assistance.",
+        description: "In assist mode, enter positive values for assistance amount.",
         variant: "destructive"
       });
       return;
@@ -95,12 +98,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         reps: Number(reps)
       };
 
-      // Handle weight based on load mode
-      if (loadMode !== 'none' && additionalWeight !== '') {
+      // Handle weight based on assist/added mode
+      if (additionalWeight !== '') {
         let finalWeight = Number(additionalWeight);
         
-        // For assisted exercises, weight should be negative
-        if (loadMode === 'external_assist' && assistType && finalWeight > 0) {
+        // For assist mode, make weight negative
+        if (isAssistMode && finalWeight > 0) {
           finalWeight = -finalWeight;
         }
         
@@ -120,7 +123,7 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         userBodyweight: userBodyweight || undefined
       });
       
-      const weightDisplay = getWeightDisplay(additionalWeight, loadMode, assistType);
+      const weightDisplay = getWeightDisplay(additionalWeight, isAssistMode, assistType);
       toast({
         title: "Set Logged Successfully",
         description: `Set ${setIndex + 1}: ${weightDisplay} × ${reps} reps`,
@@ -142,12 +145,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     }
   };
 
-  const getWeightDisplay = (weight: number | '', loadMode: string, assistType: 'band' | 'machine' | null): string => {
+  const getWeightDisplay = (weight: number | '', isAssist: boolean, assistType: 'band' | 'machine' | null): string => {
     if (weight === '' || weight === 0) {
       return 'Bodyweight';
     }
     
-    if (loadMode === 'external_assist') {
+    if (isAssist) {
       const assistText = assistType ? ` (${assistType})` : '';
       return `BW - ${Math.abs(Number(weight))}kg${assistText}`;
     }
@@ -184,18 +187,47 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
             />
           </div>
 
-          {/* Additional Weight Input */}
+          {/* Additional Weight Input with Mode Toggle */}
           {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
             <div className="space-y-2">
-              <Label htmlFor="weight">
-                {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Added / Assist (kg)'}
-                {loadMode === 'external_assist' && (
-                  <span className="text-xs text-muted-foreground ml-1">(positive values)</span>
-                )}
-                {loadMode === 'bodyweight_plus_optional' && (
-                  <span className="text-xs text-muted-foreground ml-1">(use negative for assistance)</span>
-                )}
-              </Label>
+              <div className="flex items-center justify-between">
+                <Label htmlFor="weight">
+                  Added / Assist (kg)
+                  <span className="text-xs text-muted-foreground ml-1">
+                    ({isAssistMode ? 'assistance' : 'additional weight'})
+                  </span>
+                </Label>
+                <div className="flex bg-muted rounded-md p-1">
+                  <Button
+                    type="button"
+                    variant={!isAssistMode ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => {
+                      setIsAssistMode(false);
+                      if (additionalWeight !== '' && Number(additionalWeight) < 0) {
+                        setAdditionalWeight(Math.abs(Number(additionalWeight)));
+                      }
+                    }}
+                    className="text-xs px-2 h-6"
+                  >
+                    Added
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={isAssistMode ? "default" : "ghost"}
+                    size="sm"
+                    onClick={() => {
+                      setIsAssistMode(true);
+                      if (additionalWeight !== '' && Number(additionalWeight) < 0) {
+                        setAdditionalWeight(Math.abs(Number(additionalWeight)));
+                      }
+                    }}
+                    className="text-xs px-2 h-6"
+                  >
+                    Assist
+                  </Button>
+                </div>
+              </div>
               <div className="flex gap-1">
                 <Button
                   type="button"
@@ -240,16 +272,13 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
               </span>
             </div>
             <p className="text-xs text-blue-600 dark:text-blue-400">
-              {loadMode === 'bodyweight_plus_optional' 
-                ? 'You can add extra weight or perform bodyweight only'
-                : 'You can use assistance or perform unassisted'
-              }
+              You can {isAssistMode ? 'use assistance to make the exercise easier' : 'add extra weight to increase difficulty'} or perform bodyweight only
             </p>
           </div>
         )}
 
-        {/* Quick Weight Buttons for bodyweight_plus_optional */}
-        {loadMode === 'bodyweight_plus_optional' && (
+        {/* Quick Weight Buttons - context dependent */}
+        {!isAssistMode && (
           <div className="space-y-2">
             <Label className="text-sm">Quick Weights</Label>
             <div className="flex gap-2 flex-wrap">
@@ -269,8 +298,8 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
           </div>
         )}
 
-        {/* Quick Assistance Buttons for external_assist */}
-        {loadMode === 'external_assist' && (
+        {/* Quick Assistance Buttons */}
+        {isAssistMode && (
           <div className="space-y-2">
             <Label className="text-sm">Quick Assistance</Label>
             <div className="flex gap-2 flex-wrap">
@@ -283,15 +312,15 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
                   onClick={() => setAdditionalWeight(weight)}
                   className="text-xs px-3"
                 >
-                  {weight === 0 ? 'No Assist' : `-${weight}kg`}
+                  {weight === 0 ? 'No Assist' : `${weight}kg`}
                 </Button>
               ))}
             </div>
           </div>
         )}
 
-        {/* Assistance Type Selector */}
-        {loadMode === 'external_assist' && (
+        {/* Assistance Type Selector - only show in assist mode */}
+        {isAssistMode && (
           <AssistanceSelector 
             assistType={assistType}
             onAssistTypeChange={handleAssistTypeChange}
@@ -319,10 +348,15 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
 
         {/* Total Load Display */}
         <div className="text-sm bg-muted p-3 rounded-md">
-          <div className="font-medium">Total Load: {getWeightDisplay(additionalWeight, loadMode, assistType)}</div>
-          {loadMode === 'bodyweight_plus_optional' && additionalWeight !== '' && Number(additionalWeight) > 0 && (
+          <div className="font-medium">Total Load: {getWeightDisplay(additionalWeight, isAssistMode, assistType)}</div>
+          {!isAssistMode && additionalWeight !== '' && Number(additionalWeight) > 0 && (
             <div className="text-xs text-muted-foreground mt-1">
               Bodyweight + {additionalWeight}kg additional
+            </div>
+          )}
+          {isAssistMode && additionalWeight !== '' && Number(additionalWeight) > 0 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Bodyweight with {additionalWeight}kg assistance
             </div>
           )}
         </div>

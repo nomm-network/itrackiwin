@@ -27,9 +27,18 @@ export const BodyweightPromptDialog: React.FC<BodyweightPromptDialogProps> = ({
   currentWeight
 }) => {
   const { recordBodyweight } = useUnifiedSetLogging();
-  const [weight, setWeight] = useState<string>(currentWeight?.toString() || '');
+  const [weight, setWeight] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Update weight field when currentWeight changes or dialog opens
+  React.useEffect(() => {
+    if (isOpen && currentWeight) {
+      setWeight(currentWeight.toString());
+    } else if (isOpen && !currentWeight) {
+      setWeight('');
+    }
+  }, [isOpen, currentWeight]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,9 +53,9 @@ export const BodyweightPromptDialog: React.FC<BodyweightPromptDialogProps> = ({
     try {
       await recordBodyweight(weightValue, notes || undefined);
       onWeightRecorded(weightValue);
-      toast.success(`Bodyweight recorded: ${weightValue}kg`);
+      toast.success(`Bodyweight ${currentWeight ? 'updated' : 'recorded'}: ${weightValue}kg`);
       onClose();
-      setWeight('');
+      // Don't clear weight here - let it be handled by useEffect
       setNotes('');
     } catch (error) {
       console.error('Error recording bodyweight:', error);
