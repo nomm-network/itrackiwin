@@ -9,6 +9,7 @@ import LanguageToggle from "@/components/LanguageToggle";
 import { useTranslation } from "react-i18next";
 import { ProfileAvatarMenu } from "@/components/navigation/ProfileAvatarMenu";
 import { usePinnedSubcategories } from "@/hooks/usePinnedSubcategories";
+import { DynamicBottomNav } from "@/components/navigation/DynamicBottomNav";
 
 interface MobileLayoutProps {
   children: React.ReactNode;
@@ -58,13 +59,7 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
 
   const mainNavigation = getDynamicNavigation();
 
-  const bottomNavigation = [
-    { name: "Training", href: "/dashboard", icon: Home },
-    { name: "Social", href: "/social", icon: Users },
-    { name: "Programs", href: "/app/programs", icon: Target },
-    { name: "Achievements", href: "/achievements", icon: Award },
-    { name: "Profile", href: "/profile", icon: User },
-  ];
+  // Bottom navigation is now handled by DynamicBottomNav component
 
   const isActive = (href: string) => location.pathname === href || location.pathname.startsWith(href + "/");
 
@@ -247,28 +242,9 @@ const MobileLayout: React.FC<MobileLayoutProps> = ({ children }) => {
         </main>
       </div>
 
-      {/* Mobile Bottom Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t">
-        <nav className="flex justify-around py-2">
-          {bottomNavigation.map((item) => {
-            const Icon = item.icon;
-            return (
-              <Link
-                key={item.name}
-                to={item.href}
-                className={cn(
-                  "flex flex-col items-center gap-1 px-3 py-2 rounded-md transition-colors min-w-0",
-                  isActive(item.href)
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                )}
-              >
-                <Icon className="h-5 w-5 flex-shrink-0" />
-                <span className="text-xs truncate">{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+      {/* Dynamic Mobile Bottom Navigation */}
+      <div className="md:hidden">
+        <DynamicBottomNav />
       </div>
     </div>
   );
