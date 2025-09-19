@@ -3,7 +3,8 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Minus, Weight } from 'lucide-react';
+import { Plus, Minus, Weight, AlertCircle } from 'lucide-react';
+import { BodyweightPromptDialog, BodyweightQuickAdd } from '@/components/workout/BodyweightPromptDialog';
 import { 
   BaseSetFormProps, 
   AssistanceSelector,
@@ -22,8 +23,10 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   onCancel,
   className
 }) => {
-  const { logSet, isLoading, fetchBodyweight } = useUnifiedSetLogging();
+  const { logSet, isLoading, fetchBodyweight, recordBodyweight } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
+  const [currentBodyweight, setCurrentBodyweight] = useState<number | null>(null);
+  const [showBodyweightDialog, setShowBodyweightDialog] = useState(false);
   
   // Bodyweight-specific fields
   const [reps, setReps] = useState<number | ''>('');
@@ -31,6 +34,15 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   
   const { rpe, notes, restSeconds, assistType, loadMeta } = baseState;
   const loadMode = exercise.load_mode;
+
+  // Fetch current bodyweight on component mount
+  React.useEffect(() => {
+    const loadBodyweight = async () => {
+      const weight = await fetchBodyweight();
+      setCurrentBodyweight(weight);
+    };
+    loadBodyweight();
+  }, [fetchBodyweight]);
 
   const handleAssistTypeChange = (type: 'band' | 'machine' | null) => {
     setBaseState(prev => ({
@@ -55,6 +67,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
       return;
     }
 
+    // Check if bodyweight is needed but missing
+    if (!currentBodyweight) {
+      setShowBodyweightDialog(true);
+      return;
+    }
+
     // Validation for load modes
     if (loadMode === 'external_assist' && additionalWeight !== '' && Number(additionalWeight) > 0) {
       toast({
@@ -66,8 +84,8 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     }
 
     try {
-      // Get user's bodyweight for bodyweight exercises
-      const userBodyweight = await fetchBodyweight();
+      // Get user's bodyweight for bodyweight exercises (already fetched)
+      const userBodyweight = currentBodyweight;
       
       const metrics: any = {
         notes: notes || undefined,
@@ -137,178 +155,215 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     return `BW + ${weight}kg`;
   };
 
-  return (
-    <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+  const handleBodyweightRecorded = (weight: number) => {
+    setCurrentBodyweight(weight);
+    setShowBodyweightDialog(false);
+    // Automatically submit the form after recording bodyweight
+    setTimeout(() => {
+      handleSubmit(new Event('submit') as any);
+    }, 100);
+  };
 
-      <div className="grid grid-cols-2 gap-4">
-        {/* Reps Input */}
-        <div className="space-y-2">
-          <Label htmlFor="reps">Reps *</Label>
-          <Input
-            id="reps"
-            type="number"
-            value={reps}
-            onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
-            min={0}
-            step={1}
-            placeholder="8"
-            required
-          />
+  return (
+    <>
+      <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+
+        <div className="grid grid-cols-2 gap-4">
+          {/* Reps Input */}
+          <div className="space-y-2">
+            <Label htmlFor="reps">Reps *</Label>
+            <Input
+              id="reps"
+              type="number"
+              value={reps}
+              onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
+              min={0}
+              step={1}
+              placeholder="8"
+              required
+            />
+          </div>
+
+          {/* Additional Weight Input */}
+          {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
+            <div className="space-y-2">
+              <Label htmlFor="weight">
+                {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Additional Weight (kg)'}
+                {loadMode === 'external_assist' && (
+                  <span className="text-xs text-muted-foreground ml-1">(positive values)</span>
+                )}
+              </Label>
+              <div className="flex gap-1">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAdditionalWeight(prev => Math.max(0, Number(prev || 0) - 2.5))}
+                  className="px-2 h-9"
+                >
+                  <Minus className="w-3 h-3" />
+                </Button>
+                <Input
+                  id="weight"
+                  type="number"
+                  value={additionalWeight}
+                  onChange={(e) => setAdditionalWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                  step={2.5}
+                  min={0}
+                  placeholder="0"
+                  className="flex-1"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setAdditionalWeight(prev => Number(prev || 0) + 2.5)}
+                  className="px-2 h-9"
+                >
+                  <Plus className="w-3 h-3" />
+                </Button>
+              </div>
+            </div>
+          )}
         </div>
 
-        {/* Additional Weight Input */}
-        {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
-          <div className="space-y-2">
-            <Label htmlFor="weight">
-              {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Additional Weight (kg)'}
-              {loadMode === 'external_assist' && (
-                <span className="text-xs text-muted-foreground ml-1">(positive values)</span>
-              )}
-            </Label>
-            <div className="flex gap-1">
+        {/* Load Mode Selector for bodyweight exercises */}
+        {(exercise.equipment?.slug === 'dip-bars' || exercise.equipment?.slug === 'pull-up-bar') && (
+          <div className="space-y-3">
+            <Label className="text-sm font-medium">Exercise Mode</Label>
+            <div className="flex gap-2">
               <Button
                 type="button"
-                variant="outline"
+                variant={loadMode === 'bodyweight_plus_optional' ? "default" : "outline"}
                 size="sm"
-                onClick={() => setAdditionalWeight(prev => Math.max(0, Number(prev || 0) - 2.5))}
-                className="px-2 h-9"
+                onClick={() => {
+                  // This would require parent component to handle the load mode change
+                  setAdditionalWeight('');
+                }}
+                className="text-xs"
               >
-                <Minus className="w-3 h-3" />
+                Add Weight
               </Button>
-              <Input
-                id="weight"
-                type="number"
-                value={additionalWeight}
-                onChange={(e) => setAdditionalWeight(e.target.value === '' ? '' : Number(e.target.value))}
-                step={2.5}
-                min={0}
-                placeholder="0"
-                className="flex-1"
-              />
               <Button
                 type="button"
-                variant="outline"
+                variant={loadMode === 'external_assist' ? "default" : "outline"}
                 size="sm"
-                onClick={() => setAdditionalWeight(prev => Number(prev || 0) + 2.5)}
-                className="px-2 h-9"
+                onClick={() => {
+                  // This would require parent component to handle the load mode change  
+                  setAdditionalWeight('');
+                }}
+                className="text-xs"
               >
-                <Plus className="w-3 h-3" />
+                Assisted
               </Button>
             </div>
           </div>
         )}
-      </div>
 
-      {/* Load Mode Selector for bodyweight exercises */}
-      {(exercise.equipment?.slug === 'dip-bars' || exercise.equipment?.slug === 'pull-up-bar') && (
-        <div className="space-y-3">
-          <Label className="text-sm font-medium">Exercise Mode</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={loadMode === 'bodyweight_plus_optional' ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                // This would require parent component to handle the load mode change
-                setAdditionalWeight('');
-              }}
-              className="text-xs"
-            >
-              Add Weight
-            </Button>
-            <Button
-              type="button"
-              variant={loadMode === 'external_assist' ? "default" : "outline"}
-              size="sm"
-              onClick={() => {
-                // This would require parent component to handle the load mode change  
-                setAdditionalWeight('');
-              }}
-              className="text-xs"
-            >
-              Assisted
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Quick Weight Buttons for bodyweight_plus_optional */}
-      {loadMode === 'bodyweight_plus_optional' && (
-        <div className="space-y-2">
-          <Label className="text-sm">Quick Weights</Label>
-          <div className="flex gap-2 flex-wrap">
-            {quickWeights.map((weight) => (
-              <Button
-                key={weight}
-                type="button"
-                variant={additionalWeight === weight ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAdditionalWeight(weight)}
-                className="text-xs px-3"
-              >
-                {weight === 0 ? 'BW' : `+${weight}kg`}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Quick Assistance Buttons for external_assist */}
-      {loadMode === 'external_assist' && (
-        <div className="space-y-2">
-          <Label className="text-sm">Quick Assistance</Label>
-          <div className="flex gap-2 flex-wrap">
-            {[0, 5, 10, 15, 20, 25].map((weight) => (
-              <Button
-                key={weight}
-                type="button"
-                variant={additionalWeight === weight ? "default" : "outline"}
-                size="sm"
-                onClick={() => setAdditionalWeight(weight)}
-                className="text-xs px-3"
-              >
-                {weight === 0 ? 'No Assist' : `-${weight}kg`}
-              </Button>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {/* Assistance Type Selector */}
-      {loadMode === 'external_assist' && (
-        <AssistanceSelector 
-          assistType={assistType}
-          onAssistTypeChange={handleAssistTypeChange}
-        />
-      )}
-
-      {/* Total Load Display */}
-      <div className="text-sm bg-muted p-3 rounded-md">
-        <div className="font-medium">Total Load: {getWeightDisplay(additionalWeight, loadMode, assistType)}</div>
-        {loadMode === 'bodyweight_plus_optional' && additionalWeight !== '' && Number(additionalWeight) > 0 && (
-          <div className="text-xs text-muted-foreground mt-1">
-            Bodyweight + {additionalWeight}kg additional
+        {/* Quick Weight Buttons for bodyweight_plus_optional */}
+        {loadMode === 'bodyweight_plus_optional' && (
+          <div className="space-y-2">
+            <Label className="text-sm">Quick Weights</Label>
+            <div className="flex gap-2 flex-wrap">
+              {quickWeights.map((weight) => (
+                <Button
+                  key={weight}
+                  type="button"
+                  variant={additionalWeight === weight ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setAdditionalWeight(weight)}
+                  className="text-xs px-3"
+                >
+                  {weight === 0 ? 'BW' : `+${weight}kg`}
+                </Button>
+              ))}
+            </div>
           </div>
         )}
-      </div>
 
+        {/* Quick Assistance Buttons for external_assist */}
+        {loadMode === 'external_assist' && (
+          <div className="space-y-2">
+            <Label className="text-sm">Quick Assistance</Label>
+            <div className="flex gap-2 flex-wrap">
+              {[0, 5, 10, 15, 20, 25].map((weight) => (
+                <Button
+                  key={weight}
+                  type="button"
+                  variant={additionalWeight === weight ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setAdditionalWeight(weight)}
+                  className="text-xs px-3"
+                >
+                  {weight === 0 ? 'No Assist' : `-${weight}kg`}
+                </Button>
+              ))}
+            </div>
+          </div>
+        )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        {onCancel && (
-          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
-            Cancel
+        {/* Assistance Type Selector */}
+        {loadMode === 'external_assist' && (
+          <AssistanceSelector 
+            assistType={assistType}
+            onAssistTypeChange={handleAssistTypeChange}
+          />
+        )}
+
+        {/* Bodyweight Status */}
+        <div className="text-sm bg-muted p-3 rounded-md">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="font-medium">Current Weight: {currentBodyweight ? `${currentBodyweight}kg` : 'Not set'}</div>
+              {!currentBodyweight && (
+                <div className="text-xs text-orange-600 flex items-center gap-1 mt-1">
+                  <AlertCircle className="h-3 w-3" />
+                  Bodyweight needed for accurate load calculation
+                </div>
+              )}
+            </div>
+            <BodyweightQuickAdd 
+              onWeightRecorded={setCurrentBodyweight}
+              currentWeight={currentBodyweight}
+            />
+          </div>
+        </div>
+
+        {/* Total Load Display */}
+        <div className="text-sm bg-muted p-3 rounded-md">
+          <div className="font-medium">Total Load: {getWeightDisplay(additionalWeight, loadMode, assistType)}</div>
+          {loadMode === 'bodyweight_plus_optional' && additionalWeight !== '' && Number(additionalWeight) > 0 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Bodyweight + {additionalWeight}kg additional
+            </div>
+          )}
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-2">
+          {onCancel && (
+            <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+              Cancel
+            </Button>
+          )}
+          <Button 
+            type="submit" 
+            disabled={isLoading || !reps} 
+            className="flex-1"
+          >
+            {isLoading ? 'Logging...' : `Log Set ${setIndex + 1}`}
           </Button>
-        )}
-        <Button 
-          type="submit" 
-          disabled={isLoading || !reps} 
-          className="flex-1"
-        >
-          {isLoading ? 'Logging...' : `Log Set ${setIndex + 1}`}
-        </Button>
-      </div>
-    </form>
+        </div>
+      </form>
+
+      {/* Bodyweight Prompt Dialog */}
+      <BodyweightPromptDialog
+        isOpen={showBodyweightDialog}
+        onClose={() => setShowBodyweightDialog(false)}
+        onWeightRecorded={handleBodyweightRecorded}
+        currentWeight={currentBodyweight}
+      />
+    </>
   );
 };
 

@@ -2,28 +2,72 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toCanonicalKg, createWeightData, type WeightData } from '@/lib/weightConversion';
 
-// Hook to get user's bodyweight for bodyweight exercises
+// Hook to get user's latest bodyweight from the new user_body_metrics table
 const useUserBodyweight = () => {
   const [bodyweight, setBodyweight] = useState<number | null>(null);
   
   const fetchBodyweight = useCallback(async () => {
     try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) return null;
+
+      // Get latest weight from user_body_metrics table
       const { data, error } = await supabase
-        .from('user_profile_fitness')
-        .select('bodyweight')
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
-        .single();
+        .from('user_body_metrics')
+        .select('weight_kg')
+        .eq('user_id', user.user.id)
+        .not('weight_kg', 'is', null)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
       
-      if (error) throw error;
-      setBodyweight(data?.bodyweight || null);
-      return data?.bodyweight || null;
+      if (error) {
+        // If no weight records found, try to get from user_profile_fitness as fallback
+        const { data: profileData, error: profileError } = await supabase
+          .from('user_profile_fitness')
+          .select('bodyweight')
+          .eq('user_id', user.user.id)
+          .maybeSingle();
+        
+        if (profileError) throw profileError;
+        const fallbackWeight = profileData?.bodyweight || null;
+        setBodyweight(fallbackWeight);
+        return fallbackWeight;
+      }
+      
+      const latestWeight = data?.weight_kg || null;
+      setBodyweight(latestWeight);
+      return latestWeight;
     } catch (error) {
       console.error('Error fetching bodyweight:', error);
       return null;
     }
   }, []);
 
-  return { bodyweight, fetchBodyweight };
+  const recordBodyweight = useCallback(async (weightKg: number, notes?: string) => {
+    try {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) throw new Error('User not authenticated');
+
+      const { error } = await supabase
+        .from('user_body_metrics')
+        .insert({
+          user_id: user.user.id,
+          weight_kg: weightKg,
+          source: 'manual',
+          notes: notes || null
+        });
+
+      if (error) throw error;
+      setBodyweight(weightKg);
+      return weightKg;
+    } catch (error) {
+      console.error('Error recording bodyweight:', error);
+      throw error;
+    }
+  }, []);
+
+  return { bodyweight, fetchBodyweight, recordBodyweight };
 };
 
 interface SetMetrics {
@@ -52,7 +96,7 @@ interface UnifiedSetLogOptions {
 export const useUnifiedSetLogging = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { bodyweight, fetchBodyweight } = useUserBodyweight();
+  const { bodyweight, fetchBodyweight, recordBodyweight } = useUserBodyweight();
 
   const logSet = useCallback(async (options: UnifiedSetLogOptions) => {
     setIsLoading(true);
@@ -163,7 +207,8 @@ export const useUnifiedSetLogging = () => {
     logSet,
     isLoading,
     error,
-    fetchBodyweight
+    fetchBodyweight,
+    recordBodyweight
   };
 };
 

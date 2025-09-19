@@ -11067,6 +11067,13 @@ export type Database = {
         Args: { p_exercise_id: string; p_user_id: string }
         Returns: number
       }
+      _get_exercise_load_mode_and_bw_pct: {
+        Args: { p_workout_exercise_id: string }
+        Returns: {
+          bw_pct: number
+          load_mode: string
+        }[]
+      }
       _pascalize: {
         Args: { key: string }
         Returns: string
