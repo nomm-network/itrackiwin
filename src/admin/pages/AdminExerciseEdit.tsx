@@ -15,7 +15,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, AlertTriangle, CheckCircle } from "lucide-react";
+import { X, AlertTriangle, CheckCircle, Bug, Database, Code, Network } from "lucide-react";
 
 // SEO
 const useSEO = (name?: string, isEdit?: boolean) => {
@@ -118,6 +118,24 @@ const AdminExerciseEdit: React.FC = () => {
   const [movementPatterns, setMovementPatterns] = React.useState<MovementPattern[]>([]);
   const [barTypes, setBarTypes] = React.useState<BarType[]>([]);
   const [grips, setGrips] = React.useState<Grip[]>([]);
+
+  // Debug state
+  const [debugInfo, setDebugInfo] = React.useState<{
+    lastError: any;
+    lastNetworkCall: any;
+    formErrors: any;
+    validationErrors: string[];
+    dbQueries: any[];
+    consoleErrors: any[];
+  }>({
+    lastError: null,
+    lastNetworkCall: null,
+    formErrors: {},
+    validationErrors: [],
+    dbQueries: [],
+    consoleErrors: []
+  });
+  const [showDebug, setShowDebug] = React.useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -421,9 +439,15 @@ const AdminExerciseEdit: React.FC = () => {
     try {
       const requiredErrors = validateRequired();
       if (requiredErrors.length > 0) {
+        const errorMessage = requiredErrors.join(', ');
+        setDebugInfo(prev => ({
+          ...prev,
+          lastError: { type: 'validation', errors: requiredErrors },
+          validationErrors: requiredErrors
+        }));
         toast({ 
           title: 'Validation Error', 
-          description: requiredErrors.join(', '),
+          description: errorMessage,
           variant: "destructive"
         });
         return;
@@ -436,6 +460,10 @@ const AdminExerciseEdit: React.FC = () => {
         capability_schema = JSON.parse(values.capability_schema || '{}');
         attribute_values_json = JSON.parse(values.attribute_values_json || '{}');
       } catch (e) {
+        setDebugInfo(prev => ({
+          ...prev,
+          lastError: { type: 'json_parse', error: e, values: { contraindications: values.contraindications, capability_schema: values.capability_schema, attribute_values_json: values.attribute_values_json } }
+        }));
         toast({ 
           title: 'JSON Parse Error', 
           description: 'Invalid JSON in advanced fields',
@@ -493,52 +521,113 @@ const AdminExerciseEdit: React.FC = () => {
         configured: values.configured,
       };
 
+      // Log the payload for debugging
+      setDebugInfo(prev => ({
+        ...prev,
+        lastNetworkCall: { type: isEdit ? 'update' : 'insert', payload: exercisePayload, timestamp: new Date().toISOString() }
+      }));
+
+      console.log('Exercise payload:', exercisePayload);
+
       if (isEdit) {
-        const { error } = await supabase
+        const updateQuery = supabase
           .from('exercises')
           .update(exercisePayload)
           .eq('id', params.id);
           
-        if (error) throw error;
+        console.log('Update query:', updateQuery);
+        
+        const { error, data } = await updateQuery;
+        
+        setDebugInfo(prev => ({
+          ...prev,
+          dbQueries: [...prev.dbQueries, { type: 'exercises_update', query: 'UPDATE exercises SET ... WHERE id = ?', params: { id: params.id, payload: exercisePayload }, result: { error, data }, timestamp: new Date().toISOString() }]
+        }));
+          
+        if (error) {
+          console.error('Update error:', error);
+          setDebugInfo(prev => ({
+            ...prev,
+            lastError: { type: 'supabase_update', error, payload: exercisePayload }
+          }));
+          throw error;
+        }
 
         // Update translation
+        const translationPayload = {
+          exercise_id: params.id,
+          language_code: 'en',
+          name: values.display_name,
+          description: values.loading_hint || null,
+        };
+        
         const { error: translationError } = await supabase
           .from('exercises_translations')
-          .upsert({
-            exercise_id: params.id,
-            language_code: 'en',
-            name: values.display_name,
-            description: values.loading_hint || null,
-          }, {
+          .upsert(translationPayload, {
             onConflict: 'exercise_id,language_code'
           });
           
+        setDebugInfo(prev => ({
+          ...prev,
+          dbQueries: [...prev.dbQueries, { type: 'translation_upsert', payload: translationPayload, result: { error: translationError }, timestamp: new Date().toISOString() }]
+        }));
+          
         if (translationError) {
           console.warn('Translation update failed:', translationError);
+          setDebugInfo(prev => ({
+            ...prev,
+            consoleErrors: [...prev.consoleErrors, { type: 'translation_warning', error: translationError, timestamp: new Date().toISOString() }]
+          }));
         }
 
         toast({ title: 'Exercise updated successfully!' });
       } else {
-        const { data, error } = await supabase
+        const insertQuery = supabase
           .from('exercises')
           .insert(exercisePayload)
-          .select('id')
-          .single();
+          .select('id');
           
-        if (error) throw error;
+        console.log('Insert query:', insertQuery);
+        
+        const { data, error } = await insertQuery.single();
+          
+        setDebugInfo(prev => ({
+          ...prev,
+          dbQueries: [...prev.dbQueries, { type: 'exercises_insert', query: 'INSERT INTO exercises (...) VALUES (...)', payload: exercisePayload, result: { error, data }, timestamp: new Date().toISOString() }]
+        }));
+          
+        if (error) {
+          console.error('Insert error:', error);
+          setDebugInfo(prev => ({
+            ...prev,
+            lastError: { type: 'supabase_insert', error, payload: exercisePayload }
+          }));
+          throw error;
+        }
 
         // Create translation
+        const translationPayload = {
+          exercise_id: data.id,
+          language_code: 'en',
+          name: values.display_name,
+          description: values.loading_hint || null,
+        };
+        
         const { error: translationError } = await supabase
           .from('exercises_translations')
-          .insert({
-            exercise_id: data.id,
-            language_code: 'en',
-            name: values.display_name,
-            description: values.loading_hint || null,
-          });
+          .insert(translationPayload);
+          
+        setDebugInfo(prev => ({
+          ...prev,
+          dbQueries: [...prev.dbQueries, { type: 'translation_insert', payload: translationPayload, result: { error: translationError }, timestamp: new Date().toISOString() }]
+        }));
           
         if (translationError) {
           console.warn('Translation creation failed:', translationError);
+          setDebugInfo(prev => ({
+            ...prev,
+            consoleErrors: [...prev.consoleErrors, { type: 'translation_warning', error: translationError, timestamp: new Date().toISOString() }]
+          }));
         }
 
         toast({ title: 'Exercise created successfully!' });
@@ -548,6 +637,11 @@ const AdminExerciseEdit: React.FC = () => {
       
     } catch (e: any) {
       console.error('Save error:', e);
+      setDebugInfo(prev => ({
+        ...prev,
+        lastError: { type: 'catch_block', error: e, timestamp: new Date().toISOString() },
+        consoleErrors: [...prev.consoleErrors, { type: 'save_error', error: e, timestamp: new Date().toISOString() }]
+      }));
       toast({ 
         title: 'Failed to save exercise', 
         description: e?.message || 'Unknown error',
@@ -573,6 +667,15 @@ const AdminExerciseEdit: React.FC = () => {
 
   const requiredErrors = validateRequired();
   const publishErrors = validateReadyToPublish();
+
+  // Update debug info with form errors
+  React.useEffect(() => {
+    setDebugInfo(prev => ({
+      ...prev,
+      formErrors: form.formState.errors,
+      validationErrors: [...requiredErrors, ...publishErrors]
+    }));
+  }, [form.formState.errors, requiredErrors, publishErrors]);
 
   if (loading) {
     return (
@@ -1197,6 +1300,136 @@ const AdminExerciseEdit: React.FC = () => {
             {saving ? 'Saving…' : (isEdit ? 'Update Exercise' : 'Create Exercise')}
           </Button>
         </div>
+
+        {/* Debug Panel */}
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader>
+            <CardTitle className="text-purple-800 flex items-center gap-2">
+              <Bug className="h-5 w-5" />
+              Debug Information
+              <Button 
+                type="button"
+                variant="ghost" 
+                size="sm"
+                onClick={() => setShowDebug(!showDebug)}
+                className="ml-auto"
+              >
+                {showDebug ? 'Hide' : 'Show'}
+              </Button>
+            </CardTitle>
+          </CardHeader>
+          {showDebug && (
+            <CardContent className="space-y-4">
+              {/* Form State */}
+              <div>
+                <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+                  <Code className="h-4 w-4" />
+                  Form State
+                </h4>
+                <div className="text-xs bg-white p-3 rounded border overflow-auto max-h-32">
+                  <strong>Is Valid:</strong> {form.formState.isValid ? 'Yes' : 'No'}<br/>
+                  <strong>Is Dirty:</strong> {form.formState.isDirty ? 'Yes' : 'No'}<br/>
+                  <strong>Is Submitting:</strong> {form.formState.isSubmitting ? 'Yes' : 'No'}<br/>
+                  <strong>Submit Count:</strong> {form.formState.submitCount}<br/>
+                  <strong>Form Errors:</strong> {Object.keys(debugInfo.formErrors).length > 0 ? JSON.stringify(debugInfo.formErrors, null, 2) : 'None'}<br/>
+                  <strong>Current Values:</strong> <pre>{JSON.stringify(form.getValues(), null, 2)}</pre>
+                </div>
+              </div>
+
+              {/* Validation Errors */}
+              {debugInfo.validationErrors.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Validation Errors
+                  </h4>
+                  <div className="text-xs bg-red-50 p-3 rounded border">
+                    <ul className="list-disc pl-4">
+                      {debugInfo.validationErrors.map((error, i) => (
+                        <li key={i}>{error}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+              )}
+
+              {/* Last Error */}
+              {debugInfo.lastError && (
+                <div>
+                  <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
+                    <AlertTriangle className="h-4 w-4" />
+                    Last Error ({debugInfo.lastError.type})
+                  </h4>
+                  <div className="text-xs bg-red-50 p-3 rounded border overflow-auto max-h-32">
+                    <pre>{JSON.stringify(debugInfo.lastError, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Database Queries */}
+              {debugInfo.dbQueries.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                    <Database className="h-4 w-4" />
+                    Database Queries ({debugInfo.dbQueries.length})
+                  </h4>
+                  <div className="text-xs bg-blue-50 p-3 rounded border overflow-auto max-h-40 space-y-2">
+                    {debugInfo.dbQueries.slice(-3).map((query, i) => (
+                      <div key={i} className="border-b pb-2">
+                        <strong>{query.type}</strong> at {query.timestamp}<br/>
+                        <pre className="text-xs">{JSON.stringify(query, null, 2)}</pre>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Network Calls */}
+              {debugInfo.lastNetworkCall && (
+                <div>
+                  <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                    <Network className="h-4 w-4" />
+                    Last Network Call
+                  </h4>
+                  <div className="text-xs bg-green-50 p-3 rounded border overflow-auto max-h-32">
+                    <pre>{JSON.stringify(debugInfo.lastNetworkCall, null, 2)}</pre>
+                  </div>
+                </div>
+              )}
+
+              {/* Console Errors */}
+              {debugInfo.consoleErrors.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-orange-800 mb-2">Console Errors ({debugInfo.consoleErrors.length})</h4>
+                  <div className="text-xs bg-orange-50 p-3 rounded border overflow-auto max-h-32 space-y-1">
+                    {debugInfo.consoleErrors.slice(-5).map((err, i) => (
+                      <div key={i}>
+                        <strong>{err.type}</strong> at {err.timestamp}: {err.error?.message || JSON.stringify(err.error)}
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Clear Debug Info */}
+              <Button 
+                type="button"
+                variant="outline" 
+                size="sm"
+                onClick={() => setDebugInfo({
+                  lastError: null,
+                  lastNetworkCall: null,
+                  formErrors: {},
+                  validationErrors: [],
+                  dbQueries: [],
+                  consoleErrors: []
+                })}
+              >
+                Clear Debug Info
+              </Button>
+            </CardContent>
+          )}
+        </Card>
       </form>
     </div>
   );
