@@ -53,7 +53,7 @@ export const EnhancedSetEditor: React.FC<EnhancedSetEditorProps> = ({
   const smartFormExercise: Exercise = {
     id: exercise.id || workoutExerciseId,
     effort_mode: exercise.effort_mode || 'reps', // Default to reps for most exercises
-    load_mode: exercise.load_mode || detectLoadMode(exercise), // Detect load mode from equipment
+    load_mode: exercise.load_mode || detectLoadMode(exercise), // Fallback to detection if database doesn't have load_mode
     equipment: {
       equipment_type: exercise.equipment?.equipment_type,
       slug: exercise.equipment?.slug || exercise.equipment_ref
@@ -98,8 +98,10 @@ export const EnhancedSetEditor: React.FC<EnhancedSetEditorProps> = ({
 
   console.log('🎯 EnhancedSetEditor Debug:', {
     exerciseId: exercise.id,
+    originalLoadMode: exercise.load_mode,
+    originalEffortMode: exercise.effort_mode,
     equipmentSlug: exercise.equipment?.slug || exercise.equipment_ref,
-    detectedLoadMode: smartFormExercise.load_mode,
+    finalExerciseObject: smartFormExercise,
     exerciseType: getExerciseTypeInfo().label
   });
 

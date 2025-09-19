@@ -21,8 +21,7 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
       effort_mode,
       load_mode,
       equipment_slug: equipment?.slug,
-      equipment_type: equipment?.equipment_type,
-      equipment_full: equipment
+      equipment_type: equipment?.equipment_type
     });
 
     // PRIMARY: Cardio exercises (time, distance, calories based)
@@ -54,16 +53,16 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
   // Render the appropriate form component
   switch (formType) {
     case 'bodyweight':
-      console.log('Rendering BodyweightSetForm for exercise:', exercise.id);
+      console.log('✅ Rendering BodyweightSetForm for exercise:', exercise.id);
       return <BodyweightSetForm {...props} />;
     
     case 'cardio':
-      console.log('Rendering CardioSetForm for exercise:', exercise.id);
+      console.log('✅ Rendering CardioSetForm for exercise:', exercise.id);
       return <CardioSetForm {...props} />;
     
     case 'weightReps':
     default:
-      console.log('Rendering WeightRepsSetForm for exercise:', exercise.id);
+      console.log('✅ Rendering WeightRepsSetForm for exercise:', exercise.id);
       return <WeightRepsSetForm {...props} />;
   }
 };
