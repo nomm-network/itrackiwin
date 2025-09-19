@@ -58,7 +58,7 @@ const schema = z.object({
   // Barbell specifics (conditional)
   is_bar_loaded: z.boolean().default(false),
   default_bar_type_id: z.string().uuid().optional().or(z.literal('')),
-  default_bar_weight: z.number().optional(),
+  default_bar_weight: z.number().nullable().optional(),
 
   // Section D - Capability & Difficulty
   exercise_skill_level: z.enum(['low', 'medium', 'high']).optional(),
@@ -1302,9 +1302,9 @@ const AdminExerciseEdit: React.FC = () => {
         </div>
 
         {/* Debug Panel */}
-        <Card className="border-purple-200 bg-purple-50">
+        <Card className="border-border bg-card text-card-foreground">
           <CardHeader>
-            <CardTitle className="text-purple-800 flex items-center gap-2">
+            <CardTitle className="flex items-center gap-2">
               <Bug className="h-5 w-5" />
               Debug Information
               <Button 
@@ -1322,11 +1322,11 @@ const AdminExerciseEdit: React.FC = () => {
             <CardContent className="space-y-4">
               {/* Form State */}
               <div>
-                <h4 className="font-medium text-purple-800 mb-2 flex items-center gap-2">
+                <h4 className="font-medium mb-2 flex items-center gap-2">
                   <Code className="h-4 w-4" />
                   Form State
                 </h4>
-                <div className="text-xs bg-white p-3 rounded border overflow-auto max-h-32">
+                <div className="text-xs bg-muted text-muted-foreground p-3 rounded border overflow-auto max-h-32">
                   <strong>Is Valid:</strong> {form.formState.isValid ? 'Yes' : 'No'}<br/>
                   <strong>Is Dirty:</strong> {form.formState.isDirty ? 'Yes' : 'No'}<br/>
                   <strong>Is Submitting:</strong> {form.formState.isSubmitting ? 'Yes' : 'No'}<br/>
@@ -1339,11 +1339,11 @@ const AdminExerciseEdit: React.FC = () => {
               {/* Validation Errors */}
               {debugInfo.validationErrors.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
+                  <h4 className="font-medium text-destructive mb-2 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     Validation Errors
                   </h4>
-                  <div className="text-xs bg-red-50 p-3 rounded border">
+                  <div className="text-xs bg-destructive/10 text-destructive p-3 rounded border">
                     <ul className="list-disc pl-4">
                       {debugInfo.validationErrors.map((error, i) => (
                         <li key={i}>{error}</li>
@@ -1356,11 +1356,11 @@ const AdminExerciseEdit: React.FC = () => {
               {/* Last Error */}
               {debugInfo.lastError && (
                 <div>
-                  <h4 className="font-medium text-red-800 mb-2 flex items-center gap-2">
+                  <h4 className="font-medium text-destructive mb-2 flex items-center gap-2">
                     <AlertTriangle className="h-4 w-4" />
                     Last Error ({debugInfo.lastError.type})
                   </h4>
-                  <div className="text-xs bg-red-50 p-3 rounded border overflow-auto max-h-32">
+                  <div className="text-xs bg-destructive/10 text-destructive p-3 rounded border overflow-auto max-h-32">
                     <pre>{JSON.stringify(debugInfo.lastError, null, 2)}</pre>
                   </div>
                 </div>
@@ -1369,15 +1369,15 @@ const AdminExerciseEdit: React.FC = () => {
               {/* Database Queries */}
               {debugInfo.dbQueries.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-blue-800 mb-2 flex items-center gap-2">
+                  <h4 className="font-medium text-primary mb-2 flex items-center gap-2">
                     <Database className="h-4 w-4" />
                     Database Queries ({debugInfo.dbQueries.length})
                   </h4>
-                  <div className="text-xs bg-blue-50 p-3 rounded border overflow-auto max-h-40 space-y-2">
+                  <div className="text-xs bg-primary/10 text-primary p-3 rounded border overflow-auto max-h-40 space-y-2">
                     {debugInfo.dbQueries.slice(-3).map((query, i) => (
-                      <div key={i} className="border-b pb-2">
+                      <div key={i} className="border-b border-primary/20 pb-2">
                         <strong>{query.type}</strong> at {query.timestamp}<br/>
-                        <pre className="text-xs">{JSON.stringify(query, null, 2)}</pre>
+                        <pre className="text-xs text-muted-foreground">{JSON.stringify(query, null, 2)}</pre>
                       </div>
                     ))}
                   </div>
@@ -1387,11 +1387,11 @@ const AdminExerciseEdit: React.FC = () => {
               {/* Network Calls */}
               {debugInfo.lastNetworkCall && (
                 <div>
-                  <h4 className="font-medium text-green-800 mb-2 flex items-center gap-2">
+                  <h4 className="font-medium text-green-600 mb-2 flex items-center gap-2">
                     <Network className="h-4 w-4" />
                     Last Network Call
                   </h4>
-                  <div className="text-xs bg-green-50 p-3 rounded border overflow-auto max-h-32">
+                  <div className="text-xs bg-green-50 text-green-800 p-3 rounded border overflow-auto max-h-32">
                     <pre>{JSON.stringify(debugInfo.lastNetworkCall, null, 2)}</pre>
                   </div>
                 </div>
@@ -1400,8 +1400,8 @@ const AdminExerciseEdit: React.FC = () => {
               {/* Console Errors */}
               {debugInfo.consoleErrors.length > 0 && (
                 <div>
-                  <h4 className="font-medium text-orange-800 mb-2">Console Errors ({debugInfo.consoleErrors.length})</h4>
-                  <div className="text-xs bg-orange-50 p-3 rounded border overflow-auto max-h-32 space-y-1">
+                  <h4 className="font-medium text-orange-600 mb-2">Console Errors ({debugInfo.consoleErrors.length})</h4>
+                  <div className="text-xs bg-orange-50 text-orange-800 p-3 rounded border overflow-auto max-h-32 space-y-1">
                     {debugInfo.consoleErrors.slice(-5).map((err, i) => (
                       <div key={i}>
                         <strong>{err.type}</strong> at {err.timestamp}: {err.error?.message || JSON.stringify(err.error)}
