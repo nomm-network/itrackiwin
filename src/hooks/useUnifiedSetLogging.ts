@@ -22,17 +22,9 @@ const useUserBodyweight = () => {
         .maybeSingle();
       
       if (error) {
-        // If no weight records found, try to get from user_profile_fitness as fallback
-        const { data: profileData, error: profileError } = await supabase
-          .from('user_profile_fitness')
-          .select('bodyweight')
-          .eq('user_id', user.user.id)
-          .maybeSingle();
-        
-        if (profileError) throw profileError;
-        const fallbackWeight = profileData?.bodyweight || null;
-        setBodyweight(fallbackWeight);
-        return fallbackWeight;
+        // No body metrics found
+        setBodyweight(null);
+        return null;
       }
       
       const latestWeight = data?.weight_kg || null;

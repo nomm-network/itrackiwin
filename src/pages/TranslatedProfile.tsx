@@ -127,7 +127,7 @@ const TranslatedProfilePage: React.FC = () => {
       // Load fitness profile
       const { data: fitnessData } = await supabase
         .from('user_profile_fitness')
-        .select('sex, bodyweight, height, height_cm, experience_level, goal, training_goal, days_per_week, injuries')
+        .select('sex, experience_level, goal, training_goal, days_per_week, injuries')
         .eq('user_id', user.id)
         .maybeSingle();
 

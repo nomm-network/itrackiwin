@@ -196,9 +196,10 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Stats - NOW USING BODY METRICS TABLE ONLY */}
+            {/* Body Metrics - Direct editing */}
             <div className="space-y-4">
               <h3 className="text-lg font-semibold">Body Metrics</h3>
+              <p className="text-sm text-muted-foreground">Update your current weight and height measurements</p>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="bodyweight">Current Weight (kg)</Label>
