@@ -14,7 +14,7 @@ import { useLastSet } from '@/features/health/fitness/hooks/useLastSet';
 import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/health/fitness/lib/targetSuggestions';
 import { supabase } from '@/integrations/supabase/client';
 import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
-import { SetEditor } from '@/features/workouts/components/SetEditor';
+import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
 import { noteWorkingSet } from '@/lib/training/warmupManager';
 import { useGrips } from '@/hooks/useGrips';
 import { useSessionTiming } from '@/stores/sessionTiming';
@@ -545,28 +545,25 @@ export default function ImprovedWorkoutSession({
             />
 
             
-            {/* SetEditor for dual-load support */}
-            <SetEditor
+            {/* Enhanced Set Editor with smart form detection */}
+            <EnhancedSetEditor
+              workoutExerciseId={exercise.workout_exercise_id}
               exercise={{
+                id: exerciseId,
                 load_type: exercise.load_type,
-                equipment_ref: exercise.equipment_ref
+                effort_mode: 'reps', // TODO: Get from exercise data
+                load_mode: 'external_added', // Default for now
+                equipment_ref: exercise.equipment_ref,
+                equipment: {
+                  slug: exercise.equipment_ref,
+                  equipment_type: undefined // Will be detected from slug
+                }
               }}
-              value={{
-                weightKg: currentSetData.weight,
-                perSideKg: currentSetData.perSideKg,
-                reps: currentSetData.reps,
-                entryMode: currentSetData.entryMode || 'total'
-              }}
-              onChange={(value) => {
-                console.log('🔧 SetEditor onChange:', value);
-                setCurrentSetData(prev => ({
-                  ...prev,
-                  weight: value.weightKg || 0,
-                  weightKg: value.weightKg,
-                  perSideKg: value.perSideKg,
-                  reps: value.reps || prev.reps,
-                  entryMode: value.entryMode || 'total'
-                }));
+              setIndex={currentSetNumber - 1}
+              onLogged={() => {
+                console.log('✅ Set logged successfully from EnhancedSetEditor');
+                // Trigger a data refresh by calling onSetComplete with current data
+                onSetComplete(currentSetData);
               }}
               className="space-y-4"
             />

@@ -14,7 +14,7 @@ import {
   Target
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
-import { SetEditor } from '@/features/workouts/components/SetEditor';
+import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
 import { PersistentRestTimer } from './PersistentRestTimer';
 
 interface SetData {
@@ -297,19 +297,23 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                         <span className="text-sm text-muted-foreground">Next up</span>
                       </div>
                        
-                       <SetEditor
-                         exercise={{
-                           load_type: currentExercise.load_type,
-                           equipment_ref: currentExercise.equipment_ref,
-                           id: currentExercise.id
-                         }}
-                         value={newSetData}
-                         onChange={setNewSetData}
-                         className="space-y-2"
-                         setIndex={nextSetIndex - 1}
-                         userId={undefined} // TODO: Pass userId prop
-                         gymId={undefined} // TODO: Pass gymId prop
-                       />
+                        <EnhancedSetEditor
+                          workoutExerciseId={currentExercise.id} // Use the exercise id directly
+                          exercise={{
+                            id: currentExercise.id,
+                            load_type: currentExercise.load_type,
+                            effort_mode: 'reps',
+                            load_mode: 'external_added',
+                            equipment_ref: currentExercise.equipment_ref,
+                            equipment: {
+                              slug: currentExercise.equipment_ref,
+                              equipment_type: undefined
+                            }
+                          }}
+                          setIndex={nextSetIndex - 1}
+                          onLogged={handleAddSet}
+                          className="space-y-2"
+                        />
                     </div>
                   )}
                 </CardContent>
