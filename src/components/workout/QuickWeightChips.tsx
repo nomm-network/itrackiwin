@@ -49,7 +49,7 @@ export const QuickWeightChips: React.FC<QuickWeightChipsProps> = ({
       <div className="text-sm font-medium text-muted-foreground">
         {mode === 'bodyweight' ? 'Quick Weights' : 'Quick Adjustments'}
       </div>
-      <div className="flex gap-2 flex-wrap">
+      <div className="flex gap-1 flex-wrap -mx-1">{/* Reduced gap to fit on one row */}
         {chips.map((chip, index) => (
           <Button
             key={index}
@@ -57,7 +57,7 @@ export const QuickWeightChips: React.FC<QuickWeightChipsProps> = ({
             variant={chip.isSelected ? "default" : "outline"}
             size="sm"
             onClick={() => onWeightChange(chip.value)}
-            className="text-xs px-3 h-7"
+            className="text-xs px-2 h-7 min-w-0 flex-shrink-0" // Reduced padding
           >
             {chip.label}
           </Button>

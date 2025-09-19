@@ -860,54 +860,50 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <>
             {currentExercise && (
               <>
-                {/* Exercise Title Row - EXACT OLD DESIGN */}
+                {/* Exercise Title Row - EXACT OLD DESIGN MATCH */}
                 <div className="flex items-center justify-between p-4 mb-4">
                   <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-white mb-2">
+                    <h2 className="text-xl font-semibold text-white mb-3">
                       {getExerciseName()}
                     </h2>
                     <div className="flex items-center gap-3">
-                      {/* Grips Hand Icon */}
+                      {/* Hand Icon - Grips */}
                       <Button
                         variant="ghost" 
                         size="sm"
                         onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
-                        className="h-10 w-10 p-0 text-white/70 hover:text-white"
+                        className="h-10 w-10 p-0 text-white/70 hover:text-white rounded-lg"
                       >
                         <Hand className="h-5 w-5" />
                       </Button>
                       
-                      {/* Target/Difficulty Icon - blue background like reference */}
-                      <Button
-                        variant="ghost"
-                        size="sm" 
-                        className="h-10 w-10 p-0 bg-blue-600 text-white hover:bg-blue-700 rounded"
-                      >
+                      {/* T2 Badge - blue like reference */}
+                      <div className="h-10 w-10 bg-blue-600 text-white flex items-center justify-center rounded-lg">
                         <span className="text-sm font-bold">T2</span>
-                      </Button>
+                      </div>
                       
-                      {/* Target Icon */}
+                      {/* Trophy/Target Icon - yellow like reference */}
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-10 w-10 p-0 text-yellow-500 hover:text-yellow-400"
+                        className="h-10 w-10 p-0 text-yellow-500 hover:text-yellow-400 rounded-lg"
                       >
                         <Target className="h-5 w-5" />
                       </Button>
                       
-                      {/* Sets Progress Badge */}
-                      <Badge variant="secondary" className="text-sm bg-gray-700 text-gray-300">
+                      {/* Sets Progress Badge - right side */}
+                      <Badge variant="secondary" className="text-sm bg-gray-700 text-gray-300 ml-auto">
                         {completedSetsCount}/{targetSetsCount} sets
                       </Badge>
                     </div>
                   </div>
                 </div>
 
-                {/* Completed Sets - EXACT OLD DESIGN */}
+                {/* Completed Sets Cards - EXACT OLD DESIGN */}
                 {sets.filter((set: any) => set.is_completed).length > 0 && (
                   <div className="space-y-3 mb-4 px-4">
                     {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
-                      <div key={set.id || index} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                      <div key={set.id || index} className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-3">
                             <div className="flex items-center justify-center w-8 h-8 bg-gray-600 text-white rounded-full text-sm font-bold">
@@ -933,44 +929,46 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   </div>
                 )}
 
-                {/* Current Set Section - EXACT OLD DESIGN */}
-                <div className="bg-green-600 rounded-lg p-4 mx-4 mb-4">
-                  <div className="flex items-center gap-3 mb-4">
-                    <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full text-sm font-bold">
-                      {currentSetNumber}
-                    </div>
-                    <span className="text-white font-medium">Current Set</span>
-                  </div>
-                  
-                  {/* Previous/Target Display with Timer - EXACT OLD LAYOUT */}
-                  <div className="bg-gray-800 rounded-lg p-4">
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-lg">🏋️</span>
-                          <span className="text-gray-400">Prev</span>
-                          <span className="text-white font-medium">40kg × 8</span>
-                          <span className="text-lg">🙂</span>
-                        </div>
-                        <div className="flex items-center gap-2 text-sm">
-                          <span className="text-red-500">🎯</span>
-                          <span className="text-gray-400">Target</span>
-                          <span className="text-white font-medium">40kg × 10</span>
-                        </div>
+                {/* Current Set Card - LIKE COMPLETED SETS, NOT GREEN AREA */}
+                <div className="mx-4 mb-4">
+                  <div className="bg-gray-800/50 rounded-xl p-4 border border-green-500/30">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full text-sm font-bold">
+                        {currentSetNumber}
                       </div>
-                      
-                      {/* Timer - RIGHT SIDE like reference */}
-                      <div className="flex justify-end">
-                        <div className="bg-gray-700 rounded-lg px-4 py-2 flex items-center gap-2">
-                          <span className="text-green-400">🕒</span>
-                          <span className="text-green-400 font-mono text-lg">0:24</span>
+                      <span className="text-white font-medium">Current Set</span>
+                    </div>
+                    
+                    {/* Previous/Target Display with Timer - EXACT OLD LAYOUT */}
+                    <div className="bg-gray-900 rounded-lg p-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-lg">🏋️</span>
+                            <span className="text-gray-400">Prev</span>
+                            <span className="text-white font-medium">40kg × 8</span>
+                            <span className="text-lg">🙂</span>
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="text-red-500">🎯</span>
+                            <span className="text-gray-400">Target</span>
+                            <span className="text-white font-medium">40kg × 10</span>
+                          </div>
+                        </div>
+                        
+                        {/* Timer - RIGHT SIDE like reference */}
+                        <div className="flex justify-end">
+                          <div className="bg-gray-700 rounded-lg px-4 py-3 flex items-center gap-2">
+                            <span className="text-green-400 text-lg">🕒</span>
+                            <span className="text-green-400 font-mono text-xl font-bold">0:24</span>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* SmartSetForm for input - REMOVE the duplicate title from here */}
+                {/* SmartSetForm for input - NO GREEN STYLING */}
                 <SmartSetForm
                   workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                   exercise={{
@@ -1081,7 +1079,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
       {/* Unified Debug Footer - v0.6.0 */}
       <WorkoutDebugFooter 
         debugInfo={{
-          version: 'workout-flow-v0.6.1',
+          version: 'workout-flow-v0.6.2',
           router: 'SmartSetForm',
           logger: 'useUnifiedSetLogging', 
           sessionSource: source,
