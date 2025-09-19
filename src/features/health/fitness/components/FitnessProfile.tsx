@@ -10,10 +10,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { BodyMetricsDisplay } from '@/components/health/BodyMetricsDisplay';
 
 interface FitnessProfileData {
   sex: 'male' | 'female' | 'other' | null;
+  bodyweight: number | null;
+  height_cm: number | null;
   training_age_months: number | null;
   goal: 'hypertrophy' | 'strength' | 'fat_loss' | 'general';
   injuries: Record<string, string>;
@@ -24,13 +25,33 @@ const FitnessProfile: React.FC = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Fetch latest body metrics
+  const { data: latestMetrics } = useQuery({
+    queryKey: ['latest-body-metrics'],
+    queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user?.id) return null;
+
+      const { data, error } = await supabase
+        .from('user_body_metrics')
+        .select('*')
+        .eq('user_id', user.user.id)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') throw error;
+      return data;
+    },
+  });
+
   const { data: profile, isLoading } = useQuery({
     queryKey: ['fitness-profile'],
     queryFn: async () => {
       const { data, error } = await supabase
         .from('user_fitness_profile')
         .select('*')
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== 'PGRST116') throw error;
       return data;
@@ -40,6 +61,8 @@ const FitnessProfile: React.FC = () => {
   const { register, handleSubmit, setValue, watch, reset } = useForm<FitnessProfileData>({
     defaultValues: {
       sex: null,
+      bodyweight: null,
+      height_cm: null,
       training_age_months: null,
       goal: 'hypertrophy',
       injuries: {},
@@ -52,17 +75,37 @@ const FitnessProfile: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
+      // Save fitness profile
       const payload = {
         user_id: user.id,
-        ...data,
+        sex: data.sex,
+        training_age_months: data.training_age_months,
+        goal: data.goal,
+        injuries: data.injuries,
+        prefer_short_rests: data.prefer_short_rests,
         updated_at: new Date().toISOString(),
       };
 
-      const { error } = await supabase
+      const { error: profileError } = await supabase
         .from('user_fitness_profile')
         .upsert(payload);
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Save body metrics if provided
+      if (data.bodyweight || data.height_cm) {
+        const { error: metricsError } = await supabase
+          .from('user_body_metrics')
+          .insert({
+            user_id: user.id,
+            weight_kg: data.bodyweight,
+            height_cm: data.height_cm,
+            source: 'manual',
+            recorded_at: new Date().toISOString(),
+          });
+
+        if (metricsError) throw metricsError;
+      }
     },
     onSuccess: () => {
       toast({
@@ -70,6 +113,7 @@ const FitnessProfile: React.FC = () => {
         description: "Your fitness profile has been saved successfully.",
       });
       queryClient.invalidateQueries({ queryKey: ['fitness-profile'] });
+      queryClient.invalidateQueries({ queryKey: ['latest-body-metrics'] });
     },
     onError: (error) => {
       toast({
@@ -81,16 +125,18 @@ const FitnessProfile: React.FC = () => {
   });
 
   React.useEffect(() => {
-    if (profile) {
-            reset({
-              sex: profile.sex as 'male' | 'female' | 'other' | null,
-              training_age_months: profile.training_age_months,
-              goal: profile.goal as 'hypertrophy' | 'strength' | 'fat_loss' | 'general',
-              injuries: (profile.injuries as Record<string, string>) || {},
-              prefer_short_rests: profile.prefer_short_rests,
-            });
+    if (profile || latestMetrics) {
+      reset({
+        sex: profile?.sex as 'male' | 'female' | 'other' | null,
+        bodyweight: latestMetrics?.weight_kg,
+        height_cm: latestMetrics?.height_cm,
+        training_age_months: profile?.training_age_months,
+        goal: profile?.goal as 'hypertrophy' | 'strength' | 'fat_loss' | 'general' || 'hypertrophy',
+        injuries: (profile?.injuries as Record<string, string>) || {},
+        prefer_short_rests: profile?.prefer_short_rests || false,
+      });
     }
-  }, [profile, reset]);
+  }, [profile, latestMetrics, reset]);
 
   const onSubmit = (data: FitnessProfileData) => {
     upsertProfile.mutate(data);
@@ -140,10 +186,28 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Metrics */}
-            <div className="space-y-3">
-              <Label>Body Metrics</Label>
-              <BodyMetricsDisplay showEditButton={true} />
+            {/* Body Stats */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="bodyweight">Weight (kg)</Label>
+                <Input
+                  id="bodyweight"
+                  type="number"
+                  step="0.1"
+                  placeholder="70.5"
+                  {...register('bodyweight', { valueAsNumber: true })}
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="height_cm">Height (cm)</Label>
+                <Input
+                  id="height_cm"
+                  type="number"
+                  placeholder="175"
+                  {...register('height_cm', { valueAsNumber: true })}
+                />
+              </div>
             </div>
 
             {/* Training Experience */}

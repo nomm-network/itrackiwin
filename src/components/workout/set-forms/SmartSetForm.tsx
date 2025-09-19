@@ -52,16 +52,26 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
 
   const formType = getFormType();
 
+  // Additional debug logging
+  console.log('SmartSetForm final decision:', {
+    exerciseId: exercise.id,
+    selectedFormType: formType,
+    willRenderBodyweightForm: formType === 'bodyweight'
+  });
+
   // Render the appropriate form component
   switch (formType) {
     case 'bodyweight':
+      console.log('Rendering BodyweightSetForm for exercise:', exercise.id);
       return <BodyweightSetForm {...props} />;
     
     case 'cardio':
+      console.log('Rendering CardioSetForm for exercise:', exercise.id);
       return <CardioSetForm {...props} />;
     
     case 'weightReps':
     default:
+      console.log('Rendering WeightRepsSetForm for exercise:', exercise.id);
       return <WeightRepsSetForm {...props} />;
   }
 };
