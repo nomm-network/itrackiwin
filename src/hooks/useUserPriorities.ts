@@ -18,9 +18,30 @@ export function useUserPriorities() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
       
-      const { data, error } = await supabase.rpc('user_priorities' as any, { u: user.id });
+      const { data, error } = await supabase
+        .from('user_category_prefs')
+        .select(`
+          category_id,
+          display_order,
+          life_categories!inner(
+            slug,
+            name,
+            icon
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('is_enabled', true)
+        .order('display_order');
+
       if (error) throw error;
-      return data as UserPriority[];
+      
+      return (data || []).map((item: any) => ({
+        category_id: item.category_id,
+        slug: item.life_categories.slug,
+        name: item.life_categories.name,
+        icon: item.life_categories.icon,
+        priority_rank: item.display_order,
+      })) as UserPriority[];
     },
     enabled: !!user,
     staleTime: 5 * 60 * 1000, // 5 minutes
