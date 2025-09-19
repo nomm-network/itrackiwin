@@ -93,13 +93,16 @@ const FitnessProfile: React.FC = () => {
       if (profileError) throw profileError;
 
       // Save body metrics SEPARATELY - this is the source of truth for height/weight
-      if (data.bodyweight || data.height_cm) {
+      if (data.bodyweight !== null || data.height_cm !== null) {
+        // Get current values to avoid overwriting one with null
+        const currentMetrics = latestMetrics;
+        
         const { error: metricsError } = await supabase
           .from('user_body_metrics')
           .insert({
             user_id: user.id,
-            weight_kg: data.bodyweight,
-            height_cm: data.height_cm,
+            weight_kg: data.bodyweight !== null ? data.bodyweight : currentMetrics?.weight_kg || null,
+            height_cm: data.height_cm !== null ? data.height_cm : currentMetrics?.height_cm || null,
             source: 'manual',
             recorded_at: new Date().toISOString(),
           });

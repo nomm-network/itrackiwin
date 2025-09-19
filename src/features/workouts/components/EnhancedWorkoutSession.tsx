@@ -61,6 +61,7 @@ import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
 import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
 import { saveTodayReadiness } from '@/lib/api/readiness'; // Use the correct API function
 import { useSessionTiming } from '@/stores/sessionTiming';
+import { WorkoutFormDebugPanel } from './WorkoutFormDebugPanel';
 
 interface WorkoutSessionProps {
   workout: any;
