@@ -859,8 +859,102 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <>
             {currentExercise && (
               <>
-                {/* SESSION-LEVEL WARMUP REMOVED - warmup only shows in exercise cards */}
-                {/* Step 4: Direct SmartSetForm integration */}
+                {/* Exercise Title Row with Menu Icons */}
+                <div className="bg-card rounded-lg p-4 mb-4">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex-1">
+                      <h2 className="text-lg font-semibold text-foreground">
+                        {getExerciseName()}
+                      </h2>
+                      <div className="flex items-center gap-2 mt-1">
+                        <Badge variant="outline" className="text-xs">
+                          {currentExercise?.exercise_id?.slice(0, 1) || '1'}/{totalExercises}
+                        </Badge>
+                        <Badge variant="secondary" className="text-xs">
+                          {completedSetsCount}/{targetSetsCount} sets
+                        </Badge>
+                      </div>
+                    </div>
+                    
+                    {/* Menu with Icons */}
+                    <div className="flex items-center gap-2">
+                      {/* Grips Icon */}
+                      <Button
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Hand className="h-4 w-4" />
+                      </Button>
+                      
+                      {/* Target Icon */}
+                      <Button
+                        variant="ghost"
+                        size="sm" 
+                        className="h-8 w-8 p-0"
+                      >
+                        <Target className="h-4 w-4" />
+                      </Button>
+                      
+                      {/* Settings Dropdown */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-8 w-8 p-0"
+                      >
+                        <Settings className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Completed Sets */}
+                {sets.filter((set: any) => set.is_completed).length > 0 && (
+                  <div className="space-y-2 mb-4">
+                    {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
+                      <div key={set.id || index} className="bg-muted rounded-lg p-3">
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-medium">
+                            {index + 1}
+                          </div>
+                          <div className="flex items-center gap-2 text-sm">
+                            <span className="font-medium">{set.weight_kg || 0}kg</span>
+                            <span className="text-muted-foreground">×</span>
+                            <span className="font-medium">{set.reps || 0} reps</span>
+                            {set.feel && <span className="text-lg">{set.feel}</span>}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {/* Current Set Section */}
+                <div className="bg-accent rounded-lg p-4 mb-4">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-medium">
+                      {currentSetNumber}
+                    </div>
+                    <span className="text-sm font-medium">Current Set</span>
+                  </div>
+                  
+                  {/* Previous/Target Display */}
+                  <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="flex items-center gap-2 text-sm">
+                      <span className="text-muted-foreground">Prev</span>
+                      <span className="font-medium">40kg × 8</span>
+                      <span className="text-lg">🙂</span>
+                    </div>
+                    <div className="flex items-center gap-2 text-sm">
+                      <Target className="h-4 w-4 text-destructive" />
+                      <span className="text-muted-foreground">Target</span>
+                      <span className="font-medium">40kg × 10</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* SmartSetForm for input */}
                 <SmartSetForm
                   workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                   exercise={{
@@ -889,8 +983,6 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                     });
                   }}
                 />
-                
-                {/* OLD DEBUG PANEL REMOVED - v0.6.0 uses WorkoutDebugFooter only */}
               </>
             )}
 
