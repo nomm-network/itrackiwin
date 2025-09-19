@@ -227,36 +227,21 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
           )}
         </div>
 
-        {/* Load Mode Selector for bodyweight exercises */}
-        {(exercise.equipment?.slug === 'dip-bars' || exercise.equipment?.slug === 'pull-up-bar') && (
-          <div className="space-y-3">
-            <Label className="text-sm font-medium">Exercise Mode</Label>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                variant={loadMode === 'bodyweight_plus_optional' ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  // This would require parent component to handle the load mode change
-                  setAdditionalWeight('');
-                }}
-                className="text-xs"
-              >
-                Add Weight
-              </Button>
-              <Button
-                type="button"
-                variant={loadMode === 'external_assist' ? "default" : "outline"}
-                size="sm"
-                onClick={() => {
-                  // This would require parent component to handle the load mode change  
-                  setAdditionalWeight('');
-                }}
-                className="text-xs"
-              >
-                Assisted
-              </Button>
+        {/* Bodyweight Exercise Indicator */}
+        {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
+          <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
+            <div className="flex items-center gap-2 mb-2">
+              <Weight className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-sm font-medium text-blue-800 dark:text-blue-200">
+                Bodyweight Exercise
+              </span>
             </div>
+            <p className="text-xs text-blue-600 dark:text-blue-400">
+              {loadMode === 'bodyweight_plus_optional' 
+                ? 'You can add extra weight or perform bodyweight only'
+                : 'You can use assistance or perform unassisted'
+              }
+            </p>
           </div>
         )}
 

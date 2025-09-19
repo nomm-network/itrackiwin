@@ -13,8 +13,6 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 
 interface FitnessProfileData {
   sex: 'male' | 'female' | 'other' | null;
-  bodyweight: number | null;
-  height_cm: number | null;
   training_age_months: number | null;
   goal: 'hypertrophy' | 'strength' | 'fat_loss' | 'general';
   injuries: Record<string, string>;
@@ -41,8 +39,6 @@ const FitnessProfile: React.FC = () => {
   const { register, handleSubmit, setValue, watch, reset } = useForm<FitnessProfileData>({
     defaultValues: {
       sex: null,
-      bodyweight: null,
-      height_cm: null,
       training_age_months: null,
       goal: 'hypertrophy',
       injuries: {},
@@ -87,8 +83,6 @@ const FitnessProfile: React.FC = () => {
     if (profile) {
             reset({
               sex: profile.sex as 'male' | 'female' | 'other' | null,
-              bodyweight: profile.bodyweight,
-              height_cm: profile.height_cm,
               training_age_months: profile.training_age_months,
               goal: profile.goal as 'hypertrophy' | 'strength' | 'fat_loss' | 'general',
               injuries: (profile.injuries as Record<string, string>) || {},
@@ -145,28 +139,14 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bodyweight">Bodyweight (kg)</Label>
-                <Input
-                  id="bodyweight"
-                  type="number"
-                  step="0.1"
-                  placeholder="70.5"
-                  {...register('bodyweight', { valueAsNumber: true })}
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="height_cm">Height (cm)</Label>
-                <Input
-                  id="height_cm"
-                  type="number"
-                  placeholder="175"
-                  {...register('height_cm', { valueAsNumber: true })}
-                />
-              </div>
+            {/* Body Metrics - Now handled separately */}
+            <div className="bg-muted p-4 rounded-lg">
+              <p className="text-sm text-muted-foreground mb-2">
+                Body measurements (weight, height) are now tracked separately in the Body Metrics section.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                This allows for better tracking of changes over time and historical data.
+              </p>
             </div>
 
             {/* Training Experience */}

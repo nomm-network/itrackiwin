@@ -26,8 +26,6 @@ export default function HealthConfigureBody() {
     trainingFocus: '',
     experienceLevel: '',
     sex: '',
-    bodyweight: '',
-    height: '',
     daysPerWeek: '',
     sessionLength: '',
     locationType: '',
@@ -59,8 +57,6 @@ export default function HealthConfigureBody() {
         trainingFocus: fitnessProfileData.training_goal || '',
         experienceLevel: fitnessProfileData.experience_level || '',
         sex: fitnessProfileData.sex || '',
-        bodyweight: fitnessProfileData.bodyweight?.toString() || '',
-        height: fitnessProfileData.height_cm?.toString() || '',
         daysPerWeek: fitnessProfileData.days_per_week?.toString() || '',
         sessionLength: fitnessProfileData.preferred_session_minutes?.toString() || '',
         locationType: fitnessProfileData.location_type || '',
@@ -103,8 +99,6 @@ export default function HealthConfigureBody() {
           training_goal: fitnessProfile.trainingFocus,
           experience_level: fitnessProfile.experienceLevel as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
           sex: (fitnessProfile.sex || undefined) as SexType | undefined,
-          bodyweight: fitnessProfile.bodyweight ? Number(fitnessProfile.bodyweight) : undefined,
-          height_cm: fitnessProfile.height ? Number(fitnessProfile.height) : undefined,
           days_per_week: fitnessProfile.daysPerWeek ? Number(fitnessProfile.daysPerWeek) : undefined,
           preferred_session_minutes: fitnessProfile.sessionLength ? Number(fitnessProfile.sessionLength) : undefined,
           location_type: fitnessProfile.locationType as "home" | "gym" | undefined,
@@ -225,26 +219,12 @@ export default function HealthConfigureBody() {
                 </div>
               </div>
 
-              {/* Stats & Schedule */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Bodyweight (kg)</Label>
-                  <Input
-                    type="number"
-                    placeholder="70"
-                    value={fitnessProfile.bodyweight}
-                    onChange={(e) => setFitnessProfile(prev => ({ ...prev, bodyweight: e.target.value }))}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label>Height (cm)</Label>
-                  <Input
-                    type="number"
-                    placeholder="175"
-                    value={fitnessProfile.height}
-                    onChange={(e) => setFitnessProfile(prev => ({ ...prev, height: e.target.value }))}
-                  />
-                </div>
+              {/* Body Metrics Notice */}
+              <div className="bg-muted p-4 rounded-lg border border-dashed">
+                <p className="text-sm font-medium mb-1">Body Metrics Tracking</p>
+                <p className="text-xs text-muted-foreground">
+                  Weight and height tracking has been moved to the dedicated Body Metrics section for better historical tracking.
+                </p>
               </div>
 
               {/* Experience Level */}
