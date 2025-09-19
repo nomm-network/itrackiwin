@@ -11,8 +11,7 @@ export interface FitnessProfile {
   training_goal: string;
   experience_level: "new" | "returning" | "intermediate" | "advanced" | "very_experienced";
   sex?: SexType;
-  bodyweight?: number;
-  height_cm?: number;
+  // bodyweight and height_cm moved to user_body_metrics table
   height?: number;
   injuries?: string[];
   days_per_week?: number;
@@ -63,8 +62,7 @@ export const useUpsertFitnessProfile = () => {
         goal: profile.goal,
         training_goal: profile.training_goal,
         sex: profile.sex,
-        bodyweight: profile.bodyweight,
-        height_cm: profile.height_cm,
+        // bodyweight and height_cm are now stored in user_body_metrics table, not here
         days_per_week: profile.days_per_week,
         preferred_session_minutes: profile.preferred_session_minutes,
         location_type: profile.location_type,

@@ -37,8 +37,7 @@ export const FitnessProfileSetup = ({ onComplete }: { onComplete?: () => void })
         training_goal: formData.training_goal,
         experience_level: formData.experience_level as "new" | "returning" | "intermediate" | "advanced" | "very_experienced",
         sex: formData.sex as SexType | undefined,
-        bodyweight: formData.bodyweight ? Number(formData.bodyweight) : undefined,
-        height_cm: formData.height_cm ? Number(formData.height_cm) : undefined,
+        // bodyweight and height_cm removed - these are now stored in user_body_metrics table
         days_per_week: formData.days_per_week ? Number(formData.days_per_week) : undefined,
         preferred_session_minutes: formData.preferred_session_minutes ? Number(formData.preferred_session_minutes) : undefined,
       });

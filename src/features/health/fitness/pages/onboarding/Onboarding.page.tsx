@@ -99,15 +99,38 @@ const Onboarding: React.FC = () => {
 
       if (settingsError) throw settingsError;
 
-      // Save fitness profile
+      // Extract bodyweight and height_cm for separate handling
+      const { bodyweight, height_cm, ...fitnessProfileData } = profile;
+
+      // Save fitness profile (without body metrics)
       const { error: profileError } = await supabase
         .from('user_profile_fitness')
         .insert({
           user_id: user.id,
-          ...profile
+          ...fitnessProfileData
         });
 
       if (profileError) throw profileError;
+
+      // Save body metrics to separate table if provided
+      if (bodyweight || height_cm) {
+        const bodyMetricsData: any = {
+          user_id: user.id,
+        };
+
+        if (bodyweight) {
+          bodyMetricsData.weight_kg = bodyweight;
+        }
+        if (height_cm) {
+          bodyMetricsData.height_cm = height_cm;
+        }
+
+        const { error: bodyMetricsError } = await supabase
+          .from('user_body_metrics')
+          .insert(bodyMetricsData);
+
+        if (bodyMetricsError) throw bodyMetricsError;
+      }
 
       toast({
         title: "Welcome to I Track I Win!",

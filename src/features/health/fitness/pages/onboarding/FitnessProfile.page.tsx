@@ -40,14 +40,38 @@ const FitnessProfile: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { error } = await supabase
+      // Extract bodyweight and height_cm for separate handling
+      const { bodyweight, height_cm, ...fitnessProfileData } = profile;
+
+      // Save fitness profile (without body metrics)
+      const { error: profileError } = await supabase
         .from('user_profile_fitness')
         .upsert({
           user_id: user.id,
-          ...profile
+          ...fitnessProfileData
         });
 
-      if (error) throw error;
+      if (profileError) throw profileError;
+
+      // Save body metrics to separate table if provided
+      if (bodyweight || height_cm) {
+        const bodyMetricsData: any = {
+          user_id: user.id,
+        };
+
+        if (bodyweight) {
+          bodyMetricsData.weight_kg = bodyweight;
+        }
+        if (height_cm) {
+          bodyMetricsData.height_cm = height_cm;
+        }
+
+        const { error: bodyMetricsError } = await supabase
+          .from('user_body_metrics')
+          .insert(bodyMetricsData);
+
+        if (bodyMetricsError) throw bodyMetricsError;
+      }
 
       toast({
         title: "Profile Complete!",
