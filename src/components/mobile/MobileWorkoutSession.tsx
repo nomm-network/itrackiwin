@@ -13,7 +13,8 @@ import {
   Plus, 
   ArrowRight,
   Timer,
-  Target
+  Target,
+  Clock
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
 import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
@@ -258,273 +259,215 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
           {exercises.map((exercise, index) => (
             <div 
               key={exercise.id}
-              className="w-full h-full p-2"
+              className="w-full h-full p-4"
               style={{ width: `${100 / exercises.length}%` }}
             >
-              <Card className="h-full flex flex-col">
-                <CardHeader className="pb-4">
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{exercise.name}</CardTitle>
-                    {isExerciseComplete && index === currentExerciseIndex && (
-                      <Badge variant="default" className="bg-green-500">
-                        Complete
-                      </Badge>
-                    )}
-                  </div>
+              <div className="h-full flex flex-col space-y-4">
+                {/* Exercise Title Row */}
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">{exercise.name}</h2>
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      ✋
+                    </div>
+                    <div className="w-8 h-8 bg-yellow-500 rounded-lg flex items-center justify-center">
+                      🥇
+                    </div>
+                    <div className="w-8 h-8 bg-orange-500 rounded-lg flex items-center justify-center">
+                      🏃
+                    </div>
+                    <Badge variant="secondary" className="text-sm">
                       {completedSets.length}/{targetSets} sets
                     </Badge>
-                    <Target className="h-4 w-4 text-muted-foreground" />
                   </div>
-                </CardHeader>
+                </div>
 
-                <CardContent className="flex-1 overflow-y-auto space-y-3">
-                  {/* Completed sets */}
-                  {completedSets.map((set, setIndex) => (
-                    <Popover key={setIndex}>
-                      <PopoverTrigger asChild>
-                        <div
-                          className="flex items-center justify-between p-2.5 bg-muted/30 rounded-lg cursor-pointer hover:bg-muted/50"
-                          onMouseDown={() => handleSetMouseDown(set.id || `${exercise.id}-${setIndex}`)}
-                          onMouseUp={handleSetMouseUp}
-                          onTouchStart={() => handleSetMouseDown(set.id || `${exercise.id}-${setIndex}`)}
-                          onTouchEnd={handleSetMouseUp}
-                        >
-                          <div className="flex items-center gap-3">
-                            <Badge variant="outline" className="text-xs">
-                              Set {set.set_index}
-                            </Badge>
-                            <div className="flex flex-col">
-                              <span className="font-medium">
-                                {set.weight}kg × {set.reps} reps
-                              </span>
-                              <EffectiveLoadDisplay 
-                                totalWeight={set.total_weight_kg}
-                                weight={set.weight}
-                                loadMode={exercise.load_mode}
-                                bodyweightPct={exercise.attribute_values_json?.bodyweight_involvement_pct}
-                                loggedBodyweight={set.load_meta?.logged_bodyweight_kg}
-                                className="text-xs text-muted-foreground"
-                              />
-                            </div>
-                            {set.rpe && (
-                              <Badge variant="secondary" className="text-xs">
-                                RPE {set.rpe}
-                              </Badge>
-                            )}
-                          </div>
-                          {set.feel && (
-                            <Badge variant="outline" className="text-xs">
-                              {set.feel}
-                            </Badge>
-                          )}
-                        </div>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-80 p-0" side="top">
-                        <SetFeelSelector
-                          setId={set.id || `${exercise.id}-${setIndex}`}
-                          currentFeel={set.feel as any}
-                          onFeelChange={(feel) => {
-                            // Update set feel
-                          }}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  ))}
-
-                  {/* Next set entry - FULL UI LIKE SCREENSHOT */}
-                  {!isExerciseComplete && index === currentExerciseIndex && (
-                    <div className="space-y-4">
-                      {/* Grip Section */}
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">Grip</h3>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button variant="default" size="sm" className="text-xs px-3 h-8">
-                            Mixed (Alternating)
-                          </Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">
-                            Neutral (Hammer)
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Weight Entry Toggle */}
+                {/* Completed Sets */}
+                {completedSets.map((set, setIndex) => (
+                  <div key={setIndex} className="bg-muted/30 rounded-xl p-4">
+                    <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <span className="text-sm text-muted-foreground">Weight entry:</span>
-                        <div className="flex bg-muted rounded-md p-1">
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="text-xs px-3 h-7"
-                          >
-                            Per-side
-                          </Button>
-                          <Button
-                            type="button"
-                            variant="default"
-                            size="sm"
-                            className="text-xs px-3 h-7 bg-green-500 hover:bg-green-600"
-                          >
-                            Total
-                          </Button>
+                        <div className="w-8 h-8 bg-muted rounded-full flex items-center justify-center">
+                          <span className="text-sm font-medium">{set.set_index || setIndex + 1}</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm">📦</span>
+                          <span className="font-medium">{set.weight}kg × {set.reps} reps</span>
+                          <span className="text-lg">🙂</span>
                         </div>
                       </div>
-
-                      {/* Weight and Reps Inputs */}
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="weight" className="text-sm text-muted-foreground">
-                            Weight (total kg)
-                          </Label>
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-12 w-12 p-0 text-lg"
-                            >
-                              —
-                            </Button>
-                            <Input
-                              id="weight"
-                              type="number"
-                              value={newSetData.weightKg || 0}
-                              onChange={(e) => setNewSetData(prev => ({ 
-                                ...prev, 
-                                weightKg: e.target.value === '' ? 0 : Number(e.target.value) 
-                              }))}
-                              className="flex-1 h-12 text-center text-lg"
-                              placeholder="0"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-12 w-12 p-0 text-lg"
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
-
-                        <div className="space-y-2">
-                          <Label htmlFor="reps" className="text-sm text-muted-foreground">
-                            Reps *
-                          </Label>
-                          <div className="flex gap-1">
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-12 w-12 p-0 text-lg"
-                            >
-                              —
-                            </Button>
-                            <Input
-                              id="reps"
-                              type="number"
-                              value={newSetData.reps || 8}
-                              onChange={(e) => setNewSetData(prev => ({ 
-                                ...prev, 
-                                reps: e.target.value === '' ? 0 : Number(e.target.value) 
-                              }))}
-                              className="flex-1 h-12 text-center text-lg"
-                              placeholder="8"
-                            />
-                            <Button
-                              type="button"
-                              variant="outline"
-                              size="sm"
-                              className="h-12 w-12 p-0 text-lg"
-                            >
-                              +
-                            </Button>
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          ✏️
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          ⌄
+                        </Button>
                       </div>
-
-                      {/* Quick Adjustments */}
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">Quick Adjustments</h3>
-                        <div className="flex gap-2 flex-wrap">
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">-10kg</Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">-5kg</Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">-2.5kg</Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">+2.5kg</Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">+5kg</Button>
-                          <Button variant="outline" size="sm" className="text-xs px-3 h-8">+10kg</Button>
-                        </div>
-                      </div>
-
-                      {/* How did that feel */}
-                      <div>
-                        <h3 className="text-sm font-medium text-muted-foreground mb-2">How did that feel?</h3>
-                        <div className="grid grid-cols-5 gap-2">
-                          <Button variant="outline" size="sm" className="h-16 flex-col gap-1">
-                            <span className="text-lg">😣</span>
-                            <span className="text-xs">Terrible</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-16 flex-col gap-1">
-                            <span className="text-lg">😞</span>
-                            <span className="text-xs">Bad</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-16 flex-col gap-1">
-                            <span className="text-lg">😐</span>
-                            <span className="text-xs">Okay</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-16 flex-col gap-1">
-                            <span className="text-lg">🙂</span>
-                            <span className="text-xs">Good</span>
-                          </Button>
-                          <Button variant="outline" size="sm" className="h-16 flex-col gap-1">
-                            <span className="text-lg">😎</span>
-                            <span className="text-xs">Amazing</span>
-                          </Button>
-                        </div>
-                      </div>
-
-                      {/* Log Set Button */}
-                      <Button
-                        onClick={handleAddSet}
-                        disabled={!newSetData.reps || (!newSetData.weightKg && !newSetData.perSideKg)}
-                        size="lg"
-                        className="w-full h-14 text-lg bg-green-500 hover:bg-green-600"
-                      >
-                        Log Set {nextSetIndex}
-                      </Button>
                     </div>
-                  )}
-                </CardContent>
-              </Card>
+                  </div>
+                ))}
+
+                {/* Current Set Entry */}
+                {!isExerciseComplete && index === currentExerciseIndex && (
+                  <div className="bg-green-100 dark:bg-green-900/20 rounded-xl p-4 space-y-4">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <span className="text-sm font-medium text-white">{nextSetIndex}</span>
+                      </div>
+                      <span className="font-medium">Current Set</span>
+                    </div>
+
+                    {/* Previous/Target Display */}
+                    <div className="bg-black/20 rounded-xl p-3 flex items-center justify-between">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>📦</span>
+                          <span>Prev <strong>40kg × 8</strong> 🙂</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span>🎯</span>
+                          <span>Target <strong>40kg × 10</strong></span>
+                        </div>
+                      </div>
+                      <div className="bg-black/30 rounded-xl px-4 py-3 flex items-center gap-2">
+                        <Clock className="w-6 h-6 text-green-500" />
+                        <span className="text-2xl font-mono font-bold text-green-500">0:24</span>
+                      </div>
+                    </div>
+
+                    {/* Per-side/Total Toggle */}
+                    <div className="flex items-center gap-3">
+                      <span className="text-sm text-muted-foreground">Weight entry:</span>
+                      <div className="flex bg-muted rounded-lg p-1">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="text-xs px-3 h-7"
+                        >
+                          Per-side
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="default"
+                          size="sm"
+                          className="text-xs px-3 h-7 bg-green-500 hover:bg-green-600 text-white"
+                        >
+                          Total
+                        </Button>
+                      </div>
+                    </div>
+
+                    {/* Weight and Reps Inputs */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">
+                          Total Weight (kg)
+                        </Label>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 w-12 p-0 text-lg rounded-xl"
+                          >
+                            —
+                          </Button>
+                          <Input
+                            type="number"
+                            value={newSetData.weightKg || 40}
+                            onChange={(e) => setNewSetData(prev => ({ 
+                              ...prev, 
+                              weightKg: e.target.value === '' ? 0 : Number(e.target.value) 
+                            }))}
+                            className="flex-1 h-12 text-center text-lg rounded-xl border-2"
+                          />
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 w-12 p-0 text-lg rounded-xl"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label className="text-sm text-muted-foreground">
+                          Reps
+                        </Label>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 w-12 p-0 text-lg rounded-xl"
+                          >
+                            —
+                          </Button>
+                          <Input
+                            type="number"
+                            value={newSetData.reps || 10}
+                            onChange={(e) => setNewSetData(prev => ({ 
+                              ...prev, 
+                              reps: e.target.value === '' ? 0 : Number(e.target.value) 
+                            }))}
+                            className="flex-1 h-12 text-center text-lg rounded-xl border-2"
+                          />
+                          <Button
+                            variant="outline"
+                            size="lg"
+                            className="h-12 w-12 p-0 text-lg rounded-xl"
+                          >
+                            +
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* How did that feel */}
+                    <div>
+                      <h3 className="text-sm font-medium text-muted-foreground mb-3">How did that feel?</h3>
+                      <div className="grid grid-cols-5 gap-2">
+                        <Button variant="outline" size="lg" className="h-16 flex-col gap-1 rounded-xl">
+                          <span className="text-xl">😣</span>
+                          <span className="text-xs">Terrible</span>
+                        </Button>
+                        <Button variant="outline" size="lg" className="h-16 flex-col gap-1 rounded-xl">
+                          <span className="text-xl">😞</span>
+                          <span className="text-xs">Bad</span>
+                        </Button>
+                        <Button variant="default" size="lg" className="h-16 flex-col gap-1 rounded-xl bg-green-500 hover:bg-green-600 text-white">
+                          <span className="text-xl">🙂</span>
+                          <span className="text-xs">Okay</span>
+                        </Button>
+                        <Button variant="outline" size="lg" className="h-16 flex-col gap-1 rounded-xl">
+                          <span className="text-xl">😃</span>
+                          <span className="text-xs">Good</span>
+                        </Button>
+                        <Button variant="outline" size="lg" className="h-16 flex-col gap-1 rounded-xl">
+                          <span className="text-xl">😎</span>
+                          <span className="text-xs">Amazing</span>
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           ))}
         </div>
       </div>
 
       {/* Sticky footer with large actions */}
-      <div className="p-3.5 border-t bg-card">
-        <div className="grid grid-cols-2 gap-2.5">
-          <Button
-            onClick={handleAddSet}
-            disabled={(!newSetData.weightKg && !newSetData.perSideKg) || !newSetData.reps || isExerciseComplete}
-            size="lg"
-            className="h-14 text-lg touch-target-comfortable"
-          >
-            <Plus className="h-5 w-5 mr-2" />
-            Add Set
-          </Button>
-          <Button
-            onClick={handleNextExercise}
-            variant={isExerciseComplete ? "default" : "outline"}
-            size="lg"
-            className="h-14 text-lg touch-target-comfortable"
-          >
-            <ArrowRight className="h-5 w-5 mr-2" />
-            {currentExerciseIndex === exercises.length - 1 ? 'Finish' : 'Next'}
-          </Button>
-        </div>
+      <div className="p-4 border-t bg-card">
+        <Button
+          onClick={handleAddSet}
+          disabled={(!newSetData.weightKg && !newSetData.perSideKg) || !newSetData.reps || isExerciseComplete}
+          size="lg"
+          className="w-full h-14 text-lg bg-green-500 hover:bg-green-600 text-white rounded-xl"
+        >
+          Log Set {nextSetIndex}
+        </Button>
       </div>
 
       {/* Persistent bottom rest timer overlay */}
