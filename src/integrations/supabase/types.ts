@@ -6570,6 +6570,39 @@ export type Database = {
           },
         ]
       }
+      user_body_metrics: {
+        Row: {
+          created_at: string
+          height_cm: number | null
+          id: string
+          notes: string | null
+          recorded_at: string
+          source: string | null
+          user_id: string
+          weight_kg: number | null
+        }
+        Insert: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          notes?: string | null
+          recorded_at?: string
+          source?: string | null
+          user_id: string
+          weight_kg?: number | null
+        }
+        Update: {
+          created_at?: string
+          height_cm?: number | null
+          id?: string
+          notes?: string | null
+          recorded_at?: string
+          source?: string | null
+          user_id?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
       user_category_prefs: {
         Row: {
           category_id: string
