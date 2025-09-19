@@ -13,9 +13,9 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
   const { exercise } = props;
   const { effort_mode, load_mode } = exercise;
 
-  // Determine form type ONLY from database fields
+  // SINGLE SOURCE OF TRUTH: Determine form type ONLY from database fields
   const getFormType = (): 'bodyweight' | 'weightReps' | 'cardio' => {
-    console.log('🎯 SmartSetForm v0.4.2 Debug:', {
+    console.log('🎯 SmartSetForm v0.5.0 - SINGLE ROUTER Debug:', {
       exerciseId: exercise.id,
       effort_mode,
       load_mode,
@@ -46,20 +46,24 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
   };
 
   const formType = getFormType();
+  
+  // Track selected form for debugging
+  const selectedFormDebug = formType === 'bodyweight' ? 'BodyweightSetForm' : 
+                           formType === 'cardio' ? 'CardioSetForm' : 'WeightRepsSetForm';
 
   // Render the appropriate form component
   switch (formType) {
     case 'bodyweight':
-      console.log('✅ Rendering BodyweightSetForm for exercise:', exercise.id);
+      console.log('✅ v0.5.0 Rendering BodyweightSetForm for exercise:', exercise.id);
       return <BodyweightSetForm {...props} />;
     
     case 'cardio':
-      console.log('✅ Rendering CardioSetForm for exercise:', exercise.id);
+      console.log('✅ v0.5.0 Rendering CardioSetForm for exercise:', exercise.id);
       return <CardioSetForm {...props} />;
     
     case 'weightReps':
     default:
-      console.log('✅ Rendering WeightRepsSetForm for exercise:', exercise.id);
+      console.log('✅ v0.5.0 Rendering WeightRepsSetForm for exercise:', exercise.id);
       return <WeightRepsSetForm {...props} />;
   }
 };
