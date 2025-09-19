@@ -1,25 +1,23 @@
 import React from "react";
-import { NavigationMenu, NavigationMenuList, NavigationMenuItem, navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import SecondaryMuscleSelector from "@/components/SecondaryMuscleSelector";
 import { Switch } from "@/components/ui/switch";
 import { Slider } from "@/components/ui/slider";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import ExerciseImageUploader from "@/components/ExerciseImageUploader";
 import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { getExerciseNameFromTranslations, getExerciseDescriptionFromTranslations } from "@/utils/exerciseTranslations";
-import { X } from "lucide-react";
+import { X, AlertTriangle, CheckCircle } from "lucide-react";
 
-// Basic SEO
+// SEO
 const useSEO = (name?: string, isEdit?: boolean) => {
   React.useEffect(() => {
     const mode = isEdit ? "Edit" : "Add";
@@ -28,13 +26,66 @@ const useSEO = (name?: string, isEdit?: boolean) => {
     desc.setAttribute('name', 'description');
     desc.setAttribute('content', isEdit ? 'Edit exercise properties, muscles, equipment and configuration.' : 'Add new exercise with muscles, equipment and configuration.');
     document.head.appendChild(desc);
-
-    const link = document.querySelector('link[rel="canonical"]') || document.createElement('link');
-    link.setAttribute('rel', 'canonical');
-    link.setAttribute('href', `${window.location.origin}/admin/exercises/${isEdit ? 'edit' : 'add'}`);
-    document.head.appendChild(link);
   }, [name, isEdit]);
 };
+
+// Schema based on the spec
+const schema = z.object({
+  // Section A - Basics (required)
+  display_name: z.string().min(2, 'Display name is required'),
+  slug: z.string().min(2, 'Slug is required'),
+  custom_display_name: z.string().optional(),
+  is_public: z.boolean().default(true),
+  owner_user_id: z.string().uuid().optional().or(z.literal('')),
+  popularity_rank: z.number().optional(),
+  loading_hint: z.string().optional(), // maps to description in spec
+
+  // Section B - Classification
+  body_part_id: z.string().uuid().optional().or(z.literal('')),
+  movement_pattern_id: z.string().uuid().optional().or(z.literal('')),
+  movement_id: z.string().uuid().optional().or(z.literal('')),
+  primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
+  secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
+  tags: z.array(z.string()).optional(),
+
+  // Section C - Equipment & Load (required)
+  equipment_id: z.string().uuid('Equipment is required'),
+  equipment_ref_id: z.string().uuid().optional().or(z.literal('')),
+  effort_mode: z.enum(['reps', 'time', 'distance', 'calories']),
+  load_mode: z.enum(['bodyweight_plus_optional', 'external_added', 'external_assist', 'machine_level', 'none', 'band_level']),
+  load_type: z.enum(['single_load', 'dual_load', 'stack', 'fixed', 'barbell', 'bodyweight']).optional(),
+  
+  // Barbell specifics (conditional)
+  is_bar_loaded: z.boolean().default(false),
+  default_bar_type_id: z.string().uuid().optional().or(z.literal('')),
+  default_bar_weight: z.number().optional(),
+
+  // Section D - Capability & Difficulty
+  exercise_skill_level: z.enum(['low', 'medium', 'high']).optional(),
+  complexity_score: z.number().min(1).max(10).default(3),
+  is_unilateral: z.boolean().default(false),
+  allows_grips: z.boolean().default(false),
+  default_grip_ids: z.array(z.string().uuid()).optional(),
+
+  // Section E - Safety & Metadata
+  contraindications: z.string().optional(), // JSON array as string
+  capability_schema: z.string().optional(), // JSON object as string
+  attribute_values_json: z.string().default('{}'), // JSON object as string, NOT NULL
+
+  // Section F - Localization
+  name_locale: z.string().default('en'),
+  name_version: z.number().default(1),
+
+  // Section G - Media
+  image_url: z.string().url().optional().or(z.literal('')),
+  thumbnail_url: z.string().url().optional().or(z.literal('')),
+  source_url: z.string().url().optional().or(z.literal('')),
+
+  // Section H - Lifecycle
+  configured: z.boolean().default(false),
+});
+
+type FormValues = z.infer<typeof schema>;
 
 // Types for taxonomy
 interface BodyPart { id: string; name: string }
@@ -43,377 +94,404 @@ interface Muscle { id: string; name: string; muscle_group_id: string }
 interface Equipment { id: string; name: string }
 interface Movement { id: string; name: string; movement_pattern_id: string }
 interface MovementPattern { id: string; name: string }
-
-const schema = z.object({
-  name: z.string().min(2, 'Name is required'),
-  description: z.string().optional(),
-  body_part_id: z.string().uuid().optional().or(z.literal('')),
-  primary_muscle_group_id: z.string().uuid().optional().or(z.literal('')),
-  primary_muscle_id: z.string().uuid().optional().or(z.literal('')),
-  secondary_muscle_group_ids: z.array(z.string().uuid()).optional(),
-  equipment_id: z.string().uuid().optional().or(z.literal('')),
-  movement_id: z.string().uuid().optional().or(z.literal('')),
-  movement_pattern_id: z.string().uuid().optional().or(z.literal('')),
-  exercise_skill_level: z.enum(['low', 'medium', 'high']).optional(),
-  complexity_score: z.number().min(1).max(10).optional(),
-  load_type: z.enum(['single_load', 'dual_load', 'stack', 'fixed', 'barbell', 'bodyweight']).optional(),
-  is_unilateral: z.boolean().default(false),
-  
-  allows_grips: z.boolean().default(true),
-  tags: z.array(z.string()).optional(),
-  source_url: z.string().url().optional().or(z.literal('')),
-  image_url: z.string().url().optional().or(z.literal('')),
-  thumbnail_url: z.string().url().optional().or(z.literal('')),
-  loading_hint: z.string().optional(),
-  is_public: z.boolean().default(true),
-});
-
-type FormValues = z.infer<typeof schema>;
+interface BarType { id: string; name: string; default_weight: number }
+interface Grip { id: string; name: string }
 
 const AdminExerciseEdit: React.FC = () => {
-  console.log("🚀 AdminExerciseEdit component is loading - FILE VERIFICATION");
   const params = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [exerciseName, setExerciseName] = React.useState<string>("");
   const isEdit = !!params.id;
+  const [exerciseName, setExerciseName] = React.useState<string>("");
   useSEO(exerciseName, isEdit);
 
   const [loading, setLoading] = React.useState(true);
   const [saving, setSaving] = React.useState(false);
-  const [lastError, setLastError] = React.useState<string | null>(null);
-  const [debugInfo, setDebugInfo] = React.useState<any>(null);
-  const [showDebugModal, setShowDebugModal] = React.useState(false);
+  const [newTag, setNewTag] = React.useState('');
 
+  // Taxonomy data
   const [bodyParts, setBodyParts] = React.useState<BodyPart[]>([]);
   const [muscleGroups, setMuscleGroups] = React.useState<MuscleGroup[]>([]);
   const [muscles, setMuscles] = React.useState<Muscle[]>([]);
   const [equipment, setEquipment] = React.useState<Equipment[]>([]);
   const [movements, setMovements] = React.useState<Movement[]>([]);
   const [movementPatterns, setMovementPatterns] = React.useState<MovementPattern[]>([]);
-  const [newTag, setNewTag] = React.useState('');
-
-  const [files, setFiles] = React.useState<File[]>([]);
+  const [barTypes, setBarTypes] = React.useState<BarType[]>([]);
+  const [grips, setGrips] = React.useState<Grip[]>([]);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
     defaultValues: {
-      name: "",
-      description: "",
+      display_name: "",
+      slug: "",
+      custom_display_name: "",
+      is_public: true,
+      owner_user_id: "",
+      popularity_rank: undefined,
+      loading_hint: "",
       body_part_id: "",
-      primary_muscle_group_id: "",
+      movement_pattern_id: "",
+      movement_id: "",
       primary_muscle_id: "",
       secondary_muscle_group_ids: [],
+      tags: [],
       equipment_id: "",
-      movement_id: "",
-      movement_pattern_id: "",
+      equipment_ref_id: "",
+      effort_mode: "reps",
+      load_mode: "external_added",
+      load_type: undefined,
+      is_bar_loaded: false,
+      default_bar_type_id: "",
+      default_bar_weight: undefined,
       exercise_skill_level: "medium",
       complexity_score: 3,
-      load_type: undefined,
       is_unilateral: false,
-      
-      allows_grips: true,
-      tags: [],
-      source_url: "",
+      allows_grips: false,
+      default_grip_ids: [],
+      contraindications: "[]",
+      capability_schema: "{}",
+      attribute_values_json: "{}",
+      name_locale: "en",
+      name_version: 1,
       image_url: "",
       thumbnail_url: "",
-      loading_hint: "",
-      is_public: true,
+      source_url: "",
+      configured: false,
     },
   });
 
+  // Watch for dependencies
   const selectedBodyPartId = form.watch("body_part_id") || "";
-  const selectedGroupId = form.watch('primary_muscle_group_id') || '';
-  const selectedPatternId = form.watch('movement_pattern_id') || '';
+  const selectedMovementPatternId = form.watch("movement_pattern_id") || "";
+  const selectedPrimaryMuscleId = form.watch("primary_muscle_id") || "";
+  const isBarLoaded = form.watch("is_bar_loaded");
+  const allowsGrips = form.watch("allows_grips");
+  const displayName = form.watch("display_name");
 
+  // Auto-generate slug from display name
+  React.useEffect(() => {
+    if (displayName && !isEdit) {
+      const slug = displayName
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim();
+      form.setValue('slug', slug);
+    }
+  }, [displayName, isEdit, form]);
+
+  // Filtered options
   const filteredMuscleGroups = React.useMemo(() => {
     if (!selectedBodyPartId) return muscleGroups;
     return muscleGroups.filter((g) => g.body_part_id === selectedBodyPartId);
   }, [muscleGroups, selectedBodyPartId]);
 
   const primaryMusclesOptions = React.useMemo(() => {
-    if (!selectedGroupId) return [] as Muscle[];
-    return muscles.filter((mu) => mu.muscle_group_id === selectedGroupId);
-  }, [muscles, selectedGroupId]);
+    if (!selectedPrimaryMuscleId) return [] as Muscle[];
+    const selectedMuscle = muscles.find(m => m.id === selectedPrimaryMuscleId);
+    if (!selectedMuscle) return muscles;
+    return muscles.filter((mu) => mu.muscle_group_id === selectedMuscle.muscle_group_id);
+  }, [muscles, selectedPrimaryMuscleId]);
 
   const filteredMovements = React.useMemo(() => {
-    if (!selectedPatternId) return [];
-    return movements.filter((mv) => mv.movement_pattern_id === selectedPatternId);
-  }, [movements, selectedPatternId]);
+    if (!selectedMovementPatternId) return [];
+    return movements.filter((mv) => mv.movement_pattern_id === selectedMovementPatternId);
+  }, [movements, selectedMovementPatternId]);
 
+  // Load taxonomy data
   React.useEffect(() => {
-    const loadAll = async () => {
+    const loadTaxonomy = async () => {
       try {
-        setLoading(true);
-        const [bp, mg, m, eq, mv, mp] = await Promise.all([
-          supabase.from("body_parts").select("id, slug, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
-          supabase.from("muscle_groups").select("id, slug, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
-          supabase.from("muscles").select("id, slug, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
-          supabase.from("equipment").select("id, slug, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
-          supabase.from("movements").select("id, slug, movement_pattern_id, movements_translations!fk_movements_translations_movement_id(name)").eq('movements_translations.language_code', 'en'),
-          supabase.from("movement_patterns").select("id, slug, movement_patterns_translations!fk_movement_patterns_translations_movement_pattern_id(name)").eq('movement_patterns_translations.language_code', 'en'),
+        const [bp, mg, m, eq, mv, mp, bt, gr] = await Promise.all([
+          supabase.from("body_parts").select("id, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
+          supabase.from("muscle_groups").select("id, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
+          supabase.from("muscles").select("id, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
+          supabase.from("equipment").select("id, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
+          supabase.from("movements").select("id, movement_pattern_id, movements_translations!inner(name)").eq('movements_translations.language_code', 'en'),
+          supabase.from("movement_patterns").select("id, movement_patterns_translations!inner(name)").eq('movement_patterns_translations.language_code', 'en'),
+          supabase.from("bar_types").select("id, name, default_weight"),
+          supabase.from("grips").select("id, grips_translations!inner(name)").eq('grips_translations.language_code', 'en'),
         ]);
-        if (bp.error) throw bp.error; if (mg.error) throw mg.error; if (m.error) throw m.error; 
-        if (eq.error) throw eq.error; if (mv.error) throw mv.error; if (mp.error) throw mp.error;
+
+        if (bp.error) throw bp.error;
+        if (mg.error) throw mg.error;
+        if (m.error) throw m.error;
+        if (eq.error) throw eq.error;
+        if (mv.error) throw mv.error;
+        if (mp.error) throw mp.error;
+        if (bt.error) throw bt.error;
+        if (gr.error) throw gr.error;
         
-        setBodyParts(bp.data?.map(item => ({ id: item.id, slug: item.slug, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
-        setMuscleGroups(mg.data?.map(item => ({ id: item.id, slug: item.slug, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
-        setMuscles(m.data?.map(item => ({ id: item.id, slug: item.slug, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
+        setBodyParts(bp.data?.map(item => ({ id: item.id, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
+        setMuscleGroups(mg.data?.map(item => ({ id: item.id, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
+        setMuscles(m.data?.map(item => ({ id: item.id, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
         setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
         setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movements_translations as any)[0]?.name || '', movement_pattern_id: item.movement_pattern_id })) || []);
         setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_patterns_translations as any)[0]?.name || '' })) || []);
+        setBarTypes(bt.data || []);
+        setGrips(gr.data?.map(item => ({ id: item.id, name: (item.grips_translations as any)[0]?.name || '' })) || []);
       } catch (e: any) {
-        console.error("[ExerciseEdit] load options error", e);
-        setLastError(e?.message || String(e));
-        toast({ title: "Failed to load options", description: e?.message || "Unknown error" });
+        console.error("[ExerciseEdit] load taxonomy error", e);
+        toast({ title: "Failed to load options", description: e?.message || "Unknown error", variant: "destructive" });
       }
     };
-    loadAll();
+    loadTaxonomy();
   }, [toast]);
 
+  // Load exercise data
   React.useEffect(() => {
     const loadExercise = async () => {
       const id = params.id;
       if (!id) {
-        // In add mode, just set default values and stop loading
         setLoading(false);
         return;
       }
+      
       try {
         setLoading(true);
         const { data, error } = await supabase
           .from('exercises')
           .select(`
-            id, body_part_id, primary_muscle_id, secondary_muscle_group_ids, 
-            equipment_id, movement_id, movement_pattern_id, exercise_skill_level,
-            complexity_score, load_type, is_unilateral, allows_grips,
-            tags, source_url, image_url, thumbnail_url, loading_hint, is_public
+            *, 
+            exercises_translations!inner(name, description)
           `)
           .eq('id', id)
+          .eq('exercises_translations.language_code', 'en')
           .maybeSingle();
+          
         if (error) throw error;
         if (!data) throw new Error('Exercise not found');
         
-        // Extract name from existing exercise data or form
-        const name = exerciseName || `Exercise ${id}`;
-        const description = form.watch('description') || '';
+        const translation = (data.exercises_translations as any)[0];
+        setExerciseName(translation?.name || data.display_name || '');
         
-        setExerciseName(name);
-        form.setValue('name', name);
-        form.setValue('description', description || '');
+        // Map all fields from database to form
+        form.setValue('display_name', translation?.name || data.display_name || '');
+        form.setValue('slug', data.slug || '');
+        form.setValue('custom_display_name', data.custom_display_name || '');
+        form.setValue('is_public', data.is_public ?? true);
+        form.setValue('owner_user_id', data.owner_user_id || '');
+        form.setValue('popularity_rank', data.popularity_rank);
+        form.setValue('loading_hint', translation?.description || data.loading_hint || '');
+        
         form.setValue('body_part_id', data.body_part_id || '');
-        // derive group from primary muscle
-        if (data.primary_muscle_id) {
-          const mu = muscles.find((x) => x.id === data.primary_muscle_id);
-          if (mu) {
-            const group = muscleGroups.find((g) => g.id === mu.muscle_group_id);
-            if (group) form.setValue('primary_muscle_group_id', group.id);
-          }
-          form.setValue('primary_muscle_id', data.primary_muscle_id);
-        }
-        form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
-        form.setValue('equipment_id', data.equipment_id || '');
-        // Ensure UUIDs are set properly, not empty strings
-        form.setValue('movement_id', data.movement_id || '');
         form.setValue('movement_pattern_id', data.movement_pattern_id || '');
+        form.setValue('movement_id', data.movement_id || '');
+        form.setValue('primary_muscle_id', data.primary_muscle_id || '');
+        form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
+        form.setValue('tags', data.tags || []);
         
-        console.log("🔥 LOADED EXERCISE DATA", {
-          movement_id: data.movement_id,
-          movement_pattern_id: data.movement_pattern_id,
-          load_type: data.load_type
-        });
+        form.setValue('equipment_id', data.equipment_id || '');
+        form.setValue('equipment_ref_id', data.equipment_ref_id || '');
+        form.setValue('effort_mode', data.effort_mode || 'reps');
+        form.setValue('load_mode', data.load_mode || 'external_added');
+        form.setValue('load_type', data.load_type);
+        
+        form.setValue('is_bar_loaded', data.is_bar_loaded || false);
+        form.setValue('default_bar_type_id', data.default_bar_type_id || '');
+        form.setValue('default_bar_weight', data.default_bar_weight);
+        
         form.setValue('exercise_skill_level', data.exercise_skill_level || 'medium');
         form.setValue('complexity_score', data.complexity_score || 3);
-        form.setValue('load_type', data.load_type);
         form.setValue('is_unilateral', data.is_unilateral || false);
+        form.setValue('allows_grips', data.allows_grips || false);
+        form.setValue('default_grip_ids', data.default_grip_ids || []);
         
-        form.setValue('allows_grips', data.allows_grips ?? true);
-        form.setValue('tags', data.tags || []);
-        form.setValue('source_url', data.source_url || '');
+        form.setValue('contraindications', JSON.stringify(data.contraindications || []));
+        form.setValue('capability_schema', JSON.stringify(data.capability_schema || {}));
+        form.setValue('attribute_values_json', JSON.stringify(data.attribute_values_json || {}));
+        
+        form.setValue('name_locale', data.name_locale || 'en');
+        form.setValue('name_version', data.name_version || 1);
+        
         form.setValue('image_url', data.image_url || '');
         form.setValue('thumbnail_url', data.thumbnail_url || '');
-        form.setValue('loading_hint', data.loading_hint || '');
-        form.setValue('is_public', data.is_public ?? true);
+        form.setValue('source_url', data.source_url || '');
+        
+        form.setValue('configured', data.configured || false);
+        
       } catch (e: any) {
         console.error('[ExerciseEdit] load error', e);
-        setLastError(e?.message || String(e));
-        toast({ title: 'Failed to load exercise', description: e?.message || 'Unknown error' });
+        toast({ title: 'Failed to load exercise', description: e?.message || 'Unknown error', variant: "destructive" });
       } finally {
         setLoading(false);
       }
     };
-    // wait a tick so options are loaded first
-    setTimeout(loadExercise, 0);
-  }, [params.id, muscles, muscleGroups, toast, form]);
+    
+    if (bodyParts.length > 0) { // Wait for taxonomy to load
+      loadExercise();
+    }
+  }, [params.id, bodyParts.length, toast, form]);
 
-  const onSubmit = async (values: FormValues) => {
-    console.log("🔥 FORM SUBMIT STARTED", { values });
+  // Validation helpers
+  const validateRequired = () => {
+    const values = form.getValues();
+    const errors = [];
     
-    // Ensure movement fields are UUIDs or null, not empty strings
-    const cleanMovementId = values.movement_id === '' ? null : values.movement_id;
-    const cleanMovementPatternId = values.movement_pattern_id === '' ? null : values.movement_pattern_id;
-    
-    console.log("🔥 CLEANED VALUES", { 
-      original_movement_id: values.movement_id,
-      clean_movement_id: cleanMovementId,
-      original_movement_pattern_id: values.movement_pattern_id, 
-      clean_movement_pattern_id: cleanMovementPatternId 
-    });
-    
-    setSaving(true);
-    setLastError(null);
+    if (!values.display_name) errors.push('Display name is required');
+    if (!values.slug) errors.push('Slug is required');
+    if (!values.equipment_id) errors.push('Equipment is required');
+    if (!values.effort_mode) errors.push('Effort mode is required');
+    if (!values.load_mode) errors.push('Load mode is required');
+    if (values.is_bar_loaded && !values.default_bar_weight) errors.push('Bar weight is required when bar is loaded');
     
     try {
-      const id = params.id!;
-      
-      // Build minimal payload with critical fields
-      const exercisePayload = {
-        movement_id: cleanMovementId,
-        movement_pattern_id: cleanMovementPatternId,
-        load_type: values.load_type || null,
-        body_part_id: values.body_part_id || null,
-        primary_muscle_id: values.primary_muscle_id || null,
-        equipment_id: values.equipment_id || null,
-        exercise_skill_level: values.exercise_skill_level || null,
-        complexity_score: values.complexity_score || null,
-        is_unilateral: values.is_unilateral,
-        
-        allows_grips: values.allows_grips,
-        is_public: values.is_public,
-      };
-
-      console.log("🔥 PAYLOAD TO SEND", exercisePayload);
-      
-      // Create debug info FIRST - show modal and wait for user to close it
-      const debugData = {
-        timestamp: new Date().toISOString(),
-        exerciseId: id,
-        formValues: values,
-        cleanedPayload: exercisePayload,
-        criticalFields: {
-          movement_id: cleanMovementId,
-          movement_pattern_id: cleanMovementPatternId,
-          load_type: values.load_type,
-        },
-        realSupabaseRequest: {
-          method: 'PATCH',
-          url: `https://fsayiuhncisevhipbrak.supabase.co/rest/v1/exercises?id=eq.${id}`,
-          headers: {
-            'Content-Type': 'application/json',
-            'accept': 'application/json',
-            'accept-profile': 'public',
-            'content-profile': 'public',
-          },
-          body: JSON.stringify(exercisePayload, null, 2)
-        },
-        payloadFieldCount: Object.keys(exercisePayload).length
-      };
-      
-      setDebugInfo(debugData);
-      setShowDebugModal(true);
-      setSaving(false); // Stop the saving spinner
-      
-      // STOP HERE - wait for user to close modal before proceeding
-      return;
-
-    } catch (e: any) {
-      const errorMsg = e?.message || String(e);
-      console.error('🔥 CATCH ERROR', e);
-      setLastError(errorMsg);
-      setDebugInfo(prev => ({ 
-        ...prev, 
-        catchError: errorMsg,
-        success: false 
-      }));
-      toast({ 
-        title: 'Failed to update exercise', 
-        description: errorMsg,
-        variant: 'destructive'
-      });
-    } finally {
-      setSaving(false);
+      JSON.parse(values.attribute_values_json);
+    } catch {
+      errors.push('Attribute values must be valid JSON object');
     }
+    
+    return errors;
   };
 
-  // Function to actually perform the save after debug modal is closed
-  const performActualSave = async () => {
-    if (!debugInfo?.cleanedPayload) return;
+  const validateReadyToPublish = () => {
+    const errors = validateRequired();
+    const values = form.getValues();
     
-    const id = params.id!;
+    if (!values.movement_pattern_id) errors.push('Movement pattern is recommended');
+    if (!values.primary_muscle_id) errors.push('Primary muscle is recommended');
+    
+    return errors;
+  };
+
+  const onSubmit = async (values: FormValues) => {
     setSaving(true);
     
     try {
-      console.log("🔥 PERFORMING ACTUAL SAVE", debugInfo.cleanedPayload);
-      
-      // CRITICAL: Await the update and capture response
-      const { error, data } = await supabase
-        .from('exercises')
-        .update(debugInfo.cleanedPayload)
-        .eq('id', id)
-        .select('id, movement_id, movement_pattern_id, load_type');
-
-      console.log("🔥 SUPABASE RESPONSE", { error, data });
-      
-      // Update debug info with response
-      const finalDebugData = {
-        ...debugInfo,
-        supabaseResponse: { error, data },
-        success: !error
-      };
-      setDebugInfo(finalDebugData);
-      
-      // Store debug info for management page
-      localStorage.setItem('exerciseEditDebug', JSON.stringify(finalDebugData));
-      
-      // CRITICAL: Check for errors BEFORE proceeding
-      if (error) {
-        console.error("🔥 SUPABASE ERROR", error);
-        setLastError(`Database error: ${error.message}`);
+      const requiredErrors = validateRequired();
+      if (requiredErrors.length > 0) {
         toast({ 
-          title: 'Database Update Failed', 
-          description: error.message,
-          variant: 'destructive'
+          title: 'Validation Error', 
+          description: requiredErrors.join(', '),
+          variant: "destructive"
         });
-        return; // Don't navigate or continue
+        return;
       }
 
-      // Update translation only after successful main update
-      const { error: translationError } = await supabase
-        .from('exercises_translations')
-        .upsert({
-          exercise_id: id,
-          language_code: 'en',
-          name: debugInfo.formValues.name.trim(),
-          description: debugInfo.formValues.description || null,
-        }, {
-          onConflict: 'exercise_id,language_code'
+      // Parse JSON fields
+      let contraindications, capability_schema, attribute_values_json;
+      try {
+        contraindications = JSON.parse(values.contraindications || '[]');
+        capability_schema = JSON.parse(values.capability_schema || '{}');
+        attribute_values_json = JSON.parse(values.attribute_values_json || '{}');
+      } catch (e) {
+        toast({ 
+          title: 'JSON Parse Error', 
+          description: 'Invalid JSON in advanced fields',
+          variant: "destructive"
         });
+        return;
+      }
+
+      // Clean UUID fields (empty string to null)
+      const cleanUUID = (val: string | undefined) => val === '' ? null : val;
+
+      const exercisePayload = {
+        slug: values.slug,
+        display_name: values.display_name,
+        custom_display_name: values.custom_display_name || null,
+        is_public: values.is_public,
+        owner_user_id: cleanUUID(values.owner_user_id),
+        popularity_rank: values.popularity_rank,
+        loading_hint: values.loading_hint || null,
         
-      if (translationError) {
-        console.error("🔥 TRANSLATION ERROR", translationError);
-        // Don't fail completely on translation error
-        toast({ 
-          title: 'Translation update failed', 
-          description: translationError.message,
-          variant: 'destructive'
-        });
-      }
+        body_part_id: cleanUUID(values.body_part_id),
+        movement_pattern_id: cleanUUID(values.movement_pattern_id),
+        movement_id: cleanUUID(values.movement_id),
+        primary_muscle_id: cleanUUID(values.primary_muscle_id),
+        secondary_muscle_group_ids: values.secondary_muscle_group_ids || [],
+        tags: values.tags || [],
+        
+        equipment_id: values.equipment_id,
+        equipment_ref_id: cleanUUID(values.equipment_ref_id),
+        effort_mode: values.effort_mode,
+        load_mode: values.load_mode,
+        load_type: values.load_type,
+        
+        is_bar_loaded: values.is_bar_loaded,
+        default_bar_type_id: cleanUUID(values.default_bar_type_id),
+        default_bar_weight: values.default_bar_weight,
+        
+        exercise_skill_level: values.exercise_skill_level,
+        complexity_score: values.complexity_score,
+        is_unilateral: values.is_unilateral,
+        allows_grips: values.allows_grips,
+        default_grip_ids: values.default_grip_ids || [],
+        
+        contraindications,
+        capability_schema,
+        attribute_values_json,
+        
+        name_locale: values.name_locale,
+        name_version: values.name_version,
+        
+        image_url: values.image_url || null,
+        thumbnail_url: values.thumbnail_url || null,
+        source_url: values.source_url || null,
+        
+        configured: values.configured,
+      };
 
-      toast({ title: 'Exercise updated successfully!' });
+      if (isEdit) {
+        const { error } = await supabase
+          .from('exercises')
+          .update(exercisePayload)
+          .eq('id', params.id);
+          
+        if (error) throw error;
+
+        // Update translation
+        const { error: translationError } = await supabase
+          .from('exercises_translations')
+          .upsert({
+            exercise_id: params.id,
+            language_code: 'en',
+            name: values.display_name,
+            description: values.loading_hint || null,
+          }, {
+            onConflict: 'exercise_id,language_code'
+          });
+          
+        if (translationError) {
+          console.warn('Translation update failed:', translationError);
+        }
+
+        toast({ title: 'Exercise updated successfully!' });
+      } else {
+        const { data, error } = await supabase
+          .from('exercises')
+          .insert(exercisePayload)
+          .select('id')
+          .single();
+          
+        if (error) throw error;
+
+        // Create translation
+        const { error: translationError } = await supabase
+          .from('exercises_translations')
+          .insert({
+            exercise_id: data.id,
+            language_code: 'en',
+            name: values.display_name,
+            description: values.loading_hint || null,
+          });
+          
+        if (translationError) {
+          console.warn('Translation creation failed:', translationError);
+        }
+
+        toast({ title: 'Exercise created successfully!' });
+      }
       
-      // Only navigate after successful save
-      setTimeout(() => {
-        navigate('/admin/exercises');
-      }, 1000);
+      navigate('/admin/exercises');
       
     } catch (e: any) {
-      const errorMsg = e?.message || String(e);
-      console.error('🔥 ACTUAL SAVE ERROR', e);
-      setLastError(errorMsg);
+      console.error('Save error:', e);
       toast({ 
-        title: 'Failed to update exercise', 
-        description: errorMsg,
-        variant: 'destructive'
+        title: 'Failed to save exercise', 
+        description: e?.message || 'Unknown error',
+        variant: "destructive"
       });
     } finally {
       setSaving(false);
@@ -433,6 +511,23 @@ const AdminExerciseEdit: React.FC = () => {
     form.setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
   };
 
+  const requiredErrors = validateRequired();
+  const publishErrors = validateReadyToPublish();
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold">{isEdit ? 'Edit Exercise' : 'Add Exercise'}</h1>
+          <Button variant="secondary" asChild>
+            <Link to="/admin/exercises">Back to Exercise Management</Link>
+          </Button>
+        </div>
+        <p className="text-muted-foreground">Loading…</p>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -442,145 +537,420 @@ const AdminExerciseEdit: React.FC = () => {
         </Button>
       </div>
 
-      {loading ? (
-        <p className="text-muted-foreground">Loading…</p>
-      ) : (
-        <form className="grid grid-cols-1 lg:grid-cols-3 gap-8" onSubmit={form.handleSubmit(onSubmit)}>
-          <section className="lg:col-span-2 space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+        {/* Section A - Basics */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section A — Basics</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="display_name">Display Name (English, canonical) *</Label>
+                <Input 
+                  id="display_name" 
+                  {...form.register('display_name')} 
+                  placeholder="e.g., Barbell Bench Press" 
+                />
+                {form.formState.errors.display_name && (
+                  <p className="text-sm text-destructive">{form.formState.errors.display_name.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="slug">Slug *</Label>
+                <Input 
+                  id="slug" 
+                  {...form.register('slug')} 
+                  placeholder="barbell-bench-press" 
+                />
+                {form.formState.errors.slug && (
+                  <p className="text-sm text-destructive">{form.formState.errors.slug.message}</p>
+                )}
+              </div>
+            </div>
+
+            <Accordion type="single" collapsible>
+              <AccordionItem value="advanced-basics">
+                <AccordionTrigger>Advanced</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="custom_display_name">Custom Display Name</Label>
+                    <Input 
+                      id="custom_display_name" 
+                      {...form.register('custom_display_name')} 
+                      placeholder="Override shown name globally (not for translations)" 
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Use only to override the shown name globally; not for translations.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="owner_user_id">Owner User ID</Label>
+                      <Input 
+                        id="owner_user_id" 
+                        {...form.register('owner_user_id')} 
+                        placeholder="UUID (optional)" 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="popularity_rank">Popularity Rank</Label>
+                      <Input 
+                        id="popularity_rank" 
+                        type="number"
+                        {...form.register('popularity_rank', { valueAsNumber: true })} 
+                        placeholder="1-100" 
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
             <div className="space-y-2">
-              <Label htmlFor="name">Name</Label>
-              <Input id="name" {...form.register('name')} placeholder="e.g., Barbell Bench Press" />
+              <Label htmlFor="loading_hint">Description / Loading Hint</Label>
+              <Textarea 
+                id="loading_hint" 
+                {...form.register('loading_hint')} 
+                placeholder="Brief instructions, loading cues, etc." 
+                rows={3}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="is_public"
+                checked={form.watch('is_public')} 
+                onCheckedChange={(v) => form.setValue('is_public', v)} 
+              />
+              <Label htmlFor="is_public">Make Public (visible to everyone)</Label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section B - Classification */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section B — Classification</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Body Part</Label>
+                <Select 
+                  onValueChange={(v) => {
+                    form.setValue('body_part_id', v);
+                    form.setValue('primary_muscle_id', ''); // Reset dependent fields
+                  }} 
+                  value={form.watch('body_part_id') || ''}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select body part" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {bodyParts.map((bp) => (
+                      <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Primary Muscle</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('primary_muscle_id', v)} 
+                  value={form.watch('primary_muscle_id') || ''}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select primary muscle" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {muscles.map((mu) => (
+                      <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Movement Pattern</Label>
+                <Select 
+                  onValueChange={(v) => {
+                    form.setValue('movement_pattern_id', v);
+                    form.setValue('movement_id', ''); // Reset dependent field
+                  }} 
+                  value={form.watch('movement_pattern_id') || ''}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select movement pattern" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {movementPatterns.map((mp) => (
+                      <SelectItem key={mp.id} value={mp.id}>{mp.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Movement</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('movement_id', v)} 
+                  value={form.watch('movement_id') || ''}
+                  disabled={!selectedMovementPatternId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder={selectedMovementPatternId ? "Select movement" : "Select pattern first"} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {filteredMovements.map((mv) => (
+                      <SelectItem key={mv.id} value={mv.id}>{mv.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="description">Description</Label>
-              <Textarea id="description" rows={5} {...form.register('description')} placeholder="Brief instructions, cues, etc." />
+              <Label>Tags</Label>
+              <div className="flex gap-2 mb-2">
+                <Input
+                  value={newTag}
+                  onChange={(e) => setNewTag(e.target.value)}
+                  placeholder="Add a tag"
+                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                />
+                <Button type="button" onClick={addTag} variant="outline">Add</Button>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {form.watch('tags')?.map((tag, index) => (
+                  <Badge key={index} variant="secondary" className="flex items-center gap-1">
+                    {tag}
+                    <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Section C - Equipment & Load */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section C — Equipment & Load</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Equipment *</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('equipment_id', v)} 
+                  value={form.watch('equipment_id') || ''}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select equipment" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {equipment.map((eq) => (
+                      <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {form.formState.errors.equipment_id && (
+                  <p className="text-sm text-destructive">{form.formState.errors.equipment_id.message}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="equipment_ref_id">Equipment Ref ID</Label>
+                <Input 
+                  id="equipment_ref_id" 
+                  {...form.register('equipment_ref_id')} 
+                  placeholder="Secondary equipment reference (optional)" 
+                />
+              </div>
             </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Body Part</Label>
-                  <Select onValueChange={(v) => { form.setValue('body_part_id', v); form.setValue('primary_muscle_group_id', ''); form.setValue('primary_muscle_id', ''); }} value={form.watch('body_part_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select body part" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {bodyParts.map((bp) => (
-                        <SelectItem key={bp.id} value={bp.id}>{bp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label>Equipment</Label>
-                  <Select onValueChange={(v) => form.setValue('equipment_id', v)} value={form.watch('equipment_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select equipment" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {equipment.map((eq) => (
-                        <SelectItem key={eq.id} value={eq.id}>{eq.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Effort Mode *</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('effort_mode', v as any)} 
+                  value={form.watch('effort_mode')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select effort mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="reps">Reps</SelectItem>
+                    <SelectItem value="time">Time</SelectItem>
+                    <SelectItem value="distance">Distance</SelectItem>
+                    <SelectItem value="calories">Calories</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label>Movement Pattern</Label>
-                  <Select onValueChange={(v) => { form.setValue('movement_pattern_id', v); form.setValue('movement_id', ''); }} value={form.watch('movement_pattern_id') || ''}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select movement pattern" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      {movementPatterns.map((mp) => (
-                        <SelectItem key={mp.id} value={mp.id}>{mp.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div className="space-y-2">
+                <Label>Load Mode *</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('load_mode', v as any)} 
+                  value={form.watch('load_mode')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select load mode" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="bodyweight_plus_optional">Bodyweight + Optional</SelectItem>
+                    <SelectItem value="external_added">External Added</SelectItem>
+                    <SelectItem value="external_assist">External Assist</SelectItem>
+                    <SelectItem value="machine_level">Machine Level</SelectItem>
+                    <SelectItem value="band_level">Band Level</SelectItem>
+                    <SelectItem value="none">None</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
 
-                <div className="space-y-2">
-                  <Label>Movement</Label>
-                  <Select onValueChange={(v) => form.setValue('movement_id', v)} value={form.watch('movement_id') || ''} disabled={!selectedPatternId}>
-                    <SelectTrigger>
-                      <SelectValue placeholder={selectedPatternId ? "Select movement" : "Select pattern first"} />
-                    </SelectTrigger>
-                    <SelectContent className="bg-background z-50">
-                      {filteredMovements.map((mv) => (
-                        <SelectItem key={mv.id} value={mv.id}>{mv.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="is_unilateral"
+                  checked={form.watch('is_unilateral')} 
+                  onCheckedChange={(v) => form.setValue('is_unilateral', v)} 
+                />
+                <Label htmlFor="is_unilateral">Unilateral Exercise</Label>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Muscle Group</Label>
-                    <Select onValueChange={(v) => { form.setValue('primary_muscle_group_id', v); form.setValue('primary_muscle_id', ''); }} value={form.watch('primary_muscle_group_id') || ''}>
-                      <SelectTrigger>
-                        <SelectValue placeholder={form.watch('body_part_id') ? 'Select muscle group' : 'Select body part first'} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {filteredMuscleGroups.map((g) => (
-                          <SelectItem key={g.id} value={g.id}>{g.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="allows_grips"
+                  checked={form.watch('allows_grips')} 
+                  onCheckedChange={(v) => form.setValue('allows_grips', v)} 
+                />
+                <Label htmlFor="allows_grips">Allows Grips</Label>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Load Type</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('load_type', v === 'none' ? undefined : v as any)} 
+                  value={form.watch('load_type') || 'none'}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select load type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">None</SelectItem>
+                    <SelectItem value="single_load">Single Load</SelectItem>
+                    <SelectItem value="dual_load">Dual Load</SelectItem>
+                    <SelectItem value="stack">Stack</SelectItem>
+                    <SelectItem value="fixed">Fixed</SelectItem>
+                    <SelectItem value="barbell">Barbell</SelectItem>
+                    <SelectItem value="bodyweight">Bodyweight</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Conditional barbell section */}
+            {isBarLoaded && (
+              <Card className="bg-muted">
+                <CardHeader>
+                  <CardTitle className="text-sm">Barbell Configuration</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="flex items-center space-x-2">
+                    <Switch 
+                      id="is_bar_loaded"
+                      checked={form.watch('is_bar_loaded')} 
+                      onCheckedChange={(v) => form.setValue('is_bar_loaded', v)} 
+                    />
+                    <Label htmlFor="is_bar_loaded">Bar Loaded Exercise</Label>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label>Primary Muscle</Label>
-                    <Select onValueChange={(v) => form.setValue('primary_muscle_id', v)} value={form.watch('primary_muscle_id') || ''} disabled={!form.watch('primary_muscle_group_id')}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select primary muscle" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {primaryMusclesOptions.map((mu) => (
-                          <SelectItem key={mu.id} value={mu.id}>{mu.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>Default Bar Type</Label>
+                      <Select 
+                        onValueChange={(v) => form.setValue('default_bar_type_id', v)} 
+                        value={form.watch('default_bar_type_id') || ''}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select bar type" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {barTypes.map((bt) => (
+                            <SelectItem key={bt.id} value={bt.id}>{bt.name} ({bt.default_weight}kg)</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="default_bar_weight">Default Bar Weight (kg) *</Label>
+                      <Input 
+                        id="default_bar_weight" 
+                        type="number"
+                        step="0.1"
+                        {...form.register('default_bar_weight', { valueAsNumber: true })} 
+                        placeholder="20.0" 
+                      />
+                    </div>
                   </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {!isBarLoaded && (
+              <div className="flex items-center space-x-2">
+                <Switch 
+                  id="is_bar_loaded"
+                  checked={form.watch('is_bar_loaded')} 
+                  onCheckedChange={(v) => form.setValue('is_bar_loaded', v)} 
+                />
+                <Label htmlFor="is_bar_loaded">Bar Loaded Exercise</Label>
+              </div>
+            )}
+
+            {/* Default grips (conditional) */}
+            {allowsGrips && (
+              <div className="space-y-2">
+                <Label>Default Grips</Label>
+                <div className="text-xs text-muted-foreground mb-2">
+                  Multi-select grip implementation would go here
                 </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label>Skill Level</Label>
-                    <Select onValueChange={(v) => form.setValue('exercise_skill_level', v as any)} value={form.watch('exercise_skill_level') || 'medium'}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select skill level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Beginner</SelectItem>
-                        <SelectItem value="medium">Intermediate</SelectItem>
-                        <SelectItem value="high">Advanced</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Load Type</Label>
-                    <Select onValueChange={(v) => form.setValue('load_type', v === 'none' ? undefined : v as any)} value={form.watch('load_type') || 'none'}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select load type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="none">None</SelectItem>
-                        <SelectItem value="single_load">Single Load</SelectItem>
-                        <SelectItem value="dual_load">Dual Load</SelectItem>
-                        <SelectItem value="stack">Stack</SelectItem>
-                        <SelectItem value="fixed">Fixed</SelectItem>
-                        <SelectItem value="barbell">Barbell</SelectItem>
-                        <SelectItem value="bodyweight">Bodyweight</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
+        {/* Section D - Capability & Difficulty */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section D — Difficulty & Safety</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Skill Level</Label>
+                <Select 
+                  onValueChange={(v) => form.setValue('exercise_skill_level', v as any)} 
+                  value={form.watch('exercise_skill_level')}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select skill level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="low">Beginner</SelectItem>
+                    <SelectItem value="medium">Intermediate</SelectItem>
+                    <SelectItem value="high">Advanced</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
 
               <div className="space-y-2">
@@ -595,225 +965,181 @@ const AdminExerciseEdit: React.FC = () => {
                 />
                 <p className="text-xs text-muted-foreground">1 = Very Simple, 10 = Very Complex</p>
               </div>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="space-y-2">
-                  <Label>Unilateral Exercise</Label>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.watch('is_unilateral')} onCheckedChange={(v) => form.setValue('is_unilateral', v)} />
-                    <span className="text-sm text-muted-foreground">Single limb</span>
+            <div className="space-y-2">
+              <Label htmlFor="contraindications">Contraindications (JSON array)</Label>
+              <Textarea 
+                id="contraindications" 
+                {...form.register('contraindications')} 
+                placeholder='["lower back injury", "shoulder impingement"]'
+                rows={3}
+              />
+            </div>
+
+            <Accordion type="single" collapsible>
+              <AccordionItem value="advanced-safety">
+                <AccordionTrigger>Advanced</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="capability_schema">Capability Schema (JSON object)</Label>
+                    <Textarea 
+                      id="capability_schema" 
+                      {...form.register('capability_schema')} 
+                      placeholder='{"supports_cables": true, "max_weight": 200}'
+                      rows={3}
+                    />
                   </div>
-                </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+          </CardContent>
+        </Card>
 
-
-                <div className="space-y-2">
-                  <Label>Allows Grips</Label>
-                  <div className="flex items-center gap-3">
-                    <Switch checked={form.watch('allows_grips')} onCheckedChange={(v) => form.setValue('allows_grips', v)} />
-                    <span className="text-sm text-muted-foreground">Multiple grips</span>
-                  </div>
-                </div>
+        {/* Section E - Media */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section E — Media</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="image_url">Image URL</Label>
+                <Input 
+                  id="image_url" 
+                  {...form.register('image_url')} 
+                  placeholder="https://example.com/image.jpg" 
+                />
               </div>
 
               <div className="space-y-2">
-                <Label>Tags</Label>
-                <div className="flex gap-2 mb-2">
-                  <Input
-                    value={newTag}
-                    onChange={(e) => setNewTag(e.target.value)}
-                    placeholder="Add a tag"
-                    onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
-                  />
-                  <Button type="button" onClick={addTag} variant="outline">Add</Button>
-                </div>
-                <div className="flex flex-wrap gap-2">
-                  {form.watch('tags')?.map((tag, index) => (
-                    <Badge key={index} variant="secondary" className="flex items-center gap-1">
-                      {tag}
-                      <X className="h-3 w-3 cursor-pointer" onClick={() => removeTag(tag)} />
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="image_url">Image URL (optional)</Label>
-                  <Input id="image_url" {...form.register('image_url')} placeholder="https://example.com/image.jpg" />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="thumbnail_url">Thumbnail URL (optional)</Label>
-                  <Input id="thumbnail_url" {...form.register('thumbnail_url')} placeholder="https://example.com/thumb.jpg" />
-                </div>
+                <Label htmlFor="thumbnail_url">Thumbnail URL</Label>
+                <Input 
+                  id="thumbnail_url" 
+                  {...form.register('thumbnail_url')} 
+                  placeholder="https://example.com/thumb.jpg" 
+                />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="loading_hint">Loading Hint (optional)</Label>
-                <Input id="loading_hint" {...form.register('loading_hint')} placeholder="e.g., Load plates on both sides" />
-              </div>
-
-              <div className="space-y-2">
-                <Label>Make Public</Label>
-                <div className="flex items-center gap-3">
-                  <Switch checked={form.watch('is_public')} onCheckedChange={(v) => form.setValue('is_public', v)} />
-                  <span className="text-sm text-muted-foreground">Visible to everyone</span>
-                </div>
-              </div>
-
-              <p>Secondary Muscle Groups feature will be implemented here.</p>
-
-              <div className="space-y-2">
-                <Label htmlFor="source_url">Source URL (optional)</Label>
-                <Input id="source_url" {...form.register('source_url')} placeholder="https://example.com" />
-              </div>
-            </section>
-
-            <aside className="space-y-4">
-              <div className="space-y-2">
-                <Label>Images</Label>
-                <ExerciseImageUploader files={files} onChange={setFiles} />
-                <p className="text-xs text-muted-foreground">First image becomes the thumbnail if none is set.</p>
-              </div>
-
-                <div className="flex gap-2 pt-2 pb-[50px]">
-                  <Button type="button" variant="secondary" asChild>
-                    <Link to="/admin/exercises">Cancel</Link>
-                  </Button>
-                  <Button type="submit" disabled={saving}>{saving ? 'Saving…' : 'Save Changes'}</Button>
-                </div>
-
-              {lastError && (
-                <p role="alert" className="text-destructive text-sm">{lastError}</p>
-              )}
-              
-              {/* 🔥 DEBUG AREA - ALWAYS VISIBLE */}
-              {debugInfo && (
-                <div className="mt-4 p-4 bg-red-900/20 border border-red-500 rounded-lg">
-                  <h3 className="font-bold mb-2 text-red-400">🔥 DEBUG INFORMATION</h3>
-                  <div className="space-y-3 text-xs">
-                    <div className="text-yellow-300">
-                      <strong>Timestamp:</strong> {debugInfo.timestamp}
-                    </div>
-                    <div className="text-yellow-300">
-                      <strong>Exercise ID:</strong> {debugInfo.exerciseId}
-                    </div>
-                    
-                    <div>
-                      <strong className="text-orange-400">Critical Fields:</strong>
-                      <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-green-300">
-{JSON.stringify(debugInfo.criticalFields, null, 2)}
-                      </pre>
-                    </div>
-                    
-                    {debugInfo.sqlQuery && (
-                      <div>
-                        <strong className="text-orange-400">SQL Query:</strong>
-                        <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto text-blue-300">
-{debugInfo.sqlQuery}
-                        </pre>
-                      </div>
-                    )}
-                    
-                    <div>
-                      <strong className="text-orange-400">Full Payload:</strong>
-                      <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-cyan-300">
-{JSON.stringify(debugInfo.payload, null, 2)}
-                      </pre>
-                    </div>
-                    
-                    {debugInfo.supabaseResponse && (
-                      <div>
-                        <strong className="text-orange-400">Supabase Response:</strong>
-                        <pre className="bg-black/50 p-2 rounded mt-1 overflow-auto max-h-40 text-purple-300">
-{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
-                        </pre>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              )}
-            </aside>
-          </form>
-        )}
-        
-        {/* 🔥 DEBUG MODAL */}
-        {showDebugModal && debugInfo && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-            <div className="bg-background border rounded-lg max-w-4xl max-h-[90vh] overflow-auto">
-              <div className="p-6">
-                <div className="flex justify-between items-center mb-4">
-                  <h2 className="text-xl font-bold">🔥 Debug Information</h2>
-                  <button 
-                    onClick={() => setShowDebugModal(false)}
-                    className="text-muted-foreground hover:text-foreground"
-                  >
-                    ✕
-                  </button>
-                </div>
-                
-                <div className="space-y-4 text-sm">
-                  <div>
-                    <strong>Timestamp:</strong> {debugInfo.timestamp}
-                  </div>
-                  <div>
-                    <strong>Exercise ID:</strong> {debugInfo.exerciseId}
-                  </div>
-                  
-                  <div>
-                    <strong>Critical Fields:</strong>
-                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs">
-{JSON.stringify(debugInfo.criticalFields, null, 2)}
-                    </pre>
-                  </div>
-                  
-                  <div>
-                    <strong>Real Supabase Request:</strong>
-                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
-{JSON.stringify(debugInfo.realSupabaseRequest, null, 2)}
-                    </pre>
-                  </div>
-                  
-                  <div>
-                    <strong>Full Payload ({debugInfo.payloadFieldCount} fields):</strong>
-                    <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
-{debugInfo.realSupabaseRequest?.body || 'No payload data'}
-                    </pre>
-                  </div>
-                  
-                  {debugInfo.supabaseResponse && (
-                    <div>
-                      <strong>Supabase Response:</strong>
-                      <pre className="bg-muted p-3 rounded mt-2 overflow-auto text-xs max-h-60">
-{JSON.stringify(debugInfo.supabaseResponse, null, 2)}
-                      </pre>
-                    </div>
-                  )}
-                  
-                   <div className="flex gap-2 pt-4">
-                     <button 
-                       onClick={() => {
-                         setShowDebugModal(false);
-                         performActualSave();
-                       }}
-                       className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-                     >
-                       Close & Save
-                     </button>
-                    <button 
-                      onClick={() => navigator.clipboard.writeText(JSON.stringify(debugInfo, null, 2))}
-                      className="px-4 py-2 bg-secondary text-secondary-foreground rounded hover:bg-secondary/80"
-                    >
-                      Copy Debug Info
-                    </button>
-                  </div>
-                </div>
+                <Label htmlFor="source_url">Source URL</Label>
+                <Input 
+                  id="source_url" 
+                  {...form.register('source_url')} 
+                  placeholder="https://example.com" 
+                />
               </div>
             </div>
-          </div>
+          </CardContent>
+        </Card>
+
+        {/* Section F - System / Advanced */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Section F — System / Advanced</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="attribute_values_json">Attribute Values JSON (required) *</Label>
+              <Textarea 
+                id="attribute_values_json" 
+                {...form.register('attribute_values_json')} 
+                placeholder='{"custom_field": "value"}'
+                rows={3}
+              />
+              <p className="text-xs text-muted-foreground">Must be a valid JSON object</p>
+            </div>
+
+            <Accordion type="single" collapsible>
+              <AccordionItem value="localization">
+                <AccordionTrigger>Localization</AccordionTrigger>
+                <AccordionContent className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="name_locale">Name Locale</Label>
+                      <Input 
+                        id="name_locale" 
+                        {...form.register('name_locale')} 
+                        placeholder="en" 
+                      />
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="name_version">Name Version</Label>
+                      <Input 
+                        id="name_version" 
+                        type="number"
+                        {...form.register('name_version', { valueAsNumber: true })} 
+                        placeholder="1" 
+                      />
+                    </div>
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+            </Accordion>
+
+            <div className="flex items-center space-x-2">
+              <Switch 
+                id="configured"
+                checked={form.watch('configured')} 
+                onCheckedChange={(v) => form.setValue('configured', v)} 
+                disabled={publishErrors.length > 0}
+              />
+              <Label htmlFor="configured">Configured (ready to publish)</Label>
+              {publishErrors.length > 0 && (
+                <AlertTriangle className="h-4 w-4 text-amber-500" />
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Validation Summary */}
+        {(requiredErrors.length > 0 || publishErrors.length > 0) && (
+          <Card className="border-amber-200 bg-amber-50">
+            <CardHeader>
+              <CardTitle className="text-amber-800 flex items-center gap-2">
+                <AlertTriangle className="h-5 w-5" />
+                Validation Summary
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {requiredErrors.length > 0 && (
+                <div>
+                  <h4 className="font-medium text-red-800 mb-2">Required Fields (will block save):</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-red-700">
+                    {requiredErrors.map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {publishErrors.length > requiredErrors.length && (
+                <div>
+                  <h4 className="font-medium text-amber-800 mb-2">Recommended for Publishing:</h4>
+                  <ul className="list-disc pl-5 space-y-1 text-sm text-amber-700">
+                    {publishErrors.slice(requiredErrors.length).map((error, index) => (
+                      <li key={index}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         )}
-      </div>
-    );
+
+        {/* Actions */}
+        <div className="flex gap-4 pt-4">
+          <Button type="button" variant="secondary" asChild>
+            <Link to="/admin/exercises">Cancel</Link>
+          </Button>
+          <Button type="submit" disabled={saving || requiredErrors.length > 0}>
+            {saving ? 'Saving…' : (isEdit ? 'Update Exercise' : 'Create Exercise')}
+          </Button>
+        </div>
+      </form>
+    </div>
+  );
 };
 
 export default AdminExerciseEdit;
