@@ -6702,6 +6702,9 @@ export type Database = {
           created_at: string
           display_order: number
           id: string
+          is_enabled: boolean
+          nav_pinned: boolean
+          selected_coach_id: string | null
           updated_at: string
           user_id: string
         }
@@ -6710,6 +6713,9 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          is_enabled?: boolean
+          nav_pinned?: boolean
+          selected_coach_id?: string | null
           updated_at?: string
           user_id: string
         }
@@ -6718,6 +6724,9 @@ export type Database = {
           created_at?: string
           display_order?: number
           id?: string
+          is_enabled?: boolean
+          nav_pinned?: boolean
+          selected_coach_id?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -6743,60 +6752,8 @@ export type Database = {
             referencedRelation: "v_health_subs"
             referencedColumns: ["hub_id"]
           },
-        ]
-      }
-      user_category_settings: {
-        Row: {
-          category_id: string
-          id: string
-          is_enabled: boolean
-          nav_pinned: boolean | null
-          priority_rank: number | null
-          selected_coach_id: string | null
-          user_id: string
-        }
-        Insert: {
-          category_id: string
-          id?: string
-          is_enabled?: boolean
-          nav_pinned?: boolean | null
-          priority_rank?: number | null
-          selected_coach_id?: string | null
-          user_id: string
-        }
-        Update: {
-          category_id?: string
-          id?: string
-          is_enabled?: boolean
-          nav_pinned?: boolean | null
-          priority_rank?: number | null
-          selected_coach_id?: string | null
-          user_id?: string
-        }
-        Relationships: [
           {
-            foreignKeyName: "user_category_settings_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "life_categories"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_category_settings_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_categories_with_translations"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_category_settings_category_id_fkey"
-            columns: ["category_id"]
-            isOneToOne: false
-            referencedRelation: "v_health_subs"
-            referencedColumns: ["hub_id"]
-          },
-          {
-            foreignKeyName: "user_category_settings_selected_coach_id_fkey"
+            foreignKeyName: "user_category_prefs_selected_coach_id_fkey"
             columns: ["selected_coach_id"]
             isOneToOne: false
             referencedRelation: "coaches"

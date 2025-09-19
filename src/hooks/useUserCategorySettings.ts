@@ -2,14 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
-export interface UserCategorySetting {
+export interface UserCategoryPreference {
   id: string;
   user_id: string;
   category_id: string;
+  display_order: number;
   selected_coach_id?: string;
   is_enabled: boolean;
   nav_pinned: boolean;
-  priority_rank?: number;
   category?: {
     id: string;
     slug: string;
@@ -23,21 +23,21 @@ export function useUserCategorySettings() {
   const queryClient = useQueryClient();
 
   const categorySettingsQuery = useQuery({
-    queryKey: ['user-category-settings', user?.id],
+    queryKey: ['user-category-prefs', user?.id],
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
-        .from('user_category_settings')
+        .from('user_category_prefs')
         .select(`
           *,
           category:life_categories(id, slug, name, icon)
         `)
         .eq('user_id', user.id)
-        .order('priority_rank');
+        .order('display_order');
 
       if (error) throw error;
-      return data as UserCategorySetting[];
+      return data as UserCategoryPreference[];
     },
     enabled: !!user,
   });
@@ -45,12 +45,12 @@ export function useUserCategorySettings() {
   const updateCategorySettingMutation = useMutation({
     mutationFn: async (params: {
       categoryId: string;
-      updates: Partial<Pick<UserCategorySetting, 'nav_pinned' | 'is_enabled' | 'selected_coach_id' | 'priority_rank'>>;
+      updates: Partial<Pick<UserCategoryPreference, 'nav_pinned' | 'is_enabled' | 'selected_coach_id' | 'display_order'>>;
     }) => {
       if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
-        .from('user_category_settings')
+        .from('user_category_prefs')
         .upsert({
           user_id: user.id,
           category_id: params.categoryId,
@@ -63,7 +63,7 @@ export function useUserCategorySettings() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-category-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['user-category-prefs'] });
       queryClient.invalidateQueries({ queryKey: ['bottom-nav'] });
     },
   });
@@ -77,6 +77,10 @@ export function useUserCategorySettings() {
           is_enabled: params.pinned, // Also enable when pinning
         },
       });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-category-prefs'] });
+      queryClient.invalidateQueries({ queryKey: ['bottom-nav'] });
     },
   });
 

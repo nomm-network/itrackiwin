@@ -3,6 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { AtlasChat } from "@/components/atlas/AtlasChat";
+import { CategoryPreferencesSettings } from "@/components/atlas/CategoryPreferencesSettings";
 import { useUserPriorities } from "@/hooks/useUserPriorities";
 import { useNextBestCategory } from "@/hooks/useNextBestCategory";
 import { Settings, Star, ArrowRight } from "lucide-react";
@@ -55,14 +56,7 @@ export default function OrbitPlanetsPage() {
         <CardHeader>
           <CardTitle className="flex items-center justify-between">
             <span>Your Priorities</span>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => navigate('/settings')}
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Edit
-            </Button>
+            <CategoryPreferencesSettings />
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -88,9 +82,7 @@ export default function OrbitPlanetsPage() {
           ) : (
             <div className="text-center py-8">
               <p className="text-muted-foreground mb-4">No priorities set yet.</p>
-              <Button onClick={() => navigate('/settings')}>
-                Set Your Priorities
-              </Button>
+              <CategoryPreferencesSettings />
             </div>
           )}
         </CardContent>

@@ -46,7 +46,7 @@ export function useSelectCoach() {
       if (!user) throw new Error('Not authenticated');
       
       const { data, error } = await supabase
-        .from('user_category_settings')
+        .from('user_category_prefs')
         .upsert({
           user_id: user.id,
           category_id: params.categoryId,
@@ -61,7 +61,7 @@ export function useSelectCoach() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['user-category-settings'] });
+      queryClient.invalidateQueries({ queryKey: ['user-category-prefs'] });
       queryClient.invalidateQueries({ queryKey: ['bottom-nav'] });
       queryClient.invalidateQueries({ queryKey: ['coaches-for-category'] });
     },
