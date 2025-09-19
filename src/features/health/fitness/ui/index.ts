@@ -1,5 +1,5 @@
 // Fitness UI components
-export * from '../components/FitnessProfile';
+// FitnessProfile component removed - using HealthConfigureBody instead
 export * from '../components/EffortSelector';
 export * from '../components/WarmupFeedback';
 export * from '../components/WarmupPlanPanel';

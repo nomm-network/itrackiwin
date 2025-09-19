@@ -12,7 +12,7 @@ const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 
 const MyGymPage = lazy(() => import("./pages/MyGym.page"));
 const TemplateRotationPage = lazy(() => import("./pages/TemplateRotation.page"));
-const FitnessProfilePage = lazy(() => import("./components/FitnessProfile"));
+// FitnessProfile component removed - using HealthConfigureBody instead
 const TrainingProgramsPage = lazy(() => import("../../../pages/TrainingPrograms"));
 
 export const FitnessRoutes = (
@@ -27,7 +27,7 @@ export const FitnessRoutes = (
     <Route path="my-gym" element={<MyGymPage />} />
     <Route path="programs" element={<TrainingProgramsPage />} />
     <Route path="templates/rotation" element={<TemplateRotationPage />} />
-    <Route path="profile" element={<FitnessProfilePage />} />
+    {/* FitnessProfile route removed - using HealthConfigureBody instead */}
     <Route path="history" element={<HistoryPage />} />
     <Route path="history/:id" element={<WorkoutDetailPage />} />
   </Routes>

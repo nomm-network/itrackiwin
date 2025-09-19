@@ -1,7 +1,7 @@
 import React from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import FitnessProfile from './FitnessProfile';
+// FitnessProfile component removed - using HealthConfigureBody instead
 import { BodyMetricsForm } from '@/components/health/BodyMetricsForm';
 
 export const FitnessConfigurationHub = () => {
@@ -25,7 +25,7 @@ export const FitnessConfigurationHub = () => {
           </TabsList>
           
           <TabsContent value="profile">
-            <FitnessProfile />
+            {/* FitnessProfile component removed - using HealthConfigureBody instead */}
           </TabsContent>
           
           <TabsContent value="body">
