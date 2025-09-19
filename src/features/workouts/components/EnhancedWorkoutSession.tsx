@@ -368,15 +368,16 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       notes = notes ? `${notes}. Pain reported` : 'Pain reported';
     }
     
-    // Calculate planned set index using the consistent currentSetIndex from useMemo
-    const plannedSetIndex = currentSetIndex; // Already 0-based and properly calculated
+    // Calculate planned set index - convert from 0-based UI index to 1-based DB index
+    const plannedSetIndex = currentSetIndex + 1; // Convert to 1-based for database
     
     console.log('🔍 Set completion timing:', {
-      currentSetIndex,
-      plannedSetIndex,
+      currentSetIndex, // 0-based UI index
+      plannedSetIndex,  // 1-based DB index  
       completedSetsCount,
       totalSets: sets.length,
-      setData
+      setData,
+      existingSets: sets.map(s => ({ set_index: s.set_index, is_completed: s.is_completed }))
     });
     
     const payload = {
