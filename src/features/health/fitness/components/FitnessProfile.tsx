@@ -10,6 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { BodyMetricsDisplay } from '@/components/health/BodyMetricsDisplay';
 
 interface FitnessProfileData {
   sex: 'male' | 'female' | 'other' | null;
@@ -139,14 +140,10 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Metrics - Now handled separately */}
-            <div className="bg-muted p-4 rounded-lg">
-              <p className="text-sm text-muted-foreground mb-2">
-                Body measurements (weight, height) are now tracked separately in the Body Metrics section.
-              </p>
-              <p className="text-xs text-muted-foreground">
-                This allows for better tracking of changes over time and historical data.
-              </p>
+            {/* Body Metrics */}
+            <div className="space-y-3">
+              <Label>Body Metrics</Label>
+              <BodyMetricsDisplay showEditButton={true} />
             </div>
 
             {/* Training Experience */}
