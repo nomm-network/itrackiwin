@@ -9,6 +9,7 @@ import { MapPin, Edit3, Trash2, Search, Plus, User, Calendar, Clock, Dumbbell, H
 import { useToast } from '@/hooks/use-toast';
 import { useFitnessProfile, useUpsertFitnessProfile, SexType } from '@/features/health/fitness/hooks/useFitnessProfile.hook';
 import { useHomeEquipment, EQUIPMENT_DISPLAY_MAP } from '@/features/health/fitness/hooks/useEquipment.hook';
+import { supabase } from '@/integrations/supabase/client';
 
 export default function HealthConfigureBody() {
   const { toast } = useToast();
@@ -97,7 +98,9 @@ export default function HealthConfigureBody() {
         });
 
         console.log('Saving equipment IDs:', validEquipmentIds);
+        console.log('Saving bodyweight and height:', fitnessProfile.bodyweight, fitnessProfile.height);
         
+        // Save fitness profile (without body metrics)
         await upsertProfile.mutateAsync({
           goal: fitnessProfile.primaryWeightGoal,
           training_goal: fitnessProfile.trainingFocus,
@@ -109,9 +112,47 @@ export default function HealthConfigureBody() {
           available_equipment: validEquipmentIds.length > 0 ? validEquipmentIds : undefined,
           priority_muscle_groups: fitnessProfile.priorityMuscleGroups,
         });
+
+        // Save body metrics to separate table if provided
+        if (fitnessProfile.bodyweight || fitnessProfile.height) {
+          const { data: { user } } = await supabase.auth.getUser();
+          if (!user) throw new Error('Not authenticated');
+
+          const bodyMetricsData: any = {
+            user_id: user.id,
+          };
+
+          if (fitnessProfile.bodyweight) {
+            bodyMetricsData.weight_kg = fitnessProfile.bodyweight;
+          }
+          if (fitnessProfile.height) {
+            bodyMetricsData.height_cm = fitnessProfile.height;
+          }
+
+          console.log('Inserting body metrics:', bodyMetricsData);
+
+          const { error: bodyMetricsError } = await supabase
+            .from('user_body_metrics')
+            .insert(bodyMetricsData);
+
+          if (bodyMetricsError) {
+            console.error('Error saving body metrics:', bodyMetricsError);
+            throw bodyMetricsError;
+          }
+        }
+
+        toast({
+          title: "Profile saved",
+          description: "Your fitness profile and body metrics have been updated successfully.",
+        });
       } catch (error) {
         console.error('Error saving fitness profile:', error);
         setDebugError(JSON.stringify(error, null, 2));
+        toast({
+          title: "Error saving profile",
+          description: "There was an error saving your profile. Please try again.",
+          variant: "destructive"
+        });
       }
     } else {
       // For other profiles, just show toast for now
