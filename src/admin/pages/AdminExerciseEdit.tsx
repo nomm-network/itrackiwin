@@ -188,7 +188,6 @@ const AdminExerciseEdit: React.FC = () => {
   }, [muscleGroups, selectedBodyPartId]);
 
   const primaryMusclesOptions = React.useMemo(() => {
-    if (!selectedPrimaryMuscleId) return [] as Muscle[];
     const selectedMuscle = muscles.find(m => m.id === selectedPrimaryMuscleId);
     if (!selectedMuscle) return muscles;
     return muscles.filter((mu) => mu.muscle_group_id === selectedMuscle.muscle_group_id);
@@ -199,19 +198,19 @@ const AdminExerciseEdit: React.FC = () => {
     return movements.filter((mv) => mv.movement_pattern_id === selectedMovementPatternId);
   }, [movements, selectedMovementPatternId]);
 
-  // Load taxonomy data
   React.useEffect(() => {
     const loadTaxonomy = async () => {
       try {
+        // Load core data without translations first
         const [bp, mg, m, eq, mv, mp, bt, gr] = await Promise.all([
-          supabase.from("body_parts").select("id, body_parts_translations!inner(name)").eq('body_parts_translations.language_code', 'en'),
-          supabase.from("muscle_groups").select("id, body_part_id, muscle_groups_translations!inner(name)").eq('muscle_groups_translations.language_code', 'en'),
-          supabase.from("muscles").select("id, muscle_group_id, muscles_translations!inner(name)").eq('muscles_translations.language_code', 'en'),
-          supabase.from("equipment").select("id, equipment_translations!inner(name)").eq('equipment_translations.language_code', 'en'),
-          supabase.from("movements").select("id, movement_pattern_id, movements_translations!inner(name)").eq('movements_translations.language_code', 'en'),
-          supabase.from("movement_patterns").select("id, movement_patterns_translations!inner(name)").eq('movement_patterns_translations.language_code', 'en'),
+          supabase.from("body_parts").select("id"),
+          supabase.from("muscle_groups").select("id, body_part_id"),
+          supabase.from("muscles").select("id, muscle_group_id"),
+          supabase.from("equipment").select("id"),
+          supabase.from("movements").select("id, movement_pattern_id"),
+          supabase.from("movement_patterns").select("id"),
           supabase.from("bar_types").select("id, name, default_weight"),
-          supabase.from("grips").select("id, grips_translations!inner(name)").eq('grips_translations.language_code', 'en'),
+          supabase.from("grips").select("id"),
         ]);
 
         if (bp.error) throw bp.error;
@@ -222,15 +221,70 @@ const AdminExerciseEdit: React.FC = () => {
         if (mp.error) throw mp.error;
         if (bt.error) throw bt.error;
         if (gr.error) throw gr.error;
+
+        // Load translations separately
+        const [bpTrans, mgTrans, mTrans, eqTrans, mvTrans, mpTrans, grTrans] = await Promise.all([
+          supabase.from("body_parts_translations").select("body_part_id, name").eq('language_code', 'en'),
+          supabase.from("muscle_groups_translations").select("muscle_group_id, name").eq('language_code', 'en'),
+          supabase.from("muscles_translations").select("muscle_id, name").eq('language_code', 'en'),
+          supabase.from("equipment_translations").select("equipment_id, name").eq('language_code', 'en'),
+          supabase.from("movements_translations").select("movement_id, name").eq('language_code', 'en'),
+          supabase.from("movement_patterns_translations").select("movement_pattern_id, name").eq('language_code', 'en'),
+          supabase.from("grips_translations").select("grip_id, name").eq('language_code', 'en'),
+        ]);
+
+        if (bpTrans.error) throw bpTrans.error;
+        if (mgTrans.error) throw mgTrans.error;
+        if (mTrans.error) throw mTrans.error;
+        if (eqTrans.error) throw eqTrans.error;
+        if (mvTrans.error) throw mvTrans.error;
+        if (mpTrans.error) throw mpTrans.error;
+        if (grTrans.error) throw grTrans.error;
+
+        // Combine data with translations
+        const bodyPartsWithNames = bp.data?.map(item => {
+          const translation = bpTrans.data?.find(t => t.body_part_id === item.id);
+          return { id: item.id, name: translation?.name || 'Unnamed' };
+        }) || [];
+
+        const muscleGroupsWithNames = mg.data?.map(item => {
+          const translation = mgTrans.data?.find(t => t.muscle_group_id === item.id);
+          return { id: item.id, body_part_id: item.body_part_id, name: translation?.name || 'Unnamed' };
+        }) || [];
+
+        const musclesWithNames = m.data?.map(item => {
+          const translation = mTrans.data?.find(t => t.muscle_id === item.id);
+          return { id: item.id, muscle_group_id: item.muscle_group_id, name: translation?.name || 'Unnamed' };
+        }) || [];
+
+        const equipmentWithNames = eq.data?.map(item => {
+          const translation = eqTrans.data?.find(t => t.equipment_id === item.id);
+          return { id: item.id, name: translation?.name || 'Unnamed' };
+        }) || [];
+
+        const movementsWithNames = mv.data?.map(item => {
+          const translation = mvTrans.data?.find(t => t.movement_id === item.id);
+          return { id: item.id, name: translation?.name || 'Unnamed', movement_pattern_id: item.movement_pattern_id };
+        }) || [];
+
+        const movementPatternsWithNames = mp.data?.map(item => {
+          const translation = mpTrans.data?.find(t => t.movement_pattern_id === item.id);
+          return { id: item.id, name: translation?.name || 'Unnamed' };
+        }) || [];
+
+        const gripsWithNames = gr.data?.map(item => {
+          const translation = grTrans.data?.find(t => t.grip_id === item.id);
+          return { id: item.id, name: translation?.name || 'Unnamed' };
+        }) || [];
         
-        setBodyParts(bp.data?.map(item => ({ id: item.id, name: (item.body_parts_translations as any)[0]?.name || '' })) || []);
-        setMuscleGroups(mg.data?.map(item => ({ id: item.id, body_part_id: item.body_part_id, name: (item.muscle_groups_translations as any)[0]?.name || '' })) || []);
-        setMuscles(m.data?.map(item => ({ id: item.id, muscle_group_id: item.muscle_group_id, name: (item.muscles_translations as any)[0]?.name || '' })) || []);
-        setEquipment(eq.data?.map(item => ({ id: item.id, name: (item.equipment_translations as any)[0]?.name || '' })) || []);
-        setMovements(mv.data?.map(item => ({ id: item.id, name: (item.movements_translations as any)[0]?.name || '', movement_pattern_id: item.movement_pattern_id })) || []);
-        setMovementPatterns(mp.data?.map(item => ({ id: item.id, name: (item.movement_patterns_translations as any)[0]?.name || '' })) || []);
+        setBodyParts(bodyPartsWithNames);
+        setMuscleGroups(muscleGroupsWithNames);
+        setMuscles(musclesWithNames);
+        setEquipment(equipmentWithNames);
+        setMovements(movementsWithNames);
+        setMovementPatterns(movementPatternsWithNames);
         setBarTypes(bt.data || []);
-        setGrips(gr.data?.map(item => ({ id: item.id, name: (item.grips_translations as any)[0]?.name || '' })) || []);
+        setGrips(gripsWithNames);
       } catch (e: any) {
         console.error("[ExerciseEdit] load taxonomy error", e);
         toast({ title: "Failed to load options", description: e?.message || "Unknown error", variant: "destructive" });
@@ -250,66 +304,72 @@ const AdminExerciseEdit: React.FC = () => {
       
       try {
         setLoading(true);
-        const { data, error } = await supabase
+        
+        // Load exercise data
+        const { data: exerciseData, error } = await supabase
           .from('exercises')
-          .select(`
-            *, 
-            exercises_translations!inner(name, description)
-          `)
+          .select('*')
           .eq('id', id)
-          .eq('exercises_translations.language_code', 'en')
           .maybeSingle();
           
         if (error) throw error;
-        if (!data) throw new Error('Exercise not found');
+        if (!exerciseData) throw new Error('Exercise not found');
+
+        // Load translation separately
+        const { data: translationData } = await supabase
+          .from('exercises_translations')
+          .select('name, description')
+          .eq('exercise_id', id)
+          .eq('language_code', 'en')
+          .maybeSingle();
         
-        const translation = (data.exercises_translations as any)[0];
-        setExerciseName(translation?.name || data.display_name || '');
+        const translation = translationData;
+        setExerciseName(translation?.name || exerciseData.display_name || '');
         
         // Map all fields from database to form
-        form.setValue('display_name', translation?.name || data.display_name || '');
-        form.setValue('slug', data.slug || '');
-        form.setValue('custom_display_name', data.custom_display_name || '');
-        form.setValue('is_public', data.is_public ?? true);
-        form.setValue('owner_user_id', data.owner_user_id || '');
-        form.setValue('popularity_rank', data.popularity_rank);
-        form.setValue('loading_hint', translation?.description || data.loading_hint || '');
+        form.setValue('display_name', translation?.name || exerciseData.display_name || '');
+        form.setValue('slug', exerciseData.slug || '');
+        form.setValue('custom_display_name', exerciseData.custom_display_name || '');
+        form.setValue('is_public', exerciseData.is_public ?? true);
+        form.setValue('owner_user_id', exerciseData.owner_user_id || '');
+        form.setValue('popularity_rank', exerciseData.popularity_rank);
+        form.setValue('loading_hint', translation?.description || exerciseData.loading_hint || '');
         
-        form.setValue('body_part_id', data.body_part_id || '');
-        form.setValue('movement_pattern_id', data.movement_pattern_id || '');
-        form.setValue('movement_id', data.movement_id || '');
-        form.setValue('primary_muscle_id', data.primary_muscle_id || '');
-        form.setValue('secondary_muscle_group_ids', data.secondary_muscle_group_ids || []);
-        form.setValue('tags', data.tags || []);
+        form.setValue('body_part_id', exerciseData.body_part_id || '');
+        form.setValue('movement_pattern_id', exerciseData.movement_pattern_id || '');
+        form.setValue('movement_id', exerciseData.movement_id || '');
+        form.setValue('primary_muscle_id', exerciseData.primary_muscle_id || '');
+        form.setValue('secondary_muscle_group_ids', exerciseData.secondary_muscle_group_ids || []);
+        form.setValue('tags', exerciseData.tags || []);
         
-        form.setValue('equipment_id', data.equipment_id || '');
-        form.setValue('equipment_ref_id', data.equipment_ref_id || '');
-        form.setValue('effort_mode', data.effort_mode || 'reps');
-        form.setValue('load_mode', data.load_mode || 'external_added');
-        form.setValue('load_type', data.load_type);
+        form.setValue('equipment_id', exerciseData.equipment_id || '');
+        form.setValue('equipment_ref_id', exerciseData.equipment_ref_id || '');
+        form.setValue('effort_mode', exerciseData.effort_mode || 'reps');
+        form.setValue('load_mode', exerciseData.load_mode || 'external_added');
+        form.setValue('load_type', exerciseData.load_type);
         
-        form.setValue('is_bar_loaded', data.is_bar_loaded || false);
-        form.setValue('default_bar_type_id', data.default_bar_type_id || '');
-        form.setValue('default_bar_weight', data.default_bar_weight);
+        form.setValue('is_bar_loaded', exerciseData.is_bar_loaded || false);
+        form.setValue('default_bar_type_id', exerciseData.default_bar_type_id || '');
+        form.setValue('default_bar_weight', exerciseData.default_bar_weight);
         
-        form.setValue('exercise_skill_level', data.exercise_skill_level || 'medium');
-        form.setValue('complexity_score', data.complexity_score || 3);
-        form.setValue('is_unilateral', data.is_unilateral || false);
-        form.setValue('allows_grips', data.allows_grips || false);
-        form.setValue('default_grip_ids', data.default_grip_ids || []);
+        form.setValue('exercise_skill_level', exerciseData.exercise_skill_level || 'medium');
+        form.setValue('complexity_score', exerciseData.complexity_score || 3);
+        form.setValue('is_unilateral', exerciseData.is_unilateral || false);
+        form.setValue('allows_grips', exerciseData.allows_grips || false);
+        form.setValue('default_grip_ids', exerciseData.default_grip_ids || []);
         
-        form.setValue('contraindications', JSON.stringify(data.contraindications || []));
-        form.setValue('capability_schema', JSON.stringify(data.capability_schema || {}));
-        form.setValue('attribute_values_json', JSON.stringify(data.attribute_values_json || {}));
+        form.setValue('contraindications', JSON.stringify(exerciseData.contraindications || []));
+        form.setValue('capability_schema', JSON.stringify(exerciseData.capability_schema || {}));
+        form.setValue('attribute_values_json', JSON.stringify(exerciseData.attribute_values_json || {}));
         
-        form.setValue('name_locale', data.name_locale || 'en');
-        form.setValue('name_version', data.name_version || 1);
+        form.setValue('name_locale', exerciseData.name_locale || 'en');
+        form.setValue('name_version', exerciseData.name_version || 1);
         
-        form.setValue('image_url', data.image_url || '');
-        form.setValue('thumbnail_url', data.thumbnail_url || '');
-        form.setValue('source_url', data.source_url || '');
+        form.setValue('image_url', exerciseData.image_url || '');
+        form.setValue('thumbnail_url', exerciseData.thumbnail_url || '');
+        form.setValue('source_url', exerciseData.source_url || '');
         
-        form.setValue('configured', data.configured || false);
+        form.setValue('configured', exerciseData.configured || false);
         
       } catch (e: any) {
         console.error('[ExerciseEdit] load error', e);
