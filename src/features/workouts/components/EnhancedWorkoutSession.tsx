@@ -311,6 +311,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Find current set index (first non-completed set)
   const currentSetIndex = useMemo(() => {
     const index = sets.findIndex(s => !s.is_completed);
+    console.log('🔍 currentSetIndex calculation:', {
+      sets: sets.map(s => ({ id: s.id, is_completed: s.is_completed })),
+      index,
+      result: index === -1 ? sets.length : index
+    });
     return index === -1 ? sets.length : index;
   }, [sets]);
 
@@ -365,6 +370,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     
     // Calculate planned set index using the consistent currentSetIndex from useMemo
     const plannedSetIndex = currentSetIndex; // Already 0-based and properly calculated
+    
+    console.log('🔍 Set completion timing:', {
+      currentSetIndex,
+      plannedSetIndex,
+      completedSetsCount,
+      totalSets: sets.length,
+      setData
+    });
     
     const payload = {
       workout_exercise_id: workoutExerciseId,
