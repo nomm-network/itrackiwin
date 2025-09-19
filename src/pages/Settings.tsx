@@ -6,6 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts';
+import { NavigationSettings } from '@/components/settings/NavigationSettings';
 
 const setSeo = () => {
   const title = "Settings | I Track I Win";
@@ -101,6 +102,9 @@ const Settings: React.FC = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Navigation Settings */}
+        <NavigationSettings />
 
         {/* Connected Accounts */}
         <ConnectedAccounts user={user} />
