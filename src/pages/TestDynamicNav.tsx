@@ -1,6 +1,7 @@
 import { TestBottomNavRPC } from '@/components/test/TestBottomNavRPC';
-import { NavigationSettings } from '@/components/settings/NavigationSettings';
+import { NavigationSettings } from '@/components/settings/NavigationSettingsWithCoaches';
 import { DynamicBottomNav } from '@/components/navigation/DynamicBottomNav';
+import { CoachTestingComponent } from '@/components/test/CoachTestingComponent';
 
 export default function TestPage() {
   return (
@@ -13,7 +14,12 @@ export default function TestPage() {
       </section>
       
       <section>
-        <h2 className="text-xl font-semibold mb-4">Navigation Settings</h2>
+        <h2 className="text-xl font-semibold mb-4">Coach Selection Test</h2>
+        <CoachTestingComponent />
+      </section>
+      
+      <section>
+        <h2 className="text-xl font-semibold mb-4">Navigation Settings with Coach Selection</h2>
         <NavigationSettings />
       </section>
       
