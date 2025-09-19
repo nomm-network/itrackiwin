@@ -11,6 +11,7 @@ import { GripVertical, Settings } from "lucide-react";
 import { useTranslations } from "@/hooks/useTranslations";
 import { useAuth } from "@/hooks/useAuth";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 
 interface LifeCategory { 
   id: string; 
@@ -152,22 +153,21 @@ export function CategoryPreferencesSettings() {
     setRows(items);
   }, [categories, prefs, user?.id]);
 
-  const [dragId, setDragId] = useState<string | null>(null);
-  const handleDragStart = (id: string) => () => setDragId(id);
-  const handleDragOver = (id: string) => (e: React.DragEvent) => {
-    e.preventDefault();
-    if (!dragId || dragId === id) return;
+  const handleDragEnd = (result: any) => {
+    if (!result.destination) return;
+    
+    const sourceIndex = result.source.index;
+    const destinationIndex = result.destination.index;
+    
+    if (sourceIndex === destinationIndex) return;
+    
     setRows((prev) => {
-      const from = prev.findIndex((r) => r.category_id === dragId);
-      const to = prev.findIndex((r) => r.category_id === id);
-      if (from === -1 || to === -1) return prev;
       const next = [...prev];
-      const [moved] = next.splice(from, 1);
-      next.splice(to, 0, moved);
+      const [moved] = next.splice(sourceIndex, 1);
+      next.splice(destinationIndex, 0, moved);
       return next.map((r, idx) => ({ ...r, display_order: idx + 1 }));
     });
   };
-  const handleDrop = (e: React.DragEvent) => { e.preventDefault(); setDragId(null); };
 
   // Group subcategories by category for display
   const subByCat = useMemo(() => {
@@ -214,47 +214,57 @@ export function CategoryPreferencesSettings() {
               </p>
             </CardHeader>
             <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-16">Order</TableHead>
-                    <TableHead>Category</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((r, idx) => {
-                    const c = categories.find((x) => x.id === r.category_id);
-                    const isInTopThree = idx < 3;
-                    
-                    return (
-                      <TableRow
-                        key={r.category_id}
-                        draggable
-                        onDragStart={handleDragStart(r.category_id)}
-                        onDragOver={handleDragOver(r.category_id)}
-                        onDrop={handleDrop}
-                        className={cn(
-                          "cursor-grab",
-                          isInTopThree && "bg-primary/5 border-l-4 border-l-primary"
-                        )}
-                      >
-                        <TableCell className="font-mono">{idx + 1}.</TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <GripVertical className="h-4 w-4 text-muted-foreground" />
-                            <span>{c ? getTranslatedName(c) : 'Unknown'}</span>
-                            {isInTopThree && (
-                              <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
-                                In Navigation
-                              </span>
-                            )}
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
+              <DragDropContext onDragEnd={handleDragEnd}>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-16">Order</TableHead>
+                      <TableHead>Category</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <Droppable droppableId="categories">
+                    {(provided) => (
+                      <TableBody ref={provided.innerRef} {...provided.droppableProps}>
+                        {rows.map((r, idx) => {
+                          const c = categories.find((x) => x.id === r.category_id);
+                          const isInTopThree = idx < 3;
+                          
+                          return (
+                            <Draggable key={r.category_id} draggableId={r.category_id} index={idx}>
+                              {(provided, snapshot) => (
+                                <TableRow
+                                  ref={provided.innerRef}
+                                  {...provided.draggableProps}
+                                  {...provided.dragHandleProps}
+                                  className={cn(
+                                    "cursor-grab",
+                                    isInTopThree && "bg-primary/5 border-l-4 border-l-primary",
+                                    snapshot.isDragging && "bg-muted/50"
+                                  )}
+                                >
+                                  <TableCell className="font-mono">{idx + 1}.</TableCell>
+                                  <TableCell>
+                                    <div className="flex items-center gap-2">
+                                      <GripVertical className="h-4 w-4 text-muted-foreground" />
+                                      <span>{c ? getTranslatedName(c) : 'Unknown'}</span>
+                                      {isInTopThree && (
+                                        <span className="text-xs bg-primary text-primary-foreground px-2 py-1 rounded-full">
+                                          In Navigation
+                                        </span>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                </TableRow>
+                              )}
+                            </Draggable>
+                          );
+                        })}
+                        {provided.placeholder}
+                      </TableBody>
+                    )}
+                  </Droppable>
+                </Table>
+              </DragDropContext>
               
               <div className="text-sm text-blue-600 bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg mt-4">
                 The top 3 categories in your priority list will automatically appear in the bottom navigation.
