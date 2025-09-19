@@ -47,10 +47,11 @@ export function useBottomNav() {
 
       // Add top 3 categories starting from slot 2 (linking to category dashboards)
       (data || []).forEach((item: any, index) => {
+        const firstName = item.life_categories.name.split(' ')[0]; // Extract first word only
         navItems.push({
           slot: 2 + index,
           item_type: 'category',
-          label: item.life_categories.name,
+          label: firstName,
           slug: `category/${item.life_categories.slug}`, // Link to category dashboard
           icon: item.life_categories.icon
         });
