@@ -22,7 +22,7 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   onCancel,
   className
 }) => {
-  const { logSet, isLoading } = useUnifiedSetLogging();
+  const { logSet, isLoading, fetchBodyweight } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
   
   // Bodyweight-specific fields
@@ -66,6 +66,9 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
     }
 
     try {
+      // Get user's bodyweight for bodyweight exercises
+      const userBodyweight = await fetchBodyweight();
+      
       const metrics: any = {
         notes: notes || undefined,
         rpe: rpe ? Number(rpe) : undefined,
@@ -95,7 +98,8 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
       await logSet({
         workoutExerciseId,
         setIndex,
-        metrics
+        metrics,
+        userBodyweight: userBodyweight || undefined
       });
       
       const weightDisplay = getWeightDisplay(additionalWeight, loadMode, assistType);

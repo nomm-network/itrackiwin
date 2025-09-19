@@ -15,6 +15,7 @@ import { parseFeelFromNotes, parseFeelFromRPE, suggestTarget } from '@/features/
 import { supabase } from '@/integrations/supabase/client';
 import { useWarmupFeedback, useUpdateWarmupAfterSet } from '@/features/workouts/warmup/useWarmupActions';
 import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
+import { EffectiveLoadDisplay } from '@/components/workout/EffectiveLoadDisplay';
 import { noteWorkingSet } from '@/lib/training/warmupManager';
 import { useGrips } from '@/hooks/useGrips';
 import { useSessionTiming } from '@/stores/sessionTiming';
@@ -29,6 +30,11 @@ interface SetData {
   notes?: string;
   is_completed: boolean;
   set_index?: number;
+  total_weight_kg?: number;
+  load_meta?: {
+    logged_bodyweight_kg?: number;
+    [key: string]: any;
+  };
 }
 
 interface ExerciseData {
@@ -39,6 +45,11 @@ interface ExerciseData {
   completed_sets: SetData[];
   load_type?: string;
   equipment_ref?: string;
+  load_mode?: string;
+  attribute_values_json?: {
+    bodyweight_involvement_pct?: number;
+    [key: string]: any;
+  };
 }
 
 interface ImprovedWorkoutSessionProps {
@@ -439,9 +450,19 @@ export default function ImprovedWorkoutSession({
               <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
                 {index + 1}
               </Badge>
-              <span className="font-medium">
-                📜 {set.weight}{unit} × {set.reps} reps {getFeelEmoji(set.feel, set.notes)}
-              </span>
+              <div className="flex flex-col">
+                <span className="font-medium">
+                  📜 {set.weight}{unit} × {set.reps} reps {getFeelEmoji(set.feel, set.notes)}
+                </span>
+                <EffectiveLoadDisplay 
+                  totalWeight={set.total_weight_kg}
+                  weight={set.weight}
+                  loadMode={exercise.load_mode}
+                  bodyweightPct={exercise.attribute_values_json?.bodyweight_involvement_pct}
+                  loggedBodyweight={set.load_meta?.logged_bodyweight_kg}
+                  className="text-xs text-muted-foreground"
+                />
+              </div>
             </div>
             <div className="flex items-center gap-2">
               <Button

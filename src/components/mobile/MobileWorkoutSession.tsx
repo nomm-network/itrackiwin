@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
 import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
+import { EffectiveLoadDisplay } from '@/components/workout/EffectiveLoadDisplay';
 import { PersistentRestTimer } from './PersistentRestTimer';
 
 interface SetData {
@@ -26,6 +27,11 @@ interface SetData {
   set_index?: number;
   is_completed?: boolean;
   rest_seconds?: number;
+  total_weight_kg?: number;
+  load_meta?: {
+    logged_bodyweight_kg?: number;
+    [key: string]: any;
+  };
 }
 
 interface ExerciseData {
@@ -37,6 +43,11 @@ interface ExerciseData {
   notes?: string;
   load_type?: string;
   equipment_ref?: string;
+  load_mode?: string;
+  attribute_values_json?: {
+    bodyweight_involvement_pct?: number;
+    [key: string]: any;
+  };
 }
 
 interface MobileWorkoutSessionProps {
@@ -261,9 +272,19 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                             <Badge variant="outline" className="text-xs">
                               Set {set.set_index}
                             </Badge>
-                            <span className="font-medium">
-                              {set.weight}kg × {set.reps} reps
-                            </span>
+                            <div className="flex flex-col">
+                              <span className="font-medium">
+                                {set.weight}kg × {set.reps} reps
+                              </span>
+                              <EffectiveLoadDisplay 
+                                totalWeight={set.total_weight_kg}
+                                weight={set.weight}
+                                loadMode={exercise.load_mode}
+                                bodyweightPct={exercise.attribute_values_json?.bodyweight_involvement_pct}
+                                loggedBodyweight={set.load_meta?.logged_bodyweight_kg}
+                                className="text-xs text-muted-foreground"
+                              />
+                            </div>
                             {set.rpe && (
                               <Badge variant="secondary" className="text-xs">
                                 RPE {set.rpe}

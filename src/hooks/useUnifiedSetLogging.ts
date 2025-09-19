@@ -2,6 +2,30 @@ import { useState, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toCanonicalKg, createWeightData, type WeightData } from '@/lib/weightConversion';
 
+// Hook to get user's bodyweight for bodyweight exercises
+const useUserBodyweight = () => {
+  const [bodyweight, setBodyweight] = useState<number | null>(null);
+  
+  const fetchBodyweight = useCallback(async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profile_fitness')
+        .select('bodyweight')
+        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .single();
+      
+      if (error) throw error;
+      setBodyweight(data?.bodyweight || null);
+      return data?.bodyweight || null;
+    } catch (error) {
+      console.error('Error fetching bodyweight:', error);
+      return null;
+    }
+  }, []);
+
+  return { bodyweight, fetchBodyweight };
+};
+
 interface SetMetrics {
   weight?: number;
   weight_unit?: 'kg' | 'lb';
@@ -22,11 +46,13 @@ interface UnifiedSetLogOptions {
   setIndex: number;
   metrics: SetMetrics;
   gripIds?: string[];
+  userBodyweight?: number; // For bodyweight exercises
 }
 
 export const useUnifiedSetLogging = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const { bodyweight, fetchBodyweight } = useUserBodyweight();
 
   const logSet = useCallback(async (options: UnifiedSetLogOptions) => {
     setIsLoading(true);
@@ -95,6 +121,11 @@ export const useUnifiedSetLogging = () => {
       payload.settings = options.metrics.settings || {};
       payload.load_meta = options.metrics.load_meta || {}; // NOT NULL constraint
       
+      // For bodyweight exercises, add logged bodyweight to load_meta
+      if (options.metrics.load_mode === 'bodyweight_plus_optional' && options.userBodyweight) {
+        payload.load_meta.logged_bodyweight_kg = options.userBodyweight;
+      }
+      
       // Add grip handling if provided
       if (options.gripIds && options.gripIds.length > 0) {
         payload.grip_ids = options.gripIds;
@@ -131,7 +162,8 @@ export const useUnifiedSetLogging = () => {
   return {
     logSet,
     isLoading,
-    error
+    error,
+    fetchBodyweight
   };
 };
 
