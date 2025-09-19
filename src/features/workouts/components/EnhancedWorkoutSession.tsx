@@ -7,7 +7,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/component
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getEquipmentRefId, getLoadType, getExerciseId } from '@/lib/workouts/equipmentContext';
 import SmartSetForm from '@/components/workout/set-forms/SmartSetForm';
-import { WorkoutFlowDebugPanel } from './WorkoutFlowDebugPanel';
+// Removed old WorkoutFlowDebugPanel - unified to WorkoutDebugFooter
 import { 
   Play, 
   Pause, 
@@ -890,22 +890,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   }}
                 />
                 
-                {/* Debug Panel */}
-                <WorkoutFlowDebugPanel
-                  enabled={true}
-                  debugTag="workout-flow-v0.5.2"
-                  selectedForm="SmartSetForm"
-                  exercise={{
-                    load_mode: currentExercise?.exercise?.load_mode,
-                    effort_mode: currentExercise?.exercise?.effort_mode,
-                    equipment_id: currentExercise?.exercise?.equipment_id
-                  }}
-                  latestWeightKg={undefined}
-                  lastPayload={undefined}
-                  assistMode={undefined}
-                  inputMagnitude={undefined}
-                  signedWeightToSend={undefined}
-                />
+                {/* OLD DEBUG PANEL REMOVED - v0.6.0 uses WorkoutDebugFooter only */}
               </>
             )}
 
