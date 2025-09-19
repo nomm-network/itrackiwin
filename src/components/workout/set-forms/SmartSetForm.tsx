@@ -21,30 +21,38 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
       effort_mode,
       load_mode,
       equipment_slug: equipment?.slug,
-      equipment_type: equipment?.equipment_type
+      equipment_type: equipment?.equipment_type,
+      fullExerciseObject: exercise
     });
 
-    // PRIMARY: Cardio exercises (time, distance, calories based)
+    // FIRST: Check actual database fields
     if (effort_mode === 'time' || effort_mode === 'distance' || effort_mode === 'calories') {
       console.log('🏃 Selected CARDIO form for exercise:', exercise.id, 'effort_mode:', effort_mode);
       return 'cardio';
     }
 
-    // CRITICAL: Bodyweight exercises based on load_mode (THE DEFINITIVE CHECK)
     if (load_mode === 'bodyweight_plus_optional' || load_mode === 'external_assist') {
-      console.log('💪 BODYWEIGHT FORM SELECTED for exercise:', exercise.id, 'load_mode:', load_mode);
+      console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'load_mode:', load_mode);
       return 'bodyweight';
     }
 
-    // Equipment-based fallback for bodyweight detection (backup)
+    // CRITICAL FIX: Equipment-based detection for dips since DB fields are missing
     const equipmentSlug = equipment?.slug;
-    if (equipmentSlug === 'dip-bars' || equipmentSlug === 'pull-up-bar' || equipmentSlug === 'bodyweight') {
-      console.log('💪 BODYWEIGHT FORM SELECTED (equipment fallback) for exercise:', exercise.id, 'equipment:', equipmentSlug);
+    if (equipmentSlug === 'dip-bars' || 
+        equipmentSlug === 'pull-up-bar' || 
+        equipmentSlug === 'bodyweight' ||
+        equipment?.equipment_type === 'bodyweight') {
+      console.log('💪 BODYWEIGHT FORM SELECTED (equipment-based) for exercise:', exercise.id, 'equipment:', equipmentSlug);
       return 'bodyweight';
     }
 
-    // FALLBACK: Default to weight & reps
-    console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, 'load_mode:', load_mode);
+    // Check exercise object directly for dips equipment_id
+    if ((exercise as any).equipment_id === 'fb81ae58-bf4e-44e8-b45a-6026147bca8e') {
+      console.log('💪 BODYWEIGHT FORM SELECTED (equipment_id match for dips) for exercise:', exercise.id);
+      return 'bodyweight';
+    }
+
+    console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, 'as fallback');
     return 'weightReps';
   };
 

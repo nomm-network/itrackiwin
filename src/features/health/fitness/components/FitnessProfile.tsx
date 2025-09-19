@@ -193,27 +193,44 @@ const FitnessProfile: React.FC = () => {
               </div>
             </div>
 
-            {/* Body Stats */}
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label htmlFor="bodyweight">Weight (kg)</Label>
-                <Input
-                  id="bodyweight"
-                  type="number"
-                  step="0.1"
-                  placeholder="70.5"
-                  {...register('bodyweight', { valueAsNumber: true })}
-                />
-              </div>
+            {/* Body Stats - NOW USING BODY METRICS TABLE ONLY */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold">Body Metrics</h3>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="bodyweight">Current Weight (kg)</Label>
+                  <Input
+                    id="bodyweight"
+                    type="number"
+                    step="0.1"
+                    placeholder="70.5"
+                    {...register('bodyweight', { 
+                      valueAsNumber: true,
+                      min: { value: 30, message: "Weight must be at least 30kg" },
+                      max: { value: 300, message: "Weight must be less than 300kg" }
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Latest: {latestMetrics?.weight_kg ? `${latestMetrics.weight_kg}kg` : 'Not set'}
+                  </p>
+                </div>
 
-              <div>
-                <Label htmlFor="height_cm">Height (cm)</Label>
-                <Input
-                  id="height_cm"
-                  type="number"
-                  placeholder="175"
-                  {...register('height_cm', { valueAsNumber: true })}
-                />
+                <div>
+                  <Label htmlFor="height_cm">Height (cm)</Label>
+                  <Input
+                    id="height_cm"
+                    type="number"
+                    placeholder="175"
+                    {...register('height_cm', { 
+                      valueAsNumber: true,
+                      min: { value: 100, message: "Height must be at least 100cm" },
+                      max: { value: 250, message: "Height must be less than 250cm" }
+                    })}
+                  />
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Latest: {latestMetrics?.height_cm ? `${latestMetrics.height_cm}cm` : 'Not set'}
+                  </p>
+                </div>
               </div>
             </div>
 
