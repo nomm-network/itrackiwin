@@ -10,9 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useFitnessProfile, useUpsertFitnessProfile, SexType } from '@/features/health/fitness/hooks/useFitnessProfile.hook';
 import { useHomeEquipment, EQUIPMENT_DISPLAY_MAP } from '@/features/health/fitness/hooks/useEquipment.hook';
 import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 export default function HealthConfigureBody() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('fitness');
   const [debugError, setDebugError] = useState<string | null>(null);
   
@@ -20,6 +22,30 @@ export default function HealthConfigureBody() {
   const { data: fitnessProfileData } = useFitnessProfile();
   const { data: homeEquipment, isLoading: isLoadingEquipment } = useHomeEquipment();
   const upsertProfile = useUpsertFitnessProfile();
+
+  // Fetch latest body metrics
+  const { data: latestBodyMetrics } = useQuery({
+    queryKey: ['user_body_metrics_latest'],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return null;
+
+      const { data, error } = await supabase
+        .from('user_body_metrics')
+        .select('weight_kg, height_cm, recorded_at')
+        .eq('user_id', user.id)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error fetching body metrics:', error);
+        return null;
+      }
+      
+      return data;
+    }
+  });
 
   // Fitness Profile State
   const [fitnessProfile, setFitnessProfile] = useState({
@@ -65,11 +91,11 @@ export default function HealthConfigureBody() {
         locationType: fitnessProfileData.location_type || '',
         availableEquipment: equipmentUuids,
         priorityMuscleGroups: fitnessProfileData.priority_muscle_groups || [],
-        bodyweight: undefined, // Will load from body metrics
-        height: undefined // Will load from body metrics
+        bodyweight: latestBodyMetrics?.weight_kg || undefined, // Load from body metrics
+        height: latestBodyMetrics?.height_cm || undefined // Load from body metrics
       });
     }
-  }, [fitnessProfileData, homeEquipment]);
+  }, [fitnessProfileData, homeEquipment, latestBodyMetrics]);
 
   // Nutrition Profile State  
   const [nutritionProfile, setNutritionProfile] = useState({
@@ -139,6 +165,9 @@ export default function HealthConfigureBody() {
             console.error('Error saving body metrics:', bodyMetricsError);
             throw bodyMetricsError;
           }
+
+          // Invalidate body metrics query to refresh the form
+          queryClient.invalidateQueries({ queryKey: ['user_body_metrics_latest'] });
         }
 
         toast({
