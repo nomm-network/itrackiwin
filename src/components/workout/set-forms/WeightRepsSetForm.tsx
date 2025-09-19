@@ -11,13 +11,15 @@ import {
   toast 
 } from './BaseSetForm';
 import RestTimerBadge from '../RestTimerBadge';
-import GripSelector from '../GripSelector';
-import WarmupBuilder from '../WarmupBuilder';
 import PerSideToggle from '../PerSideToggle';
 import QuickWeightChips from '../QuickWeightChips';
 import SetProgressDisplay from '../SetProgressDisplay';
 import FeelSelector from '../FeelSelector';
 import WorkoutDebugFooter from '../WorkoutDebugFooter';
+import ExerciseTitleRow from '../ExerciseTitleRow';
+import ExerciseGripMenu from '../ExerciseGripMenu';
+import ExerciseWarmupMenu from '../ExerciseWarmupMenu';
+import ExerciseSettingsMenu from '../ExerciseSettingsMenu';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -39,8 +41,18 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const [entryMode, setEntryMode] = useState<'per_side' | 'total'>('total');
   const [selectedFeel, setSelectedFeel] = useState<string | null>(null);
   const [restTimerActive, setRestTimerActive] = useState(false);
-  const [previousSet] = useState<any>(null); // TODO: fetch from workout history
-  const [targetSet] = useState<any>(null); // TODO: fetch from template
+  const [previousSet] = useState<any>(null);
+  const [targetSet] = useState<any>(null);
+  
+  // Menu states
+  const [showGripMenu, setShowGripMenu] = useState(false);
+  const [showWarmupMenu, setShowWarmupMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  
+  // Settings states
+  const [autoRestTimer, setAutoRestTimer] = useState(true);
+  const [showTargets, setShowTargets] = useState(true);
+  const [enableQuickAdd, setEnableQuickAdd] = useState(true);
   
   const { rpe, notes, restSeconds } = baseState;
   const loadMode = exercise.load_mode;
@@ -199,9 +211,59 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 
   return (
     <>
+      {/* Exercise Title Row with Menu */}
+      <ExerciseTitleRow
+        exerciseName={`Exercise ${exercise.id}`} // TODO: Add exercise name
+        exerciseOrder={1} // TODO: Get actual order
+        totalExercises={1} // TODO: Get total from workout
+        completedSets={setIndex}
+        targetSets={3} // TODO: Get target from template
+        onGripMenuOpen={() => {
+          setShowGripMenu(!showGripMenu);
+          setShowWarmupMenu(false);
+          setShowSettingsMenu(false);
+        }}
+        onWarmupMenuOpen={() => {
+          setShowWarmupMenu(!showWarmupMenu);
+          setShowGripMenu(false);
+          setShowSettingsMenu(false);
+        }}
+        onSettingsMenuOpen={() => {
+          setShowSettingsMenu(!showSettingsMenu);
+          setShowGripMenu(false);
+          setShowWarmupMenu(false);
+        }}
+      />
+
+      {/* Collapsible Menus */}
+      <ExerciseGripMenu
+        selectedGrip={selectedGrip}
+        onGripChange={setSelectedGrip}
+        isOpen={showGripMenu}
+        onClose={() => setShowGripMenu(false)}
+      />
+
+      <ExerciseWarmupMenu
+        targetWeight={Number(weight) || 60}
+        onStepComplete={handleWarmupStepComplete}
+        isOpen={showWarmupMenu}
+        onClose={() => setShowWarmupMenu(false)}
+      />
+
+      <ExerciseSettingsMenu
+        autoRestTimer={autoRestTimer}
+        onAutoRestTimerChange={setAutoRestTimer}
+        showTargets={showTargets}
+        onShowTargetsChange={setShowTargets}
+        enableQuickAdd={enableQuickAdd}
+        onEnableQuickAddChange={setEnableQuickAdd}
+        isOpen={showSettingsMenu}
+        onClose={() => setShowSettingsMenu(false)}
+      />
+
       <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
         {/* Rest Timer */}
-        {setIndex > 0 && (
+        {setIndex > 0 && autoRestTimer && (
           <RestTimerBadge
             initialSeconds={Number(restSeconds) || 120}
             isActive={restTimerActive}
@@ -210,26 +272,11 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         )}
 
         {/* Previous/Target Set Display */}
-        <SetProgressDisplay
-          previousSet={previousSet}
-          targetSet={targetSet}
-          currentSet={{ weight: Number(weight) || 0, reps: Number(reps) || 0 }}
-        />
-
-        {/* Grips Selector */}
-        <GripSelector
-          selectedGrip={selectedGrip}
-          onGripChange={setSelectedGrip}
-          exerciseId={exercise.id}
-          allowsGrips={true}
-        />
-
-        {/* Warmup Builder - only show for first set */}
-        {setIndex === 0 && weight !== '' && Number(weight) > 20 && (
-          <WarmupBuilder
-            targetWeight={Number(weight)}
-            exerciseId={exercise.id}
-            onStepComplete={handleWarmupStepComplete}
+        {showTargets && (
+          <SetProgressDisplay
+            previousSet={previousSet}
+            targetSet={targetSet}
+            currentSet={{ weight: Number(weight) || 0, reps: Number(reps) || 0 }}
           />
         )}
 
@@ -316,12 +363,14 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
 
         {/* Quick Weight Chips */}
-        <QuickWeightChips
-          currentWeight={weight}
-          onWeightChange={setWeight}
-          mode="loaded"
-          equipmentIncrement={2.5}
-        />
+        {enableQuickAdd && (
+          <QuickWeightChips
+            currentWeight={weight}
+            onWeightChange={setWeight}
+            mode="loaded"
+            equipmentIncrement={2.5}
+          />
+        )}
 
         {/* Feel Selector */}
         <FeelSelector
