@@ -853,7 +853,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 {/* Debug Panel */}
                 <WorkoutFlowDebugPanel
                   enabled={true}
-                  debugTag="workout-flow-v0.5.0"
+                  debugTag="workout-flow-v0.5.2"
                   selectedForm="SmartSetForm"
                   exercise={{
                     load_mode: currentExercise?.exercise?.load_mode,
@@ -862,6 +862,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   }}
                   latestWeightKg={undefined}
                   lastPayload={undefined}
+                  assistMode={undefined}
+                  inputMagnitude={undefined}
+                  signedWeightToSend={undefined}
                 />
               </>
             )}

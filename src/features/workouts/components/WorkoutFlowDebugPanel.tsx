@@ -13,6 +13,10 @@ interface WorkoutFlowDebugPanelProps {
   };
   latestWeightKg?: number;
   lastPayload?: any;
+  // v0.5.2 specific fields
+  assistMode?: 'added' | 'assist';
+  inputMagnitude?: number;
+  signedWeightToSend?: number;
 }
 
 export const WorkoutFlowDebugPanel: React.FC<WorkoutFlowDebugPanelProps> = ({
@@ -21,7 +25,10 @@ export const WorkoutFlowDebugPanel: React.FC<WorkoutFlowDebugPanelProps> = ({
   selectedForm,
   exercise,
   latestWeightKg,
-  lastPayload
+  lastPayload,
+  assistMode,
+  inputMagnitude,
+  signedWeightToSend
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -44,6 +51,14 @@ export const WorkoutFlowDebugPanel: React.FC<WorkoutFlowDebugPanelProps> = ({
             </>
           )}
           <div><strong>latestWeightKg:</strong> {latestWeightKg || 'none'}</div>
+          {/* v0.5.2 specific debug info */}
+          {exercise?.load_mode === 'bodyweight_plus_optional' && (
+            <>
+              <div><strong>assistMode:</strong> {assistMode || 'none'}</div>
+              <div><strong>inputMagnitude:</strong> {inputMagnitude || 'none'}</div>
+              <div><strong>signedWeightToSend:</strong> {signedWeightToSend || 'none'}</div>
+            </>
+          )}
           {lastPayload && (
             <div className="pt-2 border-t border-zinc-700">
               <div><strong>Last payload preview:</strong></div>
