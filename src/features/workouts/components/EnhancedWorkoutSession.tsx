@@ -860,70 +860,72 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <>
             {currentExercise && (
               <>
-                {/* Exercise Title Row with Menu Icons */}
-                <div className="bg-card rounded-lg p-4 mb-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <div className="flex-1">
-                      <h2 className="text-lg font-semibold text-foreground">
-                        {getExerciseName()}
-                      </h2>
-                      <div className="flex items-center gap-2 mt-1">
-                        <Badge variant="outline" className="text-xs">
-                          {currentExercise?.exercise_id?.slice(0, 1) || '1'}/{totalExercises}
-                        </Badge>
-                        <Badge variant="secondary" className="text-xs">
-                          {completedSetsCount}/{targetSetsCount} sets
-                        </Badge>
-                      </div>
-                    </div>
-                    
-                    {/* Menu with Icons */}
-                    <div className="flex items-center gap-2">
-                      {/* Grips Icon */}
+                {/* Exercise Title Row - EXACT OLD DESIGN */}
+                <div className="flex items-center justify-between p-4 mb-4">
+                  <div className="flex-1">
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                      {getExerciseName()}
+                    </h2>
+                    <div className="flex items-center gap-3">
+                      {/* Grips Hand Icon */}
                       <Button
                         variant="ghost" 
                         size="sm"
                         onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
-                        className="h-8 w-8 p-0"
+                        className="h-10 w-10 p-0 text-white/70 hover:text-white"
                       >
-                        <Hand className="h-4 w-4" />
+                        <Hand className="h-5 w-5" />
+                      </Button>
+                      
+                      {/* Target/Difficulty Icon - blue background like reference */}
+                      <Button
+                        variant="ghost"
+                        size="sm" 
+                        className="h-10 w-10 p-0 bg-blue-600 text-white hover:bg-blue-700 rounded"
+                      >
+                        <span className="text-sm font-bold">T2</span>
                       </Button>
                       
                       {/* Target Icon */}
                       <Button
                         variant="ghost"
-                        size="sm" 
-                        className="h-8 w-8 p-0"
+                        size="sm"
+                        className="h-10 w-10 p-0 text-yellow-500 hover:text-yellow-400"
                       >
-                        <Target className="h-4 w-4" />
+                        <Target className="h-5 w-5" />
                       </Button>
                       
-                      {/* Settings Dropdown */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-8 w-8 p-0"
-                      >
-                        <Settings className="h-4 w-4" />
-                      </Button>
+                      {/* Sets Progress Badge */}
+                      <Badge variant="secondary" className="text-sm bg-gray-700 text-gray-300">
+                        {completedSetsCount}/{targetSetsCount} sets
+                      </Badge>
                     </div>
                   </div>
                 </div>
 
-                {/* Completed Sets */}
+                {/* Completed Sets - EXACT OLD DESIGN */}
                 {sets.filter((set: any) => set.is_completed).length > 0 && (
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-3 mb-4 px-4">
                     {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
-                      <div key={set.id || index} className="bg-muted rounded-lg p-3">
-                        <div className="flex items-center gap-3">
-                          <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-medium">
-                            {index + 1}
+                      <div key={set.id || index} className="bg-gray-800 rounded-lg p-4 border border-gray-700">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="flex items-center justify-center w-8 h-8 bg-gray-600 text-white rounded-full text-sm font-bold">
+                              {index + 1}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">🏋️</span>
+                              <span className="text-white font-medium">{set.weight_kg || 0}kg × {set.reps || 0} reps</span>
+                              {set.feel && <span className="text-lg">{set.feel}</span>}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="font-medium">{set.weight_kg || 0}kg</span>
-                            <span className="text-muted-foreground">×</span>
-                            <span className="font-medium">{set.reps || 0} reps</span>
-                            {set.feel && <span className="text-lg">{set.feel}</span>}
+                          <div className="flex items-center gap-2">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400">
+                              <span className="text-sm">✏️</span>
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400">
+                              <span className="text-sm">⬇️</span>
+                            </Button>
                           </div>
                         </div>
                       </div>
@@ -931,31 +933,44 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   </div>
                 )}
 
-                {/* Current Set Section */}
-                <div className="bg-accent rounded-lg p-4 mb-4">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center justify-center w-8 h-8 bg-primary text-primary-foreground rounded-full text-sm font-medium">
+                {/* Current Set Section - EXACT OLD DESIGN */}
+                <div className="bg-green-600 rounded-lg p-4 mx-4 mb-4">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full text-sm font-bold">
                       {currentSetNumber}
                     </div>
-                    <span className="text-sm font-medium">Current Set</span>
+                    <span className="text-white font-medium">Current Set</span>
                   </div>
                   
-                  {/* Previous/Target Display */}
-                  <div className="grid grid-cols-2 gap-3 mb-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <span className="text-muted-foreground">Prev</span>
-                      <span className="font-medium">40kg × 8</span>
-                      <span className="text-lg">🙂</span>
-                    </div>
-                    <div className="flex items-center gap-2 text-sm">
-                      <Target className="h-4 w-4 text-destructive" />
-                      <span className="text-muted-foreground">Target</span>
-                      <span className="font-medium">40kg × 10</span>
+                  {/* Previous/Target Display with Timer - EXACT OLD LAYOUT */}
+                  <div className="bg-gray-800 rounded-lg p-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-lg">🏋️</span>
+                          <span className="text-gray-400">Prev</span>
+                          <span className="text-white font-medium">40kg × 8</span>
+                          <span className="text-lg">🙂</span>
+                        </div>
+                        <div className="flex items-center gap-2 text-sm">
+                          <span className="text-red-500">🎯</span>
+                          <span className="text-gray-400">Target</span>
+                          <span className="text-white font-medium">40kg × 10</span>
+                        </div>
+                      </div>
+                      
+                      {/* Timer - RIGHT SIDE like reference */}
+                      <div className="flex justify-end">
+                        <div className="bg-gray-700 rounded-lg px-4 py-2 flex items-center gap-2">
+                          <span className="text-green-400">🕒</span>
+                          <span className="text-green-400 font-mono text-lg">0:24</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
 
-                {/* SmartSetForm for input */}
+                {/* SmartSetForm for input - REMOVE the duplicate title from here */}
                 <SmartSetForm
                   workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                   exercise={{
@@ -969,10 +984,8 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   }}
                   setIndex={sets.filter((set: any) => set.is_completed).length}
                   onLogged={() => {
-                    // Hide warmup when first set is completed
                     setWarmupCompleted(true);
                     const weId = resolveWorkoutExerciseId(currentExercise);
-                    // Simple set completion for SmartSetForm
                     handleSetComplete(weId, {
                       weight: 0,
                       reps: 0,

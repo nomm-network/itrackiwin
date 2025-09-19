@@ -16,10 +16,8 @@ import QuickWeightChips from '../QuickWeightChips';
 import SetProgressDisplay from '../SetProgressDisplay';
 import FeelSelector from '../FeelSelector';
 // Removed WorkoutDebugFooter import - debug handled by session level
-import ExerciseTitleRow from '../ExerciseTitleRow';
-import ExerciseGripMenu from '../ExerciseGripMenu';
-import ExerciseWarmupMenu from '../ExerciseWarmupMenu';
-import ExerciseSettingsMenu from '../ExerciseSettingsMenu';
+// Removed individual form components - session handles title/menus now
+// import ExerciseTitleRow from '../ExerciseTitleRow';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -44,10 +42,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const [previousSet] = useState<any>(null);
   const [targetSet] = useState<any>(null);
   
-  // Menu states
-  const [showGripMenu, setShowGripMenu] = useState(false);
-  const [showWarmupMenu, setShowWarmupMenu] = useState(false);
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  // Menu states removed - handled by session level
   
   // Settings states
   const [autoRestTimer, setAutoRestTimer] = useState(true);
@@ -211,55 +206,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 
   return (
     <>
-      {/* Exercise Title Row with Menu */}
-      <ExerciseTitleRow
-        exerciseName={`Exercise ${exercise.id}`} // TODO: Add exercise name
-        exerciseOrder={1} // TODO: Get actual order
-        totalExercises={1} // TODO: Get total from workout
-        completedSets={setIndex}
-        targetSets={3} // TODO: Get target from template
-        onGripMenuOpen={() => {
-          setShowGripMenu(!showGripMenu);
-          setShowWarmupMenu(false);
-          setShowSettingsMenu(false);
-        }}
-        onWarmupMenuOpen={() => {
-          setShowWarmupMenu(!showWarmupMenu);
-          setShowGripMenu(false);
-          setShowSettingsMenu(false);
-        }}
-        onSettingsMenuOpen={() => {
-          setShowSettingsMenu(!showSettingsMenu);
-          setShowGripMenu(false);
-          setShowWarmupMenu(false);
-        }}
-      />
-
-      {/* Collapsible Menus */}
-      <ExerciseGripMenu
-        selectedGrip={selectedGrip}
-        onGripChange={setSelectedGrip}
-        isOpen={showGripMenu}
-        onClose={() => setShowGripMenu(false)}
-      />
-
-      <ExerciseWarmupMenu
-        targetWeight={Number(weight) || 60}
-        onStepComplete={handleWarmupStepComplete}
-        isOpen={showWarmupMenu}
-        onClose={() => setShowWarmupMenu(false)}
-      />
-
-      <ExerciseSettingsMenu
-        autoRestTimer={autoRestTimer}
-        onAutoRestTimerChange={setAutoRestTimer}
-        showTargets={showTargets}
-        onShowTargetsChange={setShowTargets}
-        enableQuickAdd={enableQuickAdd}
-        onEnableQuickAddChange={setEnableQuickAdd}
-        isOpen={showSettingsMenu}
-        onClose={() => setShowSettingsMenu(false)}
-      />
+      {/* Exercise Title and Menus handled by session level - removed duplicate */}
 
       <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
         {/* Rest Timer */}
