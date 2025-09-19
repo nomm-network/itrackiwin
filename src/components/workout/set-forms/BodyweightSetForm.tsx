@@ -188,9 +188,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
           {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
             <div className="space-y-2">
               <Label htmlFor="weight">
-                {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Additional Weight (kg)'}
+                {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Added / Assist (kg)'}
                 {loadMode === 'external_assist' && (
                   <span className="text-xs text-muted-foreground ml-1">(positive values)</span>
+                )}
+                {loadMode === 'bodyweight_plus_optional' && (
+                  <span className="text-xs text-muted-foreground ml-1">(use negative for assistance)</span>
                 )}
               </Label>
               <div className="flex gap-1">

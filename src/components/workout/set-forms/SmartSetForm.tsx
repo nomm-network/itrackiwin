@@ -25,35 +25,20 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
       equipment_full: equipment
     });
 
-    // Cardio exercises (time, distance, calories based)
+    // PRIMARY: Cardio exercises (time, distance, calories based)
     if (effort_mode === 'time' || effort_mode === 'distance' || effort_mode === 'calories') {
       console.log('🏃 Selected CARDIO form for exercise:', exercise.id, 'effort_mode:', effort_mode);
       return 'cardio';
     }
 
-    // Primary bodyweight detection: load_mode first
+    // SECONDARY: Bodyweight exercises based on load_mode (THE DEFINITIVE CHECK)
     if (load_mode === 'bodyweight_plus_optional' || load_mode === 'external_assist') {
       console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'load_mode:', load_mode);
       return 'bodyweight';
     }
 
-    // Secondary bodyweight detection: equipment-based
-    const equipmentSlug = equipment?.slug;
-    const equipmentType = equipment?.equipment_type;
-    
-    if (equipmentSlug === 'bodyweight' || 
-        equipmentSlug === 'dip-bars' || 
-        equipmentSlug === 'pull-up-bar' ||
-        equipmentType === 'bodyweight' ||
-        equipmentSlug?.includes('bodyweight') ||
-        equipmentSlug?.includes('dip') ||
-        equipmentSlug?.includes('pull-up')) {
-      console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'equipment based:', equipmentSlug);
-      return 'bodyweight';
-    }
-
-    // Default to weight & reps for traditional strength training
-    console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, '(default fallback)');
+    // FALLBACK: Default to weight & reps for external_added and other load modes
+    console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, 'load_mode:', load_mode);
     return 'weightReps';
   };
 

@@ -166,8 +166,9 @@ export const useUnifiedSetLogging = () => {
       payload.load_meta = options.metrics.load_meta || {}; // NOT NULL constraint
       
       // For bodyweight exercises, add logged bodyweight to load_meta
-      if (options.metrics.load_mode === 'bodyweight_plus_optional' && options.userBodyweight) {
+      if ((options.metrics.load_mode === 'bodyweight_plus_optional' || options.metrics.load_mode === 'external_assist') && options.userBodyweight) {
         payload.load_meta.logged_bodyweight_kg = options.userBodyweight;
+        console.log('🏋️ Added logged_bodyweight_kg to payload:', options.userBodyweight);
       }
       
       // Add grip handling if provided
