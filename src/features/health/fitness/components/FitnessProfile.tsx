@@ -158,7 +158,10 @@ const FitnessProfile: React.FC = () => {
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label htmlFor="sex">Sex</Label>
-                <Select onValueChange={(value) => setValue('sex', value as any)}>
+                <Select 
+                  value={watch('sex') || ''} 
+                  onValueChange={(value) => setValue('sex', value as any)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select..." />
                   </SelectTrigger>
@@ -172,7 +175,10 @@ const FitnessProfile: React.FC = () => {
 
               <div>
                 <Label htmlFor="goal">Primary Goal</Label>
-                <Select onValueChange={(value) => setValue('goal', value as any)}>
+                <Select 
+                  value={watch('goal') || 'hypertrophy'} 
+                  onValueChange={(value) => setValue('goal', value as any)}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Select goal..." />
                   </SelectTrigger>

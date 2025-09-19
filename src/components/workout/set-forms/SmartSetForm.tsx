@@ -16,37 +16,44 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
 
   // Determine form type based on exercise characteristics
   const getFormType = (): 'bodyweight' | 'weightReps' | 'cardio' => {
-    console.log('SmartSetForm debug:', {
+    console.log('🎯 SmartSetForm Form Selection Debug:', {
       exerciseId: exercise.id,
       effort_mode,
       load_mode,
       equipment_slug: equipment?.slug,
-      equipment_type: equipment?.equipment_type
+      equipment_type: equipment?.equipment_type,
+      equipment_full: equipment
     });
 
     // Cardio exercises (time, distance, calories based)
     if (effort_mode === 'time' || effort_mode === 'distance' || effort_mode === 'calories') {
-      console.log('Selected cardio form for exercise:', exercise.id);
+      console.log('🏃 Selected CARDIO form for exercise:', exercise.id, 'effort_mode:', effort_mode);
       return 'cardio';
     }
 
-    // Bodyweight exercises (with optional assistance or added weight)
+    // Primary bodyweight detection: load_mode first
     if (load_mode === 'bodyweight_plus_optional' || load_mode === 'external_assist') {
-      console.log('Selected bodyweight form for exercise:', exercise.id, 'load_mode:', load_mode);
+      console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'load_mode:', load_mode);
       return 'bodyweight';
     }
 
-    // Equipment-based detection for bodyweight
-    if (equipment?.slug === 'bodyweight' || 
-        equipment?.slug === 'dip-bars' || 
-        equipment?.slug === 'pull-up-bar' ||
-        equipment?.equipment_type === 'bodyweight') {
-      console.log('Selected bodyweight form for exercise:', exercise.id, 'equipment:', equipment?.slug);
+    // Secondary bodyweight detection: equipment-based
+    const equipmentSlug = equipment?.slug;
+    const equipmentType = equipment?.equipment_type;
+    
+    if (equipmentSlug === 'bodyweight' || 
+        equipmentSlug === 'dip-bars' || 
+        equipmentSlug === 'pull-up-bar' ||
+        equipmentType === 'bodyweight' ||
+        equipmentSlug?.includes('bodyweight') ||
+        equipmentSlug?.includes('dip') ||
+        equipmentSlug?.includes('pull-up')) {
+      console.log('💪 Selected BODYWEIGHT form for exercise:', exercise.id, 'equipment based:', equipmentSlug);
       return 'bodyweight';
     }
 
     // Default to weight & reps for traditional strength training
-    console.log('Selected weightReps form for exercise:', exercise.id, '(default)');
+    console.log('🏋️ Selected WEIGHT-REPS form for exercise:', exercise.id, '(default fallback)');
     return 'weightReps';
   };
 
