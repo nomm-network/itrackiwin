@@ -828,6 +828,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     .filter((set: any) => set.is_completed)
                     .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0)),
                   load_type: currentExercise?.exercise?.load_type || currentExercise?.load_type,
+                  load_mode: currentExercise?.exercise?.load_mode,
+                  effort_mode: currentExercise?.exercise?.effort_mode,
+                  equipment_id: currentExercise?.exercise?.equipment_id,
                   equipment_ref: (() => {
                     const equipRef = getEquipmentRefId(currentExercise);
                     console.log('🚨 RED DEBUG - Equipment Ref being passed:', {

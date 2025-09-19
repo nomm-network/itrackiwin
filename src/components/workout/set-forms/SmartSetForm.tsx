@@ -15,11 +15,12 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
 
   // Determine form type ONLY from database fields
   const getFormType = (): 'bodyweight' | 'weightReps' | 'cardio' => {
-    console.log('🎯 SmartSetForm v0.4.1 Debug:', {
+    console.log('🎯 SmartSetForm v0.4.2 Debug:', {
       exerciseId: exercise.id,
       effort_mode,
       load_mode,
-      equipment_id: (exercise as any).equipment_id
+      equipment_id: (exercise as any).equipment_id,
+      fullExercise: exercise
     });
 
     // Time-based exercises = cardio form

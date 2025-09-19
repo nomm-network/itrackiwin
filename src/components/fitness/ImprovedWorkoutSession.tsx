@@ -46,6 +46,8 @@ interface ExerciseData {
   load_type?: string;
   equipment_ref?: string;
   load_mode?: string;
+  effort_mode?: string;
+  equipment_id?: string;
   attribute_values_json?: {
     bodyweight_involvement_pct?: number;
     [key: string]: any;
@@ -572,8 +574,9 @@ export default function ImprovedWorkoutSession({
               exercise={{
                 id: exerciseId,
                 load_type: exercise.load_type,
-                effort_mode: 'reps', // TODO: Get from exercise data
-                load_mode: 'external_added', // Default for now
+                effort_mode: (exercise.effort_mode as 'reps' | 'time' | 'distance' | 'calories') || 'reps',
+                load_mode: (exercise.load_mode as 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level') || 'external_added',
+                equipment_id: exercise.equipment_id,
                 equipment_ref: exercise.equipment_ref,
                 equipment: {
                   slug: exercise.equipment_ref,

@@ -11,6 +11,7 @@ interface EnhancedSetEditorProps {
     load_type?: string;
     effort_mode?: 'reps' | 'time' | 'distance' | 'calories';
     load_mode?: 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level';
+    equipment_id?: string;
     equipment_ref?: string;
     equipment?: {
       slug?: string;
