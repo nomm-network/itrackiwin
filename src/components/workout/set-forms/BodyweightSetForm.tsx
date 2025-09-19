@@ -1,0 +1,280 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Minus, Weight } from 'lucide-react';
+import { 
+  BaseSetFormProps, 
+  CommonFields, 
+  AssistanceSelector,
+  useBaseFormState,
+  useUnifiedSetLogging,
+  toast 
+} from './BaseSetForm';
+
+interface BodyweightSetFormProps extends BaseSetFormProps {}
+
+const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
+  workoutExerciseId,
+  exercise,
+  setIndex,
+  onLogged,
+  onCancel,
+  className
+}) => {
+  const { logSet, isLoading } = useUnifiedSetLogging();
+  const [baseState, setBaseState] = useBaseFormState();
+  
+  // Bodyweight-specific fields
+  const [reps, setReps] = useState<number | ''>('');
+  const [additionalWeight, setAdditionalWeight] = useState<number | ''>('');
+  
+  const { rpe, notes, restSeconds, assistType, loadMeta } = baseState;
+  const loadMode = exercise.load_mode;
+
+  const handleAssistTypeChange = (type: 'band' | 'machine' | null) => {
+    setBaseState(prev => ({
+      ...prev,
+      assistType: type,
+      loadMeta: { ...prev.loadMeta, assist_type: type }
+    }));
+  };
+
+  // Quick weight adjustment buttons
+  const quickWeights = [0, 5, 10, 15, 20, 25];
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!reps) {
+      toast({
+        title: "Reps Required",
+        description: "Please enter the number of reps for this set.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Validation for load modes
+    if (loadMode === 'external_assist' && additionalWeight !== '' && Number(additionalWeight) > 0) {
+      toast({
+        title: "Invalid Weight", 
+        description: "Assisted exercises should use negative values for assistance.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      const metrics: any = {
+        notes: notes || undefined,
+        rpe: rpe ? Number(rpe) : undefined,
+        effort: 'reps',
+        load_mode: loadMode,
+        reps: Number(reps)
+      };
+
+      // Handle weight based on load mode
+      if (loadMode !== 'none' && additionalWeight !== '') {
+        let finalWeight = Number(additionalWeight);
+        
+        // For assisted exercises, weight should be negative
+        if (loadMode === 'external_assist' && assistType && finalWeight > 0) {
+          finalWeight = -finalWeight;
+        }
+        
+        metrics.weight = finalWeight;
+        metrics.weight_unit = 'kg';
+      }
+
+      // Add load metadata for assisted exercises
+      if (Object.keys(loadMeta).length > 0) {
+        metrics.load_meta = loadMeta;
+      }
+
+      await logSet({
+        workoutExerciseId,
+        setIndex,
+        metrics
+      });
+      
+      const weightDisplay = getWeightDisplay(additionalWeight, loadMode, assistType);
+      toast({
+        title: "Set Logged Successfully",
+        description: `Set ${setIndex + 1}: ${weightDisplay} × ${reps} reps`,
+      });
+
+      // Reset form
+      setReps('');
+      setAdditionalWeight('');
+      setBaseState(prev => ({ ...prev, rpe: '', notes: '', assistType: null, loadMeta: {} }));
+      
+      onLogged();
+    } catch (error) {
+      console.error('Error logging set:', error);
+      toast({
+        title: "Error",
+        description: "Failed to log set. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const getWeightDisplay = (weight: number | '', loadMode: string, assistType: 'band' | 'machine' | null): string => {
+    if (weight === '' || weight === 0) {
+      return 'Bodyweight';
+    }
+    
+    if (loadMode === 'external_assist') {
+      const assistText = assistType ? ` (${assistType})` : '';
+      return `BW - ${Math.abs(Number(weight))}kg${assistText}`;
+    }
+    
+    return `BW + ${weight}kg`;
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
+      {/* Exercise Type Badge */}
+      <div className="flex items-center gap-2">
+        <Weight className="h-4 w-4 text-primary" />
+        <Badge variant="secondary">Bodyweight Exercise</Badge>
+        {loadMode === 'bodyweight_plus_optional' && (
+          <Badge variant="outline">Optional Weight</Badge>
+        )}
+        {loadMode === 'external_assist' && (
+          <Badge variant="outline">Assisted</Badge>
+        )}
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        {/* Reps Input */}
+        <div className="space-y-2">
+          <Label htmlFor="reps">Reps *</Label>
+          <Input
+            id="reps"
+            type="number"
+            value={reps}
+            onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
+            min={0}
+            step={1}
+            placeholder="8"
+            required
+          />
+        </div>
+
+        {/* Additional Weight Input */}
+        {(loadMode === 'bodyweight_plus_optional' || loadMode === 'external_assist') && (
+          <div className="space-y-2">
+            <Label htmlFor="weight">
+              {loadMode === 'external_assist' ? 'Assistance (kg)' : 'Additional Weight (kg)'}
+              {loadMode === 'external_assist' && (
+                <span className="text-xs text-muted-foreground ml-1">(positive values)</span>
+              )}
+            </Label>
+            <div className="flex gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAdditionalWeight(prev => Math.max(0, Number(prev || 0) - 2.5))}
+                className="px-2 h-9"
+              >
+                <Minus className="w-3 h-3" />
+              </Button>
+              <Input
+                id="weight"
+                type="number"
+                value={additionalWeight}
+                onChange={(e) => setAdditionalWeight(e.target.value === '' ? '' : Number(e.target.value))}
+                step={2.5}
+                min={0}
+                placeholder="0"
+                className="flex-1"
+              />
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setAdditionalWeight(prev => Number(prev || 0) + 2.5)}
+                className="px-2 h-9"
+              >
+                <Plus className="w-3 h-3" />
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Quick Weight Buttons for bodyweight_plus_optional */}
+      {loadMode === 'bodyweight_plus_optional' && (
+        <div className="space-y-2">
+          <Label className="text-sm">Quick Weights</Label>
+          <div className="flex gap-2 flex-wrap">
+            {quickWeights.map((weight) => (
+              <Button
+                key={weight}
+                type="button"
+                variant={additionalWeight === weight ? "default" : "outline"}
+                size="sm"
+                onClick={() => setAdditionalWeight(weight)}
+                className="text-xs px-3"
+              >
+                {weight === 0 ? 'BW' : `+${weight}kg`}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Assistance Type Selector */}
+      {loadMode === 'external_assist' && (
+        <AssistanceSelector 
+          assistType={assistType}
+          onAssistTypeChange={handleAssistTypeChange}
+        />
+      )}
+
+      {/* Total Load Display */}
+      <div className="text-sm bg-muted p-3 rounded-md">
+        <div className="font-medium">Total Load: {getWeightDisplay(additionalWeight, loadMode, assistType)}</div>
+        {loadMode === 'bodyweight_plus_optional' && additionalWeight !== '' && Number(additionalWeight) > 0 && (
+          <div className="text-xs text-muted-foreground mt-1">
+            Bodyweight + {additionalWeight}kg additional
+          </div>
+        )}
+      </div>
+
+      {/* Common Fields */}
+      <div className="grid grid-cols-2 gap-4">
+        <CommonFields
+          rpe={rpe}
+          notes={notes}
+          restSeconds={restSeconds}
+          onRpeChange={(value) => setBaseState(prev => ({ ...prev, rpe: value }))}
+          onNotesChange={(value) => setBaseState(prev => ({ ...prev, notes: value }))}
+          onRestSecondsChange={(value) => setBaseState(prev => ({ ...prev, restSeconds: value }))}
+        />
+      </div>
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        {onCancel && (
+          <Button type="button" variant="outline" onClick={onCancel} className="flex-1">
+            Cancel
+          </Button>
+        )}
+        <Button 
+          type="submit" 
+          disabled={isLoading || !reps} 
+          className="flex-1"
+        >
+          {isLoading ? 'Logging...' : `Log Set ${setIndex + 1}`}
+        </Button>
+      </div>
+    </form>
+  );
+};
+
+export default BodyweightSetForm;
