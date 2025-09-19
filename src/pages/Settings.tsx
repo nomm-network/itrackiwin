@@ -6,7 +6,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts';
-import { NavigationSettings } from '@/components/settings/NavigationSettings';
+import { NavigationSettings } from '@/components/settings/NavigationSettingsWithCoaches';
 
 const setSeo = () => {
   const title = "Settings | I Track I Win";
