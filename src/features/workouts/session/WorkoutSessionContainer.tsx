@@ -11,12 +11,12 @@ import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fi
 import WorkoutSessionBody from './WorkoutSessionBody';
 
 export default function WorkoutSessionContainer() {
-  const { id } = useParams();
+  const { workoutId } = useParams();
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
   // Fix 1: Assert we have a valid workout ID - no fallbacks to "test"
-  if (!id) {
+  if (!workoutId) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="text-center">
@@ -28,13 +28,13 @@ export default function WorkoutSessionContainer() {
   }
   
   // Fix 6: Readiness check with proper invalidation
-  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, user?.id);
-  const { createCheckin } = usePreWorkoutCheckin(id);
+  const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workoutId, user?.id);
+  const { createCheckin } = usePreWorkoutCheckin(workoutId);
   
   // Fix 2 & 3: Fetch workout with proper joins including exercise names and warmup data
   const { data: workout, isLoading: workoutLoading } = useQuery({
-    queryKey: ['workout-session', id],
-    enabled: Boolean(id),
+    queryKey: ['workout-session', workoutId],
+    enabled: Boolean(workoutId),
     staleTime: 0,
     gcTime: 0,
     queryFn: async () => {
@@ -94,7 +94,7 @@ export default function WorkoutSessionContainer() {
             )
           )
         `)
-        .eq('id', id)
+        .eq('id', workoutId)
         .single();
       
       if (error) throw error;
@@ -124,12 +124,12 @@ export default function WorkoutSessionContainer() {
       
       // Fix 6: Proper readiness invalidation 
       console.info('[workout-flow-v0.6.1] readiness logged – invalidated readiness query');
-      queryClient.setQueryData(['workout-readiness', id, user?.id], false);
-      queryClient.invalidateQueries({ queryKey: ['workout-readiness', id, user?.id] });
+      queryClient.setQueryData(['workout-readiness', workoutId, user?.id], false);
+      queryClient.invalidateQueries({ queryKey: ['workout-readiness', workoutId, user?.id] });
     } catch (error) {
       console.error('Failed to create checkin:', error);
       // Even if checkin fails, allow workout to proceed
-      queryClient.setQueryData(['workout-readiness', id, user?.id], false);
+      queryClient.setQueryData(['workout-readiness', workoutId, user?.id], false);
     }
   };
 
@@ -148,12 +148,12 @@ export default function WorkoutSessionContainer() {
     return (
       <div className="container mx-auto p-4 max-w-md pb-20">
         <EnhancedReadinessCheckIn
-          workoutId={id!}
+          workoutId={workoutId!}
           onSubmit={handleReadinessSubmit}
         />
       </div>
     );
   }
 
-  return <WorkoutSessionBody workout={workout} workoutId={id} />;
+  return <WorkoutSessionBody workout={workout} workoutId={workoutId} />;
 }
