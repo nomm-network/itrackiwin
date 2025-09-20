@@ -311,7 +311,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     return `Exercise ${exerciseId?.slice(0, 8) || 'Unknown'}`;
   };
   
-  const targetSetsCount = sets.length || 3;
+  const targetSetsCount = currentExercise?.target_sets || 3;
   const currentSetNumber = completedSetsCount + 1;
   
   // Find current set index (first non-completed set)
