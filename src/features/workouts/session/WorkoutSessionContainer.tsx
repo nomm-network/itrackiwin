@@ -38,6 +38,8 @@ export default function WorkoutSessionContainer() {
     enabled: Boolean(workoutId),
     staleTime: 0,
     queryFn: async () => {
+      console.log('🔍 [v0.7.0] Fetching workout data for ID:', workoutId);
+      
       const { data, error } = await supabase
         .from('workouts')
         .select(`
@@ -46,7 +48,7 @@ export default function WorkoutSessionContainer() {
             id, order_index, target_sets, target_reps, target_weight_kg, weight_unit,
             attribute_values_json, display_name,
             exercise:exercises(
-              id, display_name, name, slug, effort_mode, load_mode, allows_grips, is_unilateral,
+              id, display_name, slug, effort_mode, load_mode, allows_grips, is_unilateral,
               equipment:equipment_id(id, equipment_type, default_bar_weight_kg, slug)
             ),
             sets:workout_sets(
@@ -56,9 +58,20 @@ export default function WorkoutSessionContainer() {
           )
         `)
         .eq('id', workoutId)
-        .single();
+        .maybeSingle();
       
-      if (error) throw error;
+      console.log('🔍 [v0.7.0] Workout query result:', { data, error, exerciseCount: data?.exercises?.length });
+      
+      if (error) {
+        console.error('❌ [v0.7.0] Workout query error:', error);
+        throw error;
+      }
+      
+      if (!data) {
+        console.warn('⚠️ [v0.7.0] No workout found for ID:', workoutId);
+        return null;
+      }
+      
       return data;
     }
   });

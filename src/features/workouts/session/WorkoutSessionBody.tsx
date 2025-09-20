@@ -109,7 +109,6 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   const getExerciseName = () => {
     return currentExercise?.display_name
         || currentExercise?.exercise?.display_name 
-        || currentExercise?.exercise?.name 
         || 'Exercise';
   };
 
@@ -248,13 +247,47 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   };
 
   if (!currentExercise) {
+    console.warn('⚠️ [v0.7.0] No current exercise found. Debug info:', {
+      workout: !!workout,
+      workoutTitle: workout?.title,
+      exercisesArray: workout?.exercises,
+      exerciseCount: workout?.exercises?.length,
+      currentExerciseId,
+      firstExercise: workout?.exercises?.[0]
+    });
+    
     return (
       <div className="container mx-auto p-4">
         <Card>
           <CardContent className="pt-6">
             <p className="text-center text-muted-foreground">No exercises found in this workout.</p>
+            <div className="mt-4 text-xs text-muted-foreground text-center">
+              <p>Debug: {workout?.exercises?.length || 0} exercises in workout</p>
+              <p>Workout ID: {workoutId}</p>
+            </div>
           </CardContent>
         </Card>
+        <WorkoutDebugFooter debugInfo={{
+          version: 'workout-flow-v0.7.0',
+          templateId: workout?.template_id || null,
+          workoutId: workoutId,
+          exerciseId: null,
+          exerciseTitle: 'No exercise',
+          effort_mode: null,
+          load_mode: null,
+          hasWarmup: false,
+          shouldShowReadiness: false,
+          sessionSource: 'direct',
+          router: 'main',
+          logger: 'error-state',
+          restTimer: false,
+          grips: false,
+          gripKey: null,
+          warmup: false,
+          warmupSteps: 0,
+          entryMode: 'total' as const,
+          payloadPreview: { error: 'No exercises found', exerciseCount: workout?.exercises?.length }
+        }} />
       </div>
     );
   }
