@@ -116,6 +116,8 @@ const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
 const TestDynamicNav = lazy(() => import('@/pages/TestDynamicNav'));
 
+const WorkoutReadiness = lazy(() => import('@/pages/WorkoutReadiness'));
+
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
     <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
@@ -318,6 +320,7 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           }>
             <Route index element={<StartOrContinue />} />
+            <Route path="start/:templateId" element={<WorkoutReadiness />} />
             <Route path=":workoutId" element={<LazyWorkoutPage />} />
           </Route>
 

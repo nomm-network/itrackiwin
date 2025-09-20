@@ -1,13 +1,11 @@
 // readiness-classic wrapper — SOT (keep this the ONLY start route)
-"use client";
-
 import { useNavigate, useParams } from "react-router-dom";
 import EnhancedReadinessCheckIn from "@/components/fitness/EnhancedReadinessCheckIn";
 import { useReadinessStore } from "@/stores/readinessStore";
 import { useWorkoutLaunchers } from "@/features/training/hooks/useLaunchers";
 import { useState } from "react";
 
-export default function StartWorkoutPage() {
+export default function WorkoutReadiness() {
   const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
   const setReadiness = useReadinessStore((s) => s.setReadiness);
