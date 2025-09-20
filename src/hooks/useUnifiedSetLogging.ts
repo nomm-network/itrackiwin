@@ -41,11 +41,21 @@ const useUserBodyweight = () => {
       const { data: user } = await supabase.auth.getUser();
       if (!user.user?.id) throw new Error('User not authenticated');
 
+      // Get the latest height to preserve it
+      const { data: latestMetrics } = await supabase
+        .from('user_body_metrics')
+        .select('height_cm')
+        .eq('user_id', user.user.id)
+        .order('recorded_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
       const { error } = await supabase
         .from('user_body_metrics')
         .insert({
           user_id: user.user.id,
           weight_kg: weightKg,
+          height_cm: latestMetrics?.height_cm || null, // Preserve existing height
           source: 'manual',
           notes: notes || null
         });
