@@ -2,6 +2,19 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+// Helper function to get default category icons
+const getDefaultCategoryIcon = (slug: string | null) => {
+  switch (slug) {
+    case 'health': return '🏥';
+    case 'wealth': return '💰';
+    case 'relationships': return '❤️';
+    case 'mind': return '🧠';
+    case 'purpose': return '🎯';
+    case 'lifestyle': return '🌟';
+    default: return '📊';
+  }
+};
+
 export interface NavItem {
   slot: number;
   item_type: 'fixed' | 'category';
@@ -55,12 +68,13 @@ export function useBottomNav() {
       // Add top 2 categories starting from slot 3 (linking to category dashboards)
       (data || []).forEach((item: any, index) => {
         const firstName = item.life_categories.name.split(' ')[0]; // Extract first word only
+        const categoryIcon = item.life_categories.icon || getDefaultCategoryIcon(item.life_categories.slug);
         navItems.push({
           slot: 3 + index,
           item_type: 'category',
           label: firstName,
           slug: item.life_categories.slug, // Just the slug, getRouteForSlug will handle the /area/ prefix
-          icon: item.life_categories.icon
+          icon: categoryIcon
         });
       });
       
