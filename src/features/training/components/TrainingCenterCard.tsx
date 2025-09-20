@@ -42,10 +42,10 @@ export default function TrainingCenterCard() {
     setIsStarting(true);
     try {
       if (mode === "template" && templateId) {
-        const { workoutId } = await startFromTemplate(templateId);
+        const workoutId = await startFromTemplate(templateId);
         navigate(`/app/workouts/${workoutId}`);
       } else if (mode === "program" && programId) {
-        const { workoutId } = await startFromProgram(programId);
+        const workoutId = await startFromProgram(programId);
         navigate(`/app/workouts/${workoutId}`);
       }
     } catch (error) {

@@ -31,7 +31,7 @@ export function ProgramTemplatePicker({ open, onOpenChange, programId, programNa
     setIsStarting(true);
     try {
       // Start from template
-      const { workoutId } = await startFromTemplate(templateId);
+      const workoutId = await startFromTemplate(templateId);
       
       // Update workout with program tracking fields for override
       await supabase

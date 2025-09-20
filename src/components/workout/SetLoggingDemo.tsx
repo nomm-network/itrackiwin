@@ -127,13 +127,12 @@ const SetLoggingDemo = () => {
         </CardHeader>
         <CardContent>
           <SmartSetForm
-            workoutId="demo-workout-id"
-            workoutExercise={{ 
+            exercise={{ 
               id: "demo-workout-exercise-id",
               exercise: currentExercise,
               sets: []
             }}
-            onSetLogged={handleSetLogged}
+            onLogged={handleSetLogged}
           />
         </CardContent>
       </Card>
