@@ -3,7 +3,7 @@
 
 import { useState } from 'react';
 import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 type Props = { workoutId: string; ex: any; onSetLogged: () => void };
 

@@ -12,13 +12,15 @@ export type ReadinessState = {
 };
 
 type ReadinessStore = ReadinessState & {
+  justSubmitted: boolean;
   setReadiness: (state: ReadinessState) => void;
   setScore: (score: number) => void;
-  clearReadiness: () => void;
+  clear: () => void;
 };
 
 export const useReadinessStore = create<ReadinessStore>((set) => ({
-  setReadiness: (state) => set(state),
-  setScore: (score) => set({ score }),
-  clearReadiness: () => set({}),
+  justSubmitted: false,
+  setReadiness: (state) => set({ ...state, justSubmitted: true }),
+  setScore: (score) => set({ score, justSubmitted: true }),
+  clear: () => set({ justSubmitted: false, score: undefined }),
 }));

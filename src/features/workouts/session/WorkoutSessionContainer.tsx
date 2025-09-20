@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import WorkoutSessionBody from './WorkoutSessionBody';
 import { useReadinessStore } from '@/stores/readinessStore';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from '@/hooks/use-toast';
 
 type WorkoutRow = {
   id: string;
@@ -64,7 +64,7 @@ export default function WorkoutSessionContainer() {
   const queryClient = useQueryClient();
 
   const workoutId = useMemo(() => (Array.isArray(params?.workoutId) ? params.workoutId[0] : params?.workoutId) ?? null, [params]);
-  const [shouldShowReadiness, setShouldShowReadiness] = useState(false);
+  const [shouldShowReadiness, setShouldShowReadiness] = useState(true); // Show readiness by default
 
   // sanity – we never allow "test" fallbacks
   useEffect(() => {
@@ -85,6 +85,7 @@ export default function WorkoutSessionContainer() {
     enabled: !!workoutId,
     staleTime: 0,
     queryFn: async () => {
+      console.log('[v0.8.0] Starting workout query for ID:', workoutId);
       const { data, error } = await supabase
         .from('workouts')
         .select(`
@@ -105,7 +106,22 @@ export default function WorkoutSessionContainer() {
         .eq('id', workoutId)
         .maybeSingle();
 
-      if (error) throw error;
+      if (error) {
+        console.error('[v0.8.0] Workout query error:', error);
+        throw error;
+      }
+      
+      console.log('[v0.8.0] Workout query result:', {
+        workoutFound: !!data,
+        exerciseCount: data?.exercises?.length ?? 0,
+        exercises: data?.exercises?.map((e: any) => ({
+          id: e.id,
+          order_index: e.order_index,
+          display_name: e.display_name,
+          exercise_name: e.exercise?.display_name || e.exercise?.name
+        }))
+      });
+      
       return data as any;
     },
   });
@@ -113,15 +129,16 @@ export default function WorkoutSessionContainer() {
   // readiness handoff after submit
   useEffect(() => {
     if (!workoutId) return;
-    if (readinessStore.score != null) {
+    if (readinessStore.justSubmitted) {
       setShouldShowReadiness(false);
+      readinessStore.clear();
       // persist snapshot to workout
       if (readinessStore.score != null) {
         supabase.from('workouts').update({ readiness_score: readinessStore.score }).eq('id', workoutId);
         queryClient.invalidateQueries({ queryKey: ['workout-session', workoutId] });
       }
     }
-  }, [workoutId, readinessStore.score]); // eslint-disable-line
+  }, [workoutId, readinessStore.justSubmitted]); // eslint-disable-line
 
   if (!workoutId) return null;
 

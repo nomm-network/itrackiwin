@@ -7,6 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import SmartSetForm from '@/components/workout/set-forms/SmartSetForm';
 import WorkoutDebugFooter from '@/components/workout/WorkoutDebugFooter';
 import { toast } from '@/hooks/use-toast';
+import { useReadinessStore } from '@/stores/readinessStore';
 import { cn } from '@/lib/utils';
 
 type Props = {
@@ -27,6 +28,8 @@ export default function WorkoutSessionBody({
   workoutId,
   workout,
   loading,
+  shouldShowReadiness,
+  setShouldShowReadiness,
 }: Props) {
   const queryClient = useQueryClient();
   const sorted = useMemo(
@@ -100,7 +103,55 @@ export default function WorkoutSessionBody({
     !!current?.attribute_values_json?.warmup &&
     !current?.attribute_values_json?.warmup_done;
 
-  if (loading) return null;
+  if (loading) return <div className="p-6 text-center">Loading workout...</div>;
+
+  // Show readiness dialog if needed
+  if (shouldShowReadiness) {
+    return (
+      <div className="p-6">
+        <div className="rounded-xl border border-emerald-700/30 bg-emerald-900/20 p-6">
+          <h2 className="text-xl font-bold text-emerald-300 mb-4">How are you feeling today?</h2>
+          <p className="text-slate-300 mb-6">Rate your readiness from 1-10</p>
+          <div className="grid grid-cols-5 gap-2 mb-6">
+            {[1,2,3,4,5,6,7,8,9,10].map(score => (
+              <button
+                key={score}
+                onClick={() => {
+                  const readinessStore = useReadinessStore.getState();
+                  readinessStore.setScore(score);
+                  setShouldShowReadiness(false);
+                }}
+                className="h-12 rounded-lg bg-slate-800 hover:bg-emerald-600 transition-colors font-bold"
+              >
+                {score}
+              </button>
+            ))}
+          </div>
+          <button
+            onClick={() => setShouldShowReadiness(false)}
+            className="w-full h-11 rounded-lg bg-slate-600 text-white"
+          >
+            Skip for now
+          </button>
+        </div>
+        <WorkoutDebugFooter
+          info={{
+            version: 'workout-flow-v0.8.0',
+            workoutId,
+            exerciseId: null,
+            exerciseTitle: 'Readiness Dialog',
+            hasWarmup: false,
+            shouldShowReadiness: true,
+            router: 'main',
+            logger: 'unified',
+            restTimer: false,
+            grips: false,
+            entryMode: 'total',
+          }}
+        />
+      </div>
+    );
+  }
 
   if (!sorted.length) {
     return (
