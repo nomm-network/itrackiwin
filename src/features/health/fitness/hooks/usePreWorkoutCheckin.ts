@@ -39,7 +39,11 @@ export function usePreWorkoutCheckin(workoutId?: string) {
       if (error) throw error;
       return data;
     },
-    onSuccess: () => qc.invalidateQueries({ queryKey: ['pre-checkin', workoutId] }),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['pre-checkin', workoutId] });
+      qc.invalidateQueries({ queryKey: ['workout-readiness', workoutId] });
+      qc.invalidateQueries({ queryKey: ['workout-session', workoutId] });
+    },
   });
 
   return {

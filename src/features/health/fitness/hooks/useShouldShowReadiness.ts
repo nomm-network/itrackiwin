@@ -3,8 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 
 export function useShouldShowReadiness(workoutId?: string, userId?: string) {
   return useQuery({
-    queryKey: ['shouldShowReadiness', workoutId, userId],
+    queryKey: ['workout-readiness', workoutId, userId],
     enabled: Boolean(workoutId && userId),
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       console.log('🔍 useShouldShowReadiness: STARTING QUERY', { workoutId, userId });
       
@@ -49,6 +51,5 @@ export function useShouldShowReadiness(workoutId?: string, userId?: string) {
       
       return shouldShow;
     },
-    staleTime: 30_000, // Shorter cache time for more responsive updates
   });
 }

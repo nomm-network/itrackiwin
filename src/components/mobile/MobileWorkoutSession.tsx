@@ -10,16 +10,16 @@ interface MobileWorkoutSessionProps {
 }
 
 export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = (props) => {
-  console.warn('🚨 DEPRECATED: MobileWorkoutSession wrapper used - update to EnhancedWorkoutSession');
+  console.warn('🚨 DEPRECATED: MobileWorkoutSession wrapper used - update to WorkoutSessionBody');
   console.log('🔍 MobileWorkoutSession props:', props);
   
-  // Step 2: Pass-through to EnhancedWorkoutSession (unified flow) 
-  const { default: EnhancedWorkoutSession } = require('@/features/workouts/components/EnhancedWorkoutSession');
+  // Step 2: Pass-through to WorkoutSessionBody (unified flow) 
+  const { default: WorkoutSessionBody } = require('@/features/workouts/session/WorkoutSessionBody');
   
   // Convert exercises array to workout object if needed
   const workout = props.workout || (props.exercises ? { exercises: props.exercises } : null);
   
-  return <EnhancedWorkoutSession workout={workout} source="mobile-wrapper" {...props} />;
+  return <WorkoutSessionBody workout={workout} {...props} />;
 };
 
 export default MobileWorkoutSession;

@@ -49,7 +49,7 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
     console.log('Workout completed!');
   };
 
-  // Step 2: Unified flow - always use EnhancedWorkoutSession
-  const { default: EnhancedWorkoutSession } = require('@/features/workouts/components/EnhancedWorkoutSession');
-  return <EnhancedWorkoutSession workout={workout} source="workout-session-wrapper" />;
+  // Step 2: Unified flow - always use WorkoutSessionBody
+  const { default: WorkoutSessionBody } = require('@/features/workouts/session/WorkoutSessionBody');
+  return <WorkoutSessionBody workout={workout} />;
 }

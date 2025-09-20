@@ -3,7 +3,7 @@ import { Routes, Route } from "react-router-dom";
 
 const FitnessPage = lazy(() => import("./pages/Fitness.page"));
 const ExercisesPage = lazy(() => import("./pages/Exercises.page"));
-const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page"));
+const WorkoutSessionContainer = lazy(() => import("../../workouts/session/WorkoutSessionContainer"));
 const TemplatesPage = lazy(() => import("./pages/Templates.page"));
 const TemplateEditPage = lazy(() => import("./pages/TemplateEdit.page"));
 const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page"));
@@ -19,7 +19,7 @@ export const FitnessRoutes = (
   <Routes>
     <Route index element={<FitnessPage />} />
     <Route path="exercises" element={<ExercisesPage />} />
-    <Route path="session/:id" element={<WorkoutSessionPage />} />
+    <Route path="session/:id" element={<WorkoutSessionContainer />} />
     <Route path="templates" element={<TemplatesPage />} />
     <Route path="templates/:templateId/edit" element={<TemplateEditPage />} />
     

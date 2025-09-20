@@ -36,11 +36,11 @@ interface ImprovedWorkoutSessionProps {
  * Step 3: Simple pass-through to EnhancedSetEditor (will be removed in next step)
  */
 const ImprovedWorkoutSession: React.FC<ImprovedWorkoutSessionProps> = (props) => {
-  console.warn('🚨 DEPRECATED: ImprovedWorkoutSession wrapper used - update to EnhancedWorkoutSession');
+  console.warn('🚨 DEPRECATED: ImprovedWorkoutSession wrapper used - update to WorkoutSessionBody');
   
-  // Step 2: Pass-through to EnhancedWorkoutSession (unified flow)
-  const { EnhancedWorkoutSession } = require('@/features/workouts/components/EnhancedWorkoutSession');
-  return <EnhancedWorkoutSession source="improved-wrapper" {...props} />;
+  // Step 2: Pass-through to WorkoutSessionBody (unified flow)
+  const { default: WorkoutSessionBody } = require('@/features/workouts/session/WorkoutSessionBody');
+  return <WorkoutSessionBody {...props} />;
 };
 
 export default ImprovedWorkoutSession;

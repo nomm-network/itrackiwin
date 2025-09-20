@@ -82,6 +82,7 @@ interface WorkoutSessionProps {
 }
 
 export default function EnhancedWorkoutSession({ workout, source = "direct" }: WorkoutSessionProps) {
+  console.warn('🚨 DEPRECATED: EnhancedWorkoutSession used - update to WorkoutSessionBody');
   console.log('🔍 EnhancedWorkoutSession v0.6.0 entry:', { workout: !!workout, source, exerciseCount: workout?.exercises?.length });
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
@@ -263,12 +264,12 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
               });
               
               // Force immediate update to bypass readiness check
-              queryClient.setQueryData(['should-show-readiness', workout?.id, user?.id], false);
-              queryClient.invalidateQueries({ queryKey: ['should-show-readiness'] });
+              queryClient.setQueryData(['workout-readiness', workout?.id, user?.id], false);
+              queryClient.invalidateQueries({ queryKey: ['workout-readiness', workout?.id, user?.id] });
             } catch (error) {
               console.error('Failed to create checkin:', error);
               // Even if checkin fails, allow workout to proceed
-              queryClient.setQueryData(['should-show-readiness', workout?.id, user?.id], false);
+              queryClient.setQueryData(['workout-readiness', workout?.id, user?.id], false);
             }
           }}
         />

@@ -303,7 +303,7 @@ const WorkoutSession: React.FC = () => {
       });
       
       // Invalidate the shouldShowReadiness query to hide the popup
-      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', id, user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['workout-readiness', id, user?.id] });
     } catch (error) {
       console.error('Error saving readiness check:', error);
       toast({
