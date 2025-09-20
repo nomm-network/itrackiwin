@@ -232,11 +232,27 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     return (
       <div className="container mx-auto p-4 max-w-md">
         <EnhancedReadinessCheckIn
-          onComplete={async (data: EnhancedReadinessData) => {
-            const score = computeReadinessScore(data);
+          workoutId={workout?.id}
+          onSubmit={async (data: EnhancedReadinessData) => {
+            // Map ReadinessData to ReadinessInput format
+            const readinessInput = {
+              energy: data.readiness.energy,
+              sleepQuality: data.readiness.sleep_quality,
+              sleepHours: data.readiness.sleep_hours,
+              soreness: data.readiness.soreness,
+              stress: data.readiness.stress,
+              mood: data.readiness.mood,
+              energizers: data.readiness.energisers_taken,
+              illness: data.readiness.illness,
+              alcohol: data.readiness.alcohol
+            };
+            const score = computeReadinessScore(readinessInput);
             setReadinessScore(score);
             localStorage.setItem(`workout_${workout?.id}_readiness`, score.toString());
-            await createCheckin(data);
+            createCheckin.mutate({ 
+              answers: data.readiness, 
+              readiness_score: score 
+            });
             queryClient.invalidateQueries({ queryKey: ['should-show-readiness'] });
           }}
         />
@@ -566,10 +582,10 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <ExerciseSettingsMenu
             autoRestTimer={true}
             showTargets={true}
-            quickAddMode={false}
+            enableQuickAdd={false}
             onAutoRestTimerChange={(enabled) => console.log('Auto rest timer:', enabled)}
             onShowTargetsChange={(enabled) => console.log('Show targets:', enabled)}
-            onQuickAddModeChange={(enabled) => console.log('Quick add mode:', enabled)}
+            onEnableQuickAddChange={(enabled) => console.log('Quick add mode:', enabled)}
             isOpen={true}
             onClose={() => setShowSettingsMenu(false)}
           />
