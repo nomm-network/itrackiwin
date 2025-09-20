@@ -25,8 +25,6 @@ export default function BodyweightSetForm({ ex, onSetLogged }: Props) {
           weight: delta, // signed; PR code will handle sign
           
           rpe: ({ '--': 1, '-': 3, '=': 5, '+': 7, '++': 9 } as const)[feel],
-          settings: {},
-          load_meta: {},
         },
       });
       onSetLogged();

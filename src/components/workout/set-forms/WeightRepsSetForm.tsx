@@ -30,9 +30,6 @@ export default function WeightRepsSetForm({ ex, onSetLogged }: Props) {
           
           reps,
           rpe: rpeFromFeel(feel),
-          settings: {},
-          load_meta: {},
-          rest_seconds: undefined,
           notes: '',
         },
         gripIds: undefined,

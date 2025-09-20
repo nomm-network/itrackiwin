@@ -7,6 +7,6 @@ interface WorkoutSessionProps {
 }
 
 export default function WorkoutSession({ workout }: WorkoutSessionProps) {
-  console.warn('🚨 DEPRECATED: WorkoutSession wrapper used - update to WorkoutSessionBody');
-  return <WorkoutSessionBody workout={workout} />;
+  console.warn('🚨 DEPRECATED: WorkoutSession wrapper used - update to WorkoutSessionContainer');
+  return <div>Deprecated component - use WorkoutSessionContainer instead</div>;
 }
