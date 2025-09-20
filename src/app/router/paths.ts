@@ -6,6 +6,8 @@ export const Paths = {
     // Fitness paths removed
   },
   social: '/social',
+  training: '/training',
+  workouts: (id = ':id') => `/workouts/${id}`,
   
   progress: '/progress',
   journal: '/journal',

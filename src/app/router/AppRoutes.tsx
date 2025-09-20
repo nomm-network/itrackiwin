@@ -35,6 +35,8 @@ const Achievements = lazy(() => import('@/pages/Achievements'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const CategoryCoachPage = lazy(() => import('@/pages/CategoryCoachPage'));
+const TrainingCenter = lazy(() => import('@/pages/TrainingCenter'));
+const WorkoutSession = lazy(() => import('@/pages/WorkoutSession'));
 
 // Inline component for subcategory redirects (no dynamic import to avoid build issues)
 const SubcategoryRedirect = () => {
@@ -179,11 +181,21 @@ export function AppRoutes() {
               <Achievements />
             </ProtectedMobileLayout>
           } />
-          <Route path={Paths.social} element={
-            <ProtectedMobileLayout>
-              <Social />
-            </ProtectedMobileLayout>
-          } />
+           <Route path={Paths.social} element={
+             <ProtectedMobileLayout>
+               <Social />
+             </ProtectedMobileLayout>
+           } />
+           <Route path={Paths.training} element={
+             <ProtectedMobileLayout>
+               <TrainingCenter />
+             </ProtectedMobileLayout>
+           } />
+           <Route path="/workouts/:id" element={
+             <ProtectedMobileLayout>
+               <WorkoutSession />
+             </ProtectedMobileLayout>
+           } />
           <Route path={Paths.area()} element={
             <ProtectedMobileLayout>
               <CategoryCoachPage />
