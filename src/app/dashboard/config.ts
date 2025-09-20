@@ -8,7 +8,7 @@ const rawCategories: CategoryConfig[] = [
     icon: "💪",
     color: "hsl(142 76% 36%)",
     subcategories: [
-      { id: "fitness", name: "Fitness", icon: "🏋️" },
+      // Fitness subcategory removed
       { id: "nutrition", name: "Nutrition", icon: "🥗" },
       { id: "sleep", name: "Sleep", icon: "😴" },
       { id: "mental", name: "Mental Health", icon: "🧠" }

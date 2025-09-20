@@ -14,7 +14,7 @@ export interface PlateProfile {
 }
 
 export interface ResolveParams {
-  desired: number;           // readiness-adjusted target (user unit)
+  desired: number;           // target weight (user unit)
   userUnit: Unit;            // user UI unit
   loadType: LoadType;
   profile: PlateProfile;     // gym/equipment specific offer

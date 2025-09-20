@@ -26,7 +26,7 @@ const TranslatedProfileDemo = lazy(() => import('@/pages/TranslatedProfileDemo')
 const TranslatedAICoach = lazy(() => import('@/pages/TranslatedAICoach'));
 const PersonaSeedingPage = lazy(() => import('@/pages/PersonaSeeding'));
 const PersonaDashboard = lazy(() => import('@/pages/PersonaDashboard'));
-const ProgramGeneratorTest = lazy(() => import('@/components/test/ProgramGeneratorTest'));
+// ProgramGeneratorTest removed
 const DataQualityReport = lazy(() => import('@/pages/DataQualityReport'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
 const Profile = lazy(() => import('@/pages/Profile'));
@@ -93,7 +93,7 @@ const SafeAdminGuard = lazy(() => import('@/components/guards/SafeAdminGuard'));
 const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicPage'));
 const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/pages/AmbassadorPanelPage'));
 
-const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
+// BroAICoach removed
 const TestDynamicNav = lazy(() => import('@/pages/TestDynamicNav'));
 
 const LoadingFallback = () => (
@@ -244,7 +244,7 @@ export function AppRoutes() {
           <Route path="/translated-ai-coach" element={<TranslatedAICoach />} />
           <Route path="/persona-seeding" element={<PersonaSeedingPage />} />
           <Route path="/persona-dashboard" element={<PersonaDashboard />} />
-          <Route path="/program-test" element={<ProgramGeneratorTest />} />
+          {/* Program test removed */}
           <Route path="/data-quality-report" element={<DataQualityReport />} />
           <Route path="/test-dynamic-nav" element={
             <ProtectedMobileLayout>
@@ -252,12 +252,7 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           } />
           
-          {/* Bro AI Coach */}
-          <Route path="/bro-ai-coach" element={
-            <ProtectedMobileLayout>
-              <BroAICoach />
-            </ProtectedMobileLayout>
-          } />
+          {/* Bro AI Coach removed */}
 
           {/* Admin routes - without mobile layout for better admin experience */}
           <Route path={`${Paths.admin.root}/*`} element={<AdminRoutes />} />
