@@ -1,8 +1,10 @@
-import React, { useState, useMemo, useEffect } from 'react';
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { 
   Hand, 
   Hash,
@@ -12,16 +14,21 @@ import {
   Edit3,
   ChevronDown,
   Minus,
-  Plus
+  Plus,
+  Play,
+  Check
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import SmartSetForm from '@/components/workout/set-forms/SmartSetForm';
 import { PerSideToggle } from '@/components/workout/PerSideToggle';
-import { useLogSet } from '../hooks';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionTiming } from '@/stores/sessionTiming';
-import { WORKOUT_FLOW_VERSION } from './constants';
+import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 import WorkoutDebugFooter from '@/components/workout/WorkoutDebugFooter';
+import GripSelector from '@/components/workout/GripSelector';
 
 interface WorkoutSessionBodyProps {
   workout: any;
@@ -29,17 +36,11 @@ interface WorkoutSessionBodyProps {
 }
 
 export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessionBodyProps) {
-  // Fix 8: Add debug logging with all key info
-  const debugPayload = {
-    templateId: workout?.template_id || null,
-    workoutId: workoutId,
-    exerciseCount: workout?.exercises?.length || 0,
-    hasReadiness: !!workout?.readiness_score
-  };
-  console.info('[workout-flow-v0.6.1] session', debugPayload);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { startSession } = useSessionTiming();
+  const { logSet, isLoading: setLogging } = useUnifiedSetLogging();
+  const queryClient = useQueryClient();
   
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => {
     const key = `workout_${workout?.id || workoutId}_currentExercise`;
@@ -54,14 +55,14 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   
   // UI state for menus
   const [showGripSelector, setShowGripSelector] = useState(false);
-  const [showWarmupMenu, setShowWarmupMenu] = useState(false);
+  const [showWarmupModal, setShowWarmupModal] = useState(false);
   const [showSetSettings, setShowSetSettings] = useState(false);
-  const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
+  const [selectedGrips, setSelectedGrips] = useState<string[]>([]);
+  const [gripKey, setGripKey] = useState<string>('');
   
   // Exercise settings state
   const [targetSets, setTargetSets] = useState(3);
   const [autoRestTimer, setAutoRestTimer] = useState(true);
-  const [showTargets, setShowTargets] = useState(true);
   
   // Current set input state
   const [currentSetData, setCurrentSetData] = useState({
@@ -74,27 +75,20 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   // Rest timer state
   const [restStartTime, setRestStartTime] = useState<Date | null>(null);
   const [restDuration, setRestDuration] = useState(0);
-  const [readinessScore] = useState<number>(() => {
-    const key = `workout_${workout?.id || workoutId}_readiness`;
-    try {
-      const stored = localStorage.getItem(key);
-      return stored ? parseFloat(stored) : 69;
-    } catch {
-      return 69;
-    }
-  });
-
+  const [warmupDone, setWarmupDone] = useState(false);
+  const [lastPayload, setLastPayload] = useState<any>(null);
+  
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
     return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
   }, [workout?.exercises, currentExerciseId]);
 
-  // Fix 4: Warmup visibility rule
+  // Warmup visibility rule
   const hasWarmup = useMemo(() => {
     if (!currentExercise) return false;
     const warmupPlan = currentExercise.attribute_values_json?.warmup;
-    return !!(warmupPlan && Object.keys(warmupPlan || {}).length > 0);
-  }, [currentExercise]);
+    return !!(warmupPlan && Object.keys(warmupPlan || {}).length > 0) && !warmupDone;
+  }, [currentExercise, warmupDone]);
 
   const sets = currentExercise?.sets || [];
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
@@ -102,18 +96,16 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   
   // Timer effect - starts from set 2
   useEffect(() => {
-    if (currentSetNumber >= 2) {
+    if (currentSetNumber >= 2 && restStartTime) {
       const timer = setInterval(() => {
-        if (restStartTime) {
-          const elapsed = Math.floor((Date.now() - restStartTime.getTime()) / 1000);
-          setRestDuration(elapsed);
-        }
+        const elapsed = Math.floor((Date.now() - restStartTime.getTime()) / 1000);
+        setRestDuration(elapsed);
       }, 1000);
       return () => clearInterval(timer);
     }
   }, [currentSetNumber, restStartTime]);
 
-  // Fix 3: Exercise name resolution rule
+  // Exercise name resolution rule
   const getExerciseName = () => {
     return currentExercise?.display_name
         || currentExercise?.exercise?.display_name 
@@ -148,10 +140,70 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     }));
   };
 
-  const handleLogSet = () => {
-    console.log('Logging set:', currentSetData);
-    // Start rest timer for next set
-    setRestStartTime(new Date());
+  // Set logging with unified hook
+  const handleLogSet = useCallback(async () => {
+    if (!currentExercise?.id) return;
+
+    const payload = {
+      workout_exercise_id: currentExercise.id,
+      set_index: currentSetNumber,
+      reps: currentSetData.reps,
+      weight_kg: currentSetData.weight,
+      input_weight: currentSetData.weight,
+      input_unit: 'kg' as const,
+      effort: 'reps' as const,
+      rpe: mapFeelToRpe(currentSetData.feel),
+      notes: '',
+      is_completed: true,
+      completed_at: new Date().toISOString(),
+      grip_key: gripKey || ''
+    };
+
+    setLastPayload(payload);
+
+    try {
+      await logSet({
+        workoutExerciseId: currentExercise.id,
+        setIndex: currentSetNumber,
+        metrics: {
+          reps: currentSetData.reps,
+          weight: currentSetData.weight,
+          rpe: mapFeelToRpe(currentSetData.feel),
+          notes: '',
+          effort: 'reps'
+        }
+      });
+
+      // Start rest timer for next set
+      setRestStartTime(new Date());
+      
+      // Invalidate queries to refresh data
+      queryClient.invalidateQueries({ queryKey: ['workouts', workoutId] });
+      
+      toast({
+        title: "Set logged successfully",
+        description: `${currentSetData.weight}kg × ${currentSetData.reps} reps`
+      });
+    } catch (error) {
+      console.error('Error logging set:', error);
+      toast({
+        title: "Error logging set",
+        description: "Please try again",
+        variant: "destructive"
+      });
+    }
+  }, [currentExercise, currentSetNumber, currentSetData, gripKey, logSet, workoutId, queryClient]);
+
+  // Map feel to RPE
+  const mapFeelToRpe = (feel: string): number => {
+    const mapping: Record<string, number> = {
+      '--': 1,
+      '-': 3,
+      '=': 5,
+      '+': 7,
+      '++': 9
+    };
+    return mapping[feel] || 5;
   };
 
   // Per-side toggle handler
@@ -162,10 +214,38 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     }));
   };
 
-  // Menu handlers
-  const handleGripMenuOpen = () => setShowGripSelector(true);
-  const handleWarmupMenuOpen = () => setShowWarmupMenu(true);
-  const handleSetSettingsOpen = () => setShowSetSettings(true);
+  // Warmup handlers
+  const handleStartWarmup = () => {
+    setShowWarmupModal(true);
+  };
+
+  const handleCompleteWarmup = async () => {
+    setWarmupDone(true);
+    setShowWarmupModal(false);
+    
+    // Update attribute_values_json to mark warmup as done
+    try {
+      await supabase
+        .from('workout_exercises')
+        .update({
+          attribute_values_json: {
+            ...currentExercise.attribute_values_json,
+            warmup_done: true
+          }
+        })
+        .eq('id', currentExercise.id);
+    } catch (error) {
+      console.error('Error updating warmup status:', error);
+    }
+  };
+
+  // Grip handlers
+  const handleGripChange = (grip: string | null) => {
+    if (grip) {
+      setSelectedGrips(prev => prev.includes(grip) ? prev.filter(g => g !== grip) : [...prev, grip]);
+      setGripKey(grip);
+    }
+  };
 
   if (!currentExercise) {
     return (
@@ -182,10 +262,11 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   const totalExercises = workout?.exercises?.length || 0;
   const totalSets = currentExercise?.target_sets || 3;
   const lastSet = sets.find((set: any) => set.is_completed && set.set_index === completedSetsCount);
+  const isBodyweight = currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional';
 
-  // Fix 8: Complete debug info matching WorkoutDebugFooter interface
+  // Complete debug info matching WorkoutDebugFooter interface
   const debugInfo = {
-    version: WORKOUT_FLOW_VERSION,
+    version: 'workout-flow-v0.7.0',
     templateId: workout?.template_id || null,
     workoutId: workoutId,
     exerciseId: currentExercise?.id || null,
@@ -193,41 +274,33 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     effort_mode: currentExercise?.exercise?.effort_mode || null,
     load_mode: currentExercise?.exercise?.load_mode || null,
     hasWarmup: hasWarmup,
-    shouldShowReadiness: false, // Will be updated by container
-    sessionSource: 'direct',
+    shouldShowReadiness: false,
     router: 'main',
-    logger: 'unified',
+    logger: 'smart-set-form',
     restTimer: autoRestTimer,
     grips: currentExercise?.exercise?.allows_grips || false,
-    gripKey: null,
+    gripKey,
     warmup: hasWarmup,
-    warmupSteps: hasWarmup ? 3 : undefined,
+    warmupSteps: currentExercise?.attribute_values_json?.warmup?.steps?.length || 0,
     entryMode: currentSetData.perSideMode ? 'per_side' as const : 
-               (currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional' ? 'bodyweight' as const : 'total' as const),
-    payloadPreview: {
-      workout_exercise_id: currentExercise?.id,
-      set_index: currentSetNumber,
-      weight_kg: currentSetData.weight,
-      reps: currentSetData.reps,
-      effort_rating: currentSetData.feel,
-      is_completed: true
-    }
+               (isBodyweight ? 'bodyweight' as const : 'total' as const),
+    payloadPreview: lastPayload
   };
 
   return (
     <div className="min-h-screen bg-background pb-20">
-      {/* Header */}
+      {/* Header with badges */}
       <div className="flex items-center justify-between p-4 border-b">
-        <h1 className="text-xl font-semibold">{workout?.name || 'Workout'}</h1>
+        <h1 className="text-xl font-semibold">{workout?.title || 'Workout'}</h1>
         <div className="flex items-center gap-2">
           {/* Readiness Badge */}
           <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
-            {Math.round(readinessScore)}
+            {Math.round(workout?.readiness_score || 65)}
           </Badge>
           
           {/* Timer Badge - only show from set 2 */}
-          {currentSetNumber >= 2 && (
-            <Badge variant="secondary" className="bg-slate-700 text-white border-slate-600 flex items-center gap-1">
+          {currentSetNumber >= 2 && restStartTime && (
+            <Badge variant="secondary" className="bg-green-500/20 text-green-400 border-green-500/30 flex items-center gap-1">
               <Clock className="h-3 w-3" />
               {formatTime(restDuration)}
             </Badge>
@@ -241,60 +314,62 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
         </div>
       </div>
 
-      {/* Exercise Header */}
+      {/* Exercise Header with mini menu */}
       <div className="p-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-2xl font-bold">{getExerciseName()}</h2>
           <div className="flex items-center gap-2">
-            {/* Mini Menu Icons */}
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-8 w-8"
-              onClick={handleGripMenuOpen}
-            >
-              <Hand className="h-4 w-4" />
-            </Button>
+            {/* Grips */}
+            {currentExercise?.exercise?.allows_grips && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8"
+                onClick={() => setShowGripSelector(true)}
+              >
+                <Hand className="h-4 w-4" />
+              </Button>
+            )}
             
+            {/* Sets with badge */}
             <Button
               variant="ghost"
               size="sm"
               className="p-2 h-8 w-8 relative"
-              onClick={handleSetSettingsOpen}
+              onClick={() => setShowSetSettings(true)}
             >
               <Hash className="h-4 w-4" />
               <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
-                {targetSets}
+                {completedSetsCount}/{totalSets}
               </Badge>
             </Button>
             
-            {/* Fix 4: Only show warmup icon when warmup is available */}
+            {/* Warmup - only show when warmup is available */}
             {hasWarmup && (
               <Button
                 variant="ghost"
                 size="sm"
                 className="p-2 h-8 w-8"
-                onClick={handleWarmupMenuOpen}
+                onClick={handleStartWarmup}
               >
                 <Flame className="h-4 w-4" />
               </Button>
             )}
-            
-            <Badge variant="secondary" className="bg-slate-700 text-white">
-              {completedSetsCount}/{totalSets} sets
-            </Badge>
           </div>
         </div>
 
-        {/* Fix 4: Warmup Card - show when hasWarmup is true */}
+        {/* Warmup Card - show when hasWarmup is true */}
         {hasWarmup && (
-          <Card className="mb-4 bg-muted/50">
+          <Card className="mb-4 bg-orange-500/10 border-orange-500/30">
             <CardContent className="p-6 text-center">
-              <h3 className="text-xl font-semibold mb-2">Warmup</h3>
+              <h3 className="text-xl font-semibold mb-2 flex items-center justify-center gap-2">
+                <Flame className="h-5 w-5 text-orange-500" />
+                Warmup
+              </h3>
               <p className="text-muted-foreground mb-4">
                 Complete your warmup before starting the first set
               </p>
-              <Button variant="outline" className="px-8">
+              <Button variant="outline" className="px-8" onClick={handleStartWarmup}>
                 Start Warmup
               </Button>
             </CardContent>
@@ -308,11 +383,11 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               <div className="grid grid-cols-2 gap-4 text-sm">
                 <div>
                   <span className="text-muted-foreground">Previous:</span>
-                  <div className="font-medium">{lastSet.weight}kg × {lastSet.reps}</div>
+                  <div className="font-medium">{lastSet.weight_kg || lastSet.weight}kg × {lastSet.reps}</div>
                 </div>
                 <div>
                   <span className="text-muted-foreground">Target:</span>
-                  <div className="font-medium">{currentExercise?.target_weight || lastSet.weight}kg × {currentExercise?.target_reps || lastSet.reps}</div>
+                  <div className="font-medium">{currentExercise?.target_weight_kg || lastSet.weight_kg || lastSet.weight}kg × {currentExercise?.target_reps || lastSet.reps}</div>
                 </div>
               </div>
             </CardContent>
@@ -322,7 +397,7 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
         {/* Completed Sets */}
         {sets
           .filter((set: any) => set.is_completed)
-          .map((set: any, index: number) => (
+          .map((set: any) => (
             <Card key={set.id} className="mb-3 border-green-500/30 bg-green-500/5">
               <CardContent className="p-4">
                 <div className="flex items-center justify-between">
@@ -335,8 +410,10 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-orange-400">📦</span>
-                      <span className="font-medium">{set.weight}kg × {set.reps} reps</span>
-                      <span className="text-lg">{set.feel === '--' ? '😵' : set.feel === '-' ? '😣' : set.feel === '=' ? '🙂' : set.feel === '+' ? '😄' : '😎'}</span>
+                      <span className="font-medium">{set.weight_kg || set.weight}kg × {set.reps} reps</span>
+                      <span className="text-lg">
+                        {set.rpe <= 2 ? '😵' : set.rpe <= 4 ? '😣' : set.rpe <= 6 ? '🙂' : set.rpe <= 8 ? '😄' : '😎'}
+                      </span>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -362,8 +439,8 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               <span className="font-medium">Current Set</span>
             </div>
 
-            {/* Fix 7: Per-side toggle visibility based on load_mode and equipment */}
-            {(currentExercise?.exercise?.load_mode !== 'bodyweight_plus_optional' && 
+            {/* Per-side toggle visibility based on load_mode and equipment */}
+            {(!isBodyweight && 
               (currentExercise?.exercise?.equipment?.equipment_type === 'barbell' || 
                currentExercise?.exercise?.equipment?.equipment_type === 'dumbbell')) && (
               <div className="mb-4">
@@ -380,13 +457,14 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               <div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
                   <span>Weight (kg)</span>
+                  {currentSetData.perSideMode && <span className="text-xs">(per side)</span>}
                 </div>
                 <div className="flex items-center gap-2">
                   <Button
                     variant="outline"
                     size="sm"
                     className="p-2 h-8 w-8"
-                    onClick={() => handleWeightChange(-2.5)}
+                    onClick={() => handleWeightChange(isBodyweight ? -5 : -2.5)}
                   >
                     <Minus className="h-3 w-3" />
                   </Button>
@@ -395,16 +473,35 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
                     value={currentSetData.weight}
                     onChange={(e) => setCurrentSetData(prev => ({ ...prev, weight: Number(e.target.value) }))}
                     className="text-center h-8"
+                    step={isBodyweight ? 5 : 2.5}
                   />
                   <Button
                     variant="outline"
                     size="sm"
                     className="p-2 h-8 w-8"
-                    onClick={() => handleWeightChange(2.5)}
+                    onClick={() => handleWeightChange(isBodyweight ? 5 : 2.5)}
                   >
                     <Plus className="h-3 w-3" />
                   </Button>
                 </div>
+                
+                {/* Quick weight chips for bodyweight */}
+                {isBodyweight && (
+                  <div className="flex gap-1 mt-2">
+                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 0 }))}>
+                      BW
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 5 }))}>
+                      +5
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 10 }))}>
+                      +10
+                    </Button>
+                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: -5 }))}>
+                      -5
+                    </Button>
+                  </div>
+                )}
               </div>
 
               {/* Reps Input */}
@@ -457,15 +554,69 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               </div>
             </div>
 
+            {/* Performance summary */}
+            <div className="mb-4 p-3 bg-muted/50 rounded-lg">
+              <div className="text-sm text-muted-foreground">This Set</div>
+              <div className="font-medium">
+                {currentSetData.weight}kg × {currentSetData.reps} = {(currentSetData.weight * currentSetData.reps).toFixed(1)}kg volume
+              </div>
+            </div>
+
             {/* Log Set Button */}
             <Button 
               onClick={handleLogSet} 
               className="w-full"
+              disabled={setLogging || currentSetData.reps === 0}
             >
-              Log Set
+              {setLogging ? 'Logging...' : 'Log Set'}
             </Button>
           </CardContent>
         </Card>
+
+        {/* Grip Selector Dialog */}
+        <Dialog open={showGripSelector} onOpenChange={setShowGripSelector}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Select Grip</DialogTitle>
+            </DialogHeader>
+            <GripSelector
+              selectedGrip={gripKey}
+              onGripChange={handleGripChange}
+              exerciseId={currentExercise?.exercise?.id}
+              allowsGrips={currentExercise?.exercise?.allows_grips}
+            />
+          </DialogContent>
+        </Dialog>
+
+        {/* Warmup Modal */}
+        <Dialog open={showWarmupModal} onOpenChange={setShowWarmupModal}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Warmup Steps</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              {currentExercise?.attribute_values_json?.warmup?.steps?.map((step: any, index: number) => (
+                <div key={index} className="flex items-center gap-3 p-3 border rounded-lg">
+                  <Badge variant="outline">{index + 1}</Badge>
+                  <div className="flex-1">
+                    <div className="font-medium">{step.weight}kg × {step.reps} reps</div>
+                    <div className="text-sm text-muted-foreground">{step.notes || 'Warmup set'}</div>
+                  </div>
+                  <Button size="sm" variant="outline">
+                    <Check className="h-4 w-4" />
+                  </Button>
+                </div>
+              )) || (
+                <div className="text-center text-muted-foreground">
+                  No warmup steps defined
+                </div>
+              )}
+              <Button onClick={handleCompleteWarmup} className="w-full">
+                Complete Warmup
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
 
         <WorkoutDebugFooter debugInfo={debugInfo} />
       </div>

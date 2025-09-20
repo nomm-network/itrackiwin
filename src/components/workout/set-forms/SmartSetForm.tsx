@@ -1,3 +1,4 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import React from 'react';
 import { Exercise, BaseSetFormProps } from './BaseSetForm';
 import BodyweightSetForm from './BodyweightSetForm';
@@ -15,7 +16,7 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
 
   // Fix 6: Single resolver function using load_mode and effort_mode only
   const resolveFormMode = (): 'bodyweight' | 'weightReps' | 'cardio' => {
-    console.log('🎯 SmartSetForm v0.6.0 - Form Router Debug:', {
+    console.log('🎯 SmartSetForm v0.7.0 - Form Router Debug:', {
       exerciseId: exercise.id,
       effort_mode,
       load_mode,
@@ -61,16 +62,16 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
   // Render the appropriate form component
   switch (formType) {
     case 'bodyweight':
-      console.log('✅ v0.6.0 Rendering BodyweightSetForm for exercise:', exercise.id);
+      console.log('✅ v0.7.0 Rendering BodyweightSetForm for exercise:', exercise.id);
       return <BodyweightSetForm {...props} />;
     
     case 'cardio':
-      console.log('✅ v0.6.0 Rendering CardioSetForm for exercise:', exercise.id);
+      console.log('✅ v0.7.0 Rendering CardioSetForm for exercise:', exercise.id);
       return <CardioSetForm {...props} />;
     
     case 'weightReps':
     default:
-      console.log('✅ v0.6.0 Rendering WeightRepsSetForm for exercise:', exercise.id);
+      console.log('✅ v0.7.0 Rendering WeightRepsSetForm for exercise:', exercise.id);
       return <WeightRepsSetForm {...props} />;
   }
 };

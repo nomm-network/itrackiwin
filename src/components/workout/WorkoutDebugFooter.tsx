@@ -1,3 +1,4 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import React, { useState } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';

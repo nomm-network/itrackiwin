@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
-import EffortModeSetForm from './EffortModeSetForm';
+import SmartSetForm from './set-forms/SmartSetForm';
 
 const SetLoggingDemo = () => {
   const [selectedExercise, setSelectedExercise] = useState<string>('barbell-squat');
@@ -126,7 +126,7 @@ const SetLoggingDemo = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <EffortModeSetForm
+          <SmartSetForm
             workoutExerciseId="demo-workout-exercise-id"
             exercise={currentExercise}
             setIndex={1}

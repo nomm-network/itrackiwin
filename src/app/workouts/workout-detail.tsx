@@ -1,6 +1,7 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import WorkoutSessionContainer from '@/features/workouts/session/WorkoutSessionContainer';
 
 export default function WorkoutPage() {
-  // Fix 1: Use the unified WorkoutSessionContainer directly - handles all routing, readiness, and session logic
+  // Single source of truth - unified container handles all routing, readiness, and session logic
   return <WorkoutSessionContainer />;
 }

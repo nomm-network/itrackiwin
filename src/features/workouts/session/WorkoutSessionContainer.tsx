@@ -1,3 +1,4 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import React from 'react';
 import { useParams } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
@@ -33,64 +34,24 @@ export default function WorkoutSessionContainer() {
   
   // Fix 2 & 3: Fetch workout with proper joins including exercise names and warmup data
   const { data: workout, isLoading: workoutLoading } = useQuery({
-    queryKey: ['workout-session', workoutId],
+    queryKey: ['workouts', workoutId],
     enabled: Boolean(workoutId),
     staleTime: 0,
-    gcTime: 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workouts')
         .select(`
-          id,
-          title,
-          name,
-          started_at,
-          ended_at,
-          user_id,
-          template_id,
-          program_id,
-          readiness_score,
+          id, title, started_at, readiness_score, template_id,
           exercises:workout_exercises(
-            id,
-            exercise_id,
-            order_index,
-            target_sets,
-            target_reps,
-            target_weight_kg,
-            weight_unit,
-            attribute_values_json,
-            display_name,
+            id, order_index, target_sets, target_reps, target_weight_kg, weight_unit,
+            attribute_values_json, display_name,
             exercise:exercises(
-              id,
-              display_name,
-              name,
-              slug,
-              effort_mode,
-              load_mode,
-              equipment_id,
-              allows_grips,
-              is_unilateral,
-              equipment:equipment_id(
-                id,
-                equipment_type,
-                default_bar_weight_kg,
-                slug
-              )
+              id, display_name, name, slug, effort_mode, load_mode, allows_grips, is_unilateral,
+              equipment:equipment_id(id, equipment_type, default_bar_weight_kg, slug)
             ),
             sets:workout_sets(
-              id,
-              set_index,
-              weight_kg,
-              reps,
-              duration_seconds,
-              distance,
-              effort_rating,
-              rpe,
-              notes,
-              set_kind,
-              is_completed,
-              completed_at,
-              grip_key
+              id, set_index, weight_kg, reps, duration_seconds, distance,
+              rpe, notes, set_kind, is_completed, completed_at, grip_key
             )
           )
         `)

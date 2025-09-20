@@ -1,3 +1,4 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import { supabase } from "@/integrations/supabase/client";
 import { useReadinessStore } from "@/stores/readinessStore";
 
