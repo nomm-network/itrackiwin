@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Dumbbell, Brain, Zap, Plus, History } from 'lucide-react';
-import { ProgramBuilderForm, ProgramPreview, useAIPrograms } from '@/features/ai-coach';
+import { useAIPrograms } from '@/features/ai-coach';
 import DebugPanel from '@/components/debug/DebugPanel';
 
 
@@ -59,18 +59,28 @@ export default function BroAICoach() {
             </TabsList>
 
             <TabsContent value="build" className="mt-8">
-              <ProgramBuilderForm onProgramGenerated={handleProgramGenerated} />
+              <Card className="max-w-2xl mx-auto text-center">
+                <CardContent className="py-12">
+                  <Brain className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-medium mb-2">Program Builder Coming Soon</h3>
+                  <p className="text-muted-foreground">
+                    The AI program builder will be available soon.
+                  </p>
+                </CardContent>
+              </Card>
             </TabsContent>
 
             <TabsContent value="preview" className="mt-8">
               {selectedProgram ? (
-                <ProgramPreview 
-                  program={selectedProgram}
-                  onStartProgram={() => {
-                    // TODO: Implement program starting logic
-                    console.log('Starting program:', selectedProgram.id);
-                  }}
-                />
+                <Card className="max-w-2xl mx-auto text-center">
+                  <CardContent className="py-12">
+                    <Dumbbell className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                    <h3 className="text-lg font-medium mb-2">Program Preview Coming Soon</h3>
+                    <p className="text-muted-foreground">
+                      Program preview functionality will be available soon.
+                    </p>
+                  </CardContent>
+                </Card>
               ) : (
                 <Card className="max-w-2xl mx-auto text-center">
                   <CardContent className="py-12">

@@ -1,5 +1,4 @@
 // src/features/hub/configureResolver.ts
-import HealthConfigure     from "@/features/hub/bodies/health/HealthConfigureBody";
 import WealthConfigure     from "@/features/hub/bodies/wealth/WealthConfigureBody";
 import RelationshipsConfigure from "@/features/hub/bodies/relationships/RelationshipsConfigureBody";
 import MindConfigure       from "@/features/hub/bodies/mind/MindConfigureBody";
@@ -10,7 +9,6 @@ import LifestyleConfigure  from "@/features/hub/bodies/lifestyle/LifestyleConfig
 import GenericConfigureStub from "@/features/hub/bodies/common/GenericConfigureStub";
 
 const CONFIGURE_BY_CATEGORY: Record<string, React.ComponentType<any>> = {
-  health:         HealthConfigure,
   wealth:         WealthConfigure,
   relationships:  RelationshipsConfigure,
   mind:           MindConfigure,

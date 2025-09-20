@@ -12,8 +12,7 @@ export default function HubPage() {
   const nav = useNavigate();
   const { isSuperAdmin } = useUserRole();
   
-  // Load today's readiness data when component mounts
-  useReadinessData();
+  // Readiness data loading removed
 
   const cat = (sp.get("cat") || "health").toLowerCase();
   const sub = (sp.get("sub") || "").toLowerCase();
