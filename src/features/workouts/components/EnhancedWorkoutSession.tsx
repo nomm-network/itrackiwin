@@ -3,11 +3,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Switch } from '@/components/ui/switch';
+import { Input } from '@/components/ui/input';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { getEquipmentRefId, getLoadType, getExerciseId } from '@/lib/workouts/equipmentContext';
 import SmartSetForm from '@/components/workout/set-forms/SmartSetForm';
-// Removed old WorkoutFlowDebugPanel - unified to WorkoutDebugFooter
 import { 
   Play, 
   Pause, 
@@ -20,7 +21,13 @@ import {
   Zap,
   Plus,
   ChevronDown,
-  Hand
+  Hand,
+  Hash,
+  Flame,
+  Clock,
+  Trophy,
+  Edit3,
+  Minus
   } from 'lucide-react';
 import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +46,6 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
-// Removed deprecated ImprovedWorkoutSession import - unified to EnhancedWorkoutSession
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
@@ -50,6 +56,9 @@ import { submitWarmupFeedback } from '../warmup/feedback';
 import { SessionHeaderMeta } from './SessionHeaderMeta';
 import { useWarmupSessionState } from '../state/warmupSessionState';
 import { useWarmupManager } from '../hooks/useWarmupManager';
+import { ExerciseGripMenu } from '@/components/workout/ExerciseGripMenu';
+import { ExerciseWarmupMenu } from '@/components/workout/ExerciseWarmupMenu';
+import { ExerciseSettingsMenu } from '@/components/workout/ExerciseSettingsMenu';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -63,13 +72,13 @@ import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
 
 // Import readiness scoring utilities
 import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
-import { saveTodayReadiness } from '@/lib/api/readiness'; // Use the correct API function
+import { saveTodayReadiness } from '@/lib/api/readiness';
 import { useSessionTiming } from '@/stores/sessionTiming';
 import { WorkoutFormDebugPanel } from './WorkoutFormDebugPanel';
 
 interface WorkoutSessionProps {
   workout: any;
-  source?: string; // For debug tracking
+  source?: string;
 }
 
 export default function EnhancedWorkoutSession({ workout, source = "direct" }: WorkoutSessionProps) {
@@ -83,27 +92,18 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
   const { logSet: newLogSet, error: setLoggingError, isLoading: setLoggingLoading } = useAdvancedSetLogging();
-  // Step 2: Add unified logger for v0.6.0 
   const { logSet: unifiedLogSet } = useUnifiedSetLogging();
   
-  // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
-  
-  // Session timing for workout tracking
   const { startSession } = useSessionTiming();
 
-  // Robust readiness check using the auth hook
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(workout?.id);
   
-  // Warmup session state for managing which warmups have been shown
   const { warmupsShown, setWarmupShown } = useWarmupSessionState();
-  
-  // Warmup context manager for dynamic warm-up counts
   const { resetSessionContext, logWorkingSet } = useWarmupManager();
   
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => {
-    // Try to restore from localStorage first
     const key = `workout_${workout?.id}_currentExercise`;
     try {
       const stored = localStorage.getItem(key);
@@ -111,9 +111,9 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
         return stored;
       }
     } catch {}
-    // Fallback to first exercise
     return workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index)?.[0]?.id ?? null;
   });
+  
   const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
   const [showWarmupEditor, setShowWarmupEditor] = useState(false);
   const [showRecalibration, setShowRecalibration] = useState(false);
@@ -122,7 +122,6 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
   const [hasExistingWarmupData, setHasExistingWarmupData] = useState(false);
   const [userId, setUserId] = useState<string | null>(null);
   const [readinessScore, setReadinessScore] = useState<number | undefined>(() => {
-    // Try to restore readiness score from localStorage
     const key = `workout_${workout?.id}_readiness`;
     try {
       const stored = localStorage.getItem(key);
@@ -132,994 +131,450 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     }
   });
 
-  // Grip selection state - per exercise
+  // UI state for menus
+  const [showGripSelector, setShowGripSelector] = useState(false);
+  const [showWarmupMenu, setShowWarmupMenu] = useState(false);
+  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
-  const [showGripSelector, setShowGripSelector] = useState<Record<string, boolean>>({});
   
-  // Set input state - always show for current set
+  // Current set input state
   const [currentSetData, setCurrentSetData] = useState({
-    weight: 0,
-    reps: 0,
-    rpe: 5,
-    feel: '',
-    notes: '',
-    pain: false
+    weight: 20,
+    reps: 10,
+    feel: '='
   });
-
-  // Initialize readiness store from localStorage and populate store on mount
-  useEffect(() => {
-    const initializeReadiness = async () => {
-      if (readinessScore) {
-        const { useReadinessStore } = await import('@/stores/readinessStore');
-        useReadinessStore.getState().setScore(readinessScore);
-      }
-    };
-    initializeReadiness();
-  }, [readinessScore]);
-
-  // Cleanup localStorage on component unmount (page refresh/navigation)
-  useEffect(() => {
-    return () => {
-      // Don't clear on unmount since user might be refreshing
-      // Only clear when workout is actually completed via handleWorkoutComplete
-    };
-  }, []);
-
-  // Get user ID on mount (backup to auth hook)
-  React.useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUserId(user?.id || null);
-    };
-    getUser();
-  }, []);
-
-  // Start session timing when workout is active
-  React.useEffect(() => {
-    if (workout?.started_at && !workout?.ended_at) {
-      startSession();
-      // Reset warmup context for new session
-      resetSessionContext();
-    }
-  }, [workout?.started_at, workout?.ended_at, startSession, resetSessionContext]);
+  
+  // Rest timer state
+  const [restStartTime, setRestStartTime] = useState<Date | null>(null);
+  const [restDuration, setRestDuration] = useState(0);
 
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
     return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
   }, [workout?.exercises, currentExerciseId]);
 
-  // Get exercise estimate for current exercise - moved after currentExercise definition
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
   const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
 
-  // Calculate sets data early so it can be used in useEffect
   const sets = currentExercise?.sets || [];
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
-  
-
-  // Check if warmup feedback was already given when exercise changes
-  useEffect(() => {
-    const checkWarmupFeedback = async () => {
-      if (currentExercise) {
-        const weId = resolveWorkoutExerciseId(currentExercise);
-        const { data } = await supabase
-          .from('workout_exercises')
-          .select('warmup_feedback, warmup_feedback_at')
-          .eq('id', weId)
-          .maybeSingle();
-        
-        // Only hide warmup if feedback was explicitly given
-        if (data?.warmup_feedback && data?.warmup_feedback_at) {
-          setWarmupCompleted(true);
-        } else {
-          setWarmupCompleted(false);
-        }
-      }
-    };
-    checkWarmupFeedback();
-  }, [currentExercise]);
-
-  // Trigger warmup display immediately when exercise loads (before any sets)
-  useEffect(() => {
-    if (!currentExercise) return;
-    
-    const weId = resolveWorkoutExerciseId(currentExercise);
-    const hasTarget = currentExercise?.target_weight_kg || currentExercise?.target_reps || currentExerciseEstimate?.estimated_weight;
-    const hasBeenShown = warmupsShown[weId];
-    const hasNoCompletedSets = completedSetsCount === 0;
-    
-    console.log('🔍 Checking warmup conditions on exercise load:', {
-      weId, hasTarget, hasBeenShown, warmupCompleted, hasNoCompletedSets, completedSetsCount
-    });
-    
-    // Show warmup immediately when exercise loads if:
-    // 1. We have a target weight/reps available (from template or estimate)  
-    // 2. It hasn't been shown for this exercise yet in this session
-    // 3. Warmup isn't marked as completed
-    // 4. This is before the first set is completed
-    if (hasTarget && !hasBeenShown && !warmupCompleted && hasNoCompletedSets) {
-      console.log('✅ Triggering warmup display for exercise:', weId);
-      setWarmupShown(weId);
-      // The warmup will be shown by the existing WarmupBlock component
-    }
-  }, [currentExercise, warmupsShown, warmupCompleted, currentExerciseEstimate, completedSetsCount, setWarmupShown]);
-  const totalExercises = workout?.exercises?.length || 0;
-  const progressPercentage = totalExercises > 0 ? (completedExercises.size / totalExercises) * 100 : 0;
-  
-  // Add runtime check for debugging
-  if (!currentExercise?.id) {
-    console.warn('No workout_exercises.id on currentExercise', currentExercise);
-  }
-
-  const resolveWorkoutExerciseId = (ex: any): string => {
-    // prefer the actual WE id provided by your query
-    const candidate =
-      ex?.workout_exercise_id ??
-      ex?.we_id ??                        // if you aliased as we_id
-      ex?.id;                             // fallback (only if `ex.id` really is WE id!)
-
-    const id = sanitizeUuid(candidate);
-    if (!isUuid(id)) {
-      console.error('❌ Invalid workout_exercise_id', { candidate, id, ex });
-      throw new Error('Invalid workout_exercise_id (not a UUID)');
-    }
-    return id;
-  };
-
-  
-  // Get exercise translation - use the main exercise_id
-  const exerciseId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
-  const { data: exerciseTranslation } = useExerciseTranslation(exerciseId);
-  
-  const getExerciseName = () => {
-    // First try the dedicated exercise translation hook
-    if (exerciseTranslation?.name) {
-      return exerciseTranslation.name;
-    }
-    
-    // Then try the translations from the workout query
-    const translations = currentExercise?.exercise?.exercises_translations;
-    
-    if (translations && Array.isArray(translations)) {
-      // Try English first
-      const enTranslation = translations.find(t => t.language_code === 'en');
-      if (enTranslation?.name) {
-        return enTranslation.name;
-      }
-      
-      // Fallback to any available translation
-      const anyTranslation = translations.find(t => t.name);
-      if (anyTranslation?.name) {
-        return anyTranslation.name;
-      }
-    }
-    
-    // Legacy fallbacks
-    if (currentExercise?.exercise?.translations?.en?.name) {
-      return currentExercise.exercise.translations.en.name;
-    }
-    if (currentExercise?.translations?.en?.name) {
-      return currentExercise.translations.en.name;
-    }
-    if (currentExercise?.exercise?.name) {
-      return currentExercise.exercise.name;
-    }
-    if (currentExercise?.name) {
-      return currentExercise.name;
-    }
-    
-    return `Exercise ${exerciseId?.slice(0, 8) || 'Unknown'}`;
-  };
-  
-  const targetSetsCount = currentExercise?.target_sets || 3;
   const currentSetNumber = completedSetsCount + 1;
   
-  // Find current set index (first non-completed set)
-  const currentSetIndex = useMemo(() => {
-    const index = sets.findIndex(s => !s.is_completed);
-    console.log('🔍 currentSetIndex calculation:', {
-      sets: sets.map(s => ({ id: s.id, is_completed: s.is_completed })),
-      index,
-      result: index === -1 ? sets.length : index
-    });
-    return index === -1 ? sets.length : index;
-  }, [sets]);
-
-  // Filter exercises based on gym constraints
-  const filteredExercises = useMemo(() => {
-    if (!workout?.exercises || !gym) return workout?.exercises || [];
-    
-    // This would integrate with GymConstraintsFilter logic
-    return workout.exercises.filter((exercise: any) => {
-      // Basic gym equipment filtering logic would go here
-      return true; // For now, show all exercises
-    });
-  }, [workout?.exercises, gym]);
-
-  // Function moved above to avoid hoisting issues
-
-  const handleSetComplete = async (workoutExerciseId: string, setData: any) => {
-    console.log('🔍 handleSetComplete called with:', {
-      workoutExerciseId,
-      setData,
-      'selectedGrips[workoutExerciseId]': selectedGrips[workoutExerciseId],
-      'selectedGrips': selectedGrips,
-      'grips.length': grips.length
-    });
-
-    const exerciseGrips = selectedGrips[workoutExerciseId] || [];
-    console.log('🔍 exerciseGrips:', exerciseGrips);
-    
-    // Convert grip names to UUIDs
-    const gripIds = exerciseGrips
-      .map(gripName => {
-        const id = getGripIdByName(grips, gripName);
-        console.log(`🔍 Converting grip "${gripName}" to ID:`, id);
-        return id;
-      })
-      .filter(id => {
-        const isValid = id !== null;
-        if (!isValid) console.warn('⚠️ Filtered out null grip ID');
-        return isValid;
-      }) as string[];
-    
-    console.log('🔍 Final grip IDs after conversion:', gripIds);
-    
-    // Build notes with feel and pain info
-    let notes = setData.notes || '';
-    if (setData.feel) {
-      notes = notes ? `Feel: ${setData.feel}. ${notes}` : `Feel: ${setData.feel}`;
-    }
-    if (setData.pain) {
-      notes = notes ? `${notes}. Pain reported` : 'Pain reported';
-    }
-    
-    // Calculate planned set index - convert from 0-based UI index to 1-based DB index
-    const plannedSetIndex = currentSetIndex + 1; // Convert to 1-based for database
-    
-    console.log('🔍 Set completion timing:', {
-      currentSetIndex, // 0-based UI index
-      plannedSetIndex,  // 1-based DB index  
-      completedSetsCount,
-      totalSets: sets.length,
-      setData,
-      existingSets: sets.map(s => ({ set_index: s.set_index, is_completed: s.is_completed }))
-    });
-    
-    const payload = {
-      workout_exercise_id: workoutExerciseId,
-      weight: setData.weight || 0,
-      reps: setData.reps || 0,
-      rpe: setData.rpe || 5,
-      notes: notes,
-      is_completed: true,
-      grip_ids: gripIds
-    };
-    
-    console.log('🔍 About to call newLogSet with payload:', {
-      payload,
-      plannedSetIndex,
-      'payload.grip_ids': payload.grip_ids,
-      'payload.grip_ids.length': payload.grip_ids.length
-    });
-    
-    try {
-      console.log('🔍 About to call newLogSet with payload:', {
-        payload,
-        plannedSetIndex,
-        'payload.grip_ids': payload.grip_ids,
-        'payload.grip_ids.length': payload.grip_ids.length
-      });
-      
-      const result = await newLogSet(payload, plannedSetIndex);
-      
-      // Only update warmup context for working sets (not warmup sets)
-      const isWorkingSet = plannedSetIndex > 0; // Set index 0 and negative are warmup sets
-      
-      if (isWorkingSet) {
-        // Log working set to warmup context for future exercise warm-up planning
-        try {
-          await logWorkingSet(workoutExerciseId);
-          console.log('✅ Logged working set to warmup context');
-        } catch (contextError) {
-          console.error('Failed to log working set to context:', contextError);
-          // Don't block the set logging for context issues
+  // Timer effect - starts from set 2
+  useEffect(() => {
+    if (currentSetNumber >= 2) {
+      const timer = setInterval(() => {
+        if (restStartTime) {
+          const elapsed = Math.floor((Date.now() - restStartTime.getTime()) / 1000);
+          setRestDuration(elapsed);
         }
-      } else {
-        console.log('⏭️ Skipping warmup context update for warmup set');
-      }
-      
-      // Reset form for next set
-      setCurrentSetData({
-        weight: setData.weight || 0, // Keep weight for next set
-        reps: setData.reps || 0,     // Keep reps for next set
-        rpe: 5,
-        feel: '',
-        notes: '',
-        pain: false
-      });
-      
-      // Invalidate workout queries to refresh the UI and show the logged set
-      await queryClient.invalidateQueries({ queryKey: ['workouts'] });
-      await queryClient.invalidateQueries({ queryKey: ['workout', workout?.id] });
-      await queryClient.invalidateQueries({ queryKey: ['active-workout'] });
-      
-      toast.success(`Set ${result.action} successfully!`);
-      
-      // Note: Removed window.location.reload() to maintain exercise navigation state
-    } catch (error) {
-      console.error('❌ DETAILED SET LOGGING ERROR:', {
-        error,
-        errorType: typeof error,
-        isErrorInstance: error instanceof Error,
-        payload,
-        plannedSetIndex,
-        workoutExerciseId,
-        setData,
-        currentSetIndex,
-        completedSetsCount,
-        totalSets: sets.length,
-        timestamp: new Date().toISOString()
-      });
-      console.error('Failed to log set:', error);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-      
-      // Extract detailed error information
-      let errorDetails = 'Unknown error';
-      if (error instanceof Error) {
-        errorDetails = error.message;
-        if ((error as any).details) {
-          errorDetails += ` | Details: ${(error as any).details}`;
-        }
-        if ((error as any).hint) {
-          errorDetails += ` | Hint: ${(error as any).hint}`;
-        }
-        if ((error as any).code) {
-          errorDetails += ` | Code: ${(error as any).code}`;
-        }
-      } else if (typeof error === 'object' && error !== null) {
-        if ((error as any).message) {
-          errorDetails = (error as any).message;
-        }
-        if ((error as any).error_description) {
-          errorDetails += ` | ${(error as any).error_description}`;
-        }
-        errorDetails += ` | Raw: ${JSON.stringify(error)}`;
-      } else {
-        errorDetails = String(error);
-      }
-      
-      toast.error(`SET SAVE FAILED: ${errorDetails}`, {
-        duration: 15000 // Show for 15 seconds so you can read the full error
-      });
+      }, 1000);
+      return () => clearInterval(timer);
     }
+  }, [currentSetNumber, restStartTime]);
+
+  // Get exercise name
+  const getExerciseName = () => {
+    return currentExercise?.exercise?.name || currentExercise?.name || 'Exercise';
   };
 
-  // Simple wrapper for SmartSetForm onLogged callback
-  const handleSetLogged = () => {
-    setWarmupCompleted(true);
-    // The form will call the unified set logging directly
-    // No need for additional processing here
+  // Format time display
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Updated handleWarmupFeedback function
-  const handleWarmupFeedback = async (exerciseId: string, feedback: 'not_enough' | 'excellent' | 'too_much') => {
-    if (!user?.id || !currentExercise?.id) {
-      toast.error('Missing user or exercise information');
-      return;
-    }
-
-    try {
-      await submitWarmupFeedback({
-        workoutExerciseId: resolveWorkoutExerciseId(currentExercise),
-        exerciseId,
-        userId: user.id,
-        feedback
-      });
-      
-      toast.success(`Warmup feedback recorded: ${feedback.replace('_', ' ')}`);
-    } catch (error) {
-      console.error('Failed to submit warmup feedback:', error);
-      toast.error('Failed to record warmup feedback');
-    }
+  // Handle feel selection
+  const handleFeelSelect = (feel: string) => {
+    setCurrentSetData(prev => ({ ...prev, feel }));
   };
 
-  const handleSaveSet = () => {
-    if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      const weId = resolveWorkoutExerciseId(currentExercise);
-      handleSetComplete(weId, currentSetData);
-    } else {
-      toast.error('Please enter weight or reps');
-    }
-  };
-  
-  const handleAddExtraSet = () => {
-    // For adding sets beyond the target
-    if (currentExercise && (currentSetData.weight > 0 || currentSetData.reps > 0)) {
-      const weId = resolveWorkoutExerciseId(currentExercise);
-      handleSetComplete(weId, currentSetData);
-    }
+  // Handle weight/reps changes
+  const handleWeightChange = (delta: number) => {
+    setCurrentSetData(prev => ({ 
+      ...prev, 
+      weight: Math.max(0, prev.weight + delta) 
+    }));
   };
 
-  const handleExerciseComplete = (exerciseId: string) => {
-    setCompletedExercises(prev => new Set([...prev, exerciseId]));
-    
-    // Auto-advance to next exercise using sorted exercises
-    const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
-    const currentIndex = sortedExercises.findIndex((x: any) => x.id === currentExerciseId) ?? -1;
-    if (currentIndex < totalExercises - 1) {
-      const nextExercise = sortedExercises[currentIndex + 1];
-      if (nextExercise?.id) {
-        setCurrentExerciseId(nextExercise.id);
-        // Persist the exercise progression
-        try {
-          localStorage.setItem(`workout_${workout?.id}_currentExercise`, nextExercise.id);
-        } catch (error) {
-          console.warn('Failed to persist current exercise:', error);
-        }
-      }
-    }
+  const handleRepsChange = (delta: number) => {
+    setCurrentSetData(prev => ({ 
+      ...prev, 
+      reps: Math.max(0, prev.reps + delta) 
+    }));
   };
 
-  const handleWorkoutComplete = async () => {
-    try {
-      // Clean up localStorage when workout is completed
-      localStorage.removeItem(`workout_${workout?.id}_currentExercise`);
-      localStorage.removeItem(`workout_${workout?.id}_readiness`);
-      
-      // Mark workout as completed in the database
-      const { error } = await supabase
-        .from('workouts')
-        .update({ 
-          ended_at: new Date().toISOString(),
-          perceived_exertion: null // Could be set via a form later
-        })
-        .eq('id', workout.id);
-
-      if (error) throw error;
-
-      // Advance program state if this was from a program
-      if (workout.program_block_id) {
-        await advanceProgramState.mutateAsync(workout.program_block_id);
-      }
-      
-      toast.success('Workout completed! 🎉');
-      
-      // Force refresh the dashboard state by navigating and reloading
-      navigate('/dashboard');
-      setTimeout(() => {
-        window.location.reload();
-      }, 100);
-      
-    } catch (error) {
-      console.error('Failed to complete workout:', error);
-      toast.error('Failed to complete workout');
-    }
+  const handleLogSet = () => {
+    // Logic to log the set
+    console.log('Logging set:', currentSetData);
+    // Start rest timer for next set
+    setRestStartTime(new Date());
   };
 
-  const handleFinishWorkout = async () => {
-    // If this workout is part of a program, advance the progress
-    if (workout.program_id && workout.program_position) {
-      try {
-        await supabase.rpc('advance_program_progress', {
-          p_program_id: workout.program_id,
-          p_user_id: workout.user_id,
-          p_position: workout.program_position,
-          p_workout_id: workout.id
-        });
-      } catch (progError) {
-        console.error('Failed to advance program progress:', progError);
-        // Don't fail the workout completion if this fails
-      }
-    }
-    navigate('/dashboard');
-  };
+  // Menu handlers
+  const handleGripMenuOpen = () => setShowGripSelector(true);
+  const handleWarmupMenuOpen = () => setShowWarmupMenu(true);
+  const handleSettingsMenuOpen = () => setShowSettingsMenu(true);
 
-  // Readiness check handlers
-  const handleReadinessSubmit = async (enhancedReadinessData: EnhancedReadinessData) => {
-    try {
-      const { readiness, estimates } = enhancedReadinessData;
-      
-      console.log('🔍 EnhancedWorkoutSession: Processing readiness and estimates:', { readiness, estimates });
-      
-      // Use the new RPC function to save readiness data
-      const inputData = {
-        energy: readiness.energy,
-        sleep_quality: readiness.sleep_quality, 
-        sleep_hours: readiness.sleep_hours,
-        soreness: readiness.soreness,
-        stress: readiness.stress,
-        mood: readiness.mood || 6, // Use actual mood value from form
-        energizers: readiness.energisers_taken, // Fixed: use US spelling for saveTodayReadiness
-        illness: readiness.illness || false, // Use actual illness value from form
-        alcohol: readiness.alcohol || false, // Use actual alcohol value from form
-        workout_id: workout.id, // Link to this specific workout
-      };
-      
-      console.log('🔄 Calling saveTodayReadiness with:', inputData);
-      const realScore = await saveTodayReadiness(inputData);
-      console.log('✅ Readiness saved with score:', realScore);
-      
-      // Also create the pre-workout checkin record for tracking
-      const checkinResponse = await createCheckin.mutateAsync({
-        answers: {
-          ...readiness,
-          energizers: readiness.energisers_taken
-        },
-        readiness_score: realScore
-      });
-      
-      console.log('✅ Pre-workout checkin created:', checkinResponse);
-      
-      // Store readiness score for header display AND persistence
-      setReadinessScore(realScore);
-      
-      // Update the readiness store as well
-      const { useReadinessStore } = await import('@/stores/readinessStore');
-      useReadinessStore.getState().setScore(realScore);
-      
-      try {
-        localStorage.setItem(`workout_${workout?.id}_readiness`, realScore.toString());
-      } catch (error) {
-        console.warn('Failed to persist readiness score:', error);
-      }
-      
-      toastUtils({
-        title: "Check-in complete",
-        description: `Readiness score: ${Math.round(realScore)}/100${Object.keys(estimates).length > 0 ? ` • ${Object.keys(estimates).length} exercise estimates saved` : ''}.`
-      });
-      
-      // Invalidate the shouldShowReadiness query to hide the popup
-      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', workout?.id, user?.id] });
-      
-      // Also invalidate estimate queries to update the UI
-      queryClient.invalidateQueries({ queryKey: ['missingEstimates'] });
-      queryClient.invalidateQueries({ queryKey: ['needsEstimate'] });
-      
-    } catch (error) {
-      console.error('Error saving readiness check:', error);
-      toastUtils({
-        title: "Error",
-        description: "Failed to save readiness check.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleSkipReadiness = async () => {
-    try {
-      // Get user's baseline readiness score or use default
-      let defaultScore = 65; // Moderate default
-      try {
-        defaultScore = await getCurrentUserReadinessScore();
-      } catch {
-        // Keep default if can't get current score
-      }
-      
-      // Create a special "skipped" checkin to prevent showing again
-      await createCheckin.mutateAsync({ 
-        answers: { skipped: true } as any, 
-        readiness_score: defaultScore
-      });
-      
-      // Set readiness score for display
-      setReadinessScore(defaultScore);
-      
-      toastUtils({
-        title: "Check-in skipped",
-        description: `Using baseline readiness (${Math.round(defaultScore)}/100).`
-      });
-      
-      // Invalidate the shouldShowReadiness query to hide the popup
-      queryClient.invalidateQueries({ queryKey: ['shouldShowReadiness', workout?.id, user?.id] });
-    } catch (error) {
-      console.error('Error skipping readiness check:', error);
-      toastUtils({
-        title: "Error",
-        description: "Failed to skip readiness check.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleAbortWorkout = async () => {
-    const confirmed = window.confirm(
-      'Are you sure you want to abort this workout? All progress will be deleted and cannot be recovered.'
-    );
-    
-    if (confirmed) {
-      try {
-        // Delete the workout and all its associated data
-        const { error } = await supabase
-          .from('workouts')
-          .delete()
-          .eq('id', workout.id);
-
-        if (error) throw error;
-
-        // Reset session timing store
-        useSessionTiming.setState({
-          sessionStartedAt: null,
-          totalRestMs: 0,
-          restStartedAt: null,
-        });
-
-        toast.success('Workout deleted successfully');
-        navigate('/dashboard');
-      } catch (error) {
-        console.error('Failed to delete workout:', error);
-        toast.error('Failed to delete workout');
-      }
-    }
-  };
-
-  // Robust decision logic - no race conditions
-  const needsReadiness = shouldShowReadiness === true;
-  
-  
-  // Gate UI until we know the readiness status
-  const stillLoading = isCheckingReadiness || authLoading || !user;
-
-  // Show loading until we have all the data
-  if (stillLoading) {
+  if (authLoading || isCheckingReadiness) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        <span className="ml-2">Loading workout...</span>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading workout session...</p>
+        </div>
       </div>
     );
   }
 
-  // Show readiness check if needed
-  console.log('🚨 ENHANCED READINESS CHECK DECISION:', needsReadiness);
-  if (needsReadiness) {
-    console.log('🎯 RENDERING ENHANCED READINESS CHECK');
+  if (shouldShowReadiness) {
     return (
-      <>
-        <PageNav current="Pre-Workout Check" />
-        <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
-          <EnhancedReadinessCheckIn
-            workoutId={workout.id}
-            onSubmit={handleReadinessSubmit}
-            onAbort={handleAbortWorkout}
-            isLoading={createCheckin.isPending}
-          />
-        </main>
-      </>
+      <div className="container mx-auto p-4 max-w-md">
+        <EnhancedReadinessCheckIn
+          onComplete={async (data: EnhancedReadinessData) => {
+            const score = computeReadinessScore(data);
+            setReadinessScore(score);
+            localStorage.setItem(`workout_${workout?.id}_readiness`, score.toString());
+            await createCheckin(data);
+            queryClient.invalidateQueries({ queryKey: ['should-show-readiness'] });
+          }}
+        />
+      </div>
     );
   }
 
-  // DEBUG: Log when we reach main workout view
-  console.log('🎯 SHOWING ENHANCED MAIN WORKOUT VIEW');
-
-  if (!workout?.exercises?.length) {
+  if (!currentExercise) {
     return (
-      <Card className="m-6">
-        <CardContent className="pt-6 text-center">
-          <Target className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="font-medium mb-2">No exercises found</h3>
-          <p className="text-sm text-muted-foreground mb-4">
-            This workout doesn't have any exercises yet.
-          </p>
-          <Button onClick={() => navigate('/dashboard')}>
-            Back to Dashboard
-          </Button>
-        </CardContent>
-      </Card>
+      <div className="container mx-auto p-4">
+        <Card>
+          <CardContent className="pt-6">
+            <p className="text-center text-muted-foreground">No exercises found in this workout.</p>
+          </CardContent>
+        </Card>
+      </div>
     );
   }
 
-  const allExercisesComplete = completedExercises.size === totalExercises;
+  const totalExercises = workout?.exercises?.length || 0;
+  const totalSets = currentExercise?.target_sets || 3;
+  const lastSet = sets.find((set: any) => set.is_completed && set.set_index === completedSetsCount);
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="flex items-center justify-between p-4">
-          <div className="flex items-center gap-3">
-            <div>
-              {workout.program_id && (
-                <div className="flex items-center gap-2 mb-1">
-                  <Calendar className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-primary font-medium">
-                    Program: {workout.training_programs?.name || 'Unknown Program'}
-                  </span>
-                </div>
-              )}
-              <h1 className="text-lg font-semibold">
-                {workout?.title || workout?.template?.name || 'Free Session'}
-              </h1>
-            </div>
-          </div>
+      {/* Header */}
+      <div className="flex items-center justify-between p-4 border-b">
+        <h1 className="text-xl font-semibold">{workout?.name || 'test'}</h1>
+        <div className="flex items-center gap-2">
+          {/* Readiness Badge */}
+          <Badge variant="secondary" className="bg-orange-500/20 text-orange-400 border-orange-500/30">
+            {readinessScore ? Math.round(readinessScore) : '69'}
+          </Badge>
+          
+          {/* Timer Badge - only show from set 2 */}
+          {currentSetNumber >= 2 && (
+            <Badge variant="secondary" className="bg-slate-700 text-white border-slate-600 flex items-center gap-1">
+              <Clock className="h-3 w-3" />
+              {formatTime(restDuration)}
+            </Badge>
+          )}
+          
+          {/* Progress Badge */}
+          <Badge variant="secondary" className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 flex items-center gap-1">
+            <Trophy className="h-3 w-3" />
+            1/{totalExercises}
+          </Badge>
+        </div>
+      </div>
+
+      {/* Exercise Header */}
+      <div className="p-4">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-2xl font-bold">{getExerciseName()}</h2>
           <div className="flex items-center gap-2">
-            <SessionHeaderMeta 
-              readiness={readinessScore}
-              startedAt={workout?.started_at}
-              endedAt={workout?.ended_at}
-            />
-            <Badge variant="secondary">
-              🏋️ {(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) + 1}/{workout?.exercises?.length || 0}
+            {/* Mini Menu Icons */}
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-8 w-8"
+              onClick={handleGripMenuOpen}
+            >
+              <Hand className="h-4 w-4" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-8 w-8 relative"
+              onClick={handleSettingsMenuOpen}
+            >
+              <Hash className="h-4 w-4" />
+              <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
+                {totalSets}
+              </Badge>
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              className="p-2 h-8 w-8"
+              onClick={handleWarmupMenuOpen}
+            >
+              <Flame className="h-4 w-4" />
+            </Button>
+            
+            <Badge variant="secondary" className="bg-slate-700 text-white">
+              {completedSetsCount}/{totalSets} sets
             </Badge>
           </div>
         </div>
-      </div>
 
-      <div className="p-4 pb-24 max-w-md mx-auto">
-        {/* Error Banner - Show detailed error information */}
-        {setLoggingError && (
-          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-destructive font-bold text-lg">❌ SET LOGGING FAILED</span>
-            </div>
-            <div className="text-sm text-destructive/90 font-mono bg-destructive/5 p-3 rounded border max-h-40 overflow-y-auto">
-              {setLoggingError}
-            </div>
-            <div className="text-xs text-destructive/70 mt-2">
-              Check console logs for full details. Report this error if it persists.
-            </div>
-          </div>
-        )}
-        
-        {!workout?.exercises || workout.exercises.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">No exercises found in this workout.</p>
-          </div>
-        ) : (
-          <>
-            {currentExercise && (
-              <>
-                {/* Header - EXACT MATCH to images */}
-                <div className="flex items-center justify-between p-4">
-                  <div className="flex items-center gap-3">
-                    <h1 className="text-2xl font-bold text-white">
-                      {getExerciseName()}
-                    </h1>
-                    
-                    {/* Mini Menu Icons - EXACT from backup */}
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
-                      className="h-8 w-8 p-0 text-white/70 hover:text-white"
-                    >
-                      <Hand className="h-5 w-5" />
-                    </Button>
-                    
-                    <Timer className="h-5 w-5 text-white/70" />
-                    
-                    <div className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                      T2:{String(Math.floor((Date.now() - workoutStartTime.getTime()) / 1000 / 60)).padStart(2, '0')}
-                    </div>
-                    
-                    <span className="text-xl">🤸</span>
-                  </div>
-                  
-                  <div className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">
-                    {completedSetsCount}/{targetSetsCount} sets
-                  </div>
-                </div>
-
-                {/* Warmup Block - FIRST, above Current Set */}
-                {!warmupCompleted && currentExercise && (
-                  <div className="px-4 pb-4">
-                    <WarmupBlock
-                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                      suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
-                      suggestedTopReps={currentExercise?.target_reps || 8}
-                      onFeedbackGiven={() => setWarmupCompleted(true)}
-                      existingFeedback={currentExercise?.warmup_feedback}
-                    />
-                  </div>
-                )}
-
-                {/* Current Set - EXACT MATCH to backup images */}
-                <div className="px-4">
-                  <div className="bg-gray-800 border border-green-500/30 rounded-2xl p-6">
-                    {/* Set Number Header */}
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
-                        {currentSetNumber}
-                      </div>
-                      <span className="text-white text-xl font-medium">Current Set</span>
-                    </div>
-                    
-                    {/* Previous/Target Area - EXACT from backup */}
-                    <div className="bg-gray-900 rounded-xl p-4 mb-6">
-                      <div className="space-y-3">
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">📜</span>
-                          <span className="text-white font-medium text-lg">
-                            Prev <span className="font-bold">95kg × 21</span>
-                          </span>
-                          <span className="text-2xl">😵</span>
-                        </div>
-                        
-                        <div className="flex items-center gap-3">
-                          <span className="text-2xl">🎯</span>
-                          <span className="text-white font-medium text-lg">
-                            Target <span className="font-bold">30kg × 20</span>
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Set Input Form */}
-                    <SmartSetForm
-                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                      exercise={{
-                        id: currentExercise?.exercise_id || currentExercise.id,
-                        effort_mode: (currentExercise?.exercise?.effort_mode as 'reps' | 'time' | 'distance' | 'calories') || 'reps',
-                        load_mode: (currentExercise?.exercise?.load_mode as 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level') || 'external_added',
-                        equipment: {
-                          equipment_type: undefined,
-                          slug: getEquipmentRefId(currentExercise)
-                        }
-                      }}
-                      setIndex={currentSetIndex}
-                      onLogged={handleSetLogged}
-                    />
-                  </div>
-                </div>
-
-                {/* Grip Selector Modal - Clean Overlay */}
-                {showGripSelector[currentExercise.id] && (
-                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-md w-full">
-                      <div className="flex items-center justify-between mb-4">
-                        <span className="text-white font-medium flex items-center gap-2">
-                          <Hand className="h-5 w-5" />
-                          Grip Selection
-                        </span>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: false }))}
-                          className="text-white/70 hover:text-white"
-                        >
-                          ✕
-                        </Button>
-                      </div>
-                      
-                      <div className="flex flex-wrap gap-2">
-                        {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close'].map((grip) => (
-                          <Button
-                            key={grip}
-                            variant={selectedGrips[currentExercise.id]?.includes(grip) ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => {
-                              const currentGrips = selectedGrips[currentExercise.id] || [];
-                              const newGrips = currentGrips.includes(grip) 
-                                ? currentGrips.filter(g => g !== grip)
-                                : [...currentGrips, grip];
-                              setSelectedGrips(prev => ({ ...prev, [currentExercise.id]: newGrips }));
-                            }}
-                            className="text-sm"
-                          >
-                            {grip}
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Completed Sets - Below */}
-                {sets.filter((set: any) => set.is_completed).length > 0 && (
-                  <div className="p-4">
-                    <h3 className="text-white font-medium mb-3">Completed Sets</h3>
-                    <div className="space-y-2">
-                      {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
-                        <div key={set.id || index} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
-                              {index + 1}
-                            </div>
-                            <span className="text-white">
-                              {set.weight_kg || 0}kg × {set.reps || 0} reps
-                            </span>
-                            {set.feel && <span className="text-lg">{set.feel}</span>}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </>
-            )}
-
-            {/* Exercise Navigation at Bottom */}
-            <div className="mt-8 space-y-3 pb-20">
-              <div className="text-center text-sm text-muted-foreground mb-3">
-                Exercise Navigation
-              </div>
-              <div className="flex gap-2 overflow-x-auto pb-2">
-                {workout.exercises.sort((a: any, b: any) => a.order_index - b.order_index).map((ex: any, idx: number) => {
-                  const label = `${idx + 1}. ${getExerciseDisplayName(ex)}`;
-                  const isActive = ex.id === currentExercise?.id;
-                  
-                  return (
-                    <Button
-                      key={ex.id}
-                      variant={isActive ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => {
-                        setCurrentExerciseId(ex.id);
-                        // Persist the current exercise selection
-                        try {
-                          localStorage.setItem(`workout_${workout?.id}_currentExercise`, ex.id);
-                        } catch (error) {
-                          console.warn('Failed to persist current exercise:', error);
-                        }
-                      }}
-                      className="flex-shrink-0"
-                    >
-                      {label}
-                    </Button>
-                  );
-                })}
-              </div>
-              
-              {/* Abort Workout Button */}
-              <div className="pt-4 border-t">
-                <Button
-                  onClick={handleAbortWorkout}
-                  variant="secondary"
-                  className="w-full bg-muted text-muted-foreground hover:bg-muted/80"
-                  size="lg"
-                >
-                  Abort Workout
+        {/* Warmup Section - shown at the beginning */}
+        {currentSetNumber === 1 && (
+          <Card className="mb-4">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <h3 className="font-semibold mb-2">Warmup</h3>
+                <p className="text-muted-foreground text-sm">Complete your warmup before starting the first set</p>
+                <Button variant="outline" className="mt-2" onClick={handleWarmupMenuOpen}>
+                  Start Warmup
                 </Button>
               </div>
-            </div>
-          </>
+            </CardContent>
+          </Card>
         )}
+
+        {/* Completed Sets */}
+        {sets
+          .filter((set: any) => set.is_completed)
+          .map((set: any, index: number) => (
+            <Card key={set.id} className="mb-3 border-green-500/30 bg-green-500/5">
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm font-medium">Set</span>
+                      <Badge variant="secondary" className="h-6 w-6 rounded-full p-0 flex items-center justify-center">
+                        {set.set_index}
+                      </Badge>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-orange-400">📦</span>
+                      <span className="font-medium">{set.weight}kg × {set.reps} reps</span>
+                      <span className="text-lg">{set.feel === '--' ? '😵' : set.feel === '-' ? '😣' : set.feel === '=' ? '🙂' : set.feel === '+' ? '😄' : '😎'}</span>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                      <Edit3 className="h-3 w-3" />
+                    </Button>
+                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                      <ChevronDown className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+
+        {/* Current Set */}
+        <Card className="mb-4 border-green-500/50 bg-green-500/10">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">Set</span>
+                <Badge className="h-8 w-8 rounded-full p-0 flex items-center justify-center bg-green-500 text-white">
+                  {currentSetNumber}
+                </Badge>
+              </div>
+              <span className="font-medium">Current Set</span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4">
+              {/* Previous/Target */}
+              <div>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                  <span className="text-orange-400">📦</span>
+                  {lastSet ? `${lastSet.weight}kg × ${lastSet.reps}` : 'No previous data'}
+                </div>
+                <div className="flex items-center gap-2 text-sm">
+                  <Target className="h-3 w-3 text-red-500" />
+                  <span>Target {currentSetData.weight}kg × {currentSetData.reps}</span>
+                </div>
+              </div>
+
+              {/* Timer - only show from set 2 */}
+              {currentSetNumber >= 2 && (
+                <div className="flex items-center justify-center">
+                  <div className="bg-slate-800 rounded-lg px-3 py-2">
+                    <div className="text-green-400 text-xl font-mono">
+                      {formatTime(restDuration)}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Per-side/Total Toggle */}
+            <div className="flex items-center justify-center gap-3 mb-4">
+              <span className="text-sm text-muted-foreground">Per-side</span>
+              <Switch defaultChecked />
+              <span className="text-sm font-medium">Total</span>
+            </div>
+
+            {/* Weight and Reps Controls */}
+            <div className="grid grid-cols-2 gap-6 mb-6">
+              {/* Weight */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Total Weight (kg)</label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-12 w-12 rounded-lg"
+                    onClick={() => handleWeightChange(-2.5)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex-1 text-center">
+                    <div className="bg-background rounded-lg border p-3 text-xl font-mono">
+                      {currentSetData.weight}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-12 w-12 rounded-lg"
+                    onClick={() => handleWeightChange(2.5)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+
+              {/* Reps */}
+              <div>
+                <label className="text-sm text-muted-foreground mb-2 block">Reps</label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-12 w-12 rounded-lg"
+                    onClick={() => handleRepsChange(-1)}
+                  >
+                    <Minus className="h-4 w-4" />
+                  </Button>
+                  <div className="flex-1 text-center">
+                    <div className="bg-background rounded-lg border p-3 text-xl font-mono">
+                      {currentSetData.reps}
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-12 w-12 rounded-lg"
+                    onClick={() => handleRepsChange(1)}
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+
+            {/* Feel Selector */}
+            <div className="mb-4">
+              <label className="text-sm text-muted-foreground mb-3 block">How did that feel?</label>
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { value: '--', emoji: '😵' },
+                  { value: '-', emoji: '😣' },
+                  { value: '=', emoji: '🙂' },
+                  { value: '+', emoji: '😄' },
+                  { value: '++', emoji: '😎' }
+                ].map((feel) => (
+                  <Button
+                    key={feel.value}
+                    variant={currentSetData.feel === feel.value ? "default" : "outline"}
+                    className={`h-12 text-2xl ${
+                      currentSetData.feel === feel.value 
+                        ? 'bg-green-500 hover:bg-green-600' 
+                        : 'bg-background hover:bg-muted'
+                    }`}
+                    onClick={() => handleFeelSelect(feel.value)}
+                  >
+                    {feel.emoji}
+                  </Button>
+                ))}
+              </div>
+            </div>
+
+            {/* Log Set Button */}
+            <Button 
+              onClick={handleLogSet}
+              className="w-full h-12 text-lg font-semibold bg-green-500 hover:bg-green-600"
+            >
+              Log Set
+            </Button>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Floating Complete Workout Button */}
-      {allExercisesComplete && (
-        <div className="fixed bottom-4 left-4 right-4 max-w-md mx-auto">
-          <Button
-            onClick={handleWorkoutComplete}
-            className="w-full"
-            size="lg"
-          >
-            Complete Workout
-          </Button>
-        </div>
-      )}
-
-
-      {/* Warmup Editor Dialog */}
-      <Dialog open={showWarmupEditor} onOpenChange={setShowWarmupEditor}>
+      {/* Grip Selector Modal */}
+      <Dialog open={showGripSelector} onOpenChange={setShowGripSelector}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Edit Warmup</DialogTitle>
+            <DialogTitle>Select Grip</DialogTitle>
           </DialogHeader>
-          <div className="p-4">
-            <WarmupEditor 
-              exerciseId={currentExercise?.exercise_id || currentExercise?.id}
-              exerciseName={getExerciseName()}
-              onClose={() => setShowWarmupEditor(false)}
-            />
-          </div>
+          <ExerciseGripMenu
+            selectedGrip={selectedGrips[currentExercise?.id]?.[0]}
+            onGripChange={(grip) => {
+              if (grip) {
+                setSelectedGrips(prev => ({
+                  ...prev,
+                  [currentExercise?.id]: [grip]
+                }));
+              }
+              setShowGripSelector(false);
+            }}
+            isOpen={true}
+            onClose={() => setShowGripSelector(false)}
+          />
         </DialogContent>
       </Dialog>
 
-      {/* Unified Debug Footer - v0.6.0 */}
-      <WorkoutDebugFooter 
-        debugInfo={{
-          version: 'workout-flow-v0.6.2',
-          router: 'SmartSetForm',
-          logger: 'useUnifiedSetLogging', 
-          sessionSource: source,
-          restTimer: false, // TODO: Connect to actual rest timer state
-          grips: Object.keys(selectedGrips).length > 0,
-          gripKey: selectedGrips[currentExercise?.id]?.[0] || null,
-          warmup: !warmupCompleted,
-          warmupSteps: 0, // TODO: Connect to actual warmup steps
-          entryMode: 'total', // TODO: Connect to actual entry mode
-          payloadPreview: currentSetData
-        }}
-      />
+      {/* Warmup Menu Modal */}
+      <Dialog open={showWarmupMenu} onOpenChange={setShowWarmupMenu}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Warmup</DialogTitle>
+          </DialogHeader>
+          <ExerciseWarmupMenu
+            targetWeight={currentSetData.weight}
+            onStepComplete={(step) => console.log('Warmup step completed:', step)}
+            isOpen={true}
+            onClose={() => setShowWarmupMenu(false)}
+          />
+        </DialogContent>
+      </Dialog>
+
+      {/* Settings Menu Modal */}
+      <Dialog open={showSettingsMenu} onOpenChange={setShowSettingsMenu}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Exercise Settings</DialogTitle>
+          </DialogHeader>
+          <ExerciseSettingsMenu
+            autoRestTimer={true}
+            showTargets={true}
+            quickAddMode={false}
+            onAutoRestTimerChange={(enabled) => console.log('Auto rest timer:', enabled)}
+            onShowTargetsChange={(enabled) => console.log('Show targets:', enabled)}
+            onQuickAddModeChange={(enabled) => console.log('Quick add mode:', enabled)}
+            isOpen={true}
+            onClose={() => setShowSettingsMenu(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
