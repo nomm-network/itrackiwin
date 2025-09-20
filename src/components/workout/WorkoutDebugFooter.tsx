@@ -1,106 +1,43 @@
-// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
-import React, { useState } from 'react';
-import { Badge } from '@/components/ui/badge';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { ChevronUp, Bug } from 'lucide-react';
-import { cn } from '@/lib/utils';
+// workout-flow-v0.8.0 – collapsible debug footer so you can confirm new code is rendered
+'use client';
 
-interface DebugInfo {
-  version: string;
-  templateId?: string | null;
-  workoutId?: string | null;
-  exerciseId?: string | null;
-  exerciseTitle?: string;
-  effort_mode?: string | null;
-  load_mode?: string | null;
-  hasWarmup: boolean;
-  shouldShowReadiness: boolean;
-  sessionSource?: string;
-  router: string;
-  logger: string;
-  restTimer: boolean;
-  grips: boolean;
-  gripKey?: string | null;
-  warmup: boolean;
-  warmupSteps?: number;
-  entryMode: 'per_side' | 'total' | 'bodyweight';
-  payloadPreview?: Record<string, any>;
-}
+import { useState } from 'react';
 
-interface WorkoutDebugFooterProps {
-  debugInfo: DebugInfo;
-  className?: string;
-}
-
-export const WorkoutDebugFooter: React.FC<WorkoutDebugFooterProps> = ({
-  debugInfo,
-  className
-}) => {
-  const [isOpen, setIsOpen] = useState(false);
-
-  const formatPayload = (payload?: Record<string, any>) => {
-    if (!payload) return 'No preview available';
-    return JSON.stringify(payload, null, 2);
+export default function WorkoutDebugFooter({
+  info,
+}: {
+  info: {
+    version: string;
+    templateId?: string | null;
+    workoutId?: string | null;
+    exerciseId?: string | null;
+    exerciseTitle?: string | null;
+    effort_mode?: string | null;
+    load_mode?: string | null;
+    hasWarmup: boolean;
+    shouldShowReadiness?: boolean;
+    router: string;
+    logger: string;
+    restTimer: boolean;
+    grips: boolean;
+    gripKey?: string | null;
+    warmup?: boolean;
+    warmupSteps?: number;
+    entryMode: 'per_side' | 'total' | 'bodyweight';
+    payloadPreview?: Record<string, any>;
   };
-
+}) {
+  const [open, setOpen] = useState(false);
   return (
-    <div className={cn("fixed bottom-4 left-4 right-4 z-50", className)}>
-      <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-        <CollapsibleTrigger asChild>
-          <div className="flex items-center justify-center">
-            <Badge 
-              variant="secondary" 
-              className="cursor-pointer hover:bg-secondary/80 transition-colors"
-            >
-              <Bug className="w-3 h-3 mr-1" />
-              🧪 DEBUG • {debugInfo.version}
-              <ChevronUp className={cn(
-                "w-3 h-3 ml-1 transition-transform",
-                isOpen && "rotate-180"
-              )} />
-            </Badge>
-          </div>
-        </CollapsibleTrigger>
-        
-        <CollapsibleContent>
-          <div className="mt-2 p-4 bg-background border rounded-lg shadow-lg text-xs font-mono space-y-2">
-            <div className="grid grid-cols-2 gap-2">
-              <div>templateId: {debugInfo.templateId || 'null'}</div>
-              <div>workoutId: {debugInfo.workoutId || 'null'}</div>
-              <div>exerciseId: {debugInfo.exerciseId || 'null'}</div>
-              <div>exerciseTitle: {debugInfo.exerciseTitle || 'null'}</div>
-              <div>effort_mode: {debugInfo.effort_mode || 'null'}</div>
-              <div>load_mode: {debugInfo.load_mode || 'null'}</div>
-              <div>hasWarmup: {debugInfo.hasWarmup.toString()}</div>
-              <div>shouldShowReadiness: {debugInfo.shouldShowReadiness.toString()}</div>
-              <div>sessionSource: {debugInfo.sessionSource || 'direct'}</div>
-              <div>router: {debugInfo.router || 'main'}</div>
-              <div>logger: {debugInfo.logger || 'unified'}</div>
-              <div>restTimer: {debugInfo.restTimer ? 'on' : 'off'}</div>
-              <div>
-                grips: {debugInfo.grips ? 'on' : 'off'} 
-                {debugInfo.gripKey && ` (key=${debugInfo.gripKey})`}
-              </div>
-              <div>
-                warmup: {debugInfo.warmup ? 'on' : 'off'}
-                {debugInfo.warmupSteps && ` (steps=${debugInfo.warmupSteps})`}
-              </div>
-              <div>entryMode: {debugInfo.entryMode}</div>
-            </div>
-            
-            {debugInfo.payloadPreview && (
-              <div className="mt-3 pt-3 border-t">
-                <div className="text-muted-foreground mb-1">payloadPreview:</div>
-                <pre className="text-xs bg-muted p-2 rounded overflow-x-auto">
-                  {formatPayload(debugInfo.payloadPreview)}
-                </pre>
-              </div>
-            )}
-          </div>
-        </CollapsibleContent>
-      </Collapsible>
+    <div className="fixed bottom-0 left-0 right-0 z-30 border-t border-slate-800 bg-slate-950/95 p-2 text-[11px] text-slate-300">
+      <button className="font-mono" onClick={() => setOpen((v) => !v)}>
+        🐛 {info.version} {open ? '▲' : '▼'}
+      </button>
+      {open && (
+        <pre className="mt-2 max-h-56 overflow-auto rounded bg-slate-900 p-2">
+{JSON.stringify(info, null, 2)}
+        </pre>
+      )}
     </div>
   );
-};
-
-export default WorkoutDebugFooter;
+}
