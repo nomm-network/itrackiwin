@@ -1,33 +1,25 @@
-// workout-flow-v0.8.0 (SOT) – Form router (old look preserved)
-'use client';
+// workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
+import BodyweightForm from './forms/BodyweightForm';
+import WeightRepsForm from './forms/WeightRepsForm';
+import CardioForm from './forms/CardioForm';
 
-import BodyweightSetForm from './BodyweightSetForm';
-import WeightRepsSetForm from './WeightRepsSetForm';
-import CardioSetForm from './CardioSetForm';
+export default function SmartSetForm({
+  exercise,
+  onLogged,
+}: {
+  exercise: any;
+  onLogged: () => void;
+}) {
+  const effort = exercise?.exercise?.effort_mode;
+  const load = exercise?.exercise?.load_mode;
 
-type Props = {
-  workoutId: string;
-  workoutExercise: any;
-  onSetLogged: () => void;
-};
-
-export default function SmartSetForm({ workoutId, workoutExercise, onSetLogged }: Props) {
-  const effort = workoutExercise?.exercise?.effort_mode;
-  const load = workoutExercise?.exercise?.load_mode;
-
-  const type: 'bodyweight' | 'weightReps' | 'cardio' = (() => {
+  const kind: 'bodyweight' | 'weight' | 'cardio' = (() => {
     if (effort === 'time' || effort === 'distance' || effort === 'calories') return 'cardio';
     if (load === 'bodyweight_plus_optional' || load === 'external_assist') return 'bodyweight';
-    return 'weightReps';
+    return 'weight';
   })();
 
-  switch (type) {
-    case 'bodyweight':
-      return <BodyweightSetForm workoutId={workoutId} ex={workoutExercise} onSetLogged={onSetLogged} />;
-    case 'cardio':
-      return <CardioSetForm workoutId={workoutId} ex={workoutExercise} onSetLogged={onSetLogged} />;
-    case 'weightReps':
-    default:
-      return <WeightRepsSetForm workoutId={workoutId} ex={workoutExercise} onSetLogged={onSetLogged} />;
-  }
+  if (kind === 'cardio') return <CardioForm exercise={exercise} onLogged={onLogged} />;
+  if (kind === 'bodyweight') return <BodyweightForm exercise={exercise} onLogged={onLogged} />;
+  return <WeightRepsForm exercise={exercise} onLogged={onLogged} />;
 }

@@ -1,13 +1,11 @@
-// workout-flow-v0.8.0 (SOT)
-// Restores old flow, readiness handoff, correct workout query (with exercise names + warmup)
+// workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useParams, useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
 import WorkoutSessionBody from './WorkoutSessionBody';
-import { useReadinessStore } from '@/stores/readinessStore';
 import { toast } from '@/hooks/use-toast';
 
 type WorkoutRow = {
@@ -59,42 +57,23 @@ type WorkoutRow = {
 };
 
 export default function WorkoutSessionContainer() {
-  const params = useParams<{ workoutId?: string }>();
+  const { workoutId } = useParams<{ workoutId: string }>();
   const navigate = useNavigate();
-  const queryClient = useQueryClient();
 
-  const workoutId = useMemo(() => (Array.isArray(params?.workoutId) ? params.workoutId[0] : params?.workoutId) ?? null, [params]);
-  const [shouldShowReadiness, setShouldShowReadiness] = useState(true); // Show readiness by default
-
-  // sanity – we never allow "test" fallbacks
-  useEffect(() => {
-    if (!workoutId) {
-      toast({
-        title: 'Workout missing',
-        description: 'No workoutId in route.',
-        variant: 'destructive',
-      });
-      navigate('/app/programs');
-    }
-  }, [workoutId, navigate]);
-
-  const readinessStore = useReadinessStore();
-
-  const { data: workout, isLoading } = useQuery({
-    queryKey: ['workout-session', workoutId],
-    enabled: !!workoutId,
-    staleTime: 0,
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ['workout', workoutId],
+    enabled: Boolean(workoutId),
     queryFn: async () => {
-      console.log('[v0.8.0] Starting workout query for ID:', workoutId);
       const { data, error } = await supabase
         .from('workouts')
         .select(`
-          id, title, started_at, readiness_score, template_id,
+          id, title, started_at, template_id, readiness_score,
           exercises:workout_exercises(
-            id, order_index, target_sets, target_reps, target_weight_kg, weight_unit,
+            id, workout_id, exercise_id, order_index,
+            target_sets, target_reps, target_weight_kg, weight_unit,
             attribute_values_json, display_name,
             exercise:exercises(
-              id, display_name, name, slug, effort_mode, load_mode, allows_grips, is_unilateral,
+              id, name, display_name, slug, effort_mode, load_mode, allows_grips, is_unilateral,
               equipment:equipment_id(id, equipment_type, default_bar_weight_kg, slug)
             ),
             sets:workout_sets(
@@ -104,51 +83,29 @@ export default function WorkoutSessionContainer() {
           )
         `)
         .eq('id', workoutId)
-        .maybeSingle();
-
-      if (error) {
-        console.error('[v0.8.0] Workout query error:', error);
-        throw error;
-      }
-      
-      console.log('[v0.8.0] Workout query result:', {
-        workoutFound: !!data,
-        exerciseCount: data?.exercises?.length ?? 0,
-        exercises: data?.exercises?.map((e: any) => ({
-          id: e.id,
-          order_index: e.order_index,
-          display_name: e.display_name,
-          exercise_name: e.exercise?.display_name || e.exercise?.name
-        }))
-      });
-      
-      return data as any;
+        .single();
+      if (error) throw error;
+      return data;
     },
   });
 
-  // readiness handoff after submit
   useEffect(() => {
-    if (!workoutId) return;
-    if (readinessStore.justSubmitted) {
-      setShouldShowReadiness(false);
-      readinessStore.clear();
-      // persist snapshot to workout
-      if (readinessStore.score != null) {
-        supabase.from('workouts').update({ readiness_score: readinessStore.score }).eq('id', workoutId);
-        queryClient.invalidateQueries({ queryKey: ['workout-session', workoutId] });
-      }
+    if (error) {
+      toast({ title: 'Failed to load workout', description: String(error), variant: 'destructive' });
     }
-  }, [workoutId, readinessStore.justSubmitted]); // eslint-disable-line
+  }, [error]);
 
-  if (!workoutId) return null;
+  if (isLoading) return null;
 
-  return (
-    <WorkoutSessionBody
-      workoutId={workoutId}
-      workout={workout ?? null}
-      loading={isLoading}
-      shouldShowReadiness={shouldShowReadiness}
-      setShouldShowReadiness={setShouldShowReadiness}
-    />
-  );
+  if (!data) {
+    return (
+      <div className="p-6">
+        <div className="rounded-xl border border-slate-700 bg-slate-900 p-6 text-slate-300">
+          No exercises found in this workout.
+        </div>
+      </div>
+    );
+  }
+
+  return <WorkoutSessionBody workout={data} onReload={refetch} />;
 }

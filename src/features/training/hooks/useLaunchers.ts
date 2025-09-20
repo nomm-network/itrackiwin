@@ -1,25 +1,12 @@
-// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
-import { supabase } from "@/integrations/supabase/client";
-import { useReadinessStore } from "@/stores/readinessStore";
+// workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
+import { supabase } from '@/integrations/supabase/client';
 
 export async function startFromTemplate(templateId: string) {
-  // Call the existing start_workout RPC function with template
-  const { data, error } = await supabase.rpc("start_workout", { 
-    p_template_id: templateId 
+  const { data: workoutId, error } = await supabase.rpc('start_workout', {
+    p_template_id: templateId,
   });
-
   if (error) throw error;
-  
-  // Update workout with current readiness score
-  const readinessStore = useReadinessStore.getState();
-  if (data && readinessStore.score !== null && readinessStore.score !== undefined) {
-    await supabase
-      .from('workouts')
-      .update({ readiness_score: readinessStore.score })
-      .eq('id', data);
-  }
-  
-  return { workoutId: data };
+  return workoutId as string;
 }
 
 export async function startFromProgram(programId: string) {
@@ -52,14 +39,5 @@ export async function startFromProgram(programId: string) {
     })
     .eq('id', workoutId);
   
-  // Update workout with current readiness score
-  const readinessStore = useReadinessStore.getState();
-  if (workoutId && readinessStore.score !== null && readinessStore.score !== undefined) {
-    await supabase
-      .from('workouts')
-      .update({ readiness_score: readinessStore.score })
-      .eq('id', workoutId);
-  }
-  
-  return { workoutId };
+  return workoutId as string;
 }

@@ -1,4 +1,4 @@
-// workout-flow-v0.8.0 – collapsible debug footer so you can confirm new code is rendered
+// workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
 'use client';
 
 import { useState } from 'react';
