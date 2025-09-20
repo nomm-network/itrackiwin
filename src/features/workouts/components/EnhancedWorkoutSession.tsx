@@ -236,7 +236,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
 
   if (shouldShowReadiness) {
     return (
-      <div className="container mx-auto p-4 max-w-md pb-24">{/* Added pb-24 for bottom nav */}
+      <div className="container mx-auto p-4 max-w-md safe-area-bottom">{/* Using design system utility */}
         <EnhancedReadinessCheckIn
           workoutId={workout?.id}
           onSubmit={async (data: EnhancedReadinessData) => {
@@ -293,7 +293,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
   const lastSet = sets.find((set: any) => set.is_completed && set.set_index === completedSetsCount);
 
   return (
-    <div className="min-h-screen bg-background pb-24">{/* Added pb-24 for bottom nav space */}
+    <div className="min-h-screen bg-background safe-area-bottom">{/* Using design system utility */}
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b">
         <h1 className="text-xl font-semibold">{workout?.name || 'test'}</h1>
