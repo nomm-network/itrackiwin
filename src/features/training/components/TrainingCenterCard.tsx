@@ -42,8 +42,8 @@ export default function TrainingCenterCard() {
     setIsStarting(true);
     try {
       if (mode === "template" && templateId) {
-        const workoutId = await startFromTemplate(templateId);
-        navigate(`/app/workouts/${workoutId}`);
+        // Navigate to readiness flow first
+        navigate(`/app/workouts/start/${templateId}`);
       } else if (mode === "program" && programId) {
         const workoutId = await startFromProgram(programId);
         navigate(`/app/workouts/${workoutId}`);

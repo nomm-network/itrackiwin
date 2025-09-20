@@ -30,20 +30,8 @@ export function ProgramTemplatePicker({ open, onOpenChange, programId, programNa
   const handleStartTemplate = async (templateId: string, position: number) => {
     setIsStarting(true);
     try {
-      // Start from template
-      const workoutId = await startFromTemplate(templateId);
-      
-      // Update workout with program tracking fields for override
-      await supabase
-        .from('workouts')
-        .update({
-          program_id: programId,
-          program_position: position,
-          program_template_id: templateId
-        })
-        .eq('id', workoutId);
-      
-      navigate(`/app/workouts/${workoutId}`);
+      // Navigate to readiness flow first - will start workout after readiness
+      navigate(`/app/workouts/start/${templateId}`);
       onOpenChange(false);
     } catch (error) {
       console.error('Failed to start template:', error);

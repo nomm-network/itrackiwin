@@ -17,12 +17,8 @@ export default function StartOrContinue() {
   };
 
   const handleStartNew = () => {
-    startWorkout({}, {
-      onSuccess: (result) => {
-        console.log('[StartOrContinue] New workout started:', result.workoutId);
-        navigate(`/app/workouts/${result.workoutId}`);
-      }
-    });
+    // Navigate to readiness flow for quick workout
+    navigate('/app/workouts/start-quick');
   };
 
   return (

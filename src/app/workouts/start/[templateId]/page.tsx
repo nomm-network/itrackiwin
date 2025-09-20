@@ -1,16 +1,19 @@
 // workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
+'use client';
+
+import { useParams, useNavigate } from 'react-router-dom';
 import ReadinessPage from '@/features/readiness/ReadinessPage';
 import { startFromTemplate } from '@/features/training/hooks/useLaunchers';
-import { useNavigate } from 'react-router-dom';
 import { toast } from '@/hooks/use-toast';
 
-export default function StartQuickWorkoutPage() {
+export default function StartWorkoutPage() {
+  const { templateId } = useParams<{ templateId: string }>();
   const navigate = useNavigate();
 
   const handleAfterReadiness = async () => {
     try {
-      // Start a blank workout (no template) 
-      const workoutId = await startFromTemplate('');
+      if (!templateId) throw new Error('Template ID missing');
+      const workoutId = await startFromTemplate(templateId);
       navigate(`/app/workouts/${workoutId}`);
     } catch (e: any) {
       toast({

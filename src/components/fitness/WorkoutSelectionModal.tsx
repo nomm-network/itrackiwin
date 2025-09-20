@@ -71,11 +71,10 @@ const WorkoutSelectionModal: React.FC<WorkoutSelectionModalProps> = ({ open, onO
     
     try {
       setIsStarting(true);
-      const result = await startWorkout.mutateAsync({ templateId: selectedTemplateId });
       
-      // Navigate to workout with readiness data
-      navigate(`/app/workouts/${result.workoutId}`);
-      toast.success('Training session started!');
+      // Navigate to readiness flow first  
+      navigate(`/app/workouts/start/${selectedTemplateId}`);
+      toast.success('Starting training session!');
       handleOpenChange(false);
     } catch (error) {
       console.error('Failed to start workout:', error);

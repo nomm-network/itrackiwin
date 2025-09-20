@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 
 export async function startFromTemplate(templateId: string) {
   const { data: workoutId, error } = await supabase.rpc('start_workout', {
-    p_template_id: templateId,
+    p_template_id: templateId || null,  // Handle empty string as null
   });
   if (error) throw error;
   return workoutId as string;
