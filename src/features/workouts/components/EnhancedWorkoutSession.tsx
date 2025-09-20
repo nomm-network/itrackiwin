@@ -867,57 +867,64 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <>
             {currentExercise && (
               <>
-                {/* Clean Header - EXACT OLD DESIGN MATCH */}
-                <div className="flex items-center justify-between p-4 bg-gray-900">
-                  <div className="flex items-center gap-4">
-                    {/* Exercise Name */}
+                {/* Header - EXACT MATCH to images */}
+                <div className="flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
                     <h1 className="text-2xl font-bold text-white">
                       {getExerciseName()}
                     </h1>
                     
-                    {/* Hand Icon - Grips */}
+                    {/* Mini Menu Icons - EXACT from backup */}
                     <Button
-                      variant="ghost" 
+                      variant="ghost"
                       size="sm"
                       onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
-                      className="h-8 w-8 p-0 text-white/70 hover:text-white rounded-lg"
+                      className="h-8 w-8 p-0 text-white/70 hover:text-white"
                     >
                       <Hand className="h-5 w-5" />
                     </Button>
                     
-                    {/* Timer Icon */}
-                    <Timer className="h-6 w-6 text-white/70" />
+                    <Timer className="h-5 w-5 text-white/70" />
                     
-                    {/* Set Count Badge (like T2:34) */}
-                    <div className="bg-blue-600/80 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                    <div className="bg-blue-600 text-white px-3 py-1 rounded-lg text-sm font-bold">
                       T2:{String(Math.floor((Date.now() - workoutStartTime.getTime()) / 1000 / 60)).padStart(2, '0')}
                     </div>
                     
-                    {/* Exercise Icon */}
                     <span className="text-xl">🤸</span>
                   </div>
                   
-                  {/* Sets Progress Badge */}
-                  <div className="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                  <div className="bg-gray-700 text-white px-3 py-1 rounded-lg text-sm font-bold">
                     {completedSetsCount}/{targetSetsCount} sets
                   </div>
                 </div>
 
-                {/* Current Set Section - EXACT OLD DESIGN */}
-                <div className="p-4">
-                  <div className="bg-gray-800 rounded-2xl border border-green-500/30 p-6">
-                    {/* Set Header */}
-                    <div className="flex items-center gap-3 mb-6">
+                {/* Warmup Block - FIRST, above Current Set */}
+                {!warmupCompleted && currentExercise && (
+                  <div className="px-4 pb-4">
+                    <WarmupBlock
+                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                      suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
+                      suggestedTopReps={currentExercise?.target_reps || 8}
+                      onFeedbackGiven={() => setWarmupCompleted(true)}
+                      existingFeedback={currentExercise?.warmup_feedback}
+                    />
+                  </div>
+                )}
+
+                {/* Current Set - EXACT MATCH to backup images */}
+                <div className="px-4">
+                  <div className="bg-gray-800 border border-green-500/30 rounded-2xl p-6">
+                    {/* Set Number Header */}
+                    <div className="flex items-center gap-3 mb-4">
                       <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
                         {currentSetNumber}
                       </div>
                       <span className="text-white text-xl font-medium">Current Set</span>
                     </div>
                     
-                    {/* Previous/Target Display - EXACT OLD LAYOUT */}
+                    {/* Previous/Target Area - EXACT from backup */}
                     <div className="bg-gray-900 rounded-xl p-4 mb-6">
                       <div className="space-y-3">
-                        {/* Previous Set */}
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">📜</span>
                           <span className="text-white font-medium text-lg">
@@ -926,7 +933,6 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                           <span className="text-2xl">😵</span>
                         </div>
                         
-                        {/* Target Set */}
                         <div className="flex items-center gap-3">
                           <span className="text-2xl">🎯</span>
                           <span className="text-white font-medium text-lg">
@@ -954,23 +960,10 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   </div>
                 </div>
 
-                {/* Warmup Block - Restored */}
-                {!warmupCompleted && currentExercise && (
-                  <div className="p-4">
-                    <WarmupBlock
-                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                      suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
-                      suggestedTopReps={currentExercise?.target_reps || 8}
-                      onFeedbackGiven={() => setWarmupCompleted(true)}
-                      existingFeedback={currentExercise?.warmup_feedback}
-                    />
-                  </div>
-                )}
-
-                {/* Grip Selector - Restored as compact menu */}
+                {/* Grip Selector Modal - Clean Overlay */}
                 {showGripSelector[currentExercise.id] && (
-                  <div className="p-4">
-                    <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+                  <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 p-6 max-w-md w-full">
                       <div className="flex items-center justify-between mb-4">
                         <span className="text-white font-medium flex items-center gap-2">
                           <Hand className="h-5 w-5" />
@@ -986,7 +979,6 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                         </Button>
                       </div>
                       
-                      {/* Quick grip buttons */}
                       <div className="flex flex-wrap gap-2">
                         {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close'].map((grip) => (
                           <Button
@@ -1010,7 +1002,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
                   </div>
                 )}
 
-                {/* Completed Sets - Clean List */}
+                {/* Completed Sets - Below */}
                 {sets.filter((set: any) => set.is_completed).length > 0 && (
                   <div className="p-4">
                     <h3 className="text-white font-medium mb-3">Completed Sets</h3>
