@@ -8,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import WorkoutSessionBody from './WorkoutSessionBody';
 import { useReadinessStore } from '@/stores/readinessStore';
-import { toast } from '@/hooks/use-toast';
+import { toast } from '@/components/ui/use-toast';
 
 type WorkoutRow = {
   id: string;
@@ -59,11 +59,11 @@ type WorkoutRow = {
 };
 
 export default function WorkoutSessionContainer() {
-  const params = useParams<{ id?: string }>();
+  const params = useParams<{ workoutId?: string }>();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const workoutId = useMemo(() => (Array.isArray(params?.id) ? params.id[0] : params?.id) ?? null, [params]);
+  const workoutId = useMemo(() => (Array.isArray(params?.workoutId) ? params.workoutId[0] : params?.workoutId) ?? null, [params]);
   const [shouldShowReadiness, setShouldShowReadiness] = useState(false);
 
   // sanity – we never allow "test" fallbacks
@@ -74,7 +74,7 @@ export default function WorkoutSessionContainer() {
         description: 'No workoutId in route.',
         variant: 'destructive',
       });
-      navigate('/programs');
+      navigate('/app/programs');
     }
   }, [workoutId, navigate]);
 
@@ -103,7 +103,7 @@ export default function WorkoutSessionContainer() {
           )
         `)
         .eq('id', workoutId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as any;
