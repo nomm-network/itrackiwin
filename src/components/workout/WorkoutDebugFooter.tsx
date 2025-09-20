@@ -52,7 +52,7 @@ export const WorkoutDebugFooter: React.FC<WorkoutDebugFooterProps> = ({
               className="cursor-pointer hover:bg-secondary/80 transition-colors"
             >
               <Bug className="w-3 h-3 mr-1" />
-              {debugInfo.version}
+              🧪 DEBUG • {debugInfo.version}
               <ChevronUp className={cn(
                 "w-3 h-3 ml-1 transition-transform",
                 isOpen && "rotate-180"

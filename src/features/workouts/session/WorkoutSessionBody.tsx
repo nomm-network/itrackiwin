@@ -35,7 +35,7 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     exerciseCount: workout?.exercises?.length || 0,
     hasReadiness: !!workout?.readiness_score
   };
-  console.info('[workout-flow-v0.6.3] session', debugPayload);
+  console.info('[workout-flow-v0.6.0] session', debugPayload);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { startSession } = useSessionTiming();
