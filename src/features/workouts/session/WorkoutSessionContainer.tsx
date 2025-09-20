@@ -84,7 +84,7 @@ export default function WorkoutSessionContainer() {
       });
       
       // Fix 6: Proper readiness invalidation 
-      console.info('[workout-flow-v0.6.1] readiness logged – invalidated readiness query');
+      console.info('[workout-flow-v0.7.0] readiness logged – invalidated readiness query');
       queryClient.setQueryData(['workout-readiness', workoutId, user?.id], false);
       queryClient.invalidateQueries({ queryKey: ['workout-readiness', workoutId, user?.id] });
     } catch (error) {

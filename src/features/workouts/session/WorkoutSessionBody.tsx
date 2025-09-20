@@ -269,17 +269,18 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     version: 'workout-flow-v0.7.0',
     templateId: workout?.template_id || null,
     workoutId: workoutId,
-    exerciseId: currentExercise?.id || null,
+    exerciseId: currentExercise?.exercise?.id || null,
     exerciseTitle: getExerciseName(),
     effort_mode: currentExercise?.exercise?.effort_mode || null,
     load_mode: currentExercise?.exercise?.load_mode || null,
     hasWarmup: hasWarmup,
     shouldShowReadiness: false,
+    sessionSource: 'direct',
     router: 'main',
-    logger: 'smart-set-form',
-    restTimer: autoRestTimer,
+    logger: 'unified',
+    restTimer: currentSetNumber >= 2 && !!restStartTime,
     grips: currentExercise?.exercise?.allows_grips || false,
-    gripKey,
+    gripKey: gripKey || null,
     warmup: hasWarmup,
     warmupSteps: currentExercise?.attribute_values_json?.warmup?.steps?.length || 0,
     entryMode: currentSetData.perSideMode ? 'per_side' as const : 
@@ -485,21 +486,30 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
                   </Button>
                 </div>
                 
-                {/* Quick weight chips for bodyweight */}
+                {/* Bodyweight assist/added label and quick chips */}
                 {isBodyweight && (
-                  <div className="flex gap-1 mt-2">
-                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 0 }))}>
-                      BW
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 5 }))}>
-                      +5
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 10 }))}>
-                      +10
-                    </Button>
-                    <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: -5 }))}>
-                      -5
-                    </Button>
+                  <div className="mt-2">
+                    <label className="text-xs text-muted-foreground block mb-1">Added / Assist (kg)</label>
+                    <div className="flex gap-1">
+                      <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 0 }))}>
+                        BW
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 5 }))}>
+                        +5
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: 10 }))}>
+                        +10
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: -5 }))}>
+                        -5
+                      </Button>
+                      <Button size="sm" variant="outline" onClick={() => setCurrentSetData(prev => ({ ...prev, weight: -10 }))}>
+                        -10
+                      </Button>
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Positive = added weight, Negative = assistance
+                    </p>
                   </div>
                 )}
               </div>

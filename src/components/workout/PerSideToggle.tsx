@@ -1,3 +1,4 @@
+// workout-flow-v0.7.0 (SOT) – DO NOT DUPLICATE
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';

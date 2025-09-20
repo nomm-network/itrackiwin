@@ -162,14 +162,9 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         workoutExerciseId,
         setIndex: stepIndex,
         metrics: {
-          effort: 'reps',
-          load_mode: loadMode,
+          effort: 'reps' as const,
           reps: step.reps,
-          weight: step.weight,
-          weight_unit: 'kg' as const,
-          set_kind: 'warmup',
-          grip_key: selectedGrip || null,
-          settings: { warmup_step: stepIndex, version: 'v0.5.4' }
+          weight: step.weight
         }
       });
       toast({

@@ -149,7 +149,6 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
         workoutExerciseId,
         setIndex,
         metrics,
-        userBodyweight: userBodyweight || undefined,
         gripIds: selectedGrip ? [selectedGrip] : undefined
       });
       
