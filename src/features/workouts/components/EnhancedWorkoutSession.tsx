@@ -58,7 +58,7 @@ import { useWarmupSessionState } from '../state/warmupSessionState';
 import { useWarmupManager } from '../hooks/useWarmupManager';
 import { ExerciseGripMenu } from '@/components/workout/ExerciseGripMenu';
 import { ExerciseWarmupMenu } from '@/components/workout/ExerciseWarmupMenu';
-import { ExerciseSettingsMenu } from '@/components/workout/ExerciseSettingsMenu';
+import { SetSettingsMenu } from '@/components/workout/SetSettingsMenu';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -134,8 +134,14 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
   // UI state for menus
   const [showGripSelector, setShowGripSelector] = useState(false);
   const [showWarmupMenu, setShowWarmupMenu] = useState(false);
-  const [showSettingsMenu, setShowSettingsMenu] = useState(false);
+  const [showSetSettings, setShowSetSettings] = useState(false);
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
+  
+  // Exercise settings state
+  const [targetSets, setTargetSets] = useState(3);
+  const [autoRestTimer, setAutoRestTimer] = useState(true);
+  const [showTargets, setShowTargets] = useState(true);
+  const [quickAddMode, setQuickAddMode] = useState(false);
   
   // Current set input state
   const [currentSetData, setCurrentSetData] = useState({
@@ -215,7 +221,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
   // Menu handlers
   const handleGripMenuOpen = () => setShowGripSelector(true);
   const handleWarmupMenuOpen = () => setShowWarmupMenu(true);
-  const handleSettingsMenuOpen = () => setShowSettingsMenu(true);
+  const handleSetSettingsOpen = () => setShowSetSettings(true);
 
   if (authLoading || isCheckingReadiness) {
     return (
@@ -322,11 +328,11 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
               variant="ghost"
               size="sm"
               className="p-2 h-8 w-8 relative"
-              onClick={handleSettingsMenuOpen}
+              onClick={handleSetSettingsOpen}
             >
               <Hash className="h-4 w-4" />
               <Badge variant="secondary" className="absolute -top-1 -right-1 h-4 w-4 p-0 text-xs">
-                {totalSets}
+                {targetSets}
               </Badge>
             </Button>
             
@@ -573,21 +579,20 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
         </DialogContent>
       </Dialog>
 
-      {/* Settings Menu Modal */}
-      <Dialog open={showSettingsMenu} onOpenChange={setShowSettingsMenu}>
+      {/* Set Settings Modal */}
+      <Dialog open={showSetSettings} onOpenChange={setShowSetSettings}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Exercise Settings</DialogTitle>
-          </DialogHeader>
-          <ExerciseSettingsMenu
-            autoRestTimer={true}
-            showTargets={true}
-            enableQuickAdd={false}
-            onAutoRestTimerChange={(enabled) => console.log('Auto rest timer:', enabled)}
-            onShowTargetsChange={(enabled) => console.log('Show targets:', enabled)}
-            onEnableQuickAddChange={(enabled) => console.log('Quick add mode:', enabled)}
+          <SetSettingsMenu
+            targetSets={targetSets}
+            onTargetSetsChange={setTargetSets}
+            autoRestTimer={autoRestTimer}
+            showTargets={showTargets}
+            quickAddMode={quickAddMode}
+            onAutoRestTimerChange={setAutoRestTimer}
+            onShowTargetsChange={setShowTargets}
+            onQuickAddModeChange={setQuickAddMode}
             isOpen={true}
-            onClose={() => setShowSettingsMenu(false)}
+            onClose={() => setShowSetSettings(false)}
           />
         </DialogContent>
       </Dialog>
