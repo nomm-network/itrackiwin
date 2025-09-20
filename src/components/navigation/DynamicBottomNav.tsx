@@ -27,6 +27,8 @@ function getRouteForSlug(slug: string) {
       return '/dashboard';
     case 'atlas':
       return '/atlas'; // Atlas goes to dedicated Atlas page
+    case 'social':
+      return '/social'; // Social goes to social features page
     case 'planets':
       return '/planets'; // Planets goes to orbital planets page
     default:
@@ -70,7 +72,6 @@ export function DynamicBottomNav() {
     <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-t border-border z-50">
       <div className="flex justify-around items-center h-16 px-4">
         {items.slice(0, 5).map((item) => {
-          const IconComponent = getIconComponent(item.icon);
           const active = isActive(item.slug);
           
           return (
@@ -84,7 +85,7 @@ export function DynamicBottomNav() {
                   : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
               )}
             >
-              <IconComponent className="h-5 w-5 mb-1" />
+              <span className="text-lg mb-1">{item.icon}</span>
               <span className="text-xs font-medium truncate w-full text-center">
                 {item.label}
               </span>

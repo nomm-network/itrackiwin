@@ -30,26 +30,33 @@ export function useBottomNav() {
         .eq('user_id', user.id)
         .eq('is_enabled', true)
         .order('display_order')
-        .limit(3);
+        .limit(2);
 
       if (error) throw error;
       
-      // Build nav items: Atlas, top 3 categories, Planets
+      // Build nav items: Atlas, Social, top 2 categories, Planets
       const navItems: NavItem[] = [
         {
           slot: 1,
           item_type: 'fixed',
           label: 'Atlas',
           slug: 'atlas',
-          icon: '🗺️'
+          icon: '🌍'
+        },
+        {
+          slot: 2,
+          item_type: 'fixed',
+          label: 'Social',
+          slug: 'social',
+          icon: '🤳'
         }
       ];
 
-      // Add top 3 categories starting from slot 2 (linking to category dashboards)
+      // Add top 2 categories starting from slot 3 (linking to category dashboards)
       (data || []).forEach((item: any, index) => {
         const firstName = item.life_categories.name.split(' ')[0]; // Extract first word only
         navItems.push({
-          slot: 2 + index,
+          slot: 3 + index,
           item_type: 'category',
           label: firstName,
           slug: item.life_categories.slug, // Just the slug, getRouteForSlug will handle the /area/ prefix
