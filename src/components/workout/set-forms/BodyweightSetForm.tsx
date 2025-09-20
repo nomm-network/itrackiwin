@@ -9,9 +9,10 @@ import {
   BaseSetFormProps, 
   AssistanceSelector,
   useBaseFormState,
-  useUnifiedSetLogging,
   toast 
 } from './BaseSetForm';
+import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
+import { useBodyweight } from '@/hooks/useBodyweight';
 import RestTimerBadge from '../RestTimerBadge';
 import GripSelector from '../GripSelector';
 import SetProgressDisplay from '../SetProgressDisplay';
@@ -28,7 +29,8 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
   onCancel,
   className
 }) => {
-  const { logSet, isLoading, fetchBodyweight, recordBodyweight } = useUnifiedSetLogging();
+  const { logSet, isLoading } = useUnifiedSetLogging();
+  const { fetchBodyweight, recordBodyweight } = useBodyweight();
   const [baseState, setBaseState] = useBaseFormState();
   const [currentBodyweight, setCurrentBodyweight] = useState<number | null>(null);
   const [showBodyweightDialog, setShowBodyweightDialog] = useState(false);

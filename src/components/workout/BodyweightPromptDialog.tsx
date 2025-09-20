@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Scale, Plus } from 'lucide-react';
-import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
+import { useBodyweight } from '@/hooks/useBodyweight';
 import { toast } from 'sonner';
 
 interface BodyweightPromptDialogProps {
@@ -26,7 +26,7 @@ export const BodyweightPromptDialog: React.FC<BodyweightPromptDialogProps> = ({
   onWeightRecorded,
   currentWeight
 }) => {
-  const { recordBodyweight } = useUnifiedSetLogging();
+  const { recordBodyweight } = useBodyweight();
   const [weight, setWeight] = useState<string>('');
   const [notes, setNotes] = useState<string>('');
   const [isLoading, setIsLoading] = useState(false);
