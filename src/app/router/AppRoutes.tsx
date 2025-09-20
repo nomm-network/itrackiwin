@@ -5,10 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Paths } from './paths';
 import { AuthGuard } from './route-guards/Auth.guard';
 import ProtectedMobileLayout from '@/shared/components/layout/ProtectedMobileLayout';
-import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
-import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
-import StartOrContinue from '@/features/workouts/components/StartOrContinue';
 
 // Dashboard - now using Hub system
 const HubPage = lazy(() => import('@/features/hub/HubPage'));
@@ -20,9 +17,6 @@ const AuthCallback = lazy(() => import('@/pages/auth/callback'));
 const Settings = lazy(() => import('@/pages/Settings'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
 
-// Onboarding pages
-const Onboarding = lazy(() => import('@/features/health/fitness/pages/onboarding/Onboarding.page'));
-
 // Protected pages - General
 const UserDashboard = lazy(() => import('@/pages/UserDashboard'));
 const Progress = lazy(() => import('@/pages/Progress'));
@@ -30,13 +24,8 @@ const Journal = lazy(() => import('@/pages/Journal'));
 const Insights = lazy(() => import('@/pages/Insights'));
 const TranslatedProfileDemo = lazy(() => import('@/pages/TranslatedProfileDemo'));
 const TranslatedAICoach = lazy(() => import('@/pages/TranslatedAICoach'));
-const MobilePolishDemo = lazy(() => import('@/pages/MobilePolishDemo'));
 const PersonaSeedingPage = lazy(() => import('@/pages/PersonaSeeding'));
 const PersonaDashboard = lazy(() => import('@/pages/PersonaDashboard'));
-const SafeguardTesting = lazy(() => import('@/pages/SafeguardTesting'));
-const SessionRunnerDemo = lazy(() => import('@/pages/SessionRunnerDemo'));
-const PRAnnouncementDemo = lazy(() => import('@/pages/PRAnnouncementDemo'));
-const SetLoggingDemo = lazy(() => import('@/components/workout/SetLoggingDemo'));
 const ProgramGeneratorTest = lazy(() => import('@/components/test/ProgramGeneratorTest'));
 const DataQualityReport = lazy(() => import('@/pages/DataQualityReport'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
@@ -46,6 +35,7 @@ const Achievements = lazy(() => import('@/pages/Achievements'));
 const Social = lazy(() => import('@/pages/Social'));
 const AreaDetail = lazy(() => import('@/features/area/AreaDetail'));
 const CategoryCoachPage = lazy(() => import('@/pages/CategoryCoachPage'));
+
 // Inline component for subcategory redirects (no dynamic import to avoid build issues)
 const SubcategoryRedirect = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -74,12 +64,7 @@ const SubcategoryRedirect = () => {
   React.useEffect(() => {
     if (subcategory) {
       const categorySlug = subcategory.life_categories.slug;
-      
-      if (categorySlug === 'health' && slug === 'fitness-exercise') {
-        navigate('/dashboard', { replace: true });
-      } else {
-        navigate(`/dashboard?cat=${categorySlug}&sub=${slug}`, { replace: true });
-      }
+      navigate(`/dashboard?cat=${categorySlug}&sub=${slug}`, { replace: true });
     }
   }, [subcategory, slug, navigate]);
 
@@ -93,6 +78,7 @@ const SubcategoryRedirect = () => {
 
   return null;
 };
+
 const OrbitPlanetsPage = lazy(() => import('@/features/planets/OrbitPlanetsPage'));
 const AtlasPage = lazy(() => import('@/features/planets/AtlasPage'));
 const MentorsPage = lazy(() => import('@/pages/MentorsPage'));
@@ -102,21 +88,13 @@ const GymsListPage = lazy(() => import('@/features/gyms/pages/GymsListPage'));
 const GymAdminPage = lazy(() => import('@/features/gyms/admin/GymAdminPage'));
 const MarketplacePage = lazy(() => import('@/features/marketplace/MarketplacePage'));
 const GymPublicPage = lazy(() => import('@/features/marketplace/GymPublicPage'));
-const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/pages/AmbassadorPanelPage'));
 const RequireGymAdmin = lazy(() => import('@/components/guards/RequireGymAdmin'));
 const SafeAdminGuard = lazy(() => import('@/components/guards/SafeAdminGuard'));
 const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicPage'));
+const AmbassadorPanelPage = lazy(() => import('@/features/ambassador/pages/AmbassadorPanelPage'));
 
-// Fitness & Programs
-const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
-const LazyTemplatesPage = lazy(() => import('@/app/templates/page'));
-const LazyTemplateAddPage = lazy(() => import('@/app/templates/add/page'));
-// Removed start-quick and start/[templateId] pages for simplified flow
-const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
 const TestDynamicNav = lazy(() => import('@/pages/TestDynamicNav'));
-
-const WorkoutReadiness = lazy(() => import('@/pages/WorkoutReadiness'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -140,9 +118,6 @@ export function AppRoutes() {
               <Settings />
             </ProtectedMobileLayout>
           } />
-          
-          {/* Onboarding routes */}
-          <Route path="/onboarding" element={<Onboarding />} />
 
           {/* Planets/Atlas page for authenticated users */}
           <Route path="/planets" element={
@@ -267,30 +242,13 @@ export function AppRoutes() {
           {/* Demo and Development Routes */}
           <Route path="/translated-profile-demo" element={<TranslatedProfileDemo />} />
           <Route path="/translated-ai-coach" element={<TranslatedAICoach />} />
-          <Route path="/mobile-polish-demo" element={<MobilePolishDemo />} />
           <Route path="/persona-seeding" element={<PersonaSeedingPage />} />
           <Route path="/persona-dashboard" element={<PersonaDashboard />} />
-        <Route path="/safeguard-testing" element={<SafeguardTesting />} />
-        <Route path="/session-runner-demo" element={<SessionRunnerDemo />} />
-        <Route path="/pr-announcement-demo" element={<PRAnnouncementDemo />} />
-        <Route path="/set-logging-demo" element={<SetLoggingDemo />} />
-        <Route path="/program-test" element={<ProgramGeneratorTest />} />
-        <Route path="/data-quality-report" element={<DataQualityReport />} />
-        <Route path="/test-dynamic-nav" element={
-          <ProtectedMobileLayout>
-            <TestDynamicNav />
-          </ProtectedMobileLayout>
-        } />
-
-          {/* Redirect fitness to dashboard */}
-          <Route path={Paths.health.fitness.root} element={
-            <Navigate to={Paths.dashboard} replace />
-          } />
-          
-          {/* Training Programs */}
-          <Route path="/app/programs" element={
+          <Route path="/program-test" element={<ProgramGeneratorTest />} />
+          <Route path="/data-quality-report" element={<DataQualityReport />} />
+          <Route path="/test-dynamic-nav" element={
             <ProtectedMobileLayout>
-              <LazyProgramsPage />
+              <TestDynamicNav />
             </ProtectedMobileLayout>
           } />
           
@@ -298,37 +256,6 @@ export function AppRoutes() {
           <Route path="/bro-ai-coach" element={
             <ProtectedMobileLayout>
               <BroAICoach />
-            </ProtectedMobileLayout>
-          } />
-          
-          {/* Templates Routes */}
-          <Route path="/app/templates" element={
-            <ProtectedMobileLayout>
-              <LazyTemplatesPage />
-            </ProtectedMobileLayout>
-          } />
-          <Route path="/app/templates/add" element={
-            <ProtectedMobileLayout>
-              <LazyTemplateAddPage />
-            </ProtectedMobileLayout>
-          } />
-
-          {/* Workout Routes with Layout */}
-          <Route path="/app/workouts" element={
-            <ProtectedMobileLayout>
-              <WorkoutsLayout />
-            </ProtectedMobileLayout>
-          }>
-            <Route index element={<StartOrContinue />} />
-            <Route path="start/:templateId" element={<WorkoutReadiness />} />
-            <Route path=":workoutId" element={<LazyWorkoutPage />} />
-          </Route>
-
-
-          {/* Fitness sub-routes still work for admin/configuration */}
-          <Route path={`${Paths.health.fitness.root}/*`} element={
-            <ProtectedMobileLayout>
-              {FitnessRoutes}
             </ProtectedMobileLayout>
           } />
 

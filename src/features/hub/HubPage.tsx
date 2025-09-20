@@ -5,7 +5,7 @@ import { resolveConfigureBody } from "./configureResolver";
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
-import { useReadinessData } from '@/hooks/useReadinessData';
+// Readiness hook removed
 
 export default function HubPage() {
   const [sp, setSp] = useSearchParams();

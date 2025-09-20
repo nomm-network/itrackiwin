@@ -1,1 +1,0 @@
-export const WORKOUT_FLOW_VERSION = 'workout-flow-v0.7.0';
