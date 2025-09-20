@@ -11170,13 +11170,6 @@ export type Database = {
         Args: { p_exercise_id: string; p_user_id: string }
         Returns: number
       }
-      _get_exercise_load_mode_and_bw_pct: {
-        Args: { p_workout_exercise_id: string }
-        Returns: {
-          bw_pct: number
-          load_mode: string
-        }[]
-      }
       _pascalize: {
         Args: { key: string }
         Returns: string
@@ -11438,10 +11431,6 @@ export type Database = {
           is_restricted: boolean
         }[]
       }
-      bar_min_increment: {
-        Args: { _gym_id: string }
-        Returns: number
-      }
       battle_invite_users: {
         Args: { p_battle: string; p_user_ids: string[] }
         Returns: undefined
@@ -11502,10 +11491,6 @@ export type Database = {
         }
         Returns: number
       }
-      can_mutate_workout_set: {
-        Args: { _we_id: string }
-        Returns: boolean
-      }
       check_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
@@ -11538,10 +11523,6 @@ export type Database = {
       }
       closest_barbell_weight_kg: {
         Args: { available_plates: number[]; bar_kg: number; desired_kg: number }
-        Returns: number
-      }
-      closest_machine_weight: {
-        Args: { aux: number[]; desired: number; stack: number[] }
         Returns: number
       }
       compute_readiness_for_user: {
@@ -11608,15 +11589,6 @@ export type Database = {
       compute_targets_for_workout: {
         Args: { p_workout_id: string }
         Returns: undefined
-      }
-      compute_total_weight: {
-        Args: {
-          p_bar_weight: number
-          p_entry_mode: string
-          p_is_symmetrical?: boolean
-          p_value: number
-        }
-        Returns: number
       }
       create_admin_user: {
         Args: { requester_role?: string; target_user_id: string }
@@ -11691,14 +11663,6 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: string
       }
-      end_workout: {
-        Args: { p_workout_id: string }
-        Returns: string
-      }
-      epley_1rm: {
-        Args: { reps: number; weight: number }
-        Returns: number
-      }
       equals: {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
@@ -11766,10 +11730,6 @@ export type Database = {
         }
         Returns: number
       }
-      fn_detect_stagnation: {
-        Args: { p_exercise_id: string; p_lookback_sessions?: number }
-        Returns: Json
-      }
       fn_effective_weight_config: {
         Args: { p_equipment_id?: string; p_gym_id: string }
         Returns: Json
@@ -11810,26 +11770,6 @@ export type Database = {
         }
         Returns: Json
       }
-      fn_suggest_rest_seconds: {
-        Args: { p_effort_level?: string; p_workout_set_id: string }
-        Returns: number
-      }
-      fn_suggest_sets: {
-        Args: {
-          p_exercise_id: string
-          p_progression_type?: string
-          p_target_reps?: number
-        }
-        Returns: Json
-      }
-      fn_suggest_warmup: {
-        Args: {
-          p_exercise_id: string
-          p_working_reps?: number
-          p_working_weight?: number
-        }
-        Returns: Json
-      }
       fn_warmup_sets_for_exercise: {
         Args: { p_workout_exercise_id: string }
         Returns: number
@@ -11856,10 +11796,6 @@ export type Database = {
       }
       generate_warmup_json: {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
-        Returns: Json
-      }
-      generate_warmup_steps: {
-        Args: { p_top_kg: number }
         Returns: Json
       }
       geography: {
@@ -12138,17 +12074,6 @@ export type Database = {
           stack_profile_id: string
         }[]
       }
-      get_last_sets_for_exercises: {
-        Args: { p_exercise_ids: string[] }
-        Returns: {
-          base_weight_kg: number
-          exercise_id: string
-          prev_date: string
-          prev_reps: number
-          prev_weight_kg: number
-          readiness_multiplier: number
-        }[]
-      }
       get_latest_readiness: {
         Args: { p_user_id: string; p_workout_started_at?: string }
         Returns: {
@@ -12196,17 +12121,6 @@ export type Database = {
           workout_template_id: string
         }[]
       }
-      get_next_program_template: {
-        Args: { p_program_id: string; p_user_id: string }
-        Returns: {
-          order_position: number
-          template_id: string
-        }[]
-      }
-      get_next_set_index: {
-        Args: { p_workout_exercise_id: string }
-        Returns: number
-      }
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
@@ -12219,20 +12133,6 @@ export type Database = {
         Args: { p_key: string; p_language_code?: string }
         Returns: string
       }
-      get_user_coach_params: {
-        Args: { _user_id: string }
-        Returns: {
-          allow_high_complexity: boolean
-          experience_slug: string
-          main_rest_seconds_max: number
-          main_rest_seconds_min: number
-          start_intensity_high: number
-          start_intensity_low: number
-          warmup_set_count_max: number
-          warmup_set_count_min: number
-          weekly_progress_pct: number
-        }[]
-      }
       get_user_exercise_1rm: {
         Args: { p_user_id?: string }
         Returns: {
@@ -12240,24 +12140,6 @@ export type Database = {
           last_set_at: string
           one_rm: number
           refreshed_at: string
-          user_id: string
-        }[]
-      }
-      get_user_last_set_for_exercise: {
-        Args: { p_exercise_id: string }
-        Returns: {
-          completed_at: string
-          exercise_id: string
-          reps: number
-          user_id: string
-          weight: number
-        }[]
-      }
-      get_user_pr_for_exercise: {
-        Args: { p_exercise_id: string }
-        Returns: {
-          best_weight: number
-          exercise_id: string
           user_id: string
         }[]
       }
@@ -12415,22 +12297,9 @@ export type Database = {
             }
         Returns: string
       }
-      log_workout_set: {
-        Args: {
-          p_grip_ids?: string[]
-          p_metrics: Json
-          p_set_index: number
-          p_workout_exercise_id: string
-        }
-        Returns: string
-      }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
         Returns: boolean
-      }
-      make_grip_key: {
-        Args: { _grip_ids: string[] }
-        Returns: string
       }
       migrate_user_gym_to_gym_equipment: {
         Args: { _gym_id: string; _user_gym_id: string }
@@ -12667,10 +12536,6 @@ export type Database = {
       readiness_multiplier: {
         Args: { p_score: number }
         Returns: number
-      }
-      recalc_warmup_from_last_set: {
-        Args: { p_workout_exercise_id: string }
-        Returns: undefined
       }
       redeem_join_code: {
         Args: { p_code: string }
