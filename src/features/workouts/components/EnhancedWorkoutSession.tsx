@@ -495,6 +495,13 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     }
   };
 
+  // Simple wrapper for SmartSetForm onLogged callback
+  const handleSetLogged = () => {
+    setWarmupCompleted(true);
+    // The form will call the unified set logging directly
+    // No need for additional processing here
+  };
+
   // Updated handleWarmupFeedback function
   const handleWarmupFeedback = async (exerciseId: string, feedback: 'not_enough' | 'excellent' | 'too_much') => {
     if (!user?.id || !currentExercise?.id) {
@@ -860,141 +867,170 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
           <>
             {currentExercise && (
               <>
-                {/* Exercise Title Row - EXACT OLD DESIGN MATCH */}
-                <div className="flex items-center justify-between p-4 mb-4">
-                  <div className="flex-1">
-                    <h2 className="text-xl font-semibold text-white mb-3">
+                {/* Clean Header - EXACT OLD DESIGN MATCH */}
+                <div className="flex items-center justify-between p-4 bg-gray-900">
+                  <div className="flex items-center gap-4">
+                    {/* Exercise Name */}
+                    <h1 className="text-2xl font-bold text-white">
                       {getExerciseName()}
-                    </h2>
-                    <div className="flex items-center gap-3">
-                      {/* Hand Icon - Grips */}
-                      <Button
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
-                        className="h-10 w-10 p-0 text-white/70 hover:text-white rounded-lg"
-                      >
-                        <Hand className="h-5 w-5" />
-                      </Button>
-                      
-                      {/* T2 Badge - blue like reference */}
-                      <div className="h-10 w-10 bg-blue-600 text-white flex items-center justify-center rounded-lg">
-                        <span className="text-sm font-bold">T2</span>
-                      </div>
-                      
-                      {/* Trophy/Target Icon - yellow like reference */}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="h-10 w-10 p-0 text-yellow-500 hover:text-yellow-400 rounded-lg"
-                      >
-                        <Target className="h-5 w-5" />
-                      </Button>
-                      
-                      {/* Sets Progress Badge - right side */}
-                      <Badge variant="secondary" className="text-sm bg-gray-700 text-gray-300 ml-auto">
-                        {completedSetsCount}/{targetSetsCount} sets
-                      </Badge>
+                    </h1>
+                    
+                    {/* Hand Icon - Grips */}
+                    <Button
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: !prev[currentExercise.id] }))}
+                      className="h-8 w-8 p-0 text-white/70 hover:text-white rounded-lg"
+                    >
+                      <Hand className="h-5 w-5" />
+                    </Button>
+                    
+                    {/* Timer Icon */}
+                    <Timer className="h-6 w-6 text-white/70" />
+                    
+                    {/* Set Count Badge (like T2:34) */}
+                    <div className="bg-blue-600/80 text-white px-3 py-1 rounded-lg text-sm font-medium">
+                      T2:{String(Math.floor((Date.now() - workoutStartTime.getTime()) / 1000 / 60)).padStart(2, '0')}
                     </div>
+                    
+                    {/* Exercise Icon */}
+                    <span className="text-xl">🤸</span>
+                  </div>
+                  
+                  {/* Sets Progress Badge */}
+                  <div className="bg-gray-700 text-white px-4 py-2 rounded-lg text-sm font-medium">
+                    {completedSetsCount}/{targetSetsCount} sets
                   </div>
                 </div>
 
-                {/* Completed Sets Cards - EXACT OLD DESIGN */}
-                {sets.filter((set: any) => set.is_completed).length > 0 && (
-                  <div className="space-y-3 mb-4 px-4">
-                    {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
-                      <div key={set.id || index} className="bg-gray-800/50 rounded-xl p-4 border border-gray-700/50">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="flex items-center justify-center w-8 h-8 bg-gray-600 text-white rounded-full text-sm font-bold">
-                              {index + 1}
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <span className="text-lg">🏋️</span>
-                              <span className="text-white font-medium">{set.weight_kg || 0}kg × {set.reps || 0} reps</span>
-                              {set.feel && <span className="text-lg">{set.feel}</span>}
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400">
-                              <span className="text-sm">✏️</span>
-                            </Button>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-gray-400">
-                              <span className="text-sm">⬇️</span>
-                            </Button>
-                          </div>
+                {/* Current Set Section - EXACT OLD DESIGN */}
+                <div className="p-4">
+                  <div className="bg-gray-800 rounded-2xl border border-green-500/30 p-6">
+                    {/* Set Header */}
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-white text-xl font-bold">
+                        {currentSetNumber}
+                      </div>
+                      <span className="text-white text-xl font-medium">Current Set</span>
+                    </div>
+                    
+                    {/* Previous/Target Display - EXACT OLD LAYOUT */}
+                    <div className="bg-gray-900 rounded-xl p-4 mb-6">
+                      <div className="space-y-3">
+                        {/* Previous Set */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">📜</span>
+                          <span className="text-white font-medium text-lg">
+                            Prev <span className="font-bold">95kg × 21</span>
+                          </span>
+                          <span className="text-2xl">😵</span>
+                        </div>
+                        
+                        {/* Target Set */}
+                        <div className="flex items-center gap-3">
+                          <span className="text-2xl">🎯</span>
+                          <span className="text-white font-medium text-lg">
+                            Target <span className="font-bold">30kg × 20</span>
+                          </span>
                         </div>
                       </div>
-                    ))}
+                    </div>
+                    
+                    {/* Set Input Form */}
+                    <SmartSetForm
+                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                      exercise={{
+                        id: currentExercise?.exercise_id || currentExercise.id,
+                        effort_mode: (currentExercise?.exercise?.effort_mode as 'reps' | 'time' | 'distance' | 'calories') || 'reps',
+                        load_mode: (currentExercise?.exercise?.load_mode as 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level') || 'external_added',
+                        equipment: {
+                          equipment_type: undefined,
+                          slug: getEquipmentRefId(currentExercise)
+                        }
+                      }}
+                      setIndex={currentSetIndex}
+                      onLogged={handleSetLogged}
+                    />
+                  </div>
+                </div>
+
+                {/* Warmup Block - Restored */}
+                {!warmupCompleted && currentExercise && (
+                  <div className="p-4">
+                    <WarmupBlock
+                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                      suggestedTopWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight || 60}
+                      suggestedTopReps={currentExercise?.target_reps || 8}
+                      onFeedbackGiven={() => setWarmupCompleted(true)}
+                      existingFeedback={currentExercise?.warmup_feedback}
+                    />
                   </div>
                 )}
 
-                {/* Current Set Card - LIKE COMPLETED SETS, NOT GREEN AREA */}
-                <div className="mx-4 mb-4">
-                  <div className="bg-gray-800/50 rounded-xl p-4 border border-green-500/30">
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="flex items-center justify-center w-8 h-8 bg-green-500 text-white rounded-full text-sm font-bold">
-                        {currentSetNumber}
+                {/* Grip Selector - Restored as compact menu */}
+                {showGripSelector[currentExercise.id] && (
+                  <div className="p-4">
+                    <div className="bg-gray-800 rounded-xl border border-gray-700 p-4">
+                      <div className="flex items-center justify-between mb-4">
+                        <span className="text-white font-medium flex items-center gap-2">
+                          <Hand className="h-5 w-5" />
+                          Grip Selection
+                        </span>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setShowGripSelector(prev => ({ ...prev, [currentExercise.id]: false }))}
+                          className="text-white/70 hover:text-white"
+                        >
+                          ✕
+                        </Button>
                       </div>
-                      <span className="text-white font-medium">Current Set</span>
-                    </div>
-                    
-                    {/* Previous/Target Display with Timer - EXACT OLD LAYOUT */}
-                    <div className="bg-gray-900 rounded-lg p-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-lg">🏋️</span>
-                            <span className="text-gray-400">Prev</span>
-                            <span className="text-white font-medium">40kg × 8</span>
-                            <span className="text-lg">🙂</span>
-                          </div>
-                          <div className="flex items-center gap-2 text-sm">
-                            <span className="text-red-500">🎯</span>
-                            <span className="text-gray-400">Target</span>
-                            <span className="text-white font-medium">40kg × 10</span>
-                          </div>
-                        </div>
-                        
-                        {/* Timer - RIGHT SIDE like reference */}
-                        <div className="flex justify-end">
-                          <div className="bg-gray-700 rounded-lg px-4 py-3 flex items-center gap-2">
-                            <span className="text-green-400 text-lg">🕒</span>
-                            <span className="text-green-400 font-mono text-xl font-bold">0:24</span>
-                          </div>
-                        </div>
+                      
+                      {/* Quick grip buttons */}
+                      <div className="flex flex-wrap gap-2">
+                        {['Overhand', 'Underhand', 'Neutral', 'Wide', 'Close'].map((grip) => (
+                          <Button
+                            key={grip}
+                            variant={selectedGrips[currentExercise.id]?.includes(grip) ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => {
+                              const currentGrips = selectedGrips[currentExercise.id] || [];
+                              const newGrips = currentGrips.includes(grip) 
+                                ? currentGrips.filter(g => g !== grip)
+                                : [...currentGrips, grip];
+                              setSelectedGrips(prev => ({ ...prev, [currentExercise.id]: newGrips }));
+                            }}
+                            className="text-sm"
+                          >
+                            {grip}
+                          </Button>
+                        ))}
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
 
-                {/* SmartSetForm for input - NO GREEN STYLING */}
-                <SmartSetForm
-                  workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                  exercise={{
-                    id: currentExercise?.exercise_id || currentExercise.id,
-                    effort_mode: (currentExercise?.exercise?.effort_mode as 'reps' | 'time' | 'distance' | 'calories') || 'reps',
-                    load_mode: (currentExercise?.exercise?.load_mode as 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level') || 'external_added',
-                    equipment: {
-                      equipment_type: undefined,
-                      slug: getEquipmentRefId(currentExercise)
-                    }
-                  }}
-                  setIndex={sets.filter((set: any) => set.is_completed).length}
-                  onLogged={() => {
-                    setWarmupCompleted(true);
-                    const weId = resolveWorkoutExerciseId(currentExercise);
-                    handleSetComplete(weId, {
-                      weight: 0,
-                      reps: 0,
-                      rpe: 5,
-                      feel: '',
-                      pain: false,
-                      notes: '',
-                      is_completed: true
-                    });
-                  }}
-                />
+                {/* Completed Sets - Clean List */}
+                {sets.filter((set: any) => set.is_completed).length > 0 && (
+                  <div className="p-4">
+                    <h3 className="text-white font-medium mb-3">Completed Sets</h3>
+                    <div className="space-y-2">
+                      {sets.filter((set: any) => set.is_completed).map((set: any, index: number) => (
+                        <div key={set.id || index} className="bg-gray-800/50 rounded-lg p-3 flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-600 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                              {index + 1}
+                            </div>
+                            <span className="text-white">
+                              {set.weight_kg || 0}kg × {set.reps || 0} reps
+                            </span>
+                            {set.feel && <span className="text-lg">{set.feel}</span>}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </>
             )}
 
