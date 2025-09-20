@@ -234,7 +234,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     );
   }
 
-  if (shouldShowReadiness) {
+  if (false && shouldShowReadiness) {
     return (
       <div className="container mx-auto p-4 max-w-md">
         <EnhancedReadinessCheckIn
