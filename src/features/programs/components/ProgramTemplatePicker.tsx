@@ -31,9 +31,8 @@ export function ProgramTemplatePicker({ open, onOpenChange, programId, programNa
   const handleStartTemplate = async (templateId: string, position: number) => {
     setIsStarting(true);
     try {
-      const workoutId = await startFromTemplate(templateId);
+      navigate(`/app/workouts/start/${templateId}`);
       onOpenChange(false);
-      // Will navigate automatically
     } catch (error) {
       console.error('Failed to start template:', error);
       toast.error('Failed to start template. Please try again.');

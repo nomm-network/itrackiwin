@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { getWidgetsByCategory, useDynamicQuickActions } from '@/app/dashboard/registry';
 import { useFitnessProfileCheck } from '@/features/health/fitness/hooks/useFitnessProfileCheck.hook';
-import WorkoutSelectionModal from '@/components/fitness/WorkoutSelectionModal';
+// Legacy modal removed - using new flow
 import WidgetSkeleton from '@/app/dashboard/components/WidgetSkeleton';
 
 /**
@@ -33,7 +33,7 @@ export default function FitnessLegacyBody() {
     
     // Special handling for fitness start workout action
     if (action.id === 'fitness.start') {
-      setShowTemplateDialog(true);
+      navigate('/app/workouts/start/default'); // Will show classic readiness
     } else if (action.onClickPath) {
       navigate(action.onClickPath);
     } else if (action.onClick) {
@@ -110,11 +110,6 @@ export default function FitnessLegacyBody() {
           </div>
         ))}
       </div>
-      
-      <WorkoutSelectionModal 
-        open={showTemplateDialog}
-        onOpenChange={setShowTemplateDialog}
-      />
     </>
   );
 }

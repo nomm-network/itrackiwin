@@ -43,8 +43,8 @@ export default function TrainingCenterCard() {
     setIsStarting(true);
     try {
       if (mode === "template" && templateId) {
-        const workoutId = await startFromTemplate(templateId);
-        // Will navigate automatically
+        navigate(`/app/workouts/start/${templateId}`);
+        return;
       } else if (mode === "program" && programId) {
         // For now, use template mode since we simplified
         toast.error('Program mode not yet available in simplified launcher');

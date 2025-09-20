@@ -23,7 +23,7 @@ import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
 
 import { useTranslations } from "@/hooks/useTranslations";
-import EnhancedReadinessCheckIn, { EnhancedReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
+import EnhancedReadinessCheckIn, { ReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
 import { usePreWorkoutCheckin } from "@/features/health/fitness/hooks/usePreWorkoutCheckin";
 import { useShouldShowReadiness } from "@/features/health/fitness/hooks/useShouldShowReadiness";
 import { useWorkoutHasLoggedSets } from "@/features/workouts/hooks/useWorkoutHasLoggedSets";
@@ -38,7 +38,7 @@ import RestTimer from "@/components/fitness/RestTimer";
 import WorkoutClock from "@/components/fitness/WorkoutClock";
 import { useSetSuggestion, useRestSuggestion } from "@/hooks/useWorkoutSuggestions";
 import { useRestTimer } from "@/hooks/useRestTimer";
-import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
+// useWorkoutFlow removed - using simplified flow
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
@@ -286,14 +286,13 @@ const WorkoutSession: React.FC = () => {
     // Could log pain event here
   };
 
-  const handleReadinessSubmit = async (enhancedData: EnhancedReadinessData) => {
+  const handleReadinessSubmit = async (readinessData: ReadinessData) => {
     try {
-      const { readiness } = enhancedData;
       // Calculate a simple readiness score (0-10 based on answers)
-      const score = calculateReadinessScore(readiness);
+      const score = calculateReadinessScore(readinessData);
       
       await createCheckin.mutateAsync({
-        answers: readiness,
+        answers: readinessData,
         readiness_score: score
       });
       
@@ -404,7 +403,6 @@ const WorkoutSession: React.FC = () => {
         <PageNav current="Pre-Workout Check" />
         <main className="container py-6 flex items-center justify-center min-h-[60vh] pb-32">
           <EnhancedReadinessCheckIn
-            workoutId={id}
             onSubmit={handleReadinessSubmit}
           />
         </main>
