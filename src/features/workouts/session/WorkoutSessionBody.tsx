@@ -21,6 +21,7 @@ import { useLogSet } from '../hooks';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionTiming } from '@/stores/sessionTiming';
 import { WORKOUT_FLOW_VERSION } from './constants';
+import WorkoutDebugFooter from '@/components/workout/WorkoutDebugFooter';
 
 interface WorkoutSessionBodyProps {
   workout: any;
@@ -35,7 +36,7 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     exerciseCount: workout?.exercises?.length || 0,
     hasReadiness: !!workout?.readiness_score
   };
-  console.info('[workout-flow-v0.6.0] session', debugPayload);
+  console.info('[workout-flow-v0.6.1] session', debugPayload);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { startSession } = useSessionTiming();
@@ -117,7 +118,6 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     return currentExercise?.display_name
         || currentExercise?.exercise?.display_name 
         || currentExercise?.exercise?.name 
-        || currentExercise?.name 
         || 'Exercise';
   };
 
@@ -183,7 +183,7 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   const totalSets = currentExercise?.target_sets || 3;
   const lastSet = sets.find((set: any) => set.is_completed && set.set_index === completedSetsCount);
 
-  // Fix 8: Complete debug info
+  // Fix 8: Complete debug info matching WorkoutDebugFooter interface
   const debugInfo = {
     version: WORKOUT_FLOW_VERSION,
     templateId: workout?.template_id || null,
@@ -194,19 +194,17 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     load_mode: currentExercise?.exercise?.load_mode || null,
     hasWarmup: hasWarmup,
     shouldShowReadiness: false, // Will be updated by container
-    exercise: {
-      id: currentExercise?.id,
-      display_name: currentExercise?.display_name,
-      equipment_type: currentExercise?.exercise?.equipment?.equipment_type
-    },
-    derived: {
-      isBodyweight: currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional',
-      isBarbell: currentExercise?.exercise?.equipment?.equipment_type === 'barbell',
-      isMachine: currentExercise?.exercise?.equipment?.equipment_type === 'machine',
-      isPerSide: currentSetData.perSideMode
-    },
-    lastReadiness: { score: readinessScore, at: new Date().toISOString() },
-    setPayloadPreview: {
+    sessionSource: 'direct',
+    router: 'main',
+    logger: 'unified',
+    restTimer: autoRestTimer,
+    grips: currentExercise?.exercise?.allows_grips || false,
+    gripKey: null,
+    warmup: hasWarmup,
+    warmupSteps: hasWarmup ? 3 : undefined,
+    entryMode: currentSetData.perSideMode ? 'per_side' as const : 
+               (currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional' ? 'bodyweight' as const : 'total' as const),
+    payloadPreview: {
       workout_exercise_id: currentExercise?.id,
       set_index: currentSetNumber,
       weight_kg: currentSetData.weight,
@@ -287,6 +285,21 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
             </Badge>
           </div>
         </div>
+
+        {/* Fix 4: Warmup Card - show when hasWarmup is true */}
+        {hasWarmup && (
+          <Card className="mb-4 bg-muted/50">
+            <CardContent className="p-6 text-center">
+              <h3 className="text-xl font-semibold mb-2">Warmup</h3>
+              <p className="text-muted-foreground mb-4">
+                Complete your warmup before starting the first set
+              </p>
+              <Button variant="outline" className="px-8">
+                Start Warmup
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Prev/Target Card */}
         {lastSet && (
@@ -454,38 +467,7 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
           </CardContent>
         </Card>
 
-        {/* Fix 8: Debug footer with version tag */}
-        <div className="mt-6 space-y-2">
-          <div className="text-center">
-            <Badge variant="outline" className="text-xs">
-              {WORKOUT_FLOW_VERSION}
-            </Badge>
-          </div>
-          
-          <Card className="border-blue-500/30 bg-blue-500/5">
-            <CardContent className="p-4">
-              <div className="text-sm space-y-2">
-                <div className="font-medium text-blue-700 dark:text-blue-300">Debug Panel</div>
-                <div className="grid grid-cols-2 gap-2 text-xs">
-                  <div>templateId: {debugInfo.templateId || 'null'}</div>
-                  <div>workoutId: {debugInfo.workoutId || 'null'}</div>
-                  <div>exerciseId: {debugInfo.exerciseId || 'null'}</div>
-                  <div>exerciseTitle: {debugInfo.exerciseTitle}</div>
-                  <div>effort_mode: {debugInfo.effort_mode || 'null'}</div>
-                  <div>load_mode: {debugInfo.load_mode || 'null'}</div>
-                  <div>hasWarmup: {debugInfo.hasWarmup.toString()}</div>
-                  <div>shouldShowReadiness: {debugInfo.shouldShowReadiness.toString()}</div>
-                </div>
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-xs">Full Debug JSON</summary>
-                  <pre className="text-xs bg-background p-2 rounded overflow-auto max-h-40 mt-2">
-                    {JSON.stringify(debugInfo, null, 2)}
-                  </pre>
-                </details>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <WorkoutDebugFooter debugInfo={debugInfo} />
       </div>
     </div>
   );

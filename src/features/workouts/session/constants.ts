@@ -1,1 +1,1 @@
-export const WORKOUT_FLOW_VERSION = 'workout-flow-v0.6.0';
+export const WORKOUT_FLOW_VERSION = 'workout-flow-v0.6.1';

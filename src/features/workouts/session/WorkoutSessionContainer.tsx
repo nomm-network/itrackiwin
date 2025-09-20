@@ -16,7 +16,16 @@ export default function WorkoutSessionContainer() {
   const queryClient = useQueryClient();
   
   // Fix 1: Assert we have a valid workout ID - no fallbacks to "test"
-  if (!id) throw new Error('[workout-flow-v0.6.0] Missing workoutId from route – refusing to fallback');
+  if (!id) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center">
+          <p className="text-destructive mb-2">Missing workout ID</p>
+          <p className="text-muted-foreground text-sm">Cannot load workout session without a valid workout ID</p>
+        </div>
+      </div>
+    );
+  }
   
   // Fix 6: Readiness check with proper invalidation
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, user?.id);
@@ -34,6 +43,7 @@ export default function WorkoutSessionContainer() {
         .select(`
           id,
           title,
+          name,
           started_at,
           ended_at,
           user_id,
@@ -49,9 +59,11 @@ export default function WorkoutSessionContainer() {
             target_weight_kg,
             weight_unit,
             attribute_values_json,
+            display_name,
             exercise:exercises(
               id,
               display_name,
+              name,
               slug,
               effort_mode,
               load_mode,
@@ -111,7 +123,7 @@ export default function WorkoutSessionContainer() {
       });
       
       // Fix 6: Proper readiness invalidation 
-      console.info('[workout-flow-v0.6.0] readiness logged – invalidated readiness query');
+      console.info('[workout-flow-v0.6.1] readiness logged – invalidated readiness query');
       queryClient.setQueryData(['workout-readiness', id, user?.id], false);
       queryClient.invalidateQueries({ queryKey: ['workout-readiness', id, user?.id] });
     } catch (error) {
