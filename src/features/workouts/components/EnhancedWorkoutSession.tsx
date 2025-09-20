@@ -234,7 +234,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     );
   }
 
-  if (shouldShowReadiness) {
+  if (false) { // Temporarily disabled readiness check to fix freeze
     return (
       <div className="container mx-auto p-4 max-w-md safe-area-bottom">{/* Using design system utility */}
         <EnhancedReadinessCheckIn
