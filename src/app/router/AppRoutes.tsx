@@ -111,8 +111,7 @@ const MentorPublicPage = lazy(() => import('@/features/marketplace/MentorPublicP
 const LazyProgramsPage = lazy(() => import('@/app/programs/page'));
 const LazyTemplatesPage = lazy(() => import('@/app/templates/page'));
 const LazyTemplateAddPage = lazy(() => import('@/app/templates/add/page'));
-const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page'));
-const LazyStartWorkoutFromTemplate = lazy(() => import('@/app/workouts/start/[templateId]/page'));
+// Removed start-quick and start/[templateId] pages for simplified flow
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
 const TestDynamicNav = lazy(() => import('@/pages/TestDynamicNav'));
@@ -319,8 +318,6 @@ export function AppRoutes() {
             </ProtectedMobileLayout>
           }>
             <Route index element={<StartOrContinue />} />
-            <Route path="start-quick" element={<LazyStartQuickWorkout />} />
-            <Route path="start/:templateId" element={<LazyStartWorkoutFromTemplate />} />
             <Route path=":workoutId" element={<LazyWorkoutPage />} />
           </Route>
 

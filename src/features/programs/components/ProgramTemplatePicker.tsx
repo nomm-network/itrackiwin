@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Play, GripVertical } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { listProgramTemplates } from "../api/programs";
-import { startFromTemplate } from "@/features/training/hooks/useLaunchers";
+import { useWorkoutLaunchers } from "@/features/training/hooks/useLaunchers";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -20,6 +20,7 @@ interface ProgramTemplatePickerProps {
 export function ProgramTemplatePicker({ open, onOpenChange, programId, programName }: ProgramTemplatePickerProps) {
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
+  const { startFromTemplate } = useWorkoutLaunchers();
 
   const { data: templates = [], isLoading } = useQuery({
     queryKey: ['program-templates', programId],
@@ -30,9 +31,9 @@ export function ProgramTemplatePicker({ open, onOpenChange, programId, programNa
   const handleStartTemplate = async (templateId: string, position: number) => {
     setIsStarting(true);
     try {
-      // Navigate to readiness flow first - will start workout after readiness
-      navigate(`/app/workouts/start/${templateId}`);
+      const workoutId = await startFromTemplate(templateId);
       onOpenChange(false);
+      // Will navigate automatically
     } catch (error) {
       console.error('Failed to start template:', error);
       toast.error('Failed to start template. Please try again.');

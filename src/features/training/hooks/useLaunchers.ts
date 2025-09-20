@@ -1,43 +1,31 @@
-// workout-flow-v1.0.0 (SOT) – DO NOT DUPLICATE
-import { supabase } from '@/integrations/supabase/client';
+// step-1 launcher (v0.7.3-min)
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate } from "react-router-dom";
+import { useReadinessStore } from "@/stores/readinessStore";
 
-export async function startFromTemplate(templateId: string) {
-  const { data: workoutId, error } = await supabase.rpc('start_workout', {
-    p_template_id: templateId || null,  // Handle empty string as null
-  });
-  if (error) throw error;
-  return workoutId as string;
-}
+export function useWorkoutLaunchers() {
+  const navigate = useNavigate();
 
-export async function startFromProgram(programId: string) {
-  // Get next template using new RPC
-  const { data: user } = await supabase.auth.getUser();
-  if (!user.user) throw new Error('Not authenticated');
+  const startFromTemplate = async (templateId: string) => {
+    if (!templateId) throw new Error("Template id missing");
 
-  const { data: nextTemplate, error: templateError } = await supabase.rpc('get_next_program_template', {
-    p_program_id: programId,
-    p_user_id: user.user.id
-  });
+    // 1) create workout on the DB from template
+    const { data: workoutId, error } = await supabase.rpc("start_workout", {
+      p_template_id: templateId,
+    });
+    if (error) throw error;
+    if (!workoutId) throw new Error("start_workout returned null");
 
-  if (templateError) throw templateError;
-  if (!nextTemplate?.[0]) throw new Error('No program templates found');
+    // 2) store readiness snapshot if present (non-blocking)
+    const score = useReadinessStore.getState().score;
+    if (score != null) {
+      await supabase.from("workouts").update({ readiness_score: score }).eq("id", workoutId);
+    }
 
-  // Start workout from the program's template with program tracking
-  const { data: workoutId, error: workoutError } = await supabase.rpc("start_workout", { 
-    p_template_id: nextTemplate[0].template_id 
-  });
+    // 3) hard navigate to the workout page
+    navigate(`/workouts/${workoutId}`);
+    return workoutId;
+  };
 
-  if (workoutError) throw workoutError;
-
-  // Update the workout with program info
-  await supabase
-    .from('workouts')
-    .update({
-      program_id: programId,
-      program_position: nextTemplate[0].order_position,
-      program_template_id: nextTemplate[0].template_id
-    })
-    .eq('id', workoutId);
-  
-  return workoutId as string;
+  return { startFromTemplate };
 }

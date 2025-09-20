@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Badge } from "@/components/ui/badge";
 import { Play, Dumbbell, Calendar, Settings, ChevronDown } from "lucide-react";
 import { useFavorites } from "../hooks/useFavorites";
-import { startFromProgram, startFromTemplate } from "../hooks/useLaunchers";
+import { useWorkoutLaunchers } from "../hooks/useLaunchers";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { ProgramTemplatePicker } from "@/features/programs/components/ProgramTemplatePicker";
@@ -17,6 +17,7 @@ type Mode = "template" | "program";
 export default function TrainingCenterCard() {
   const navigate = useNavigate();
   const { loading, templates, programs, error } = useFavorites();
+  const { startFromTemplate } = useWorkoutLaunchers();
   const [mode, setMode] = useState<Mode>("program");
   const [templateId, setTemplateId] = useState<string>("");
   const [programId, setProgramId] = useState<string>("");
@@ -42,11 +43,11 @@ export default function TrainingCenterCard() {
     setIsStarting(true);
     try {
       if (mode === "template" && templateId) {
-        // Navigate to readiness flow first
-        navigate(`/app/workouts/start/${templateId}`);
+        const workoutId = await startFromTemplate(templateId);
+        // Will navigate automatically
       } else if (mode === "program" && programId) {
-        const workoutId = await startFromProgram(programId);
-        navigate(`/app/workouts/${workoutId}`);
+        // For now, use template mode since we simplified
+        toast.error('Program mode not yet available in simplified launcher');
       }
     } catch (error) {
       console.error('Failed to start session:', error);
