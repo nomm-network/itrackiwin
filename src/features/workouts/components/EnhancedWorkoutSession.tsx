@@ -234,7 +234,7 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
     );
   }
 
-  if (false && shouldShowReadiness) {
+  if (shouldShowReadiness) {
     return (
       <div className="container mx-auto p-4 max-w-md">
         <EnhancedReadinessCheckIn
@@ -255,11 +255,21 @@ export default function EnhancedWorkoutSession({ workout, source = "direct" }: W
             const score = computeReadinessScore(readinessInput);
             setReadinessScore(score);
             localStorage.setItem(`workout_${workout?.id}_readiness`, score.toString());
-            createCheckin.mutate({ 
-              answers: data.readiness, 
-              readiness_score: score 
-            });
-            queryClient.invalidateQueries({ queryKey: ['should-show-readiness'] });
+            
+            try {
+              await createCheckin.mutateAsync({ 
+                answers: data.readiness, 
+                readiness_score: score 
+              });
+              
+              // Force immediate update to bypass readiness check
+              queryClient.setQueryData(['should-show-readiness', workout?.id, user?.id], false);
+              queryClient.invalidateQueries({ queryKey: ['should-show-readiness'] });
+            } catch (error) {
+              console.error('Failed to create checkin:', error);
+              // Even if checkin fails, allow workout to proceed
+              queryClient.setQueryData(['should-show-readiness', workout?.id, user?.id], false);
+            }
           }}
         />
       </div>
