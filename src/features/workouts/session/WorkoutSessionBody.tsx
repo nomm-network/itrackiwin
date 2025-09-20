@@ -28,7 +28,14 @@ interface WorkoutSessionBodyProps {
 }
 
 export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessionBodyProps) {
-  console.log('🔍 WorkoutSessionBody v0.6.3 entry:', { workout: !!workout, workoutId });
+  // Fix 8: Add debug logging with all key info
+  const debugPayload = {
+    templateId: workout?.template_id || null,
+    workoutId: workoutId,
+    exerciseCount: workout?.exercises?.length || 0,
+    hasReadiness: !!workout?.readiness_score
+  };
+  console.info('[workout-flow-v0.6.3] session', debugPayload);
   const navigate = useNavigate();
   const { user } = useAuth();
   const { startSession } = useSessionTiming();
@@ -81,6 +88,13 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
   }, [workout?.exercises, currentExerciseId]);
 
+  // Fix 4: Warmup visibility rule
+  const hasWarmup = useMemo(() => {
+    if (!currentExercise) return false;
+    const warmupPlan = currentExercise.attribute_values_json?.warmup;
+    return !!(warmupPlan && Object.keys(warmupPlan || {}).length > 0);
+  }, [currentExercise]);
+
   const sets = currentExercise?.sets || [];
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   const currentSetNumber = completedSetsCount + 1;
@@ -98,9 +112,13 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
     }
   }, [currentSetNumber, restStartTime]);
 
-  // Get exercise name
+  // Fix 3: Exercise name resolution rule
   const getExerciseName = () => {
-    return currentExercise?.exercise?.name || currentExercise?.name || 'Exercise';
+    return currentExercise?.display_name
+        || currentExercise?.exercise?.display_name 
+        || currentExercise?.exercise?.name 
+        || currentExercise?.name 
+        || 'Exercise';
   };
 
   // Format time display
@@ -165,24 +183,31 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
   const totalSets = currentExercise?.target_sets || 3;
   const lastSet = sets.find((set: any) => set.is_completed && set.set_index === completedSetsCount);
 
-  // Debug info for panel
+  // Fix 8: Complete debug info
   const debugInfo = {
     version: WORKOUT_FLOW_VERSION,
+    templateId: workout?.template_id || null,
+    workoutId: workoutId,
+    exerciseId: currentExercise?.id || null,
+    exerciseTitle: getExerciseName(),
+    effort_mode: currentExercise?.exercise?.effort_mode || null,
+    load_mode: currentExercise?.exercise?.load_mode || null,
+    hasWarmup: hasWarmup,
+    shouldShowReadiness: false, // Will be updated by container
     exercise: {
-      id: currentExercise.id,
-      effort_mode: currentExercise.effort_mode,
-      load_mode: currentExercise.load_mode,
-      equipment_id: currentExercise.equipment_id
+      id: currentExercise?.id,
+      display_name: currentExercise?.display_name,
+      equipment_type: currentExercise?.exercise?.equipment?.equipment_type
     },
     derived: {
-      isBodyweight: currentExercise.load_mode === 'bodyweight_plus_optional',
-      isBarbell: currentExercise.equipment?.equipment_type === 'barbell',
-      isMachine: currentExercise.equipment?.equipment_type === 'machine',
+      isBodyweight: currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional',
+      isBarbell: currentExercise?.exercise?.equipment?.equipment_type === 'barbell',
+      isMachine: currentExercise?.exercise?.equipment?.equipment_type === 'machine',
       isPerSide: currentSetData.perSideMode
     },
     lastReadiness: { score: readinessScore, at: new Date().toISOString() },
     setPayloadPreview: {
-      workout_exercise_id: currentExercise.id,
+      workout_exercise_id: currentExercise?.id,
       set_index: currentSetNumber,
       weight_kg: currentSetData.weight,
       reps: currentSetData.reps,
@@ -245,14 +270,17 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               </Badge>
             </Button>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              className="p-2 h-8 w-8"
-              onClick={handleWarmupMenuOpen}
-            >
-              <Flame className="h-4 w-4" />
-            </Button>
+            {/* Fix 4: Only show warmup icon when warmup is available */}
+            {hasWarmup && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="p-2 h-8 w-8"
+                onClick={handleWarmupMenuOpen}
+              >
+                <Flame className="h-4 w-4" />
+              </Button>
+            )}
             
             <Badge variant="secondary" className="bg-slate-700 text-white">
               {completedSetsCount}/{totalSets} sets
@@ -321,14 +349,15 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
               <span className="font-medium">Current Set</span>
             </div>
 
-            {/* Per-side toggle for barbells/dumbbells */}
-            {(currentExercise.equipment?.equipment_type === 'barbell' || 
-              currentExercise.equipment?.equipment_type === 'dumbbell') && (
+            {/* Fix 7: Per-side toggle visibility based on load_mode and equipment */}
+            {(currentExercise?.exercise?.load_mode !== 'bodyweight_plus_optional' && 
+              (currentExercise?.exercise?.equipment?.equipment_type === 'barbell' || 
+               currentExercise?.exercise?.equipment?.equipment_type === 'dumbbell')) && (
               <div className="mb-4">
                 <PerSideToggle
                   mode={currentSetData.perSideMode ? 'per_side' : 'total'}
                   onModeChange={handlePerSideModeChange}
-                  equipmentType={currentExercise.equipment?.equipment_type}
+                  equipmentType={currentExercise?.exercise?.equipment?.equipment_type}
                 />
               </div>
             )}
@@ -425,17 +454,38 @@ export default function WorkoutSessionBody({ workout, workoutId }: WorkoutSessio
           </CardContent>
         </Card>
 
-        {/* Debug Panel */}
-        <Card className="mt-6 border-blue-500/30 bg-blue-500/5">
-          <CardContent className="p-4">
-            <div className="text-sm space-y-2">
-              <div className="font-medium text-blue-700 dark:text-blue-300">Debug v{WORKOUT_FLOW_VERSION}</div>
-              <pre className="text-xs bg-background p-2 rounded overflow-auto max-h-40">
-                {JSON.stringify(debugInfo, null, 2)}
-              </pre>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Fix 8: Debug footer with version tag */}
+        <div className="mt-6 space-y-2">
+          <div className="text-center">
+            <Badge variant="outline" className="text-xs">
+              {WORKOUT_FLOW_VERSION}
+            </Badge>
+          </div>
+          
+          <Card className="border-blue-500/30 bg-blue-500/5">
+            <CardContent className="p-4">
+              <div className="text-sm space-y-2">
+                <div className="font-medium text-blue-700 dark:text-blue-300">Debug Panel</div>
+                <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div>templateId: {debugInfo.templateId || 'null'}</div>
+                  <div>workoutId: {debugInfo.workoutId || 'null'}</div>
+                  <div>exerciseId: {debugInfo.exerciseId || 'null'}</div>
+                  <div>exerciseTitle: {debugInfo.exerciseTitle}</div>
+                  <div>effort_mode: {debugInfo.effort_mode || 'null'}</div>
+                  <div>load_mode: {debugInfo.load_mode || 'null'}</div>
+                  <div>hasWarmup: {debugInfo.hasWarmup.toString()}</div>
+                  <div>shouldShowReadiness: {debugInfo.shouldShowReadiness.toString()}</div>
+                </div>
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs">Full Debug JSON</summary>
+                  <pre className="text-xs bg-background p-2 rounded overflow-auto max-h-40 mt-2">
+                    {JSON.stringify(debugInfo, null, 2)}
+                  </pre>
+                </details>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );

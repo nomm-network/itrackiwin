@@ -6,9 +6,17 @@ import { cn } from '@/lib/utils';
 
 interface DebugInfo {
   version: string;
+  templateId?: string | null;
+  workoutId?: string | null;
+  exerciseId?: string | null;
+  exerciseTitle?: string;
+  effort_mode?: string | null;
+  load_mode?: string | null;
+  hasWarmup: boolean;
+  shouldShowReadiness: boolean;
+  sessionSource?: string;
   router: string;
   logger: string;
-  sessionSource?: string; // Track which wrapper/entry point was used
   restTimer: boolean;
   grips: boolean;
   gripKey?: string | null;
@@ -56,9 +64,17 @@ export const WorkoutDebugFooter: React.FC<WorkoutDebugFooterProps> = ({
         <CollapsibleContent>
           <div className="mt-2 p-4 bg-background border rounded-lg shadow-lg text-xs font-mono space-y-2">
             <div className="grid grid-cols-2 gap-2">
+              <div>templateId: {debugInfo.templateId || 'null'}</div>
+              <div>workoutId: {debugInfo.workoutId || 'null'}</div>
+              <div>exerciseId: {debugInfo.exerciseId || 'null'}</div>
+              <div>exerciseTitle: {debugInfo.exerciseTitle || 'null'}</div>
+              <div>effort_mode: {debugInfo.effort_mode || 'null'}</div>
+              <div>load_mode: {debugInfo.load_mode || 'null'}</div>
+              <div>hasWarmup: {debugInfo.hasWarmup.toString()}</div>
+              <div>shouldShowReadiness: {debugInfo.shouldShowReadiness.toString()}</div>
               <div>sessionSource: {debugInfo.sessionSource || 'direct'}</div>
-              <div>router: {debugInfo.router}</div>
-              <div>logger: {debugInfo.logger}</div>
+              <div>router: {debugInfo.router || 'main'}</div>
+              <div>logger: {debugInfo.logger || 'unified'}</div>
               <div>restTimer: {debugInfo.restTimer ? 'on' : 'off'}</div>
               <div>
                 grips: {debugInfo.grips ? 'on' : 'off'} 

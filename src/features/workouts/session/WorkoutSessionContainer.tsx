@@ -15,26 +15,74 @@ export default function WorkoutSessionContainer() {
   const { user, loading: authLoading } = useAuth();
   const queryClient = useQueryClient();
   
-  // Readiness check
+  // Fix 1: Assert we have a valid workout ID - no fallbacks to "test"
+  if (!id) throw new Error('[workout-flow-v0.6.3] Missing workoutId from route – refusing to fallback');
+  
+  // Fix 6: Readiness check with proper invalidation
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(id, user?.id);
   const { createCheckin } = usePreWorkoutCheckin(id);
   
-  // Fetch workout data
+  // Fix 2 & 3: Fetch workout with proper joins including exercise names and warmup data
   const { data: workout, isLoading: workoutLoading } = useQuery({
     queryKey: ['workout-session', id],
     enabled: Boolean(id),
+    staleTime: 0,
+    gcTime: 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('workouts')
         .select(`
-          *,
+          id,
+          title,
+          started_at,
+          ended_at,
+          user_id,
+          template_id,
+          program_id,
+          readiness_score,
           exercises:workout_exercises(
-            *,
-            exercise:exercises(*),
-            sets:logged_sets(*)
+            id,
+            exercise_id,
+            order_index,
+            target_sets,
+            target_reps,
+            target_weight_kg,
+            weight_unit,
+            attribute_values_json,
+            exercise:exercises(
+              id,
+              display_name,
+              slug,
+              effort_mode,
+              load_mode,
+              equipment_id,
+              allows_grips,
+              is_unilateral,
+              equipment:equipment_id(
+                id,
+                equipment_type,
+                default_bar_weight_kg,
+                slug
+              )
+            ),
+            sets:workout_sets(
+              id,
+              set_index,
+              weight_kg,
+              reps,
+              duration_seconds,
+              distance,
+              effort_rating,
+              rpe,
+              notes,
+              set_kind,
+              is_completed,
+              completed_at,
+              grip_key
+            )
           )
         `)
-        .eq('id', id!)
+        .eq('id', id)
         .single();
       
       if (error) throw error;
@@ -62,7 +110,8 @@ export default function WorkoutSessionContainer() {
         readiness_score: score 
       });
       
-      // Force immediate update to bypass readiness check
+      // Fix 6: Proper readiness invalidation 
+      console.info('[workout-flow-v0.6.3] readiness logged – invalidated readiness query');
       queryClient.setQueryData(['workout-readiness', id, user?.id], false);
       queryClient.invalidateQueries({ queryKey: ['workout-readiness', id, user?.id] });
     } catch (error) {
