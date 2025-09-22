@@ -66,13 +66,23 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 
       console.log('🔥 WeightRepsSetForm: Logging set with saveSetWithGrips:', setData);
 
-      await saveSetWithGrips(setData);
-      
-      const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
-      toast({
-        title: "Set Logged Successfully",
-        description: `${weightDisplay} × ${reps} reps`,
-      });
+      try {
+        await saveSetWithGrips(setData);
+        
+        const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
+        toast({
+          title: "Set Logged Successfully",
+          description: `${weightDisplay} × ${reps} reps`,
+        });
+      } catch (error) {
+        console.error('❌ WeightRepsSetForm: Failed to log set:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to Log Set",
+          description: error instanceof Error ? error.message : 'Unknown error occurred',
+        });
+        return; // Don't proceed with onLogged if logging failed
+      }
 
       // Reset form
       setReps('');

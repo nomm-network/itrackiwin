@@ -121,12 +121,22 @@ export default function BodyweightSetForm({
 
       console.log('🔥 BodyweightSetForm: Logging set with saveSetWithGrips:', setData);
 
-      await saveSetWithGrips(setData);
+      try {
+        await saveSetWithGrips(setData);
 
-      toast({
-        title: "Set Logged Successfully",
-        description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
-      });
+        toast({
+          title: "Set Logged Successfully",
+          description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
+        });
+      } catch (error) {
+        console.error('❌ BodyweightSetForm: Failed to log set:', error);
+        toast({
+          variant: "destructive",
+          title: "Failed to Log Set",
+          description: error instanceof Error ? error.message : 'Unknown error occurred',
+        });
+        return; // Don't proceed with onSubmit if logging failed
+      }
 
       // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
       if (onSubmit) onSubmit(payload);
