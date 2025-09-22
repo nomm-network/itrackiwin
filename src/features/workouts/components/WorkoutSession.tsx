@@ -55,7 +55,6 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
     return (
       <MobileWorkoutSession
         exercises={workout.exercises.map((ex: any) => ({
-          ...ex.exercise, // Include all exercise properties (effort_mode, load_mode, etc.)
           id: ex.id,
           name: ex.exercise_name,
           order_index: ex.order_index || 0,
@@ -63,7 +62,12 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
           target_sets: ex.target_sets || 3,
           notes: ex.notes,
           load_type: ex.load_type,
-          equipment_ref: ex.equipment_ref
+          equipment_ref: ex.equipment_ref,
+          // Include all exercise properties from nested exercise object
+          effort_mode: ex.exercise?.effort_mode,
+          load_mode: ex.exercise?.load_mode,
+          equipment: ex.exercise?.equipment || { slug: ex.equipment_ref },
+          allows_grips: ex.exercise?.allows_grips
         }))}
         onSetComplete={handleSetComplete}
         onWorkoutComplete={handleWorkoutComplete}

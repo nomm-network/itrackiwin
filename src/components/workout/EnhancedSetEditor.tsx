@@ -10,7 +10,7 @@ interface EnhancedSetEditorProps {
     id?: string;
     load_type?: string;
     effort_mode?: 'reps' | 'time' | 'distance' | 'calories';
-    load_mode?: 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level';
+    load_mode?: 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level' | 'free_weight';
     equipment_ref?: string;
     equipment?: {
       slug?: string;
@@ -34,7 +34,7 @@ export const EnhancedSetEditor: React.FC<EnhancedSetEditorProps> = ({
   className = ""
 }) => {
   // Function to detect load mode from equipment
-  function detectLoadMode(exercise: any): 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level' {
+  function detectLoadMode(exercise: any): 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level' | 'free_weight' {
     const equipmentSlug = exercise.equipment?.slug || exercise.equipment_ref;
     
     // Detect bodyweight exercises

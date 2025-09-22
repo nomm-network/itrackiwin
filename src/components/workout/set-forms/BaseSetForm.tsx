@@ -10,7 +10,7 @@ import { toast } from '@/hooks/use-toast';
 export interface Exercise {
   id: string;
   effort_mode: 'reps' | 'time' | 'distance' | 'calories';
-  load_mode: 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level';
+  load_mode: 'none' | 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'band_level' | 'free_weight';
   equipment?: {
     equipment_type?: string;
     slug?: string;

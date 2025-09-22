@@ -37,6 +37,13 @@ interface ExerciseData {
   notes?: string;
   load_type?: string;
   equipment_ref?: string;
+  effort_mode?: 'reps' | 'time' | 'distance' | 'calories';
+  load_mode?: 'bodyweight_plus_optional' | 'external_added' | 'external_assist' | 'machine_level' | 'free_weight' | 'none' | 'band_level';
+  equipment?: {
+    slug?: string;
+    equipment_type?: string;
+  };
+  allows_grips?: boolean;
 }
 
 interface MobileWorkoutSessionProps {
@@ -349,6 +356,16 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
           />
         </div>
       )}
+
+      {/* v108 Debug Box */}
+      <div className="fixed bottom-4 left-4 bg-black/80 text-white p-3 rounded text-xs font-mono max-w-md">
+        <div className="text-green-400 mb-2">🎯 SmartSetForm v108 Debug</div>
+        <div>Current Exercise: {currentExercise?.name}</div>
+        <div>effort_mode: {currentExercise?.effort_mode || 'undefined'}</div>
+        <div>load_mode: {currentExercise?.load_mode || 'undefined'}</div>
+        <div>equipment_ref: {currentExercise?.equipment_ref || 'undefined'}</div>
+        <div>equipment_slug: {currentExercise?.equipment?.slug || 'undefined'}</div>
+      </div>
     </div>
   );
 };
