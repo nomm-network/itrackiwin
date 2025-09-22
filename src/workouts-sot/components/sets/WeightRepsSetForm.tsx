@@ -9,7 +9,7 @@ import {
   useBaseFormState
 } from './BaseSetForm';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -23,11 +23,11 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
+  const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
   
   // Weight & reps specific fields
   const [reps, setReps] = useState<number | ''>('');
   const [weight, setWeight] = useState<number | ''>('');
-  const [isLoading, setIsLoading] = useState(false);
   
   const { rpe, notes, restSeconds } = baseState;
   const loadMode = exercise.load_mode;
@@ -54,47 +54,24 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
     }
 
     try {
-      setIsLoading(true);
-      
-      console.log('🔥 WeightRepsSetForm: Logging set with:', {
-        workoutExerciseId,
-        setIndex,
-        weight,
-        reps,
-        notes,
-        rpe
-      });
-      
-      // Use simple direct supabase insert instead of complex hooks
-      const { error } = await supabase
-        .from('workout_sets')
-        .insert({
-          workout_exercise_id: workoutExerciseId,
-          set_index: setIndex,
-          weight_kg: weight !== '' ? Number(weight) : null,
-          weight: weight !== '' ? Number(weight) : null,
-          weight_unit: 'kg',
-          reps: Number(reps),
-          rpe: rpe ? Number(rpe) : null,
-          notes: notes || null,
-          is_completed: true,
-          completed_at: new Date().toISOString()
-        });
+      const setData = {
+        workout_exercise_id: workoutExerciseId,
+        weight: weight ? Number(weight) : undefined,
+        weight_unit: weight ? 'kg' : undefined,
+        reps: Number(reps),
+        rpe: rpe ? Number(rpe) : undefined,
+        notes: notes || undefined,
+        is_completed: true
+      };
 
-      if (error) {
-        console.error('Error logging set:', error);
-        toast({
-          title: "Error",
-          description: "Failed to log set. Please try again.",
-          variant: "destructive"
-        });
-        return;
-      }
+      console.log('🔥 WeightRepsSetForm: Logging set with saveSetWithGrips:', setData);
+
+      await saveSetWithGrips(setData);
       
       const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
       toast({
         title: "Set Logged Successfully",
-        description: `Set ${setIndex + 1}: ${weightDisplay} × ${reps} reps`,
+        description: `${weightDisplay} × ${reps} reps`,
       });
 
       // Reset form
@@ -103,15 +80,13 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       setBaseState(prev => ({ ...prev, rpe: '', notes: '' }));
       
       onLogged?.();
-    } catch (error) {
-      console.error('Error logging set:', error);
+    } catch (error: any) {
+      console.error('❌ WeightRepsSetForm error:', error);
       toast({
         title: "Error",
-        description: "Failed to log set. Please try again.",
+        description: `Failed to log set: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 

@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
-import { supabase } from '@/integrations/supabase/client';
+import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
+import { useToast } from '@/hooks/use-toast';
 
 // ---- Types kept loose to avoid breaking callers ----
 type SubmitPayload = {
@@ -61,6 +62,8 @@ export default function BodyweightSetForm({
   className,
 }: Props) {
   const [mode, setMode] = useState<Mode>("bodyweight");
+  const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
+  const { toast } = useToast();
 
   // Inputs
   const [reps, setReps] = useState<string>(
@@ -104,26 +107,26 @@ export default function BodyweightSetForm({
     };
 
     try {
-      // Use direct Supabase insert like WeightRepsSetForm
-      const { error } = await supabase
-        .from('workout_sets')
-        .insert({
-          workout_exercise_id: workoutExerciseId,
-          set_index: currentSetNumber - 1 || 0, // Convert to 0-based index
-          weight_kg: effectiveWeight,
-          weight: effectiveWeight,
-          weight_unit: 'kg',
-          reps: payload.reps,
-          rpe: payload.rpe || null,
-          notes: payload.notes || null,
-          is_completed: true,
-          completed_at: new Date().toISOString()
-        });
+      const setData: any = {
+        workout_exercise_id: workoutExerciseId,
+        reps: payload.reps,
+        is_completed: true
+      };
 
-      if (error) {
-        console.error('Error logging bodyweight set:', error);
-        return;
+      // Only add weight if it's not bodyweight mode
+      if (mode !== 'bodyweight' && effectiveWeight !== 0) {
+        setData.weight = effectiveWeight;
+        setData.weight_unit = 'kg';
       }
+
+      console.log('🔥 BodyweightSetForm: Logging set with saveSetWithGrips:', setData);
+
+      await saveSetWithGrips(setData);
+
+      toast({
+        title: "Set Logged Successfully",
+        description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
+      });
 
       // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
       if (onSubmit) onSubmit(payload);
@@ -131,8 +134,13 @@ export default function BodyweightSetForm({
       
       // Call onLogged callback to notify parent of completion
       onLogged?.();
-    } catch (error) {
-      console.error('Error in fireSubmit:', error);
+    } catch (error: any) {
+      console.error('❌ BodyweightSetForm error:', error);
+      toast({
+        title: "Error",
+        description: `Failed to log set: ${error.message || 'Unknown error'}`,
+        variant: "destructive"
+      });
     }
   };
 
@@ -214,10 +222,10 @@ export default function BodyweightSetForm({
       <Button
         size="lg"
         className="w-full text-base"
-        disabled={disabled}
+        disabled={disabled || isLoading}
         onClick={fireSubmit}
       >
-        Log Set 1
+        {isLoading ? 'Logging...' : `Log Set ${currentSetNumber}`}
       </Button>
     </div>
   );
