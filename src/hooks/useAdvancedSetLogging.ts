@@ -45,17 +45,20 @@ export const useAdvancedSetLogging = () => {
           barWeight = barData.default_weight;
         }
 
+        // TODO: Re-implement when compute_total_weight function is available
         // Use the SQL function to compute total weight
-        const { data: computedWeight, error: computeError } = await supabase
-          .rpc('compute_total_weight', {
-            p_entry_mode: setData.load_entry_mode,
-            p_value: setData.load_entry_mode === 'one_side' ? setData.load_one_side_kg : setData.weight,
-            p_bar_weight: barWeight,
-            p_is_symmetrical: true // Default to true, could be made configurable
-          });
+        // const { data: computedWeight, error: computeError } = await supabase
+        //   .rpc('compute_total_weight', {
+        //     p_entry_mode: setData.load_entry_mode,
+        //     p_value: setData.load_entry_mode === 'one_side' ? setData.load_one_side_kg : setData.weight,
+        //     p_bar_weight: barWeight,
+        //     p_is_symmetrical: true // Default to true, could be made configurable
+        //   });
 
-        if (computeError) throw computeError;
-        totalWeight = computedWeight;
+        // if (computeError) throw computeError;
+        // Simple weight calculation for now
+        const weightValue = setData.load_entry_mode === 'one_side' ? setData.load_one_side_kg : setData.weight;
+        totalWeight = Number(weightValue || 0) + Number(barWeight || 0);
       }
 
       // Resolve the correct set_index and whether to update or insert

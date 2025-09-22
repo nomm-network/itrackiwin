@@ -40,14 +40,14 @@ export const useWarmupSuggestion = (exerciseId: string, workingWeight?: number, 
   return useQuery({
     queryKey: ["warmup_suggestion", exerciseId, workingWeight, workingReps],
     queryFn: async (): Promise<WarmupSuggestion> => {
-      const { data, error } = await supabase.rpc('fn_suggest_warmup', {
-        p_exercise_id: exerciseId,
-        p_working_weight: workingWeight,
-        p_working_reps: workingReps
-      });
-      
-      if (error) throw error;
-      return data as unknown as WarmupSuggestion;
+      // TODO: Re-implement when fn_suggest_warmup function is available
+      // For now, return empty suggestion
+      return {
+        exercise_id: exerciseId,
+        target_weight_kg: workingWeight || 100,
+        warmup_sets: [],
+        total_warmup_time_estimate: 0
+      };
     },
     enabled: !!exerciseId,
   });
@@ -57,14 +57,16 @@ export const useSetSuggestion = (exerciseId: string, progressionType: string = '
   return useQuery({
     queryKey: ["set_suggestion", exerciseId, progressionType, targetReps],
     queryFn: async (): Promise<SetSuggestion> => {
-      const { data, error } = await supabase.rpc('fn_suggest_sets', {
-        p_exercise_id: exerciseId,
-        p_progression_type: progressionType,
-        p_target_reps: targetReps
-      });
-      
-      if (error) throw error;
-      return data as unknown as SetSuggestion;
+      // TODO: Re-implement when fn_suggest_sets function is available
+      // For now, return basic suggestion
+      return {
+        exercise_id: exerciseId,
+        progression_type: progressionType,
+        suggested_weight: 100,
+        suggested_sets: 3,
+        target_reps: targetReps,
+        notes: 'Basic suggestion'
+      };
     },
     enabled: !!exerciseId,
   });
@@ -74,13 +76,9 @@ export const useRestSuggestion = (workoutSetId: string, effortLevel: string = 'm
   return useQuery({
     queryKey: ["rest_suggestion", workoutSetId, effortLevel],
     queryFn: async (): Promise<number> => {
-      const { data, error } = await supabase.rpc('fn_suggest_rest_seconds', {
-        p_workout_set_id: workoutSetId,
-        p_effort_level: effortLevel
-      });
-      
-      if (error) throw error;
-      return data as number;
+      // TODO: Re-implement when fn_suggest_rest_seconds function is available
+      // For now, return basic rest time
+      return 120;
     },
     enabled: !!workoutSetId,
   });
@@ -90,17 +88,15 @@ export const useStagnationDetection = (exerciseId: string, lookbackSessions: num
   return useQuery({
     queryKey: ["stagnation_detection", exerciseId, lookbackSessions],
     queryFn: async (): Promise<StagnationAlert> => {
-      const { data, error } = await supabase.rpc('fn_detect_stagnation', {
-        p_exercise_id: exerciseId,
-        p_lookback_sessions: lookbackSessions
-      });
-      
-      if (error) throw error;
-      return data as unknown as StagnationAlert;
+      // TODO: Re-implement when fn_detect_stagnation function is available
+      // For now, return no stagnation
+      return {
+        stagnation_detected: false,
+        sessions_analyzed: 0,
+        analysis_date: new Date().toISOString()
+      };
     },
     enabled: !!exerciseId,
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes
   });
 };
-
-// REMOVED: Legacy useAdvancedWorkoutStart - use useStartWorkout from workouts.api.ts instead

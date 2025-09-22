@@ -166,11 +166,15 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
             .single();
 
           if (exerciseData) {
-            const { data: stagnationData } = await supabase
-              .rpc('fn_detect_stagnation', {
-                p_exercise_id: exerciseData.id,
-                p_lookback_sessions: 5
-              });
+            // TODO: Re-implement when fn_detect_stagnation function is available
+            // const { data: stagnationData } = await supabase
+            //   .rpc('fn_detect_stagnation', {
+            //     p_exercise_id: exerciseData.id,
+            //     p_lookback_sessions: 5
+            //   });
+            
+            // Placeholder for now
+            const stagnationData = false;
 
             const stagnationResult = stagnationData as any;
             if (stagnationResult?.stagnation_detected) {

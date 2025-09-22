@@ -132,7 +132,7 @@ const TranslatedProfilePage: React.FC = () => {
         .maybeSingle();
 
       if (fitnessData) {
-        setFitnessProfile(fitnessData);
+        setFitnessProfile(fitnessData as any);
       }
 
     } catch (error) {

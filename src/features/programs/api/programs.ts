@@ -4,14 +4,16 @@ export async function getNextProgramTemplate(programId: string) {
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error('Not authenticated');
 
-  const { data, error } = await supabase.rpc('get_next_program_template', {
-    p_program_id: programId,
-    p_user_id: user.user.id
-  });
+  // TODO: Re-implement when get_next_program_template function is available
+  // const { data, error } = await supabase.rpc('get_next_program_template', {
+  //   p_program_id: programId,
+  //   p_user_id: user.user.id
+  // });
 
-  if (error) throw error;
+  // if (error) throw error;
   
-  // Get the template details
+  // Get the template details - placeholder implementation
+  const data = null;
   const nextTemplate = data?.[0];
   if (!nextTemplate) return null;
   

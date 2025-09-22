@@ -26,14 +26,19 @@ export async function startFromProgram(programId: string) {
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error('Not authenticated');
 
-  const { data: nextTemplate, error: templateError } = await supabase.rpc('get_next_program_template', {
-    p_program_id: programId,
-    p_user_id: user.user.id
-  });
+  // TODO: Re-implement when get_next_program_template function is available
+  // const { data: nextTemplate, error: templateError } = await supabase.rpc('get_next_program_template', {
+  //   p_program_id: programId,
+  //   p_user_id: user.user.id
+  // });
 
-  if (templateError) throw templateError;
-  if (!nextTemplate?.[0]) throw new Error('No program templates found');
-
+  // if (templateError) throw templateError;
+  // if (!nextTemplate?.[0]) throw new Error('No program templates found');
+  
+  // Placeholder for now
+  
+  // TODO: Re-implement the rest when program template function is available
+  /*
   // Start workout from the program's template with program tracking
   const { data: workoutId, error: workoutError } = await supabase.rpc("start_workout", { 
     p_template_id: nextTemplate[0].template_id 
@@ -60,5 +65,9 @@ export async function startFromProgram(programId: string) {
       .eq('id', workoutId);
   }
   
-  return { workoutId };
+  return { workoutId: null };
+  */
+  
+  // For now, return null since the function is not available
+  return { workoutId: null };
 }

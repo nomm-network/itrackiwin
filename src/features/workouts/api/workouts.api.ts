@@ -195,9 +195,18 @@ export const useEndWorkout = () => {
   
   return useMutation({
     mutationFn: async (workoutId: string) => {
-      const { data, error } = await supabase.rpc('end_workout', {
-        p_workout_id: workoutId
-      });
+      // TODO: Re-implement when end_workout function is available
+      // const { data, error } = await supabase.rpc('end_workout', {
+      //   p_workout_id: workoutId
+      // });
+      
+      // For now, just update the workout end time directly
+      const { data, error } = await supabase
+        .from('workouts')
+        .update({ ended_at: new Date().toISOString() })
+        .eq('id', workoutId)
+        .select()
+        .single();
       
       if (error) throw error;
       return data;
