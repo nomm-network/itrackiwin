@@ -453,12 +453,24 @@ const WorkoutSession: React.FC = () => {
   };
   // === /DEBUG STEP 2 ===
 
+  console.log('🐛 DEBUG BOX RENDER:', debugData);
+
   return (
     <>
-      <WorkoutDebugBox
-        data={debugData}
-        anchor="top"
-      />
+      <div style={{
+        width: '100%',
+        background: 'red',
+        color: 'white',
+        padding: '16px',
+        marginBottom: '16px',
+        fontSize: '14px',
+        fontFamily: 'monospace'
+      }}>
+        <strong>DEBUG • v109.2-debug-step2 • workoutId: {debugData.workoutId || '—'}</strong>
+        <pre style={{fontSize: '12px', marginTop: '8px'}}>
+          {JSON.stringify(debugData, null, 2)}
+        </pre>
+      </div>
       <PageNav current="Workout Session" />
       
       
