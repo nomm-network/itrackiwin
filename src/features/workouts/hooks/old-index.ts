@@ -2,10 +2,10 @@
 // Typed hooks for easy API calls - FlutterFlow compatible
 
 // Core workout operations - NEW API layer
-export { useActiveWorkout, useGetWorkout, useStartWorkout, useEndWorkout, useLogSet, useUpdateSet } from '../api/workouts.api';
+export { useActiveWorkout, useGetWorkout, useStartWorkout, useEndWorkout, useLogSet, useUpdateSet } from '@/workouts-sot/api';
 
 // Performance queries - optimized for mobile
-export { useLastSetForExercise, usePersonalRecord } from '../api/workouts.api';
+export { useLastSetForExercise, usePersonalRecord } from '@/workouts-sot/api';
 
 // Exercise estimates
 export { useExerciseEstimate } from './useExerciseEstimate';

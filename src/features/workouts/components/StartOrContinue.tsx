@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
-import { useActiveWorkout } from '../api/workouts.api';
-import { useStartWorkout } from '../hooks';
+import { useActiveWorkout } from '@/workouts-sot/api';
+import { useStartWorkout } from '@/workouts-sot/hooks';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 

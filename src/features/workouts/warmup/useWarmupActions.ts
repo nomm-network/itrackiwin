@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { updateWarmupForWorkout } from './updateWarmupForWorkout';
-import { workoutKeys } from '@/features/workouts/api/workouts.api';
+import { workoutKeys } from '@/workouts-sot/api';
 import { toast } from 'sonner';
 
 type Feedback = 'not_enough' | 'excellent' | 'too_much';

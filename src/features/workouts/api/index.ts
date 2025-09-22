@@ -1,3 +1,3 @@
-// Workouts API exports
-export * from './workouts.api';
+// Workouts API - Redirect to SOT
+export * from '@/workouts-sot/api';
 export * from './warmup';

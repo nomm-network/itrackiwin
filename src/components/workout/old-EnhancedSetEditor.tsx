@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Badge } from '@/components/ui/badge';
 import { User, Dumbbell, Activity } from 'lucide-react';
-import SmartSetForm from '@/components/workout/set-forms/SmartSetForm';
+import { SmartSetForm } from '@/workouts-sot/components/sets';
 import { Exercise } from '@/components/workout/set-forms/BaseSetForm';
 
 interface EnhancedSetEditorProps {

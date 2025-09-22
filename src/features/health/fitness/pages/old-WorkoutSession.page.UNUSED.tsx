@@ -17,7 +17,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 
 import { useAddExerciseToWorkout, useAddSet, useDeleteWorkout, useSearchExercises, useUserSettings, useUpsertUserSettings, useWorkoutDetail, useCombinedMetrics } from "@/features/health/fitness/services/fitness.api";
-import { useEndWorkout } from "@/features/workouts/api/workouts.api"; // Use the correct endWorkout
+import { useEndWorkout } from "@/workouts-sot/api"; // Use the correct endWorkout
 import { supabase } from "@/integrations/supabase/client";
 import DynamicMetricsForm from "@/components/DynamicMetricsForm";
 import { useToast } from "@/hooks/use-toast";
@@ -41,7 +41,7 @@ import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
-import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
+import { SmartSetForm } from "@/workouts-sot/components/sets";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 import { WORKOUT_FLOW_VERSION } from "@/constants/workoutFlow";
 

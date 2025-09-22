@@ -3,7 +3,7 @@
 
 export * from './ui';
 export * from './api';
-export * from './hooks';
+export * from '@/workouts-sot/hooks';
 export * from './types';
 export * from './logic/targets';
 export * from './logic/readiness';

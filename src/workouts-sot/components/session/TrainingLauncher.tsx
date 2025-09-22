@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Play, Timer } from "lucide-react";
-import { useStartWorkout } from "../hooks";
+import { useStartWorkout } from "../../hooks";
 import { useNavigate } from "react-router-dom";
 
 export default function TrainingLauncher() {
