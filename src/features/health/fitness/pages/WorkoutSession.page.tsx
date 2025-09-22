@@ -70,7 +70,7 @@ const UnitToggle: React.FC = () => {
 
 const WorkoutSession: React.FC = () => {
   const { getTranslatedName } = useTranslations();
-  const { workoutId: id } = useParams();
+  const { id } = useParams();
   const navigate = useNavigate();
   const { toast } = useToast();
   const { data } = useWorkoutDetail(id);
@@ -426,12 +426,9 @@ const WorkoutSession: React.FC = () => {
           version="v108"
           context="WorkoutSession.page"
           data={{
-            workoutId: id ?? 'NO_ID_FROM_PARAMS',
+            workoutId: id ?? null,
             hasData: !!data,
-            dataObject: data ? 'HAS_DATA' : 'NO_DATA',
             routerMounted: true,
-            urlParamId: id,
-            dataWorkoutId: data?.workout?.id ?? 'NO_WORKOUT_IN_DATA'
           }}
         />
         {/* Header with workout clock */}
