@@ -44,7 +44,7 @@ import { Settings, Timer, Trash2 } from "lucide-react";
 import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 import WorkoutDebugBox from "@/components/debug/WorkoutDebugBox";
-import { WORKOUT_FLOW_VERSION } from "@/features/workouts/session/version";
+import { WORKOUT_FLOW_VERSION } from "@/constants/workoutFlow";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -454,7 +454,15 @@ const WorkoutSession: React.FC = () => {
 
   return (
     <>
-      <WorkoutDebugBox data={debugData} anchor="top" />
+      <WorkoutDebugBox
+        anchor="top"
+        data={{
+          workout: data?.workout ?? null,
+          exercises: data?.workout?.exercises ?? data?.exercises ?? null,
+          title: data?.workout?.title ?? data?.workout?.name ?? null,
+          ...debugData,
+        }}
+      />
       <PageNav current="Workout Session" />
       
       

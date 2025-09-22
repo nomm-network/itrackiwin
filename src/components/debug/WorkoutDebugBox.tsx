@@ -1,113 +1,112 @@
-import React, {useMemo, useState} from "react";
-import { WORKOUT_FLOW_VERSION } from "@/features/workouts/session/version";
-
-type DebugData = {
-  workoutId?: string | null;
-  templateId?: string | null;
-  title?: string | null;
-  readiness?: number | null;
-  exerciseCount?: number | null;
-  routerPath?: string;
-  sourceHint?: "rpc" | "rest" | "unknown";
-  lastError?: string | null;
-  sample?: unknown;
-};
+// WorkoutDebugBox.tsx
+import React, {useMemo, useState} from 'react';
+import { WORKOUT_FLOW_VERSION } from '@/constants/workoutFlow';
 
 type Props = {
-  data: DebugData;
-  anchor?: "top" | "bottom";
+  anchor?: 'top' | 'bottom';
+  // Anything you want to show; we'll also auto-detect workout id from URL
+  data?: Record<string, any> | null;
 };
 
-const boxStyle: React.CSSProperties = {
-  position: "fixed",
+const baseBox: React.CSSProperties = {
+  position: 'fixed',
   left: 12,
   right: 12,
-  zIndex: 99999,
-  padding: 12,
+  zIndex: 999999, // above everything
+  background: 'rgba(220, 38, 38, 0.95)', // red
+  color: '#fff',
   borderRadius: 10,
-  background: "#B00020",
-  color: "white",
+  padding: 10,
+  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
   fontSize: 12,
-  lineHeight: 1.3,
-  boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
-  opacity: 0.95,
+  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+  border: '1px solid rgba(255,255,255,0.15)',
 };
 
-export default function WorkoutDebugBox({ data, anchor = "top" }: Props) {
+const headerRow: React.CSSProperties = {
+  display: 'flex',
+  alignItems: 'center',
+  gap: 8,
+  flexWrap: 'wrap',
+  marginBottom: 6,
+};
+
+const pill: React.CSSProperties = {
+  background: 'rgba(255,255,255,0.15)',
+  borderRadius: 6,
+  padding: '2px 8px',
+  display: 'inline-flex',
+  alignItems: 'center',
+  gap: 6,
+  border: 'none',
+  color: '#fff',
+  cursor: 'pointer'
+};
+
+export default function WorkoutDebugBox({ anchor = 'top', data }: Props) {
   const [collapsed, setCollapsed] = useState(false);
 
-  const json = useMemo(() => {
+  const urlPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
+  const urlId = useMemo(() => {
     try {
-      return JSON.stringify(
-        {
-          version: WORKOUT_FLOW_VERSION,
-          ...data,
-        },
-        null,
-        2
-      );
+      const parts = (typeof window !== 'undefined' ? window.location.pathname : '').split('/');
+      return parts[parts.length - 1] || null;
     } catch {
-      return "{}";
+      return null;
     }
-  }, [data]);
+  }, []);
 
-  const copy = async () => {
-    try {
-      await navigator.clipboard.writeText(json);
-      alert("Debug copied to clipboard.");
-    } catch (e) {
-      console.error(e);
-    }
+  const safeData = useMemo(() => {
+    const base = {
+      version: WORKOUT_FLOW_VERSION,
+      routerPath: urlPath,
+      workoutId: data?.workoutId ?? data?.workout?.id ?? urlId ?? null,
+      templateId: data?.templateId ?? data?.workout?.template_id ?? null,
+      title: data?.title ?? data?.workout?.title ?? data?.workout?.name ?? null,
+      readiness: data?.readiness ?? data?.workout?.readiness_score ?? null,
+      exerciseCount:
+        Array.isArray(data?.workout?.exercises) ? data!.workout!.exercises.length :
+        Array.isArray((data as any)?.exercises) ? (data as any).exercises.length :
+        null,
+      sourceHint:
+        Array.isArray(data?.workout?.exercises) ? 'rpc' :
+        Array.isArray((data as any)?.exercises) ? 'rest' : 'unknown',
+    };
+    return base;
+  }, [data, urlPath, urlId]);
+
+  const json = useMemo(() => {
+    try { return JSON.stringify(safeData, null, 2); }
+    catch { return '{}'; }
+  }, [safeData]);
+
+  const style: React.CSSProperties = {
+    ...baseBox,
+    ...(anchor === 'top' ? { top: 66 } : { bottom: 66 }),
   };
-
-  const style = {
-    ...boxStyle,
-    [anchor === "top" ? "top" : "bottom"]: 70,
-  } as React.CSSProperties;
 
   return (
     <div style={style}>
-      <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 6}}>
+      <div style={headerRow}>
         <strong>DEBUG • {WORKOUT_FLOW_VERSION}</strong>
-        <span style={{opacity: 0.9}}>• workoutId:</span>
-        <code style={{background: "rgba(255,255,255,0.15)", padding: "2px 6px", borderRadius: 6}}>
-          {data.workoutId || "—"}
-        </code>
-        <span style={{flex: 1}} />
-        <button
-          onClick={() => setCollapsed((v) => !v)}
-          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
-        >
-          {collapsed ? "Expand" : "Collapse"}
+        <span>• workoutId:</span>
+        <span style={{fontWeight: 700}}>{safeData.workoutId ?? '—'}</span>
+        <button style={pill} onClick={() => setCollapsed(v => !v)}>
+          {collapsed ? 'Expand' : 'Collapse'}
         </button>
+        <button style={pill} onClick={() => window.location.reload()}>Refresh</button>
         <button
-          onClick={() => window.location.reload()}
-          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
-        >
-          Refresh
-        </button>
-        <button
-          onClick={copy}
-          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
+          style={pill}
+          onClick={async () => {
+            try { await navigator.clipboard.writeText(json); alert('Debug copied'); }
+            catch (e) { console.error(e); }
+          }}
         >
           Copy
         </button>
       </div>
-
       {!collapsed && (
-        <pre
-          style={{
-            margin: 0,
-            maxHeight: 220,
-            overflow: "auto",
-            background: "rgba(0,0,0,0.25)",
-            padding: 10,
-            borderRadius: 8,
-            whiteSpace: "pre-wrap",
-          }}
-        >
-{json}
-        </pre>
+        <pre style={{margin: 0, whiteSpace: 'pre-wrap'}}>{json}</pre>
       )}
     </div>
   );

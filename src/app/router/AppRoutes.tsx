@@ -1,5 +1,5 @@
 import React, { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Paths } from './paths';
@@ -9,6 +9,7 @@ import { FitnessRoutes } from '@/features/health/fitness';
 import { AdminRoutes } from '@/admin';
 import WorkoutsLayout from '@/features/workouts/WorkoutsLayout';
 import StartOrContinue from '@/features/workouts/components/StartOrContinue';
+import WorkoutDebugBox from '@/components/debug/WorkoutDebugBox';
 
 // Dashboard - now using Hub system
 const HubPage = lazy(() => import('@/features/hub/HubPage'));
@@ -119,9 +120,18 @@ const LoadingFallback = () => (
   </div>
 );
 
+function DebugOverlayRouterAware() {
+  const { pathname } = useLocation();
+  const isWorkoutRoute = /\/app\/workouts(\/|$)/.test(pathname) || /\/fitness\/workout(\/|$)/.test(pathname);
+  // Only render on workout-related routes
+  if (!isWorkoutRoute) return null;
+  return <WorkoutDebugBox anchor="top" data={{}} />;
+}
+
 export function AppRoutes() {
   return (
     <BrowserRouter>
+      <DebugOverlayRouterAware />
       <Suspense fallback={<LoadingFallback />}>
         <Routes>
           {/* Public routes */}
