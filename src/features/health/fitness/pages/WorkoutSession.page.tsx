@@ -456,23 +456,27 @@ const WorkoutSession: React.FC = () => {
   console.log('🐛 DEBUG BOX RENDER:', debugData);
 
   return (
-    <>
+    <div>
+      {/* DEBUG BOX - ALWAYS VISIBLE AT TOP */}
       <div style={{
         width: '100%',
-        background: 'red',
+        background: '#dc2626',
         color: 'white',
         padding: '16px',
-        marginBottom: '16px',
+        margin: '0 0 16px 0',
         fontSize: '14px',
-        fontFamily: 'monospace'
+        fontFamily: 'monospace',
+        borderRadius: '8px'
       }}>
-        <strong>DEBUG • v109.2-debug-step2 • workoutId: {debugData.workoutId || '—'}</strong>
-        <pre style={{fontSize: '12px', marginTop: '8px'}}>
+        <div style={{marginBottom: '8px'}}>
+          <strong>DEBUG • v109.2-debug-step2 • workoutId: {debugData.workoutId || '—'}</strong>
+        </div>
+        <pre style={{fontSize: '12px', whiteSpace: 'pre-wrap', margin: 0}}>
           {JSON.stringify(debugData, null, 2)}
         </pre>
       </div>
+
       <PageNav current="Workout Session" />
-      
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
         {/* Header with workout clock */}
@@ -723,7 +727,7 @@ const WorkoutSession: React.FC = () => {
           exerciseName={showRMModal.exerciseName}
         />
       )}
-    </>
+    </div>
   );
 };
 
