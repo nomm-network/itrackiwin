@@ -1,4 +1,4 @@
-// Simplified Workout Session for SOT
+// SOT Simplified Workout Session - Self-contained with debug tracking
 import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,11 +9,26 @@ import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './shim-ExerciseCard';
 import { useLogSet, useUpdateSet } from '../../hooks';
 
+// Add SOT debug logging
+console.log('📁 [EnhancedWorkoutSession] SOT Component loaded from: src/workouts-sot/components/session/EnhancedWorkoutSession.tsx');
+console.log('📁 [EnhancedWorkoutSession] SOT Dependencies:', {
+  hooks: '@/workouts-sot/hooks',
+  shimedComponent: './shim-ExerciseCard',
+  uiComponents: '@/components/ui/*'
+});
+
 interface WorkoutSessionProps {
   workout: any;
 }
 
 export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
+  console.log('🎯 [EnhancedWorkoutSession] Workout prop received:', { 
+    workoutId: workout?.id, 
+    hasExercises: !!workout?.exercises?.length,
+    exerciseCount: workout?.exercises?.length || 0,
+    sotFile: 'src/workouts-sot/components/session/EnhancedWorkoutSession.tsx'
+  });
+  
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { mutate: updateSet } = useUpdateSet();

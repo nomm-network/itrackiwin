@@ -56,6 +56,11 @@ const DynamicFitnessStartAction = () => {
   const targetPath = activeWorkout?.id ? `/app/workouts/${activeWorkout.id}` : '/app/workouts/start-quick';
   
   console.log('🎯 [DynamicFitnessStartAction] Target path:', targetPath);
+  console.log('📁 [DynamicFitnessStartAction] Using SOT files:', {
+    hookFile: '@/workouts-sot/hooks',
+    routeFile: '/app/workouts/workout-detail.tsx → @workouts/pages/WorkoutRoute',
+    sessionFile: '@/workouts-sot/components/session/EnhancedWorkoutSession.tsx'
+  });
   
   return {
     id: 'fitness.start',

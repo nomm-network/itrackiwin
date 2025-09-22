@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+// NOTE: This is the only external import - should be moved to SOT eventually
 import { updateWarmupForWorkout } from '@/features/workouts/warmup/updateWarmupForWorkout';
 
 // ============================================================================

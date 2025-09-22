@@ -17,8 +17,11 @@ const TrainingDashboard: React.FC = () => {
   const { data: activeWorkout, isLoading: loadingActiveWorkout } = useActiveWorkout();
 
   const handleContinueWorkout = () => {
+    console.log('🎯 [TrainingDashboard] Continue workout clicked:', activeWorkout?.id);
+    console.log('📁 [TrainingDashboard] Using SOT file: @/workouts-sot/hooks/useActiveWorkout');
     if (activeWorkout?.id) {
       navigate(`/app/workouts/${activeWorkout.id}`);
+      console.log('🚀 [TrainingDashboard] Navigating to SOT route via /app/workouts/ → old-workout-detail → WorkoutRoute → SOT EnhancedWorkoutSession');
     }
   };
 

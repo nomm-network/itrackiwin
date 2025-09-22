@@ -3,10 +3,13 @@ import { useGetWorkout } from '@/workouts-sot/hooks';
 import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
 
 // Log component mount for verification
-console.log('WorkoutPage mounted • v111.4 (CORRECT FILE)');
+console.log('WorkoutPage mounted • v111.4 (CORRECT FILE - SOT ROUTE)');
+console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/old-workout-detail.tsx');
+console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
+console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession');
 
 // ——— DEBUG v111.4: inline, static, non-floating ———
-const __DEBUG_VERSION = 'v111.4-CORRECT-FILE';
+const __DEBUG_VERSION = 'v111.4-CORRECT-FILE-SOT-ROUTE';
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
@@ -76,7 +79,13 @@ export default function WorkoutPage() {
       template_id: workout.template_id,
       exercises: workout.exercises?.length || 0
     } : null,
-    errorMessage: error ? (error as any)?.message : null
+    errorMessage: error ? (error as any)?.message : null,
+    sotFiles: {
+      currentFile: 'src/app/workouts/old-workout-detail.tsx',
+      hookFile: '@/workouts-sot/hooks/useGetWorkout',
+      componentFile: '@/workouts-sot/components/session/EnhancedWorkoutSession',
+      apiFile: '@/workouts-sot/api/workouts-api.ts'
+    }
   };
 
   if (isLoading) {
