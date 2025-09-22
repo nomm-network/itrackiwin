@@ -3,10 +3,10 @@ import { Routes, Route } from "react-router-dom";
 
 const FitnessPage = lazy(() => import("./pages/Fitness.page"));
 const ExercisesPage = lazy(() => import("./pages/Exercises.page"));
-// const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page")); // UNUSED - actual route uses /app/workouts/workout-detail.tsx
+// const WorkoutSessionPage = lazy(() => import("./pages/old-WorkoutSession.page")); // UNUSED - actual route uses /app/workouts/workout-detail.tsx
 const TemplatesPage = lazy(() => import("./pages/Templates.page"));
 const TemplateEditPage = lazy(() => import("./pages/TemplateEdit.page"));
-// const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page")); // DUPLICATE/UNUSED
+// const WorkoutSessionP = lazy(() => import("./pages/old-WorkoutSession.page")); // DUPLICATE/UNUSED
 const HistoryPage = lazy(() => import("./pages/History.page"));
 const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 

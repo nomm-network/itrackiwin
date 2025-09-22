@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => ({
       "@profile": path.resolve(__dirname, "src/features/profile"),
       "@coach": path.resolve(__dirname, "src/features/coach"),
       "@gym": path.resolve(__dirname, "src/features/gym"),
-      "@workouts": path.resolve(__dirname, "src/features/workouts"),
+      "@workouts": path.resolve(__dirname, "src/workouts-sot"),
       "@social": path.resolve(__dirname, "src/features/social"),
       "@fitness": path.resolve(__dirname, "src/features/health/fitness"),
       "@exercises": path.resolve(__dirname, "src/features/exercises"),

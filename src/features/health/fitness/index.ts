@@ -3,7 +3,7 @@
 // Barrel exports for fitness feature - Public API only
 export { default as FitnessPage } from './pages/Fitness.page';
 export { default as ExercisesPage } from './pages/Exercises.page';
-// export { default as WorkoutSessionPage } from './pages/WorkoutSession.page'; // UNUSED - actual route uses /app/workouts/workout-detail.tsx
+// export { default as WorkoutSessionPage } from './pages/old-WorkoutSession.page'; // UNUSED - actual route uses /app/workouts/workout-detail.tsx
 export { default as TemplatesPage } from './pages/Templates.page';
 export { default as HistoryPage } from './pages/History.page';
 

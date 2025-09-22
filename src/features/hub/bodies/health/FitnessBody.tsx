@@ -1,5 +1,5 @@
 // ⚠️ DO NOT alter visuals here. This only wraps the frozen legacy components.
-import FitnessLegacyBody from "@/features/health/fitness/legacy/FitnessLegacyBody";
+import FitnessLegacyBody from "@/features/health/fitness/legacy/old-FitnessLegacyBody";
 
 type Props = { category: string; subSlug: string };
 
