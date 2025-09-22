@@ -1,5 +1,5 @@
 // workouts-sot/components/sets/BodyweightSetForm.tsx
-// v111.9 – feel stored in notes field (old way)
+// v111.10 – feel stored in notes field (old way), fixed enum issues
 
 import * as React from "react";
 import { useMemo, useState } from "react";
@@ -119,7 +119,7 @@ export default function BodyweightSetForm({
       setData.weight_unit = 'kg';
     }
 
-    console.log('🔥 BodyweightSetForm v111.9: DETAILED LOGGING START');
+    console.log('🔥 BodyweightSetForm v111.10: DETAILED LOGGING START');
     console.log('🔥 Mode:', mode);
     console.log('🔥 Effective Weight:', effectiveWeight);
     console.log('🔥 Final setData payload being sent to saveSetWithGrips:', JSON.stringify(setData, null, 2));

@@ -64,7 +64,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       is_completed: true
     };
 
-    console.log('🔥 WeightRepsSetForm v111.9: DETAILED LOGGING START');
+    console.log('🔥 WeightRepsSetForm v111.10: DETAILED LOGGING START');
     console.log('🔥 Load Mode:', loadMode);
     console.log('🔥 Weight Input:', weight);
     console.log('🔥 Reps Input:', reps);
@@ -90,7 +90,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       onLogged?.();
 
     } catch (error) {
-      console.error('❌ WeightRepsSetForm v111.9: CRITICAL ERROR in saveSetWithGrips:', error);
+      console.error('❌ WeightRepsSetForm v111.10: CRITICAL ERROR in saveSetWithGrips:', error);
       
       // ❌ show the exact DB error
       const msg = buildSupabaseErrorMessage(error, 'FormSubmit');
