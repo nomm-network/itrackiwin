@@ -417,7 +417,7 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log when we reach main workout view
   console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
-  // === DEBUG STEP 1 (safe) ===
+  // === DEBUG STEP 2 (safe) ===
   const workoutIdFromUrl =
     (typeof window !== "undefined" && window.location.pathname.split("/").pop()) || null;
 
@@ -443,25 +443,31 @@ const WorkoutSession: React.FC = () => {
     routerPath: typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
     sourceHint,
     lastError: null,
-    // NOTE: keep sample tiny to avoid huge renders
-    sample: Array.isArray(data?.workout?.exercises)
-      ? data.workout.exercises.slice(0, 2).map((x: any) => ({ id: x.id, order_index: x.order_index }))
+    userId: data?.workout?.user_id ?? null,      // NEW
+    programId: data?.workout?.program_id ?? null, // NEW
+    exercisesPreview: Array.isArray(data?.workout?.exercises)
+      ? data.workout.exercises.map((x: any) => ({
+          id: x.id,
+          exercise_id: x.exercise_id,
+          display_name: x.display_name,
+          order_index: x.order_index
+        }))
       : Array.isArray(data?.exercises)
-        ? data.exercises.slice(0, 2).map((x: any) => ({ id: x.id, order_index: x.order_index }))
+        ? data.exercises.map((x: any) => ({
+            id: x.id,
+            exercise_id: x.exercise_id,
+            display_name: x.display_name,
+            order_index: x.order_index
+          }))
         : null,
   };
-  // === /DEBUG STEP 1 ===
+  // === /DEBUG STEP 2 ===
 
   return (
     <>
       <WorkoutDebugBox
+        data={debugData}
         anchor="top"
-        data={{
-          workout: data?.workout ?? null,
-          exercises: data?.workout?.exercises ?? data?.exercises ?? null,
-          title: data?.workout?.title ?? data?.workout?.name ?? null,
-          ...debugData,
-        }}
       />
       <PageNav current="Workout Session" />
       
