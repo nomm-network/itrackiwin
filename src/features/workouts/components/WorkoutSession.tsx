@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useLogSet } from "../hooks";
 import { useState } from "react";
-// import { MobileWorkoutSession } from "@/components/mobile/MobileWorkoutSession"; // disabled
+import { MobileWorkoutSession } from "@/components/mobile/MobileWorkoutSession";
 import { useIsMobile } from "@/hooks/use-mobile";
 
 interface WorkoutSessionProps {
@@ -53,7 +53,20 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
   // Use mobile-first component on mobile devices
   if (isMobile) {
     return (
-      <div>Old WorkoutSession disabled - using WorkoutSession.page.tsx</div>
+      <MobileWorkoutSession
+        exercises={workout.exercises.map((ex: any) => ({
+          id: ex.id,
+          name: ex.exercise_name,
+          order_index: ex.order_index || 0,
+          sets: ex.sets || [],
+          target_sets: ex.target_sets || 3,
+          notes: ex.notes,
+          load_type: ex.load_type,
+          equipment_ref: ex.equipment_ref
+        }))}
+        onSetComplete={handleSetComplete}
+        onWorkoutComplete={handleWorkoutComplete}
+      />
     );
   }
 

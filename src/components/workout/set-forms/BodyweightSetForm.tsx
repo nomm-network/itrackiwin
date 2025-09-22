@@ -1,8 +1,3 @@
-// v108-SOT — DO NOT DUPLICATE
-if (typeof window !== 'undefined') {
-  console.log('[v108] Mounted: BodyweightSetForm');
-}
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
