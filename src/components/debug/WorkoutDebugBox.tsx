@@ -26,6 +26,11 @@ const boxStyle: React.CSSProperties = {
 };
 
 export default function WorkoutDebugBox({ tag = "WorkoutSession.page", data, extra }: Props) {
+  // Add console log to verify this component is mounting
+  React.useEffect(() => {
+    console.log('[v108] Mounted: WorkoutDebugBox');
+  }, []);
+
   const payload = {
     tag,
     hasData: !!data,

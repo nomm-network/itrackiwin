@@ -564,13 +564,13 @@ const WorkoutSession: React.FC = () => {
                           )}
                         </div>
                         
-                         {/* Add Set Form */}
+                         {/* Use SmartSetForm for exercise-specific forms */}
                          <SmartSetForm 
-                          workoutExerciseId={ex.id}
-                          exercise={ex}
-                          setIndex={completedSets.length + 1}
-                          onLogged={() => queryClient.invalidateQueries({ queryKey: ['workout', id] })}
-                        />
+                           workoutExerciseId={ex.id}
+                           exercise={ex}
+                           setIndex={completedSets.length + 1}
+                           onLogged={() => queryClient.invalidateQueries({ queryKey: ['workout', id] })}
+                         />
                         
                       </div>
                     )}
