@@ -6,10 +6,10 @@ import { Badge } from '@/components/ui/badge';
 import { Dumbbell } from 'lucide-react';
 import { 
   BaseSetFormProps, 
-  useBaseFormState,
-  useUnifiedSetLogging
+  useBaseFormState
 } from './BaseSetForm';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -21,13 +21,13 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   onCancel,
   className
 }) => {
-  const { logSet, isLoading } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
   
   // Weight & reps specific fields
   const [reps, setReps] = useState<number | ''>('');
   const [weight, setWeight] = useState<number | ''>('');
+  const [isLoading, setIsLoading] = useState(false);
   
   const { rpe, notes, restSeconds } = baseState;
   const loadMode = exercise.load_mode;
@@ -54,31 +54,42 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
     }
 
     try {
-      const metrics: any = {
-        notes: notes || undefined,
-        rpe: rpe ? Number(rpe) : undefined,
-        effort: 'reps',
-        load_mode: loadMode,
-        reps: Number(reps)
-      };
-
-      // Add weight if specified
-      if (weight !== '') {
-        metrics.weight = Number(weight);
-        metrics.weight_unit = 'kg';
-      }
-
+      setIsLoading(true);
+      
       console.log('🔥 WeightRepsSetForm: Logging set with:', {
         workoutExerciseId,
         setIndex,
-        metrics
+        weight,
+        reps,
+        notes,
+        rpe
       });
       
-      await logSet({
-        workoutExerciseId,
-        setIndex,
-        metrics
-      });
+      // Use simple direct supabase insert instead of complex hooks
+      const { error } = await supabase
+        .from('workout_sets')
+        .insert({
+          workout_exercise_id: workoutExerciseId,
+          set_index: setIndex,
+          weight_kg: weight !== '' ? Number(weight) : null,
+          weight: weight !== '' ? Number(weight) : null,
+          weight_unit: 'kg',
+          reps: Number(reps),
+          rpe: rpe ? Number(rpe) : null,
+          notes: notes || null,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error logging set:', error);
+        toast({
+          title: "Error",
+          description: "Failed to log set. Please try again.",
+          variant: "destructive"
+        });
+        return;
+      }
       
       const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
       toast({
@@ -99,6 +110,8 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         description: "Failed to log set. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setIsLoading(false);
     }
   };
 

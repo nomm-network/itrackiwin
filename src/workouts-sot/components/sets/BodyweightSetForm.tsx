@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { supabase } from '@/integrations/supabase/client';
 
 // ---- Types kept loose to avoid breaking callers ----
 type SubmitPayload = {
@@ -33,6 +34,7 @@ type Props = {
   workoutExerciseId?: string;
   exercise?: any;
   setIndex?: number;
+  currentSetNumber?: number; // Add this for bodyweight sets
   onLogged?: () => void;
 
   // keep these to avoid TS noise if parent passes them
@@ -54,6 +56,8 @@ export default function BodyweightSetForm({
   onSubmit,
   onSetComplete,
   onLogged,
+  workoutExerciseId,
+  currentSetNumber = 1,
   className,
 }: Props) {
   const [mode, setMode] = useState<Mode>("bodyweight");
@@ -89,7 +93,7 @@ export default function BodyweightSetForm({
 
   const disabled = toNumber(reps) <= 0;
 
-  const fireSubmit = () => {
+  const fireSubmit = async () => {
     const payload: SubmitPayload = {
       reps: Math.max(0, Math.floor(toNumber(reps))),
       weight: effectiveWeight,
@@ -99,12 +103,37 @@ export default function BodyweightSetForm({
       pain,
     };
 
-    // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
-    if (onSubmit) onSubmit(payload);
-    else if (onSetComplete) onSetComplete(payload);
-    
-    // Call onLogged callback to notify parent of completion
-    onLogged?.();
+    try {
+      // Use direct Supabase insert like WeightRepsSetForm
+      const { error } = await supabase
+        .from('workout_sets')
+        .insert({
+          workout_exercise_id: workoutExerciseId,
+          set_index: currentSetNumber - 1 || 0, // Convert to 0-based index
+          weight_kg: effectiveWeight,
+          weight: effectiveWeight,
+          weight_unit: 'kg',
+          reps: payload.reps,
+          rpe: payload.rpe || null,
+          notes: payload.notes || null,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('Error logging bodyweight set:', error);
+        return;
+      }
+
+      // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
+      if (onSubmit) onSubmit(payload);
+      else if (onSetComplete) onSetComplete(payload);
+      
+      // Call onLogged callback to notify parent of completion
+      onLogged?.();
+    } catch (error) {
+      console.error('Error in fireSubmit:', error);
+    }
   };
 
   return (

@@ -64,6 +64,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
           workoutExerciseId={workoutExerciseId}
           exercise={exercise as any}
           setIndex={setIndex}
+          currentSetNumber={setIndex + 1}
           onLogged={onLogged}
           className={className}
         />
