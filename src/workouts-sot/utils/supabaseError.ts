@@ -1,4 +1,4 @@
-// v111.7-error-toasts — central error formatter
+// v111.8-error-toasts — central error formatter
 export function buildSupabaseErrorMessage(err: unknown, context?: string): string {
   try {
     // Supabase errors (PostgREST / RPC / Postgres) often come as objects with these fields
@@ -7,7 +7,17 @@ export function buildSupabaseErrorMessage(err: unknown, context?: string): strin
     const parts: string[] = [];
     if (context) parts.push(`[${context}]`);
 
-    if (e?.message) parts.push(e.message);
+    if (e?.message) {
+      let message = e.message;
+      
+      // Special handling for common auth/ownership errors
+      if (message.includes('Unauthorized to modify this workout exercise')) {
+        message = 'WORKOUT NOT FOUND: Either no active workout exists, or this workout doesn\'t belong to you. Please start a new workout first.';
+      }
+      
+      parts.push(message);
+    }
+    
     if (e?.details) parts.push(`details: ${e.details}`);
     if (e?.hint) parts.push(`hint: ${e.hint}`);
     if (e?.code) parts.push(`code: ${e.code}`);

@@ -64,7 +64,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       is_completed: true
     };
 
-    console.log('🔥 WeightRepsSetForm v111.7: DETAILED LOGGING START');
+    console.log('🔥 WeightRepsSetForm v111.8: DETAILED LOGGING START');
     console.log('🔥 Load Mode:', loadMode);
     console.log('🔥 Weight Input:', weight);
     console.log('🔥 Reps Input:', reps);
@@ -90,31 +90,21 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       onLogged?.();
 
     } catch (error) {
-      console.error('❌ WeightRepsSetForm: CRITICAL ERROR in saveSetWithGrips:', error);
+      console.error('❌ WeightRepsSetForm v111.8: CRITICAL ERROR in saveSetWithGrips:', error);
       
-      // Extract all possible error information
-      let errorMessage = 'Unknown error occurred';
-      let errorDetails = '';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        errorDetails = `Stack: ${error.stack || 'No stack trace'}`;
-      } else if (typeof error === 'object' && error !== null) {
-        errorMessage = JSON.stringify(error, null, 2);
-        errorDetails = `Full error object: ${JSON.stringify(error, null, 2)}`;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-        errorDetails = `Error type: string, value: ${error}`;
-      }
-      
-      console.error('❌ FULL ERROR DETAILS:', errorDetails);
-      console.error('❌ setData that caused error:', JSON.stringify(setData, null, 2));
-      
+      // ❌ show the exact DB error
+      const msg = buildSupabaseErrorMessage(error, 'FormSubmit');
       toast({
-        variant: "destructive",
-        title: "Failed to Log Set",
-        description: `ERROR: ${errorMessage}\n\nQuery: ${JSON.stringify(setData, null, 2)}`,
+        title: "SET SAVE FAILED",
+        description: msg,
+        variant: "destructive"
       });
+
+      if ((error as any)?.raw) {
+        // raw PostgREST / SQL object for operators
+        // eslint-disable-next-line no-console
+        console.error('🔴 raw DB error:', (error as any).raw);
+      }
     }
   };
 

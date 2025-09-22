@@ -1,5 +1,5 @@
 // workouts-sot/components/sets/BodyweightSetForm.tsx
-// v111.7 – bodyweight(+added/–assist) switcher; non-breaking; same look & spacing
+// v111.8 – bodyweight(+added/–assist) switcher; non-breaking; same look & spacing
 
 import * as React from "react";
 import { useMemo, useState } from "react";
@@ -119,7 +119,7 @@ export default function BodyweightSetForm({
       setData.weight_unit = 'kg';
     }
 
-    console.log('🔥 BodyweightSetForm: DETAILED LOGGING START');
+    console.log('🔥 BodyweightSetForm v111.8: DETAILED LOGGING START');
     console.log('🔥 Mode:', mode);
     console.log('🔥 Effective Weight:', effectiveWeight);
     console.log('🔥 Final setData payload being sent to saveSetWithGrips:', JSON.stringify(setData, null, 2));

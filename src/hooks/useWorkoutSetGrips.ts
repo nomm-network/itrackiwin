@@ -34,7 +34,7 @@ export const useWorkoutSetGrips = () => {
         // Note: Do NOT send set_index - let the RPC compute it
       };
 
-      console.debug('[set_log v111.7] payload:', payload);
+      console.debug('[set_log v111.8] payload:', payload);
 
       const { data, error: rpcError } = await supabase.rpc('set_log', {
         p_payload: payload
@@ -50,14 +50,15 @@ export const useWorkoutSetGrips = () => {
       }
 
       // Also check DB-returned "error" contract if your RPC returns json
-      if (data && typeof data === 'object' && (data as any).error) {
-        const msg = buildSupabaseErrorMessage((data as any).error, 'set_log(returned)');
+      if (data && typeof data === 'object' && (data as any).success === false) {
+        const errorMessage = (data as any).error || 'Unknown database error';
+        const msg = buildSupabaseErrorMessage({ message: errorMessage }, 'set_log(returned)');
         const errObj = new Error(msg);
-        (errObj as any).raw = (data as any).error;
+        (errObj as any).raw = data;
         throw errObj;
       }
 
-      console.debug('[set_log v111.7] result:', data);
+      console.debug('[set_log v111.8] result:', data);
       
       return data; // success — caller will toast success
     } catch (err) {
