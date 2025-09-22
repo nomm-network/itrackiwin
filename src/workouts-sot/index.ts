@@ -6,6 +6,5 @@ export * from './api';
 export * from './utils';
 export * from './types';
 export * from './components/session';
-export * from './components/desktop';
-export * from './components/mobile';
 export * from './components/sets';
+export * from './warmup';
