@@ -158,8 +158,36 @@ export const usePerformanceInsights = (timeframe: string = "3m") => {
       ];
 
       for (const exercise of mainExercises) {
-        // Stagnation detection removed since fn_detect_stagnation was deleted
-        // Skip stagnation analysis for now
+        try {
+          const { data: exerciseData } = await supabase
+            .from('v_exercises_with_translations')
+            .select('id, translations')
+            .eq('slug', exercise)
+            .single();
+
+          if (exerciseData) {
+            const { data: stagnationData } = await supabase
+              .rpc('fn_detect_stagnation', {
+                p_exercise_id: exerciseData.id,
+                p_lookback_sessions: 5
+              });
+
+            const stagnationResult = stagnationData as any;
+            if (stagnationResult?.stagnation_detected) {
+              const exerciseName = (exerciseData.translations as any)?.en?.name || (exerciseData.translations as any)?.ro?.name || exercise;
+              insights.push({
+                type: "stagnation",
+                severity: "medium",
+                title: `${exerciseName} Progress Plateau`,
+                description: `No progress detected in last ${stagnationResult.sessions_analyzed} sessions`,
+                recommendation: stagnationResult.recommendations?.[0] || "Consider changing your approach",
+                exerciseId: exerciseData.id
+              });
+            }
+          }
+        } catch (error) {
+          console.error(`Error checking stagnation for ${exercise}:`, error);
+        }
       }
 
       // Add some positive insights if no stagnation

@@ -5,14 +5,15 @@ import { resolveConfigureBody } from "./configureResolver";
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { useUserRole } from '@/hooks/useUserRole';
-// Readiness hook removed
+import { useReadinessData } from '@/hooks/useReadinessData';
 
 export default function HubPage() {
   const [sp, setSp] = useSearchParams();
   const nav = useNavigate();
   const { isSuperAdmin } = useUserRole();
   
-  // Readiness data loading removed
+  // Load today's readiness data when component mounts
+  useReadinessData();
 
   const cat = (sp.get("cat") || "health").toLowerCase();
   const sub = (sp.get("sub") || "").toLowerCase();

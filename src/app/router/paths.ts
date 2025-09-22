@@ -3,11 +3,22 @@ export const Paths = {
   auth: '/auth',
   dashboard: '/dashboard',
   health: {
-    // Fitness paths removed
+    fitness: {
+      root: '/fitness',
+      exercises: '/fitness/exercises',
+      exerciseEdit: (id = ':id') => `/fitness/exercises/${id}/edit`,
+      session: (id = ':id') => `/fitness/session/${id}`,
+      templates: '/fitness/templates',
+      templateEdit: (templateId = ':templateId') => `/fitness/templates/${templateId}/edit`,
+      configure: '/dashboard?cat=health&sub=configure',
+      
+      myGym: '/fitness/my-gym',
+      templatesRotation: '/fitness/templates/rotation',
+      history: '/fitness/history',
+      historyDetail: (id = ':id') => `/fitness/history/${id}`,
+    },
   },
   social: '/social',
-  training: '/training',
-  workouts: (id = ':id') => `/workouts/${id}`,
   
   progress: '/progress',
   journal: '/journal',

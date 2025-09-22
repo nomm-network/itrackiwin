@@ -1,0 +1,28 @@
+{
+  "fitness": {
+    "title": "Fitness & Exercise",
+    "exercises": "Exercises",
+    "workouts": "Workouts",
+    "templates": "Templates",
+    "history": "History",
+    "configure": "Configure",
+    "startWorkout": "Start Workout",
+    "completeWorkout": "Complete Workout",
+    "addExercise": "Add Exercise",
+    "addSet": "Add Set",
+    "effort": {
+      "veryEasy": "Very Easy",
+      "easy": "Easy", 
+      "moderate": "Moderate",
+      "hard": "Hard",
+      "veryHard": "Very Hard"
+    },
+    "metrics": {
+      "weight": "Weight",
+      "reps": "Reps",
+      "duration": "Duration",
+      "distance": "Distance",
+      "heartRate": "Heart Rate"
+    }
+  }
+}

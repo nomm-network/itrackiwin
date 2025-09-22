@@ -1,0 +1,2 @@
+schemaname,tablename,policyname,permissive,roles,cmd,qual,with_check
+Note: No RLS policies found for tables exercises, equipment, movements, movement_patterns, body_parts, muscles, muscle_groups, grips, bar_types in public schema.

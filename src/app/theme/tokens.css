@@ -1,6 +1,13 @@
 /* Design Tokens */
 :root {
-  /* Feature Colors - Fitness theme removed */
+  /* Feature Colors */
+  --fitness-primary: hsl(142, 76%, 36%);
+  --fitness-primary-foreground: hsl(355, 100%, 97%);
+  --fitness-secondary: hsl(142, 30%, 12%);
+  --fitness-secondary-foreground: hsl(142, 76%, 36%);
+  --fitness-accent: hsl(142, 69%, 58%);
+  --fitness-accent-foreground: hsl(355, 100%, 97%);
+
   --nutrition-primary: hsl(39, 100%, 57%);
   --nutrition-primary-foreground: hsl(26, 83%, 14%);
   --nutrition-secondary: hsl(39, 30%, 12%);
@@ -11,11 +18,13 @@
   --admin-secondary: hsl(262, 30%, 12%);
   --admin-secondary-foreground: hsl(262, 83%, 58%);
 
-  /* Gradients - Fitness gradient removed */
+  /* Gradients */
+  --gradient-fitness: linear-gradient(135deg, hsl(142, 76%, 36%), hsl(142, 69%, 58%));
   --gradient-nutrition: linear-gradient(135deg, hsl(39, 100%, 57%), hsl(39, 84%, 67%));
   --gradient-admin: linear-gradient(135deg, hsl(262, 83%, 58%), hsl(262, 69%, 68%));
 
-  /* Shadows - Fitness shadow removed */
+  /* Shadows */
+  --shadow-fitness: 0 10px 30px -10px hsl(142, 76%, 36% / 0.3);
   --shadow-nutrition: 0 10px 30px -10px hsl(39, 100%, 57% / 0.3);
   --shadow-admin: 0 10px 30px -10px hsl(262, 83%, 58% / 0.3);
 
@@ -24,7 +33,15 @@
   --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 }
 
-/* Feature-specific classes - Fitness theme removed */
+/* Feature-specific classes */
+.fitness-theme {
+  --primary: var(--fitness-primary);
+  --primary-foreground: var(--fitness-primary-foreground);
+  --secondary: var(--fitness-secondary);
+  --secondary-foreground: var(--fitness-secondary-foreground);
+  --accent: var(--fitness-accent);
+  --accent-foreground: var(--fitness-accent-foreground);
+}
 
 .nutrition-theme {
   --primary: var(--nutrition-primary);

@@ -22,4 +22,20 @@ export const sharedQueryKeys = {
   xp: (userId: string) => ['xp', userId] as const,
 } as const;
 
-// Fitness query keys removed
+// Fitness query keys
+export const fitnessKeys = {
+  all: ['fitness'] as const,
+  workouts: () => [...fitnessKeys.all, 'workouts'] as const,
+  workout: (id: string) => [...fitnessKeys.workouts(), id] as const,
+  exercises: () => [...fitnessKeys.all, 'exercises'] as const,
+  exercise: (id: string) => [...fitnessKeys.exercises(), id] as const,
+  metrics: () => [...fitnessKeys.all, 'metrics'] as const,
+  metric: (id: string) => [...fitnessKeys.metrics(), id] as const,
+  templates: () => [...fitnessKeys.all, 'templates'] as const,
+  template: (id: string) => [...fitnessKeys.templates(), id] as const,
+  gym: {
+    default: () => [...fitnessKeys.all, 'gym', 'default'] as const,
+    inventory: (gymId?: string) => [...fitnessKeys.all, 'gym', 'inventory', gymId] as const,
+    rotation: () => [...fitnessKeys.templates(), 'rotation'] as const,
+  },
+} as const;

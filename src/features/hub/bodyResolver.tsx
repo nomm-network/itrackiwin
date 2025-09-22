@@ -1,5 +1,10 @@
 import React from "react";
 import type { FC } from "react";
+import FitnessBody from "@/features/hub/bodies/health/FitnessBody";
+import NutritionBody from "@/features/hub/bodies/health/NutritionBody";
+import SleepBody from "@/features/hub/bodies/health/SleepBody";
+import MedicalBody from "@/features/hub/bodies/health/MedicalBody";
+import EnergyBody from "@/features/hub/bodies/health/EnergyBody";
 
 // Generic "under construction" body (used by non-Health subs until you replace)
 const TipsBody = React.lazy(() => import("@/features/hub/bodies/common/TipsBody"));
@@ -7,7 +12,12 @@ const TipsBody = React.lazy(() => import("@/features/hub/bodies/common/TipsBody"
 export type BodyComp = FC<{ category: string; subSlug: string }>;
 
 const HEALTH: Record<string, BodyComp> = {
-  // Health components removed - using fallback
+  "fitness-exercise": FitnessBody,
+  "nutrition-hydration": NutritionBody,
+  "sleep-quality": SleepBody,
+  "medical-checkups": MedicalBody,
+  "energy-levels": EnergyBody,
+  // configure is now handled by configureResolver
 };
 
 export function resolveBodyByCategory(
@@ -17,10 +27,9 @@ export function resolveBodyByCategory(
   const cat = (categorySlug || "health").toLowerCase();
   const sub = (subSlug || "").toLowerCase();
 
-  // Health category uses TipsBody fallback
+  // Health category has specific bodies
   if (cat === "health") {
-    const title = `Health · ${sub}`;
-    return (props: any) => <TipsBody category={title} subSlug={sub} {...props} />;
+    return HEALTH[sub] ?? FitnessBody;
   }
 
   // All other categories use TipsBody with category-specific titles

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
+import FitnessFirstLanding from "@/components/FitnessFirstLanding";
 
 const Index: React.FC = () => {
   const [checked, setChecked] = useState(false);
@@ -49,16 +50,9 @@ const Index: React.FC = () => {
     );
   }
 
-  // Not authenticated - show simple landing
+  // Not authenticated - show fitness-first landing
   if (!session?.user) {
-    return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <h1 className="text-4xl font-bold mb-4">Welcome</h1>
-          <p className="text-muted-foreground">Please sign in to continue</p>
-        </div>
-      </div>
-    );
+    return <FitnessFirstLanding />;
   }
 
   // Show loading while redirecting authenticated users

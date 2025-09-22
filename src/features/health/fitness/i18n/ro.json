@@ -1,0 +1,28 @@
+{
+  "fitness": {
+    "title": "Fitness și Exerciții",
+    "exercises": "Exerciții",
+    "workouts": "Antrenamente",
+    "templates": "Șabloane",
+    "history": "Istoric",
+    "configure": "Configurează",
+    "startWorkout": "Începe Antrenamentul",
+    "completeWorkout": "Finalizează Antrenamentul",
+    "addExercise": "Adaugă Exercițiu",
+    "addSet": "Adaugă Serie",
+    "effort": {
+      "veryEasy": "Foarte Ușor",
+      "easy": "Ușor",
+      "moderate": "Moderat", 
+      "hard": "Greu",
+      "veryHard": "Foarte Greu"
+    },
+    "metrics": {
+      "weight": "Greutate",
+      "reps": "Repetări",
+      "duration": "Durată",
+      "distance": "Distanță",
+      "heartRate": "Puls"
+    }
+  }
+}

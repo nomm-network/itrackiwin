@@ -127,7 +127,7 @@ const TranslatedProfilePage: React.FC = () => {
       // Load fitness profile
       const { data: fitnessData } = await supabase
         .from('user_profile_fitness')
-        .select('sex, experience_level, goal, training_goal, days_per_week, injuries')
+        .select('sex, bodyweight, height, height_cm, experience_level, goal, training_goal, days_per_week, injuries')
         .eq('user_id', user.id)
         .maybeSingle();
 
@@ -174,48 +174,22 @@ const TranslatedProfilePage: React.FC = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // Extract bodyweight and height_cm for separate handling
-      const { bodyweight, height_cm, height, ...profileData } = fitnessProfile;
-
-      // Save fitness profile (without body metrics)
       const { error } = await supabase
         .from('user_profile_fitness')
         .upsert({
           user_id: user.id,
-          sex: profileData.sex,
-          experience_level: profileData.experience_level || 'new',
-          goal: profileData.goal || 'general_fitness',
-          training_goal: profileData.training_goal || 'general_fitness',
-          days_per_week: profileData.days_per_week,
-          injuries: profileData.injuries
+          sex: fitnessProfile.sex,
+          bodyweight: fitnessProfile.bodyweight,
+          height: fitnessProfile.height,
+          height_cm: fitnessProfile.height_cm,
+          experience_level: fitnessProfile.experience_level || 'new',
+          goal: fitnessProfile.goal || 'general_fitness',
+          training_goal: fitnessProfile.training_goal || 'general_fitness',
+          days_per_week: fitnessProfile.days_per_week,
+          injuries: fitnessProfile.injuries
         });
 
       if (error) throw error;
-
-      // Save body metrics to separate table if provided
-      if (bodyweight || height_cm || height) {
-        const bodyMetricsData: any = {
-          user_id: user.id,
-        };
-
-        if (bodyweight) {
-          bodyMetricsData.weight_kg = bodyweight;
-        }
-        if (height_cm) {
-          bodyMetricsData.height_cm = height_cm;
-        } else if (height) {
-          bodyMetricsData.height_cm = height; // Convert height to height_cm
-        }
-
-        const { error: bodyMetricsError } = await supabase
-          .from('user_body_metrics')
-          .insert(bodyMetricsData);
-
-        if (bodyMetricsError) {
-          console.error('Error saving body metrics:', bodyMetricsError);
-          // Don't throw here to avoid blocking the main profile save
-        }
-      }
 
       toast.success(translations['messages.fitness_profile_updated'] || 'Fitness profile updated successfully');
     } catch (error) {
