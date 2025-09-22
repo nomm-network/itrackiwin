@@ -426,18 +426,15 @@ const WorkoutSession: React.FC = () => {
 
   const exerciseCount =
     Array.isArray(data?.workout?.exercises) ? data.workout.exercises.length :
-    Array.isArray(data?.exercises) ? data.exercises.length :
     null;
 
   const sourceHint: "rpc" | "rest" | "unknown" =
-    Array.isArray(data?.workout?.exercises) ? "rpc" :
-    Array.isArray(data?.exercises) ? "rest" :
-    "unknown";
+    Array.isArray(data?.workout?.exercises) ? "rpc" : "unknown";
 
   const debugData = {
     workoutId: data?.workout?.id ?? workoutIdFromUrl,
     templateId: data?.workout?.template_id ?? null,
-    title: workoutTitle,
+    title: data?.workout?.title ?? data?.workout?.name ?? null,
     readiness: data?.workout?.readiness_score ?? null,
     exerciseCount,
     routerPath: typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
@@ -452,14 +449,7 @@ const WorkoutSession: React.FC = () => {
           display_name: x.display_name,
           order_index: x.order_index
         }))
-      : Array.isArray(data?.exercises)
-        ? data.exercises.map((x: any) => ({
-            id: x.id,
-            exercise_id: x.exercise_id,
-            display_name: x.display_name,
-            order_index: x.order_index
-          }))
-        : null,
+      : null,
   };
   // === /DEBUG STEP 2 ===
 

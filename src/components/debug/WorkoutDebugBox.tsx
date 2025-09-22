@@ -9,10 +9,7 @@ type Props = {
 };
 
 const baseBox: React.CSSProperties = {
-  position: 'fixed',
-  left: 12,
-  right: 12,
-  zIndex: 999999, // above everything
+  width: '100%',
   background: 'rgba(220, 38, 38, 0.95)', // red
   color: '#fff',
   borderRadius: 10,
@@ -21,6 +18,7 @@ const baseBox: React.CSSProperties = {
   fontSize: 12,
   boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
   border: '1px solid rgba(255,255,255,0.15)',
+  marginBottom: 16,
 };
 
 const headerRow: React.CSSProperties = {
@@ -82,7 +80,6 @@ export default function WorkoutDebugBox({ anchor = 'top', data }: Props) {
 
   const style: React.CSSProperties = {
     ...baseBox,
-    ...(anchor === 'top' ? { top: 66 } : { bottom: 66 }),
   };
 
   return (
