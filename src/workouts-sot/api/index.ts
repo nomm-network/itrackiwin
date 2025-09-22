@@ -1,0 +1,1 @@
+export * from '@/features/workouts/api/workouts.api';
