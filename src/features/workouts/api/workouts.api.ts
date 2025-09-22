@@ -83,7 +83,9 @@ export const useGetWorkout = (workoutId?: string) => {
               primary_muscle_id,
               body_part_id,
               load_type,
-              equipment_ref_id
+              equipment_ref_id,
+              effort_mode,
+              load_mode
             ),
             sets:workout_sets(
               id,
