@@ -453,9 +453,16 @@ const WorkoutSession: React.FC = () => {
   };
   // === /DEBUG STEP 2 ===
 
+
   return (
     <>
       <PageNav current="Workout Session" />
+      
+      {/* DEBUG first, static block */}
+      <WorkoutDebugBox
+        version="v109.3-debug-static-top"
+        data={debugData}
+      />
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
         {/* Header with workout clock */}

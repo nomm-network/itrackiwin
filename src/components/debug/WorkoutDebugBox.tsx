@@ -1,113 +1,73 @@
-// WorkoutDebugBox.tsx
-import React, {useMemo, useState} from 'react';
-import { WORKOUT_FLOW_VERSION } from '@/constants/workoutFlow';
+// workout-flow v109.3 — DEBUG (static, non-floating)
+import React, { useMemo } from "react";
 
-type Props = {
-  anchor?: 'top' | 'bottom';
-  // Anything you want to show; we'll also auto-detect workout id from URL
-  data?: Record<string, any> | null;
-};
+type DebugData = Record<string, any>;
 
-const baseBox: React.CSSProperties = {
-  position: 'fixed',
-  left: 12,
-  right: 12,
-  zIndex: 999999, // above everything
-  background: 'rgba(220, 38, 38, 0.95)', // red
-  color: '#fff',
-  borderRadius: 10,
-  padding: 10,
-  fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace',
-  fontSize: 12,
-  boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
-  border: '1px solid rgba(255,255,255,0.15)',
-};
-
-const headerRow: React.CSSProperties = {
-  display: 'flex',
-  alignItems: 'center',
-  gap: 8,
-  flexWrap: 'wrap',
-  marginBottom: 6,
-};
-
-const pill: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.15)',
-  borderRadius: 6,
-  padding: '2px 8px',
-  display: 'inline-flex',
-  alignItems: 'center',
-  gap: 6,
-  border: 'none',
-  color: '#fff',
-  cursor: 'pointer'
-};
-
-export default function WorkoutDebugBox({ anchor = 'top', data }: Props) {
-  const [collapsed, setCollapsed] = useState(false);
-
-  const urlPath = typeof window !== 'undefined' ? window.location.pathname + window.location.search : '';
-  const urlId = useMemo(() => {
-    try {
-      const parts = (typeof window !== 'undefined' ? window.location.pathname : '').split('/');
-      return parts[parts.length - 1] || null;
-    } catch {
-      return null;
-    }
-  }, []);
-
-  const safeData = useMemo(() => {
-    const base = {
-      version: WORKOUT_FLOW_VERSION,
-      routerPath: urlPath,
-      workoutId: data?.workoutId ?? data?.workout?.id ?? urlId ?? null,
-      templateId: data?.templateId ?? data?.workout?.template_id ?? null,
-      title: data?.title ?? data?.workout?.title ?? data?.workout?.name ?? null,
-      readiness: data?.readiness ?? data?.workout?.readiness_score ?? null,
-      exerciseCount:
-        Array.isArray(data?.workout?.exercises) ? data!.workout!.exercises.length :
-        Array.isArray((data as any)?.exercises) ? (data as any).exercises.length :
-        null,
-      sourceHint:
-        Array.isArray(data?.workout?.exercises) ? 'rpc' :
-        Array.isArray((data as any)?.exercises) ? 'rest' : 'unknown',
-    };
-    return base;
-  }, [data, urlPath, urlId]);
-
+export default function WorkoutDebugBox({
+  version,
+  data,
+}: {
+  version: string;
+  data: DebugData;
+}) {
   const json = useMemo(() => {
-    try { return JSON.stringify(safeData, null, 2); }
-    catch { return '{}'; }
-  }, [safeData]);
-
-  const style: React.CSSProperties = {
-    ...baseBox,
-    ...(anchor === 'top' ? { top: 66 } : { bottom: 66 }),
-  };
+    try {
+      return JSON.stringify({ version, ...data }, null, 2);
+    } catch {
+      return "{}";
+    }
+  }, [data, version]);
 
   return (
-    <div style={style}>
-      <div style={headerRow}>
-        <strong>DEBUG • {WORKOUT_FLOW_VERSION}</strong>
-        <span>• workoutId:</span>
-        <span style={{fontWeight: 700}}>{safeData.workoutId ?? '—'}</span>
-        <button style={pill} onClick={() => setCollapsed(v => !v)}>
-          {collapsed ? 'Expand' : 'Collapse'}
-        </button>
-        <button style={pill} onClick={() => window.location.reload()}>Refresh</button>
+    <div
+      style={{
+        margin: "12px 0 16px 0",
+        borderRadius: 10,
+        padding: 12,
+        background: "rgba(255,0,0,0.18)",
+        border: "1px solid rgba(255,0,0,0.35)",
+        color: "white",
+        fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+        fontSize: 12,
+        whiteSpace: "pre-wrap",
+        wordBreak: "break-word",
+      }}
+    >
+      <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 8 }}>
+        <strong>DEBUG • {version}</strong>
         <button
-          style={pill}
+          onClick={() => window.location.reload()}
+          style={{
+            background: "rgba(255,255,255,0.15)",
+            border: "none",
+            color: "white",
+            padding: "4px 8px",
+            borderRadius: 6,
+            cursor: "pointer",
+          }}
+        >
+          Refresh
+        </button>
+        <button
           onClick={async () => {
-            try { await navigator.clipboard.writeText(json); alert('Debug copied'); }
-            catch (e) { console.error(e); }
+            try {
+              await navigator.clipboard.writeText(json);
+              alert("Debug copied.");
+            } catch {}
+          }}
+          style={{
+            background: "rgba(255,255,255,0.15)",
+            border: "none",
+            color: "white",
+            padding: "4px 8px",
+            borderRadius: 6,
+            cursor: "pointer",
           }}
         >
           Copy
         </button>
       </div>
-      {!collapsed && (
-        <pre style={{margin: 0, whiteSpace: 'pre-wrap'}}>{json}</pre>
-      )}
+      <pre style={{ margin: 0, overflowX: "auto" }}>{json}</pre>
     </div>
   );
 }
