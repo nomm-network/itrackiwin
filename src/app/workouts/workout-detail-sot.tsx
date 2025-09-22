@@ -3,13 +3,13 @@ import { useGetWorkout } from '@/workouts-sot/hooks';
 import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
 
 // Log component mount for verification
-console.log('WorkoutPage mounted • v111.6 (CLEAN-SOT-PATHS)');
+console.log('WorkoutPage mounted • v111.7 (CACHE-BREAK-FORCE-RELOAD)');
 console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-sot.tsx');
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession (SOT-ONLY)');
 
 // ——— DEBUG v111.4: inline, static, non-floating ———
-const __DEBUG_VERSION = 'v111.6-CLEAN-SOT-PATHS';
+const __DEBUG_VERSION = 'v111.7-CACHE-BREAK-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
