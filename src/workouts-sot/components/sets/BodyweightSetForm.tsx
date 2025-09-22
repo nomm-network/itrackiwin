@@ -53,6 +53,7 @@ export default function BodyweightSetForm({
   templateTargetReps,
   onSubmit,
   onSetComplete,
+  onLogged,
   className,
 }: Props) {
   const [mode, setMode] = useState<Mode>("bodyweight");
@@ -101,6 +102,9 @@ export default function BodyweightSetForm({
     // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
     if (onSubmit) onSubmit(payload);
     else if (onSetComplete) onSetComplete(payload);
+    
+    // Call onLogged callback to notify parent of completion
+    onLogged?.();
   };
 
   return (

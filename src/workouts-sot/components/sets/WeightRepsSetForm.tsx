@@ -91,7 +91,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       setWeight('');
       setBaseState(prev => ({ ...prev, rpe: '', notes: '' }));
       
-      onLogged();
+      onLogged?.();
     } catch (error) {
       console.error('Error logging set:', error);
       toast({

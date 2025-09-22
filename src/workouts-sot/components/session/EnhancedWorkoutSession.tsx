@@ -882,6 +882,16 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         console.log('✅ Set logged successfully via SOT SmartSetForm');
                         // Trigger workout refetch
                         queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                        
+                        // Call the main set completion handler
+                        handleSetComplete(resolveWorkoutExerciseId(currentExercise), {
+                          weight: 0,
+                          reps: 0,
+                          feel: currentSetFeel,
+                          pain: currentSetPain,
+                          notes: '',
+                          is_completed: true
+                        });
                       }}
                       className="space-y-4"
                     />
