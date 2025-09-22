@@ -21,7 +21,7 @@ const TrainingDashboard: React.FC = () => {
     console.log('📁 [TrainingDashboard] Using SOT file: @/workouts-sot/hooks/useActiveWorkout');
     if (activeWorkout?.id) {
       navigate(`/app/workouts/${activeWorkout.id}`);
-      console.log('🚀 [TrainingDashboard] Navigating to SOT route via /app/workouts/ → old-workout-detail → WorkoutRoute → SOT EnhancedWorkoutSession');
+      console.log('🚀 [TrainingDashboard] Navigating to SOT route via /app/workouts/ → workout-detail-sot → SOT EnhancedWorkoutSession');
     }
   };
 
