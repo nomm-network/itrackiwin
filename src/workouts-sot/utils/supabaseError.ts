@@ -1,4 +1,4 @@
-// v111.6-error-toasts — central error formatter
+// v111.7-error-toasts — central error formatter
 export function buildSupabaseErrorMessage(err: unknown, context?: string): string {
   try {
     // Supabase errors (PostgREST / RPC / Postgres) often come as objects with these fields

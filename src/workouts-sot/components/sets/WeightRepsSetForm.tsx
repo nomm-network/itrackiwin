@@ -64,7 +64,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       is_completed: true
     };
 
-    console.log('🔥 WeightRepsSetForm: DETAILED LOGGING START');
+    console.log('🔥 WeightRepsSetForm v111.7: DETAILED LOGGING START');
     console.log('🔥 Load Mode:', loadMode);
     console.log('🔥 Weight Input:', weight);
     console.log('🔥 Reps Input:', reps);
