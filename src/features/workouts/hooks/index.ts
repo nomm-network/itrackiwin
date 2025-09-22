@@ -10,14 +10,11 @@ export { useLastSetForExercise, usePersonalRecord } from '../api/workouts.api';
 // Exercise estimates
 export { useExerciseEstimate } from './useExerciseEstimate';
 
-
 // Smart workout features
 export { useSmartWarmup } from './useSmartWarmup';
 export { useReadinessTargets } from './useReadinessTargets';
 
 // Legacy hooks (maintained for backward compatibility)
 export { useWorkoutOpen } from '../../../hooks/useOptimizedWorkout';
-// export { useSetLog } from '../../../hooks/useOptimizedWorkout';  // Not available
-// export { useExerciseSearch as useSearchExercises } from '../../../hooks/useOptimizedWorkout';  // Not available
 export { useUserLastSet } from '../../../hooks/useOptimizedWorkout';
 export { useUserPR } from '../../../hooks/useOptimizedWorkout';
