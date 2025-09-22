@@ -48,7 +48,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
-// import { useExerciseEstimate } from '../hooks/useExerciseEstimate';
+
+// Import missing SOT hooks and components
+import { useAdvancedSetLogging, useExerciseEstimate, useWarmupSessionState, useWarmupManager } from '../../hooks';
+import { submitWarmupFeedback } from '../../warmup';
+import { SessionHeaderMeta } from './';
 
 // Import readiness scoring utilities
 import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
