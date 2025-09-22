@@ -5,7 +5,7 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useUnifiedSetLogging } from '@/hooks/useUnifiedSetLogging';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export interface Exercise {
   id: string;
@@ -144,4 +144,10 @@ const getRpeDescription = (rpe: number): string => {
   return descriptions[rpe] || '';
 };
 
-export { useUnifiedSetLogging, toast };
+export { useUnifiedSetLogging };
+
+// Export a toast helper that uses the hook correctly
+export const createToast = () => {
+  const { toast } = useToast();
+  return toast;
+};

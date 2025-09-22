@@ -8,9 +8,9 @@ import {
   BaseSetFormProps, 
   AssistanceSelector,
   useBaseFormState,
-  useUnifiedSetLogging,
-  toast 
+  useUnifiedSetLogging
 } from './BaseSetForm';
+import { useToast } from '@/hooks/use-toast';
 
 interface BodyweightSetFormProps extends BaseSetFormProps {}
 
@@ -24,6 +24,7 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
 }) => {
   const { logSet, isLoading } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
+  const { toast } = useToast();
   
   // Bodyweight-specific fields
   const [reps, setReps] = useState<number | ''>('');
@@ -91,6 +92,12 @@ const BodyweightSetForm: React.FC<BodyweightSetFormProps> = ({
       if (Object.keys(loadMeta).length > 0) {
         metrics.load_meta = loadMeta;
       }
+
+      console.log('🔥 BodyweightSetForm: Logging set with:', {
+        workoutExerciseId,
+        setIndex,
+        metrics
+      });
 
       await logSet({
         workoutExerciseId,

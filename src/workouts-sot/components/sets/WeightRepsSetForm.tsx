@@ -7,9 +7,9 @@ import { Dumbbell } from 'lucide-react';
 import { 
   BaseSetFormProps, 
   useBaseFormState,
-  useUnifiedSetLogging,
-  toast 
+  useUnifiedSetLogging
 } from './BaseSetForm';
+import { useToast } from '@/hooks/use-toast';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 
@@ -23,6 +23,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
 }) => {
   const { logSet, isLoading } = useUnifiedSetLogging();
   const [baseState, setBaseState] = useBaseFormState();
+  const { toast } = useToast();
   
   // Weight & reps specific fields
   const [reps, setReps] = useState<number | ''>('');
@@ -67,6 +68,12 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         metrics.weight_unit = 'kg';
       }
 
+      console.log('🔥 WeightRepsSetForm: Logging set with:', {
+        workoutExerciseId,
+        setIndex,
+        metrics
+      });
+      
       await logSet({
         workoutExerciseId,
         setIndex,
