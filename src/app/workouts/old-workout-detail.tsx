@@ -1,6 +1,6 @@
 import { useParams } from 'react-router-dom';
-import { useGetWorkout } from '@/features/workouts/hooks';
-import { EnhancedWorkoutSession } from '@/features/workouts/components';
+import { useGetWorkout } from '@/workouts-sot/hooks';
+import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
 
 // Log component mount for verification
 console.log('WorkoutPage mounted • v111.4 (CORRECT FILE)');

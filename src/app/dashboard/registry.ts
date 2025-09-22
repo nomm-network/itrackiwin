@@ -1,7 +1,7 @@
 import React from 'react';
 import type { DashboardWidget, QuickAction } from './types';
 import { Play, Target, Calendar, Settings, Repeat, Users, Dumbbell } from 'lucide-react';
-import { useActiveWorkout } from '@/features/workouts/hooks';
+import { useActiveWorkout } from '@/workouts-sot/hooks';
 
 // Fitness widgets - lazy loaded for performance
 const TrainingDashboard = React.lazy(() => import('@/features/health/fitness/ui/widgets/TrainingDashboard'));

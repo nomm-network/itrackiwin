@@ -14,7 +14,7 @@ import {
   Target
 } from 'lucide-react';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
-import { EnhancedSetEditor } from '@/components/workout/EnhancedSetEditor';
+import { EnhancedSetEditor } from '@/workouts-sot/components/sets';
 import { PersistentRestTimer } from './PersistentRestTimer';
 
 interface SetData {

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout } from '@/workouts-sot/hooks';
 import { useRecalibration } from '@/features/health/fitness/hooks/useRecalibration.hook';
 import { supabase } from '@/integrations/supabase/client';
 

@@ -1,1 +1,2 @@
-export * from '@/features/workouts/types';
+// Workouts Types - SOT
+export * from './workouts-types';

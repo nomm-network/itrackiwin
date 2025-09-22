@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { useStartWorkout } from "@/features/workouts/hooks";
+import { useStartWorkout } from "@/workouts-sot/hooks";
 import type { EnhancedReadinessData } from "@/components/fitness/EnhancedReadinessCheckIn";
 import type { EffortLevel } from "@/components/fitness/EffortSelector";
 

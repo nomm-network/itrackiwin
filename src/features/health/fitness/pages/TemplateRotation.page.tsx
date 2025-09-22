@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
 import { useTemplateRotation } from '../hooks/useTemplateRotation.hook';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout } from '@/workouts-sot/hooks';
 import { useNavigate } from 'react-router-dom';
 import { Paths } from '@/app/router/paths';
 

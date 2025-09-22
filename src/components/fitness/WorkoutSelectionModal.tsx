@@ -8,7 +8,7 @@ import { Search, Dumbbell, Target, Clock, Settings } from 'lucide-react';
 import { useTemplates } from '@/features/health/fitness/services/fitness.api';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
-import { useStartWorkout } from '@/features/workouts';
+import { useStartWorkout } from '@/workouts-sot/hooks';
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
 
 interface WorkoutSelectionModalProps {

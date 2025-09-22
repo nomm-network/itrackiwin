@@ -1,5 +1,5 @@
-import { useStartWorkout } from '@/features/workouts';
-import TrainingLauncher from '@/features/workouts/components/TrainingLauncher';
+import { useStartWorkout } from '@/workouts-sot/hooks';
+import { TrainingLauncher } from '@/workouts-sot/components/session';
 
 export default function StartQuickWorkoutPage() {
   return <TrainingLauncher />;

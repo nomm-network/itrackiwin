@@ -1,12 +1,6 @@
-export { default as EnhancedWorkoutSession } 
-  from '@/features/workouts/components/EnhancedWorkoutSession';
-export { default as WorkoutSession } 
-  from '@/features/workouts/components/WorkoutSession';
-export { default as TrainingLauncher } 
-  from '@/features/workouts/components/TrainingLauncher';
-export { default as StartOrContinue } 
-  from '@/features/workouts/components/StartOrContinue';
+// Session Components - SOT
+export { default as EnhancedWorkoutSession } from './EnhancedWorkoutSession';
+export { default as TrainingLauncher } from './TrainingLauncher';
 
-// Shim for the broken import some files use:
-export { default as ExerciseCard } 
-  from './shim-ExerciseCard';
+// Shim for broken imports
+export { default as ExerciseCard } from './shim-ExerciseCard';

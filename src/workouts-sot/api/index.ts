@@ -1,1 +1,2 @@
-export * from '@/features/workouts/api/workouts.api';
+// Workouts API - SOT  
+export * from './workouts-api';

@@ -1,5 +1,5 @@
 import React from 'react';
-import SmartSetForm from './set-forms/SmartSetForm';
+import { SmartSetForm } from '@/workouts-sot/components/sets';
 import { Exercise } from './set-forms/BaseSetForm';
 
 // Re-export the Exercise interface for backward compatibility
