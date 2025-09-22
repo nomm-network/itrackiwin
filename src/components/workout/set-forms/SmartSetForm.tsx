@@ -52,22 +52,24 @@ function resolveForm(
 const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
   const { exercise, workoutExerciseId, setIndex, onLogged, onCancel, className } = props;
   
+  // v108 — CONSOLE LOG TO DEBUG RECEIVED DATA
+  if (typeof window !== 'undefined') {
+    console.log('🎯 SmartSetForm v108 RECEIVED DATA:', {
+      exerciseId: exercise?.exercise_id || exercise?.id,
+      exerciseName: exercise?.exercise_name || exercise?.display_name || exercise?.exercise?.display_name || 'unknown',
+      effort_mode_direct: exercise?.effort_mode,
+      load_mode_direct: exercise?.load_mode,
+      effort_mode_nested: exercise?.exercise?.effort_mode,
+      load_mode_nested: exercise?.exercise?.load_mode,
+      fullExerciseData: exercise,
+    });
+  }
+  
   // Try multiple paths to find effort_mode and load_mode
   const effort: EffortMode = exercise?.exercise?.effort_mode ?? exercise?.effort_mode ?? 'reps';
   const load: LoadMode = exercise?.exercise?.load_mode ?? exercise?.load_mode ?? 'none';
 
   const kind = resolveForm(effort, load);
-
-  // Debug logging to see what data we're getting
-  console.log('🔍 SmartSetForm Debug:', {
-    exerciseId: exercise?.exercise_id || exercise?.id,
-    exerciseName: exercise?.exercise?.display_name || exercise?.display_name || 'unknown',
-    effort_mode: effort,
-    load_mode: load,
-    resolvedKind: kind,
-    exercise_object: exercise?.exercise,
-    raw_exercise: exercise
-  });
 
   // Set debug flag
   React.useEffect(() => {
