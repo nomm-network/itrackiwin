@@ -1,5 +1,6 @@
 import { useState, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 
 export const useWorkoutSetGrips = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -39,11 +40,26 @@ export const useWorkoutSetGrips = () => {
         p_payload: payload
       });
 
-      if (rpcError) throw rpcError;
+      if (rpcError) {
+        // throw a *rich* error so the UI can show the full message
+        const msg = buildSupabaseErrorMessage(rpcError, 'set_log');
+        const errObj = new Error(msg);
+        // attach raw error in case the UI wants to inspect
+        (errObj as any).raw = rpcError;
+        throw errObj;
+      }
+
+      // Also check DB-returned "error" contract if your RPC returns json
+      if (data && typeof data === 'object' && (data as any).error) {
+        const msg = buildSupabaseErrorMessage((data as any).error, 'set_log(returned)');
+        const errObj = new Error(msg);
+        (errObj as any).raw = (data as any).error;
+        throw errObj;
+      }
 
       console.debug('[set_log] result:', data);
       
-      return data;
+      return data; // success — caller will toast success
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save set with grips';
       setError(errorMessage);

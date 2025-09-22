@@ -10,6 +10,7 @@ import {
 } from './BaseSetForm';
 import { useToast } from '@/hooks/use-toast';
 import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
+import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {}
 

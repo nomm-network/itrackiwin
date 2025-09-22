@@ -11,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 import { useToast } from '@/hooks/use-toast';
+import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 
 // ---- Types kept loose to avoid breaking callers ----
 type SubmitPayload = {
@@ -128,6 +129,7 @@ export default function BodyweightSetForm({
       const result = await saveSetWithGrips(setData);
       console.log('🔥 saveSetWithGrips SUCCESS result:', result);
 
+      // ✅ success toast only after await resolves
       toast({
         title: "Set Logged Successfully",
         description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
@@ -151,29 +153,19 @@ export default function BodyweightSetForm({
     } catch (error) {
       console.error('❌ BodyweightSetForm: CRITICAL ERROR in saveSetWithGrips:', error);
       
-      // Extract all possible error information
-      let errorMessage = 'Unknown error occurred';
-      let errorDetails = '';
-      
-      if (error instanceof Error) {
-        errorMessage = error.message;
-        errorDetails = `Stack: ${error.stack || 'No stack trace'}`;
-      } else if (typeof error === 'object' && error !== null) {
-        errorMessage = JSON.stringify(error, null, 2);
-        errorDetails = `Full error object: ${JSON.stringify(error, null, 2)}`;
-      } else if (typeof error === 'string') {
-        errorMessage = error;
-        errorDetails = `Error type: string, value: ${error}`;
-      }
-      
-      console.error('❌ FULL ERROR DETAILS:', errorDetails);
-      console.error('❌ setData that caused error:', JSON.stringify(setData, null, 2));
-      
+      // ❌ show the exact DB error
+      const msg = buildSupabaseErrorMessage(error, 'FormSubmit');
       toast({
         variant: "destructive",
-        title: "Failed to Log Set",
-        description: `ERROR: ${errorMessage}\n\nQuery: ${JSON.stringify(setData, null, 2)}`,
+        title: "SET SAVE FAILED",
+        description: msg,
       });
+
+      if ((error as any)?.raw) {
+        // raw PostgREST / SQL object for operators
+        // eslint-disable-next-line no-console
+        console.error('🔴 raw DB error:', (error as any).raw);
+      }
     }
   };
 
