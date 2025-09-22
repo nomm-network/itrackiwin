@@ -2,10 +2,7 @@
 import React from 'react';
 import BodyweightSetForm from './bodyweight/BodyweightSetForm';
 import CardioSetForm from './cardio/CardioSetForm';
-
-// 👉 IMPORTANT: keep using YOUR existing weight form (don't change its UI).
-// Update this import to point at your current "Weight x Reps" set form:
-import WeightRepsSetForm from './WeightRepsSetForm'; // adjust path if needed
+import WeightRepsSetForm from './WeightRepsSetForm';
 
 /**
  * Minimal types we read from your workout query.
@@ -22,13 +19,12 @@ export type LoadMode =
   | undefined;
 
 export interface SmartSetFormProps {
-  workoutExerciseId: string;  // Required by existing forms
+  workoutExerciseId: string;
   exercise: any;              // must contain exercise.effort_mode & exercise.load_mode
   setIndex: number;           // 1-based
-  onLogged: () => void;       // Required by existing forms
-  onCancel?: () => void;      // optional cancel handler
-  className?: string;         // optional styling
-  // We pass everything else through so your current form keeps working
+  onLogged: () => void;
+  onCancel?: () => void;
+  className?: string;
   [key: string]: any;
 }
 
@@ -54,46 +50,50 @@ function resolveForm(
 }
 
 const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
-  const { exercise } = props;
+  const { exercise, workoutExerciseId, setIndex, onLogged, onCancel, className } = props;
+  
+  // Try multiple paths to find effort_mode and load_mode
   const effort: EffortMode = exercise?.exercise?.effort_mode ?? exercise?.effort_mode ?? 'reps';
-  const load: LoadMode   = exercise?.exercise?.load_mode   ?? exercise?.load_mode   ?? 'none';
+  const load: LoadMode = exercise?.exercise?.load_mode ?? exercise?.load_mode ?? 'none';
 
   const kind = resolveForm(effort, load);
 
-  // Tiny debug tag so you can confirm the new router is being used
+  // Debug logging to see what data we're getting
+  console.log('🔍 SmartSetForm Debug:', {
+    exerciseId: exercise?.exercise_id || exercise?.id,
+    exerciseName: exercise?.exercise?.display_name || exercise?.display_name || 'unknown',
+    effort_mode: effort,
+    load_mode: load,
+    resolvedKind: kind,
+    exercise_object: exercise?.exercise,
+    raw_exercise: exercise
+  });
+
+  // Set debug flag
   React.useEffect(() => {
     if (typeof window !== 'undefined') {
       (window as any).__WF_STEP__ = 'wf-step1-smart-router';
     }
   }, []);
 
-  // Create wrapper to bridge interface differences for new forms
-  const bodyweightProps = {
-    ...props,
-    onSubmit: async (payload: any) => {
-      // Here we would bridge to your existing logging system
-      // For now, just call onLogged to keep existing flow
-      props.onLogged();
-    }
-  };
-
-  const cardioProps = {
-    ...props,
-    onSubmit: async (payload: any) => {
-      // Here we would bridge to your existing logging system
-      // For now, just call onLogged to keep existing flow  
-      props.onLogged();
-    }
+  // Transform props for consistent interface across all forms
+  const baseProps = {
+    workoutExerciseId,
+    exercise: exercise?.exercise || exercise, // flatten if nested
+    setIndex,
+    onLogged,
+    onCancel,
+    className
   };
 
   if (kind === 'bodyweight') {
-    return <BodyweightSetForm {...bodyweightProps} />;
+    return <BodyweightSetForm {...baseProps} />;
   }
   if (kind === 'cardio') {
-    return <CardioSetForm {...cardioProps} />;
+    return <CardioSetForm {...baseProps} />;
   }
   // Default: keep using your current weight x reps UI
-  return <WeightRepsSetForm {...props} />;
+  return <WeightRepsSetForm {...baseProps} />;
 };
 
 export default SmartSetForm;

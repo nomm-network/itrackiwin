@@ -18,7 +18,7 @@ export const useWarmupManager = () => {
     try {
       // Use the new database function to recalculate warmup
       const { error: rpcError } = await supabase
-        .rpc('recalc_warmup_from_last_set', {
+        .rpc('initialize_warmup_for_exercise', {
           p_workout_exercise_id: opts.workoutExerciseId
         });
 
