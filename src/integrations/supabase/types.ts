@@ -11491,6 +11491,10 @@ export type Database = {
         }
         Returns: number
       }
+      can_mutate_workout_set: {
+        Args: { workout_set_id: string }
+        Returns: boolean
+      }
       check_achievements: {
         Args: { p_user_id: string }
         Returns: undefined
