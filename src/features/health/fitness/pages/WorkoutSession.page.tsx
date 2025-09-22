@@ -43,7 +43,6 @@ import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
-import { WorkoutDebugBox } from "@/components/debug/WorkoutDebugBox";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -556,28 +555,13 @@ const WorkoutSession: React.FC = () => {
                           )}
                         </div>
                         
-                         {/* Debug Box */}
-                         <WorkoutDebugBox 
-                           exercise={ex}
-                           currentForm="SmartSetForm-called"
-                           version="v2.0-bodyweight-step2"
-                           debug={{
-                             exerciseId: ex.id,
-                             exerciseName: ex.exercise?.display_name || ex.display_name,
-                             effort_mode: ex.exercise?.effort_mode || ex.effort_mode,
-                             load_mode: ex.exercise?.load_mode || ex.load_mode,
-                             equipment: ex.exercise?.equipment?.slug || ex.equipment?.slug,
-                             windowFlag: typeof window !== 'undefined' ? (window as any).__WF_STEP__ : 'server-side'
-                           }}
-                         />
-                         
-                          {/* Add Set Form */}
-                          <SmartSetForm 
-                           workoutExerciseId={ex.id}
-                           exercise={ex}
-                           setIndex={completedSets.length + 1}
-                           onLogged={() => queryClient.invalidateQueries({ queryKey: ['workout', id] })}
-                         />
+                         {/* Add Set Form */}
+                         <SmartSetForm 
+                          workoutExerciseId={ex.id}
+                          exercise={ex}
+                          setIndex={completedSets.length + 1}
+                          onLogged={() => queryClient.invalidateQueries({ queryKey: ['workout', id] })}
+                        />
                         
                       </div>
                     )}

@@ -2,7 +2,7 @@
 import React from 'react';
 import BodyweightSetForm from './bodyweight/BodyweightSetForm';
 import CardioSetForm from './cardio/CardioSetForm';
-import WeightRepsSetForm from './WeightRepsSetForm.simple';
+import WeightRepsSetForm from './WeightRepsSetForm';
 
 /**
  * Minimal types we read from your workout query.
@@ -89,18 +89,13 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
     className
   };
 
-  console.log(`🎯 SmartSetForm: Rendering ${kind} form for exercise:`, exercise?.exercise?.display_name || exercise?.display_name);
-
   if (kind === 'bodyweight') {
-    console.log('🏋️ Rendering BodyweightSetForm');
     return <BodyweightSetForm {...baseProps} />;
   }
   if (kind === 'cardio') {
-    console.log('🏃 Rendering CardioSetForm');
     return <CardioSetForm {...baseProps} />;
   }
   // Default: keep using your current weight x reps UI
-  console.log('⚖️ Rendering WeightRepsSetForm (default)');
   return <WeightRepsSetForm {...baseProps} />;
 };
 
