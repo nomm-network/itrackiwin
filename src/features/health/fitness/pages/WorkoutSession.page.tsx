@@ -44,6 +44,7 @@ import { Settings, Timer, Trash2 } from "lucide-react";
 import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 import WorkoutDebugBox from "@/components/debug/WorkoutDebugBox";
+import { WORKOUT_FLOW_VERSION } from "@/features/workouts/session/version";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -416,20 +417,48 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log when we reach main workout view
   console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
-  const debugInfo = {
-    workoutId: id,
-    routerMounted: true,
-    urlParamId: id,
-    dataWorkoutId: data?.workout?.id ?? null,
+  // === DEBUG STEP 1 (safe) ===
+  const workoutIdFromUrl =
+    (typeof window !== "undefined" && window.location.pathname.split("/").pop()) || null;
+
+  const workoutTitle =
+    (data?.workout?.title ?? data?.workout?.name ?? null);
+
+  const exerciseCount =
+    Array.isArray(data?.workout?.exercises) ? data.workout.exercises.length :
+    Array.isArray(data?.exercises) ? data.exercises.length :
+    null;
+
+  const sourceHint: "rpc" | "rest" | "unknown" =
+    Array.isArray(data?.workout?.exercises) ? "rpc" :
+    Array.isArray(data?.exercises) ? "rest" :
+    "unknown";
+
+  const debugData = {
+    workoutId: data?.workout?.id ?? workoutIdFromUrl,
+    templateId: data?.workout?.template_id ?? null,
+    title: workoutTitle,
+    readiness: data?.workout?.readiness_score ?? null,
+    exerciseCount,
+    routerPath: typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
+    sourceHint,
+    lastError: null,
+    // NOTE: keep sample tiny to avoid huge renders
+    sample: Array.isArray(data?.workout?.exercises)
+      ? data.workout.exercises.slice(0, 2).map((x: any) => ({ id: x.id, order_index: x.order_index }))
+      : Array.isArray(data?.exercises)
+        ? data.exercises.slice(0, 2).map((x: any) => ({ id: x.id, order_index: x.order_index }))
+        : null,
   };
+  // === /DEBUG STEP 1 ===
 
   return (
     <>
+      <WorkoutDebugBox data={debugData} anchor="top" />
       <PageNav current="Workout Session" />
       
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
-        <WorkoutDebugBox tag="WorkoutSession.page" data={data?.workout} extra={debugInfo} />
         {/* Header with workout clock */}
         <div className="space-y-fluid-xs">
           {/* Current Gym Header */}

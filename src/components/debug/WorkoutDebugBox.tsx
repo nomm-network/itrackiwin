@@ -1,48 +1,114 @@
-// v108 — WorkoutDebugBox.tsx (SOT)
-// Always visible red box pinned to bottom-left (mobile-safe).
-import React from "react";
+import React, {useMemo, useState} from "react";
+import { WORKOUT_FLOW_VERSION } from "@/features/workouts/session/version";
+
+type DebugData = {
+  workoutId?: string | null;
+  templateId?: string | null;
+  title?: string | null;
+  readiness?: number | null;
+  exerciseCount?: number | null;
+  routerPath?: string;
+  sourceHint?: "rpc" | "rest" | "unknown";
+  lastError?: string | null;
+  sample?: unknown;
+};
 
 type Props = {
-  tag?: string;
-  data?: unknown;
-  extra?: Record<string, unknown>;
+  data: DebugData;
+  anchor?: "top" | "bottom";
 };
 
 const boxStyle: React.CSSProperties = {
   position: "fixed",
-  left: 8,
-  bottom: 8,
-  right: 8,
-  zIndex: 9999,
-  background: "rgba(180,0,0,0.92)",
-  border: "1px solid rgba(255,255,255,0.3)",
-  borderRadius: 10,
-  color: "white",
-  fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+  left: 12,
+  right: 12,
+  zIndex: 99999,
   padding: 12,
-  maxHeight: "38vh",
-  overflow: "auto",
+  borderRadius: 10,
+  background: "#B00020",
+  color: "white",
+  fontSize: 12,
+  lineHeight: 1.3,
   boxShadow: "0 8px 24px rgba(0,0,0,0.35)",
+  opacity: 0.95,
 };
 
-export default function WorkoutDebugBox({ tag = "WorkoutSession.page", data, extra }: Props) {
-  // Add console log to verify this component is mounting
-  React.useEffect(() => {
-    console.log('[v108] Mounted: WorkoutDebugBox');
-  }, []);
+export default function WorkoutDebugBox({ data, anchor = "top" }: Props) {
+  const [collapsed, setCollapsed] = useState(false);
 
-  const payload = {
-    tag,
-    hasData: !!data,
-    dataObject: data ? "HAS_DATA" : "NO_DATA",
-    ...extra,
+  const json = useMemo(() => {
+    try {
+      return JSON.stringify(
+        {
+          version: WORKOUT_FLOW_VERSION,
+          ...data,
+        },
+        null,
+        2
+      );
+    } catch {
+      return "{}";
+    }
+  }, [data]);
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(json);
+      alert("Debug copied to clipboard.");
+    } catch (e) {
+      console.error(e);
+    }
   };
+
+  const style = {
+    ...boxStyle,
+    [anchor === "top" ? "top" : "bottom"]: 70,
+  } as React.CSSProperties;
+
   return (
-    <div style={boxStyle}>
-      <div style={{ fontWeight: 700, marginBottom: 8 }}>DEBUG v108 — {tag}</div>
-      <pre style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
-        {JSON.stringify(payload, null, 2)}
-      </pre>
+    <div style={style}>
+      <div style={{display: "flex", alignItems: "center", gap: 8, marginBottom: 6}}>
+        <strong>DEBUG • {WORKOUT_FLOW_VERSION}</strong>
+        <span style={{opacity: 0.9}}>• workoutId:</span>
+        <code style={{background: "rgba(255,255,255,0.15)", padding: "2px 6px", borderRadius: 6}}>
+          {data.workoutId || "—"}
+        </code>
+        <span style={{flex: 1}} />
+        <button
+          onClick={() => setCollapsed((v) => !v)}
+          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
+        >
+          {collapsed ? "Expand" : "Collapse"}
+        </button>
+        <button
+          onClick={() => window.location.reload()}
+          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
+        >
+          Refresh
+        </button>
+        <button
+          onClick={copy}
+          style={{background: "rgba(255,255,255,0.15)", border: "none", color: "white", padding: "4px 8px", borderRadius: 6}}
+        >
+          Copy
+        </button>
+      </div>
+
+      {!collapsed && (
+        <pre
+          style={{
+            margin: 0,
+            maxHeight: 220,
+            overflow: "auto",
+            background: "rgba(0,0,0,0.25)",
+            padding: 10,
+            borderRadius: 8,
+            whiteSpace: "pre-wrap",
+          }}
+        >
+{json}
+        </pre>
+      )}
     </div>
   );
 }
