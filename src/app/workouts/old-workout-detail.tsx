@@ -3,10 +3,10 @@ import { useGetWorkout } from '@/workouts-sot/hooks';
 import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
 
 // Log component mount for verification
-console.log('WorkoutPage mounted • v111.4 (CORRECT FILE - SOT ROUTE)');
+console.log('WorkoutPage mounted • v111.5 (SOT-ONLY IMPORTS)');
 console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/old-workout-detail.tsx');
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
-console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession');
+console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession (NO OLD IMPORTS)');
 
 // ——— DEBUG v111.4: inline, static, non-floating ———
 const __DEBUG_VERSION = 'v111.4-CORRECT-FILE-SOT-ROUTE';
@@ -83,7 +83,8 @@ export default function WorkoutPage() {
     sotFiles: {
       currentFile: 'src/app/workouts/old-workout-detail.tsx',
       hookFile: '@/workouts-sot/hooks/useGetWorkout',
-      componentFile: '@/workouts-sot/components/session/EnhancedWorkoutSession',
+      componentFile: '@/workouts-sot/components/session/EnhancedWorkoutSession (SOT-ONLY)',
+      setFormFile: '@/workouts-sot/components/sets/SmartSetForm (SOT-ONLY)',
       apiFile: '@/workouts-sot/api/workouts-api.ts'
     }
   };

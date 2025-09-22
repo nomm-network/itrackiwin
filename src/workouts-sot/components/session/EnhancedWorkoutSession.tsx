@@ -23,7 +23,7 @@ import {
 import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './shim-ExerciseCard';
-import TouchOptimizedSetInput from '@/components/workout/TouchOptimizedSetInput';
+import { SmartSetForm } from '../sets';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
 import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor';
 import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
@@ -36,7 +36,7 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
-import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
+// import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession'; // REMOVED - using SOT components directly
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../../utils/exerciseName';
 
@@ -53,6 +53,7 @@ import PageNav from "@/components/PageNav";
 import { useAdvancedSetLogging, useExerciseEstimate, useWarmupSessionState, useWarmupManager } from '../../hooks';
 import { submitWarmupFeedback } from '../../warmup';
 import { SessionHeaderMeta } from './';
+import { workoutKeys } from '../../api/workouts-api';
 
 // Import readiness scoring utilities
 import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
@@ -813,79 +814,23 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* SESSION-LEVEL WARMUP REMOVED - warmup only shows in exercise cards */}
-                <ImprovedWorkoutSession
-                exercise={{
-                  id: currentExercise.id,
-                  workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
-                  name: getExerciseName(),
-                  target_sets: currentExercise.target_sets || 3,
-                  completed_sets: sets
-                    .filter((set: any) => set.is_completed)
-                    .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0)),
-                  load_type: currentExercise?.exercise?.load_type || currentExercise?.load_type,
-                  equipment_ref: (() => {
-                    const equipRef = getEquipmentRefId(currentExercise);
-                    console.log('🚨 RED DEBUG - Equipment Ref being passed:', {
-                      equipRef,
-                      currentExercise,
-                      currentExerciseKeys: Object.keys(currentExercise || {})
-                    });
-                    return equipRef;
-                  })()
-                }}
-                userId={userId}
-                exerciseId={currentExercise?.exercise_id}
-                templateTargetReps={currentExercise?.target_reps}
-                templateTargetWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight}
-                isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
-                onSetComplete={(setData) => {
-                  // Hide warmup when first set is completed
-                  setWarmupCompleted(true);
-                  const weId = resolveWorkoutExerciseId(currentExercise);
-                  handleSetComplete(weId, setData);
-                }}
-                onExerciseComplete={() => {
-                  // Reset warmup for next exercise
-                  setWarmupCompleted(false);
-                  setHasExistingWarmupData(false);
-                  handleExerciseComplete(currentExercise.id);
-                }}
-                onFinishWorkout={handleWorkoutComplete}
-                onAddExtraSet={() => {
-                  const weId = resolveWorkoutExerciseId(currentExercise);
-                  handleSetComplete(weId, {
-                    weight: 0,
-                    reps: 0,
-                    rpe: 5,
-                    feel: '',
-                    pain: false,
-                    notes: '',
-                    is_completed: false
-                  });
-                }}
-                onUpdateSet={(setIndex, setData) => {
-                  // Find the set to update by index
-                  const setToUpdate = sets[setIndex];
-                  if (setToUpdate?.id) {
-                    updateSet({
-                      setId: setToUpdate.id,
-                      weight: setData.weight,
-                      reps: setData.reps,
-                      notes: setData.notes
-                    }, {
-                      onSuccess: () => {
-                        toast.success('Set updated successfully!');
-                      },
-                      onError: (error) => {
-                        console.error('Failed to update set:', error);
-                        toast.error(`Failed to update set: ${error.message}`);
-                      }
-                    });
-                  }
-                }}
-                unit="kg"
-                />
+                {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
+                <div className="space-y-4">
+                  <div className="bg-card border rounded-lg p-4">
+                    <h3 className="text-lg font-semibold mb-4">{getExerciseName()}</h3>
+                    <SmartSetForm
+                      exercise={currentExercise}
+                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                      setIndex={currentSetIndex}
+                      onLogged={() => {
+                        console.log('✅ Set logged successfully via SOT SmartSetForm');
+                        // Trigger workout refetch
+                        queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                      }}
+                      className="p-4 border rounded-lg"
+                    />
+                  </div>
+                </div>
               </>
             )}
 
