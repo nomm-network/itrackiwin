@@ -43,8 +43,62 @@ import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
-import WorkoutDebugBox from "@/components/debug/WorkoutDebugBox";
 import { WORKOUT_FLOW_VERSION } from "@/constants/workoutFlow";
+
+// Log component mount for verification
+console.log('WorkoutSession.page mounted • v111.4');
+
+// ——— DEBUG v111.4: inline, static, non-floating ———
+const __DEBUG_VERSION = 'v111.4-top-inline';
+
+function DebugTop({ payload }: { payload: any }) {
+  const json = (() => {
+    try { return JSON.stringify({ version: __DEBUG_VERSION, ...payload }, null, 2); }
+    catch { return '{}'; }
+  })();
+
+  return (
+    <div
+      style={{
+        margin: '12px',
+        marginTop: 0,
+        borderRadius: 10,
+        background: '#a61b1b',
+        color: '#fff',
+        padding: 10,
+        fontFamily:
+          'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace',
+        fontSize: 12,
+        boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
+        border: '1px solid rgba(255,255,255,0.15)',
+      }}
+    >
+      <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 6, flexWrap: 'wrap' }}>
+        <strong>DEBUG • {__DEBUG_VERSION}</strong>
+        <span style={{ opacity: 0.85 }}>
+          • route:&nbsp;
+          {typeof window !== 'undefined' ? window.location.pathname + window.location.search : 'SSR'}
+        </span>
+        <button
+          onClick={() => window.location.reload()}
+          style={{ background: 'rgba(255,255,255,0.18)', border: 'none', color: '#fff', padding: '3px 8px', borderRadius: 6, cursor: 'pointer' }}
+        >
+          Refresh
+        </button>
+        <button
+          onClick={async () => {
+            try { await navigator.clipboard.writeText(json); alert('Debug copied'); } catch {}
+          }}
+          style={{ background: 'rgba(255,255,255,0.18)', border: 'none', color: '#fff', padding: '3px 8px', borderRadius: 6, cursor: 'pointer' }}
+        >
+          Copy
+        </button>
+      </div>
+      <pre style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{json}</pre>
+    </div>
+  );
+}
+// ——— /DEBUG helper ———
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -417,47 +471,39 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log when we reach main workout view
   console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
-  // Build a tiny, stable payload for the debug box
-  const workoutIdFromUrl =
-    (typeof window !== "undefined" && window.location.pathname.split("/").pop()) || null;
+  // Build minimal payload for debug
+  const __workoutIdFromUrl =
+    (typeof window !== 'undefined' && window.location.pathname.split('/').pop()) || null;
 
-  const exerciseCount =
-    Array.isArray(data?.workout?.exercises)
-      ? data.workout.exercises.length
-      : Array.isArray((data as any)?.exercises)
-      ? (data as any).exercises.length
-      : null;
+  const __exerciseCount = Array.isArray(data?.workout?.exercises)
+    ? data.workout.exercises.length
+    : Array.isArray((data as any)?.exercises)
+    ? (data as any).exercises.length
+    : null;
 
-  const sourceHint: "rpc" | "rest" | "unknown" =
-    Array.isArray(data?.workout?.exercises) ? "rpc" :
-    Array.isArray((data as any)?.exercises) ? "rest" : "unknown";
+  const __sourceHint: 'rpc' | 'rest' | 'unknown' =
+    Array.isArray(data?.workout?.exercises) ? 'rpc' :
+    Array.isArray((data as any)?.exercises) ? 'rest' : 'unknown';
 
-  const debugData = {
-    routerPath:
-      typeof window !== "undefined"
-        ? window.location.pathname + window.location.search
-        : "",
-    workoutId: data?.workout?.id ?? workoutIdFromUrl,
+  const __debugPayload = {
+    workoutId: data?.workout?.id ?? __workoutIdFromUrl,
     templateId: data?.workout?.template_id ?? null,
     title: data?.workout?.title ?? data?.workout?.name ?? null,
     readiness: data?.workout?.readiness_score ?? null,
-    exerciseCount,
-    sourceHint,
-    // peek at current exercise/load_mode for the Dips routing problem
-    peekCurrent:
-      Array.isArray(data?.workout?.exercises) && data.workout.exercises.length
-        ? {
-            id: data.workout.exercises[0].id,
-            load_mode: data.workout.exercises[0]?.exercise?.load_mode ?? null,
-            effort_mode: data.workout.exercises[0]?.exercise?.effort_mode ?? null,
-          }
-        : null,
+    exerciseCount: __exerciseCount,
+    sourceHint: __sourceHint,
+    peek: Array.isArray(data?.workout?.exercises) && data.workout.exercises.length
+      ? {
+          id: data.workout.exercises[0].id,
+          load_mode: data.workout.exercises[0]?.exercise?.load_mode ?? null,
+          effort_mode: data.workout.exercises[0]?.exercise?.effort_mode ?? null,
+        }
+      : null,
   };
-
 
   return (
     <>
-      <WorkoutDebugBox version="v110.0-debug-top-static" data={debugData} />
+      <DebugTop payload={__debugPayload} />
 
       <PageNav current="Workout Session" />
       
