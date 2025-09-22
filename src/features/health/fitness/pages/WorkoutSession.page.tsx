@@ -416,13 +416,20 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log when we reach main workout view
   console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
+  const debugInfo = {
+    workoutId: id,
+    routerMounted: true,
+    urlParamId: id,
+    dataWorkoutId: data?.workout?.id ?? null,
+  };
+
   return (
     <>
       <PageNav current="Workout Session" />
       
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
-        <WorkoutDebugBox />
+        <WorkoutDebugBox tag="WorkoutSession.page" data={data?.workout} extra={debugInfo} />
         {/* Header with workout clock */}
         <div className="space-y-fluid-xs">
           {/* Current Gym Header */}
