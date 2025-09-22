@@ -81,7 +81,10 @@ const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
     workoutExerciseId,
     exercise: exercise?.exercise || exercise, // flatten if nested
     setIndex,
-    onLogged,
+    onLogged: () => {
+      console.log('✅ Set logged successfully');
+      onLogged?.();
+    },
     onCancel,
     className
   };
