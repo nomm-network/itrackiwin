@@ -1,4 +1,4 @@
-// workout-flow v110.0 — DEBUG (static block)
+// workout-flow v112.13 — DEBUG (static block)
 import React, { useMemo } from "react";
 
 type DebugData = Record<string, any>;

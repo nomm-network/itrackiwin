@@ -1,4 +1,4 @@
-// v111.10-fixed-enum-issues — central error formatter
+// v112.13-fixed-enum-issues — central error formatter
 export function buildSupabaseErrorMessage(err: unknown, context?: string): string {
   try {
     // Supabase errors (PostgREST / RPC / Postgres) often come as objects with these fields

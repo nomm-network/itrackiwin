@@ -34,7 +34,7 @@ export const useWorkoutSetGrips = () => {
         // Note: Do NOT send set_index - let the RPC compute it
       };
 
-      console.debug('[set_log v111.10] payload:', payload);
+      console.debug('[set_log v112.13] payload:', payload);
 
       const { data, error: rpcError } = await supabase.rpc('set_log', {
         p_payload: payload
@@ -58,7 +58,7 @@ export const useWorkoutSetGrips = () => {
         throw errObj;
       }
 
-      console.debug('[set_log v111.10] result:', data);
+      console.debug('[set_log v112.13] result:', data);
       
       return data; // success — caller will toast success
     } catch (err) {
