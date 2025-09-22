@@ -1,13 +1,35 @@
-// SOT Simplified Workout Session - Self-contained with debug tracking
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Play, Pause, CheckCircle, Timer, Target } from 'lucide-react';
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { getEquipmentRefId, getLoadType, getExerciseId } from '@/workouts-sot/utils/equipmentContext';
+import { 
+  Play, 
+  Pause, 
+  CheckCircle, 
+  Timer, 
+  Target,
+  Settings,
+  ArrowLeft,
+  ArrowRight,
+  Zap,
+  Plus,
+  ChevronDown,
+  Hand
+  } from 'lucide-react';
+import { Calendar } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './shim-ExerciseCard';
+import TouchOptimizedSetInput from '@/components/workout/TouchOptimizedSetInput';
+import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
+import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor';
+import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
+import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
 import { useLogSet, useUpdateSet } from '../../hooks';
+import { getExerciseDisplayName } from '../../utils/exerciseName';
 
 // Add SOT debug logging
 console.log('📁 [EnhancedWorkoutSession] SOT Component loaded from: src/workouts-sot/components/session/EnhancedWorkoutSession.tsx');
