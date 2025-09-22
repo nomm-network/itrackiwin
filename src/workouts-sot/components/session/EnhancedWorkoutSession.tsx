@@ -822,17 +822,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               <>
                 {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
                 <div className="space-y-4">
-                  {/* 🎯 MINI-MENU: Warmup Block */}
-                  <div className="bg-muted/50 border rounded-lg p-4">
-                    <WarmupBlock
-                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                      existingFeedback={null}
-                      onFeedbackGiven={() => console.log('Warmup feedback given')}
-                    />
-                  </div>
-                  
                   <div className="bg-card border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">{getExerciseName()}</h3>
+                    
+                    {/* SOT Set Form - Use SmartSetForm directly */}
                     <SmartSetForm
                       exercise={currentExercise}
                       workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
@@ -842,11 +835,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         // Trigger workout refetch
                         queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
                       }}
-                      className="p-4 border rounded-lg"
+                      className="space-y-4"
                     />
                     
-                    {/* 🎯 MINI-MENU: Feel Selector */}
-                    <div className="mt-4 space-y-2">
+                    {/* 🎯 LEGACY MINI-MENU: Feel Selector - Exact copy from legacy */}
+                    <div className="space-y-2">
                       <label className="text-sm font-medium">How did that feel?</label>
                       <div className="grid grid-cols-5 gap-1">
                         {FEEL_OPTIONS.map((option) => (
@@ -864,22 +857,20 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       </div>
                     </div>
 
-                    {/* 🎯 MINI-MENU: Pain Toggle */}
-                    <div className="mt-4">
-                      <Button
-                        variant={currentSetPain ? "destructive" : "outline"}
-                        onClick={() => setCurrentSetPain(!currentSetPain)}
-                        className={cn(
-                          "w-full",
-                          currentSetPain 
-                            ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
-                            : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
-                        )}
-                        size="sm"
-                      >
-                        {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
-                      </Button>
-                    </div>
+                    {/* 🎯 LEGACY MINI-MENU: Pain Toggle - Exact copy from legacy */}
+                    <Button
+                      variant={currentSetPain ? "destructive" : "outline"}
+                      onClick={() => setCurrentSetPain(!currentSetPain)}
+                      className={cn(
+                        "w-full",
+                        currentSetPain 
+                          ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
+                          : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
+                      )}
+                      size="sm"
+                    >
+                      {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
+                    </Button>
                   </div>
                 </div>
               </>
