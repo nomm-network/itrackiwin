@@ -3,13 +3,13 @@ import { useGetWorkout } from '@/workouts-sot/hooks';
 import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
 
 // Log component mount for verification
-console.log('WorkoutPage mounted • v111.7 (CACHE-BREAK-FORCE-RELOAD)');
+console.log('WorkoutPage mounted • v112.0-LEGACY-MINI-MENU-ACTIVATED');
 console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-sot.tsx');
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
-console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession (SOT-ONLY)');
+console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v111.4: inline, static, non-floating ———
-const __DEBUG_VERSION = 'v111.7-CACHE-BREAK-' + Date.now();
+// ——— DEBUG v112.0: Legacy mini-menu with warmup/grips/feel ———
+const __DEBUG_VERSION = 'v112.0-LEGACY-MINI-MENU-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {

@@ -28,6 +28,7 @@ import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSel
 import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor';
 import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
 import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
+import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
 import { useLogSet, useUpdateSet } from '../../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
@@ -36,6 +37,7 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
+import { cn } from '@/lib/utils';
 // import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession'; // REMOVED - using SOT components directly
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../../utils/exerciseName';
@@ -124,6 +126,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Grip selection state - per exercise
   const [selectedGrips, setSelectedGrips] = useState<Record<string, string[]>>({});
   const [showGripSelector, setShowGripSelector] = useState<Record<string, boolean>>({});
+  
+  // Mini-menu state for feel feedback
+  const [currentSetFeel, setCurrentSetFeel] = useState<Feel | undefined>(undefined);
+  const [currentSetPain, setCurrentSetPain] = useState<boolean>(false);
   
   // Set input state - always show for current set
   const [currentSetData, setCurrentSetData] = useState({
@@ -816,6 +822,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
               <>
                 {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
                 <div className="space-y-4">
+                  {/* 🎯 MINI-MENU: Warmup Block */}
+                  <div className="bg-muted/50 border rounded-lg p-4">
+                    <WarmupBlock
+                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                      existingFeedback={null}
+                      onFeedbackGiven={() => console.log('Warmup feedback given')}
+                    />
+                  </div>
+                  
                   <div className="bg-card border rounded-lg p-4">
                     <h3 className="text-lg font-semibold mb-4">{getExerciseName()}</h3>
                     <SmartSetForm
@@ -829,6 +844,42 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       }}
                       className="p-4 border rounded-lg"
                     />
+                    
+                    {/* 🎯 MINI-MENU: Feel Selector */}
+                    <div className="mt-4 space-y-2">
+                      <label className="text-sm font-medium">How did that feel?</label>
+                      <div className="grid grid-cols-5 gap-1">
+                        {FEEL_OPTIONS.map((option) => (
+                          <Button
+                            key={option.value}
+                            variant={currentSetFeel === option.value ? "default" : "outline"}
+                            size="sm"
+                            onClick={() => setCurrentSetFeel(option.value)}
+                            className="flex flex-col items-center p-1 min-w-[60px] h-14"
+                          >
+                            <span className="text-lg">{option.emoji}</span>
+                            <span className="text-xs font-medium">{option.value}</span>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* 🎯 MINI-MENU: Pain Toggle */}
+                    <div className="mt-4">
+                      <Button
+                        variant={currentSetPain ? "destructive" : "outline"}
+                        onClick={() => setCurrentSetPain(!currentSetPain)}
+                        className={cn(
+                          "w-full",
+                          currentSetPain 
+                            ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
+                            : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
+                        )}
+                        size="sm"
+                      >
+                        {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </>
