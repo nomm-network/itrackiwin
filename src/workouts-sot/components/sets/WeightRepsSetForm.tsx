@@ -53,75 +53,66 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       return;
     }
 
+    const setData = {
+      workout_exercise_id: workoutExerciseId,
+      weight: weight ? Number(weight) : undefined,
+      weight_unit: weight ? 'kg' : undefined,
+      reps: Number(reps),
+      rpe: rpe ? Number(rpe) : undefined,
+      notes: notes || undefined,
+      is_completed: true
+    };
+
+    console.log('🔥 WeightRepsSetForm: DETAILED LOGGING START');
+    console.log('🔥 Load Mode:', loadMode);
+    console.log('🔥 Weight Input:', weight);
+    console.log('🔥 Reps Input:', reps);
+    console.log('🔥 Final setData payload being sent to saveSetWithGrips:', JSON.stringify(setData, null, 2));
+    console.log('🔥 workoutExerciseId:', workoutExerciseId);
+
     try {
-      const setData = {
-        workout_exercise_id: workoutExerciseId,
-        weight: weight ? Number(weight) : undefined,
-        weight_unit: weight ? 'kg' : undefined,
-        reps: Number(reps),
-        rpe: rpe ? Number(rpe) : undefined,
-        notes: notes || undefined,
-        is_completed: true
-      };
-
-      console.log('🔥 WeightRepsSetForm: Logging set with saveSetWithGrips:', setData);
-
-      try {
-        await saveSetWithGrips(setData);
-        
-        const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
-        toast({
-          title: "Set Logged Successfully",
-          description: `${weightDisplay} × ${reps} reps`,
-        });
-      } catch (error) {
-        console.error('❌ WeightRepsSetForm: Failed to log set:', error);
-        
-        // Extract detailed error information
-        let errorMessage = 'Unknown error occurred';
-        if (error instanceof Error) {
-          errorMessage = error.message;
-        } else if (typeof error === 'object' && error !== null) {
-          errorMessage = JSON.stringify(error);
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-        
-        console.error('❌ Full error details:', errorMessage);
-        
-        toast({
-          variant: "destructive",
-          title: "Failed to Log Set",
-          description: errorMessage,
-        });
-        return; // Don't proceed with onLogged if logging failed
-      }
+      const result = await saveSetWithGrips(setData);
+      console.log('🔥 saveSetWithGrips SUCCESS result:', result);
+      
+      const weightDisplay = weight !== '' && weight !== 0 ? `${weight}kg` : 'No weight';
+      toast({
+        title: "Set Logged Successfully",
+        description: `${weightDisplay} × ${reps} reps`,
+      });
 
       // Reset form
       setReps('');
       setWeight('');
       setBaseState(prev => ({ ...prev, rpe: '', notes: '' }));
       
+      console.log('🔥 Calling onLogged callback');
       onLogged?.();
-    } catch (error: any) {
-      console.error('❌ WeightRepsSetForm error:', error);
+
+    } catch (error) {
+      console.error('❌ WeightRepsSetForm: CRITICAL ERROR in saveSetWithGrips:', error);
       
-      // Extract detailed error information for outer catch
+      // Extract all possible error information
       let errorMessage = 'Unknown error occurred';
+      let errorDetails = '';
+      
       if (error instanceof Error) {
         errorMessage = error.message;
+        errorDetails = `Stack: ${error.stack || 'No stack trace'}`;
       } else if (typeof error === 'object' && error !== null) {
-        errorMessage = JSON.stringify(error);
+        errorMessage = JSON.stringify(error, null, 2);
+        errorDetails = `Full error object: ${JSON.stringify(error, null, 2)}`;
       } else if (typeof error === 'string') {
         errorMessage = error;
+        errorDetails = `Error type: string, value: ${error}`;
       }
       
-      console.error('❌ Full outer error details:', errorMessage);
+      console.error('❌ FULL ERROR DETAILS:', errorDetails);
+      console.error('❌ setData that caused error:', JSON.stringify(setData, null, 2));
       
       toast({
-        title: "Error",
-        description: `Failed to log set: ${errorMessage}`,
-        variant: "destructive"
+        variant: "destructive",
+        title: "Failed to Log Set",
+        description: `ERROR: ${errorMessage}\n\nQuery: ${JSON.stringify(setData, null, 2)}`,
       });
     }
   };

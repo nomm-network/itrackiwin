@@ -106,76 +106,73 @@ export default function BodyweightSetForm({
       pain,
     };
 
+    const setData: any = {
+      workout_exercise_id: workoutExerciseId,
+      reps: payload.reps,
+      is_completed: true
+    };
+
+    // Only add weight if it's not bodyweight mode
+    if (mode !== 'bodyweight' && effectiveWeight !== 0) {
+      setData.weight = effectiveWeight;
+      setData.weight_unit = 'kg';
+    }
+
+    console.log('🔥 BodyweightSetForm: DETAILED LOGGING START');
+    console.log('🔥 Mode:', mode);
+    console.log('🔥 Effective Weight:', effectiveWeight);
+    console.log('🔥 Final setData payload being sent to saveSetWithGrips:', JSON.stringify(setData, null, 2));
+    console.log('🔥 workoutExerciseId:', workoutExerciseId);
+
     try {
-      const setData: any = {
-        workout_exercise_id: workoutExerciseId,
-        reps: payload.reps,
-        is_completed: true
-      };
+      const result = await saveSetWithGrips(setData);
+      console.log('🔥 saveSetWithGrips SUCCESS result:', result);
 
-      // Only add weight if it's not bodyweight mode
-      if (mode !== 'bodyweight' && effectiveWeight !== 0) {
-        setData.weight = effectiveWeight;
-        setData.weight_unit = 'kg';
-      }
-
-      console.log('🔥 BodyweightSetForm: Logging set with saveSetWithGrips:', setData);
-
-      try {
-        await saveSetWithGrips(setData);
-
-        toast({
-          title: "Set Logged Successfully",
-          description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
-        });
-      } catch (error) {
-        console.error('❌ BodyweightSetForm: Failed to log set:', error);
-        
-        // Extract detailed error information
-        let errorMessage = 'Unknown error occurred';
-        if (error instanceof Error) {
-          errorMessage = error.message;
-        } else if (typeof error === 'object' && error !== null) {
-          errorMessage = JSON.stringify(error);
-        } else if (typeof error === 'string') {
-          errorMessage = error;
-        }
-        
-        console.error('❌ Full error details:', errorMessage);
-        
-        toast({
-          variant: "destructive",
-          title: "Failed to Log Set",
-          description: errorMessage,
-        });
-        return; // Don't proceed with onSubmit if logging failed
-      }
+      toast({
+        title: "Set Logged Successfully",
+        description: `${totalLine.replace('Total Load: ', '')} × ${payload.reps} reps`,
+      });
 
       // prefer onSubmit; fallback to onSetComplete (both exist in codebase)
-      if (onSubmit) onSubmit(payload);
-      else if (onSetComplete) onSetComplete(payload);
-      
-      // Call onLogged callback to notify parent of completion
-      onLogged?.();
-    } catch (error: any) {
-      console.error('❌ BodyweightSetForm error:', error);
-      
-      // Extract detailed error information for outer catch
-      let errorMessage = 'Unknown error occurred';
-      if (error instanceof Error) {
-        errorMessage = error.message;
-      } else if (typeof error === 'object' && error !== null) {
-        errorMessage = JSON.stringify(error);
-      } else if (typeof error === 'string') {
-        errorMessage = error;
+      if (onSubmit) {
+        console.log('🔥 Calling onSubmit callback');
+        onSubmit(payload);
+      } else if (onSetComplete) {
+        console.log('🔥 Calling onSetComplete callback');
+        onSetComplete(payload);
       }
       
-      console.error('❌ Full outer error details:', errorMessage);
+      // Call onLogged callback to notify parent of completion
+      if (onLogged) {
+        console.log('🔥 Calling onLogged callback');
+        onLogged();
+      }
+
+    } catch (error) {
+      console.error('❌ BodyweightSetForm: CRITICAL ERROR in saveSetWithGrips:', error);
+      
+      // Extract all possible error information
+      let errorMessage = 'Unknown error occurred';
+      let errorDetails = '';
+      
+      if (error instanceof Error) {
+        errorMessage = error.message;
+        errorDetails = `Stack: ${error.stack || 'No stack trace'}`;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error, null, 2);
+        errorDetails = `Full error object: ${JSON.stringify(error, null, 2)}`;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+        errorDetails = `Error type: string, value: ${error}`;
+      }
+      
+      console.error('❌ FULL ERROR DETAILS:', errorDetails);
+      console.error('❌ setData that caused error:', JSON.stringify(setData, null, 2));
       
       toast({
-        title: "Error",
-        description: `Failed to log set: ${errorMessage}`,
-        variant: "destructive"
+        variant: "destructive",
+        title: "Failed to Log Set",
+        description: `ERROR: ${errorMessage}\n\nQuery: ${JSON.stringify(setData, null, 2)}`,
       });
     }
   };
