@@ -130,6 +130,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Mini-menu state for feel feedback
   const [currentSetFeel, setCurrentSetFeel] = useState<Feel | undefined>(undefined);
   const [currentSetPain, setCurrentSetPain] = useState<boolean>(false);
+  const [showWarmup, setShowWarmup] = useState(false);
   
   // Set input state - always show for current set
   const [currentSetData, setCurrentSetData] = useState({
@@ -823,7 +824,54 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
                 <div className="space-y-4">
                   <div className="bg-card border rounded-lg p-4">
-                    <h3 className="text-lg font-semibold mb-4">{getExerciseName()}</h3>
+                    {/* 🎯 LEGACY MINI-MENU: Exercise Header with grips/sets/warmup buttons */}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-lg font-semibold text-foreground">
+                          {getExerciseName()}
+                        </h3>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          title="Change grips"
+                        >
+                          ✋
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          title="Configure sets"
+                        >
+                          🔢
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => setShowWarmup(!showWarmup)}
+                          title={showWarmup ? "Hide warmup" : "Show warmup"}
+                        >
+                          🤸
+                        </Button>
+                      </div>
+                      <Badge variant="secondary">
+                        {completedSetsCount}/{targetSetsCount} sets
+                      </Badge>
+                    </div>
+
+                    {/* 🎯 LEGACY MINI-MENU: Warmup Block */}
+                    {showWarmup && (
+                      <div className="mb-4 bg-muted/50 border rounded-lg p-4">
+                        <WarmupBlock
+                          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                          existingFeedback={null}
+                          onFeedbackGiven={() => console.log('Warmup feedback given')}
+                          onClose={() => setShowWarmup(false)}
+                        />
+                      </div>
+                    )}
                     
                     {/* SOT Set Form - Use SmartSetForm directly */}
                     <SmartSetForm
