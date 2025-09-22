@@ -43,6 +43,7 @@ import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
 import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
+import WorkoutDebugBox from "@/components/debug/WorkoutDebugBox";
 
 const useSEO = (titleAddon: string) => {
   React.useEffect(() => {
@@ -421,6 +422,7 @@ const WorkoutSession: React.FC = () => {
       
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
+        <WorkoutDebugBox />
         {/* Header with workout clock */}
         <div className="space-y-fluid-xs">
           {/* Current Gym Header */}
