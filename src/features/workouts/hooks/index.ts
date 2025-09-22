@@ -1,2 +1,2 @@
-// Workouts Hooks - Redirect to SOT
+// FORCE SOT - All workout hooks redirect to Single Source of Truth
 export * from '@/workouts-sot/hooks';

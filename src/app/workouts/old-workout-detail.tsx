@@ -9,7 +9,7 @@ console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Component: @/workouts-sot/components/session/EnhancedWorkoutSession (NO OLD IMPORTS)');
 
 // ——— DEBUG v111.4: inline, static, non-floating ———
-const __DEBUG_VERSION = 'v111.4-CORRECT-FILE-SOT-ROUTE';
+const __DEBUG_VERSION = 'v111.5-SOT-ONLY-IMPORTS';
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
