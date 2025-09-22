@@ -33,12 +33,16 @@ export const useWorkoutSetGrips = () => {
         // Note: Do NOT send set_index - let the RPC compute it
       };
 
+      console.debug('[set_log] payload:', payload);
+
       const { data, error: rpcError } = await supabase.rpc('set_log', {
         p_payload: payload
       });
 
       if (rpcError) throw rpcError;
 
+      console.debug('[set_log] result:', data);
+      
       return data;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save set with grips';
