@@ -1,7 +1,7 @@
 // Fitness pages exports
 export { default as FitnessPage } from './Fitness.page';
 export { default as ExercisesPage } from './Exercises.page';
-export { default as WorkoutSessionPage } from './WorkoutSession.page';
+// export { default as WorkoutSessionPage } from './WorkoutSession.page'; // UNUSED - actual route uses /app/workouts/workout-detail.tsx
 export { default as TemplatesPage } from './Templates.page';
 export { default as TemplateEditPage } from './TemplateEdit.page';
 export { default as HistoryPage } from './History.page';

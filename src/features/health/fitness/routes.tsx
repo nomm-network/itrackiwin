@@ -3,10 +3,10 @@ import { Routes, Route } from "react-router-dom";
 
 const FitnessPage = lazy(() => import("./pages/Fitness.page"));
 const ExercisesPage = lazy(() => import("./pages/Exercises.page"));
-const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page"));
+// const WorkoutSessionPage = lazy(() => import("./pages/WorkoutSession.page")); // UNUSED - actual route uses /app/workouts/workout-detail.tsx
 const TemplatesPage = lazy(() => import("./pages/Templates.page"));
 const TemplateEditPage = lazy(() => import("./pages/TemplateEdit.page"));
-const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page"));
+// const WorkoutSessionP = lazy(() => import("./pages/WorkoutSession.page")); // DUPLICATE/UNUSED
 const HistoryPage = lazy(() => import("./pages/History.page"));
 const WorkoutDetailPage = lazy(() => import("./pages/WorkoutDetail.page"));
 
@@ -19,7 +19,7 @@ export const FitnessRoutes = (
   <Routes>
     <Route index element={<FitnessPage />} />
     <Route path="exercises" element={<ExercisesPage />} />
-    <Route path="session/:id" element={<WorkoutSessionPage />} />
+    {/* <Route path="session/:id" element={<WorkoutSessionPage />} /> */} {/* UNUSED - actual route is /app/workouts/:workoutId */}
     <Route path="templates" element={<TemplatesPage />} />
     <Route path="templates/:templateId/edit" element={<TemplateEditPage />} />
     
