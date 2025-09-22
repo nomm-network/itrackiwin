@@ -52,7 +52,7 @@ import { useToast } from '@/hooks/use-toast';
 import PageNav from "@/components/PageNav";
 
 // Import missing SOT hooks and components
-import { useAdvancedSetLogging, useExerciseEstimate, useWarmupSessionState, useWarmupManager } from '../../hooks';
+import { useExerciseEstimate, useWarmupSessionState, useWarmupManager } from '../../hooks';
 import { submitWarmupFeedback } from '../../warmup';
 import { SessionHeaderMeta } from './';
 import { workoutKeys } from '../../api/workouts-api';
@@ -75,7 +75,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const { data: grips = [] } = useGrips();
   const queryClient = useQueryClient();
   const { toast: toastUtils } = useToast();
-  const { logSet: newLogSet, error: setLoggingError, isLoading: setLoggingLoading } = useAdvancedSetLogging();
+  // Simple direct database logging instead of complex hooks
   
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
@@ -356,103 +356,50 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     
     console.log('🔍 Final grip IDs after conversion:', gripIds);
     
-    // Build notes with feel and pain info
-    let notes = setData.notes || '';
-    if (setData.feel) {
-      notes = notes ? `Feel: ${setData.feel}. ${notes}` : `Feel: ${setData.feel}`;
-    }
-    if (setData.pain) {
-      notes = notes ? `${notes}. Pain reported` : 'Pain reported';
-    }
-    
-    // Calculate planned set index (0-based: Set 1 → 0, Set 2 → 1, etc.)
-    const currentSetNumber = (currentExercise?.completed_sets_count || 0) + 1;
-    const plannedSetIndex = currentSetNumber - 1; // Convert to 0-based
-    
-    const payload = {
-      workout_exercise_id: workoutExerciseId,
-      weight: setData.weight || 0,
-      reps: setData.reps || 0,
-      rpe: setData.rpe || 5,
-      notes: notes,
-      is_completed: true,
-      grip_ids: gripIds
-    };
-    
-    console.log('🔍 About to call newLogSet with payload:', {
-      payload,
-      plannedSetIndex,
-      'payload.grip_ids': payload.grip_ids,
-      'payload.grip_ids.length': payload.grip_ids.length
-    });
-    
     try {
-      const result = await newLogSet(payload, plannedSetIndex);
-      
-      // Only update warmup context for working sets (not warmup sets)
-      const isWorkingSet = plannedSetIndex > 0; // Set index 0 and negative are warmup sets
-      
-      if (isWorkingSet) {
-        // Log working set to warmup context for future exercise warm-up planning
-        try {
-          await logWorkingSet(workoutExerciseId);
-          console.log('✅ Logged working set to warmup context');
-        } catch (contextError) {
-          console.error('Failed to log working set to context:', contextError);
-          // Don't block the set logging for context issues
-        }
-      } else {
-        console.log('⏭️ Skipping warmup context update for warmup set');
+      // Use simple direct Supabase insert instead of complex functions
+      const { error } = await supabase
+        .from('workout_sets')
+        .insert({
+          workout_exercise_id: workoutExerciseId,
+          set_index: sets.filter(s => s.is_completed).length, // Count completed sets
+          weight_kg: setData.weight || null,
+          weight: setData.weight || null,
+          weight_unit: 'kg',
+          reps: setData.reps || null,
+          rpe: setData.feel ? FEEL_TO_RPE[setData.feel] : null,
+          notes: setData.notes || null,
+          is_completed: true,
+          completed_at: new Date().toISOString()
+        });
+
+      if (error) {
+        console.error('❌ Failed to log set:', error);
+        toastUtils({
+          title: "Error",
+          description: "Failed to log set. Please try again.",
+          variant: "destructive"
+        });
+        return;
       }
+
+      console.log('✅ Set logged successfully with simple insert');
       
-      // Reset form for next set
-      setCurrentSetData({
-        weight: setData.weight || 0, // Keep weight for next set
-        reps: setData.reps || 0,     // Keep reps for next set
-        rpe: 5,
-        feel: '',
-        notes: '',
-        pain: false
+      // Trigger workout refetch to show the new set
+      queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+      
+      toastUtils({
+        title: "Set Logged",
+        description: `${setData.weight || 0}kg × ${setData.reps || 0} reps`,
       });
-      
-      // Invalidate workout queries to refresh the UI and show the logged set
-      await queryClient.invalidateQueries({ queryKey: ['workouts'] });
-      await queryClient.invalidateQueries({ queryKey: ['workout', workout?.id] });
-      await queryClient.invalidateQueries({ queryKey: ['active-workout'] });
-      
-      toast.success(`Set ${result.action} successfully!`);
-      
-      // Note: Removed window.location.reload() to maintain exercise navigation state
+
     } catch (error) {
-      console.error('Failed to log set:', error);
-      console.error('Full error object:', JSON.stringify(error, null, 2));
-      
-      // Extract detailed error information
-      let errorDetails = 'Unknown error';
-      if (error instanceof Error) {
-        errorDetails = error.message;
-        if ((error as any).details) {
-          errorDetails += ` | Details: ${(error as any).details}`;
-        }
-        if ((error as any).hint) {
-          errorDetails += ` | Hint: ${(error as any).hint}`;
-        }
-        if ((error as any).code) {
-          errorDetails += ` | Code: ${(error as any).code}`;
-        }
-      } else if (typeof error === 'object' && error !== null) {
-        if ((error as any).message) {
-          errorDetails = (error as any).message;
-        }
-        if ((error as any).error_description) {
-          errorDetails += ` | ${(error as any).error_description}`;
-        }
-        errorDetails += ` | Raw: ${JSON.stringify(error)}`;
-      } else {
-        errorDetails = String(error);
-      }
-      
-      toast.error(`SET SAVE FAILED: ${errorDetails}`);
+      console.error('❌ handleSetComplete error:', error);
+      toastUtils({
+        title: "Error",
+        description: "Failed to log set. Please try again.",
+        variant: "destructive"
+      });
     }
   };
 
@@ -798,20 +745,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       </div>
 
       <div className="p-4 pb-24 max-w-md mx-auto">
-        {/* Error Banner - Show detailed error information */}
-        {setLoggingError && (
-          <div className="mb-4 p-4 bg-destructive/10 border border-destructive/20 rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-destructive font-bold text-lg">❌ SET LOGGING FAILED</span>
-            </div>
-            <div className="text-sm text-destructive/90 font-mono bg-destructive/5 p-3 rounded border max-h-40 overflow-y-auto">
-              {setLoggingError}
-            </div>
-            <div className="text-xs text-destructive/70 mt-2">
-              Check console logs for full details. Report this error if it persists.
-            </div>
-          </div>
-        )}
         
         {!workout?.exercises || workout.exercises.length === 0 ? (
           <div className="text-center py-8">
