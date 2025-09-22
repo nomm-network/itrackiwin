@@ -1,3 +1,8 @@
+// v108-SOT — DO NOT DUPLICATE
+if (typeof window !== 'undefined') {
+  console.log('[v108] Mounted: SmartSetForm');
+}
+
 // wf-step1: SmartSetForm router (safe, no DB changes)
 import React from 'react';
 import BodyweightSetForm from './BodyweightSetForm';
@@ -49,54 +54,30 @@ function resolveForm(
   }
 }
 
-const SmartSetForm: React.FC<SmartSetFormProps> = (props) => {
-  const { exercise, workoutExerciseId, setIndex, onLogged, onCancel, className } = props;
-  
-  // Try multiple paths to find effort_mode and load_mode
-  const effort: EffortMode = exercise?.exercise?.effort_mode ?? exercise?.effort_mode ?? 'reps';
-  const load: LoadMode = exercise?.exercise?.load_mode ?? exercise?.load_mode ?? 'none';
+export default function SmartSetForm({ exercise, workoutExerciseId, setIndex, onLogged, onCancel, className }: {
+  exercise: any; workoutExerciseId: string; setIndex: number; onLogged: () => void; onCancel?: () => void; className?: string;
+}) {
+  const effort: EffortMode = exercise?.exercise?.effort_mode ?? exercise?.effort_mode ?? null;
+  const load: LoadMode = exercise?.exercise?.load_mode ?? exercise?.load_mode ?? null;
 
-  const kind = resolveForm(effort, load);
-
-  // Debug logging to see what data we're getting
-  console.log('🔍 SmartSetForm Debug:', {
-    exerciseId: exercise?.exercise_id || exercise?.id,
-    exerciseName: exercise?.exercise?.display_name || exercise?.display_name || 'unknown',
-    effort_mode: effort,
-    load_mode: load,
-    resolvedKind: kind,
-    exercise_object: exercise?.exercise,
-    raw_exercise: exercise
+  console.log('[v108] SmartSetForm.resolve', {
+    exerciseId: exercise?.id,
+    effort_mode: effort, load_mode: load,
+    name: exercise?.display_name || exercise?.exercise?.display_name || exercise?.exercise?.name
   });
 
-  // Set debug flag
-  React.useEffect(() => {
-    if (typeof window !== 'undefined') {
-      (window as any).__WF_STEP__ = 'wf-step1-smart-router';
-    }
-  }, []);
-
-  // Transform props for consistent interface across all forms
-  const baseProps = {
-    workoutExerciseId,
-    exercise: exercise?.exercise || exercise, // flatten if nested
-    setIndex,
-    onLogged: () => {
-      console.log('✅ Set logged successfully');
-      onLogged?.();
-    },
-    onCancel,
-    className
-  };
-
-  if (kind === 'bodyweight') {
-    return <BodyweightSetForm {...baseProps} />;
+  // effort first (time/distance/calories => cardio form)
+  if (effort === 'time' || effort === 'distance' || effort === 'calories') {
+    return <CardioSetForm exercise={exercise} workoutExerciseId={workoutExerciseId} setIndex={setIndex} onLogged={onLogged} onCancel={onCancel} className={className} />;
   }
-  if (kind === 'cardio') {
-    return <CardioSetForm {...baseProps} />;
-  }
-  // Default: keep using your current weight x reps UI
-  return <WeightRepsSetForm {...baseProps} />;
-};
 
-export default SmartSetForm;
+  // reps-based => choose by load_mode
+  if (load === 'bodyweight_plus_optional' || load === 'external_assist') {
+    return <BodyweightSetForm exercise={exercise} workoutExerciseId={workoutExerciseId} setIndex={setIndex} onLogged={onLogged} onCancel={onCancel} className={className} />;
+  }
+
+  // default
+  return <WeightRepsSetForm exercise={exercise} workoutExerciseId={workoutExerciseId} setIndex={setIndex} onLogged={onLogged} onCancel={onCancel} className={className} />;
+}
+
+// removed duplicate export

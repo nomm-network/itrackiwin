@@ -36,7 +36,7 @@ const PersonaDashboard = lazy(() => import('@/pages/PersonaDashboard'));
 const SafeguardTesting = lazy(() => import('@/pages/SafeguardTesting'));
 const SessionRunnerDemo = lazy(() => import('@/pages/SessionRunnerDemo'));
 const PRAnnouncementDemo = lazy(() => import('@/pages/PRAnnouncementDemo'));
-const SetLoggingDemo = lazy(() => import('@/components/workout/SetLoggingDemo'));
+// const SetLoggingDemo = lazy(() => import('@/components/workout/SetLoggingDemo')); // disabled
 const ProgramGeneratorTest = lazy(() => import('@/components/test/ProgramGeneratorTest'));
 const DataQualityReport = lazy(() => import('@/pages/DataQualityReport'));
 const Analytics = lazy(() => import('@/pages/Analytics'));
@@ -258,7 +258,7 @@ export function AppRoutes() {
         <Route path="/safeguard-testing" element={<SafeguardTesting />} />
         <Route path="/session-runner-demo" element={<SessionRunnerDemo />} />
         <Route path="/pr-announcement-demo" element={<PRAnnouncementDemo />} />
-        <Route path="/set-logging-demo" element={<SetLoggingDemo />} />
+        {/* <Route path="/set-logging-demo" element={<SetLoggingDemo />} /> */}
         <Route path="/program-test" element={<ProgramGeneratorTest />} />
         <Route path="/data-quality-report" element={<DataQualityReport />} />
 

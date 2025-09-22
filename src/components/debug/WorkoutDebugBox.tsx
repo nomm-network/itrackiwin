@@ -1,14 +1,29 @@
+// v108-SOT — DO NOT DUPLICATE
+if (typeof window !== 'undefined') {
+  console.log('[v108] Mounted: WorkoutDebugBox');
+}
+
 import React from 'react';
 
-const WorkoutDebugBox: React.FC = () => {
+export default function WorkoutDebugBox({ version, context, data }: {
+  version: string; context: string; data: any
+}) {
+  if (typeof window !== 'undefined') {
+    console.log('[v108] DebugBox', { version, context, data });
+  }
   return (
-    <div className="bg-red-600 text-white p-3 mb-4 rounded-lg font-mono text-sm border-2 border-white">
-      <div className="font-bold text-lg">🐛 DEBUG BOX v108 - FIXED IMPORT</div>
-      <div>Status: ACTIVE AND VISIBLE</div>
-      <div>BodyweightSetForm: Using correct import path</div>
-      <div>SmartSetForm: Fixed duplicate files issue</div>
+    <div style={{
+      position: 'fixed', bottom: 8, left: 8, zIndex: 99999,
+      background: '#B00020', color: '#fff',
+      padding: '8px 10px', borderRadius: 6,
+      fontFamily: 'monospace', fontSize: 12, maxWidth: '92vw', opacity: 0.95
+    }}>
+      <div><strong>DEBUG {version}</strong> — {context}</div>
+      <pre style={{whiteSpace:'pre-wrap', margin: 0}}>
+        {JSON.stringify(data, null, 2)}
+      </pre>
     </div>
   );
-};
+}
 
-export default WorkoutDebugBox;
+// removed duplicate export

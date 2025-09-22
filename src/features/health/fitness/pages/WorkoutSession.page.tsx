@@ -422,7 +422,15 @@ const WorkoutSession: React.FC = () => {
       
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
-        <WorkoutDebugBox />
+        <WorkoutDebugBox
+          version="v108"
+          context="WorkoutSession.page"
+          data={{
+            workoutId: id ?? null,
+            hasData: !!data,
+            routerMounted: true,
+          }}
+        />
         {/* Header with workout clock */}
         <div className="space-y-fluid-xs">
           {/* Current Gym Header */}
