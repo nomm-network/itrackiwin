@@ -417,52 +417,49 @@ const WorkoutSession: React.FC = () => {
   // DEBUG: Log when we reach main workout view
   console.log('🎯 SHOWING MAIN WORKOUT VIEW');
 
-  // === DEBUG STEP 2 (safe) ===
+  // Build a tiny, stable payload for the debug box
   const workoutIdFromUrl =
     (typeof window !== "undefined" && window.location.pathname.split("/").pop()) || null;
 
-  const workoutTitle =
-    (data?.workout?.title ?? data?.workout?.name ?? null);
-
   const exerciseCount =
-    Array.isArray(data?.workout?.exercises) ? data.workout.exercises.length :
-    null;
+    Array.isArray(data?.workout?.exercises)
+      ? data.workout.exercises.length
+      : Array.isArray((data as any)?.exercises)
+      ? (data as any).exercises.length
+      : null;
 
   const sourceHint: "rpc" | "rest" | "unknown" =
-    Array.isArray(data?.workout?.exercises) ? "rpc" : "unknown";
+    Array.isArray(data?.workout?.exercises) ? "rpc" :
+    Array.isArray((data as any)?.exercises) ? "rest" : "unknown";
 
   const debugData = {
+    routerPath:
+      typeof window !== "undefined"
+        ? window.location.pathname + window.location.search
+        : "",
     workoutId: data?.workout?.id ?? workoutIdFromUrl,
     templateId: data?.workout?.template_id ?? null,
     title: data?.workout?.title ?? data?.workout?.name ?? null,
     readiness: data?.workout?.readiness_score ?? null,
     exerciseCount,
-    routerPath: typeof window !== "undefined" ? window.location.pathname + window.location.search : "",
     sourceHint,
-    lastError: null,
-    userId: data?.workout?.user_id ?? null,      // NEW
-    programId: data?.workout?.program_id ?? null, // NEW
-    exercisesPreview: Array.isArray(data?.workout?.exercises)
-      ? data.workout.exercises.map((x: any) => ({
-          id: x.id,
-          exercise_id: x.exercise_id,
-          display_name: x.display_name,
-          order_index: x.order_index
-        }))
-      : null,
+    // peek at current exercise/load_mode for the Dips routing problem
+    peekCurrent:
+      Array.isArray(data?.workout?.exercises) && data.workout.exercises.length
+        ? {
+            id: data.workout.exercises[0].id,
+            load_mode: data.workout.exercises[0]?.exercise?.load_mode ?? null,
+            effort_mode: data.workout.exercises[0]?.exercise?.effort_mode ?? null,
+          }
+        : null,
   };
-  // === /DEBUG STEP 2 ===
 
 
   return (
     <>
+      <WorkoutDebugBox version="v110.0-debug-top-static" data={debugData} />
+
       <PageNav current="Workout Session" />
-      
-      {/* DEBUG first, static block */}
-      <WorkoutDebugBox
-        version="v109.3-debug-static-top"
-        data={debugData}
-      />
       
       <main className="container p-fluid-s space-y-fluid-s pb-safe-area-bottom">
         {/* Header with workout clock */}
