@@ -9,7 +9,7 @@ console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
 // ——— DEBUG v112.0: Legacy mini-menu with warmup/grips/feel ———
-const __DEBUG_VERSION = 'v112.10-ADDED-ERROR-TOASTS-' + Date.now();
+const __DEBUG_VERSION = 'v112.11-DETAILED-ERROR-MSGS-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {

@@ -76,10 +76,23 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         });
       } catch (error) {
         console.error('❌ WeightRepsSetForm: Failed to log set:', error);
+        
+        // Extract detailed error information
+        let errorMessage = 'Unknown error occurred';
+        if (error instanceof Error) {
+          errorMessage = error.message;
+        } else if (typeof error === 'object' && error !== null) {
+          errorMessage = JSON.stringify(error);
+        } else if (typeof error === 'string') {
+          errorMessage = error;
+        }
+        
+        console.error('❌ Full error details:', errorMessage);
+        
         toast({
           variant: "destructive",
           title: "Failed to Log Set",
-          description: error instanceof Error ? error.message : 'Unknown error occurred',
+          description: errorMessage,
         });
         return; // Don't proceed with onLogged if logging failed
       }
@@ -92,9 +105,22 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       onLogged?.();
     } catch (error: any) {
       console.error('❌ WeightRepsSetForm error:', error);
+      
+      // Extract detailed error information for outer catch
+      let errorMessage = 'Unknown error occurred';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null) {
+        errorMessage = JSON.stringify(error);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      console.error('❌ Full outer error details:', errorMessage);
+      
       toast({
         title: "Error",
-        description: `Failed to log set: ${error.message || 'Unknown error'}`,
+        description: `Failed to log set: ${errorMessage}`,
         variant: "destructive"
       });
     }
