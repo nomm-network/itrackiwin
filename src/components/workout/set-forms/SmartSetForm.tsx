@@ -1,6 +1,6 @@
 // wf-step1: SmartSetForm router (safe, no DB changes)
 import React from 'react';
-import BodyweightSetForm from './bodyweight/BodyweightSetForm';
+import BodyweightSetForm from './BodyweightSetForm';
 import CardioSetForm from './cardio/CardioSetForm';
 import WeightRepsSetForm from './WeightRepsSetForm';
 
