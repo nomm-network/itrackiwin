@@ -292,28 +292,18 @@ export const MobileWorkoutSession: React.FC<MobileWorkoutSessionProps> = ({
                   {/* Next set entry */}
                   {!isExerciseComplete && index === currentExerciseIndex && (
                      <div className="space-y-2.5 p-2.5 border-2 border-dashed border-primary/30 rounded-lg">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="outline">Set {nextSetIndex}</Badge>
-                        <span className="text-sm text-muted-foreground">Next up</span>
-                      </div>
-                       
-                        <EnhancedSetEditor
-                          workoutExerciseId={currentExercise.id} // Use the exercise id directly
-                          exercise={{
-                            id: currentExercise.id,
-                            load_type: currentExercise.load_type,
-                            effort_mode: 'reps',
-                            load_mode: 'external_added',
-                            equipment_ref: currentExercise.equipment_ref,
-                            equipment: {
-                              slug: currentExercise.equipment_ref,
-                              equipment_type: undefined
-                            }
-                          }}
-                          setIndex={nextSetIndex - 1}
-                          onLogged={handleAddSet}
-                          className="space-y-2"
-                        />
+                       <div className="flex items-center gap-2">
+                         <Badge variant="outline">Set {nextSetIndex}</Badge>
+                         <span className="text-sm text-muted-foreground">Next up</span>
+                       </div>
+                        
+                         <EnhancedSetEditor
+                           workoutExerciseId={currentExercise.id}
+                           exercise={currentExercise}
+                           setIndex={nextSetIndex - 1}
+                           onLogged={handleAddSet}
+                           className="space-y-2"
+                         />
                     </div>
                   )}
                 </CardContent>

@@ -55,6 +55,7 @@ export default function WorkoutSession({ workout }: WorkoutSessionProps) {
     return (
       <MobileWorkoutSession
         exercises={workout.exercises.map((ex: any) => ({
+          ...ex.exercise, // Include all exercise properties (effort_mode, load_mode, etc.)
           id: ex.id,
           name: ex.exercise_name,
           order_index: ex.order_index || 0,
