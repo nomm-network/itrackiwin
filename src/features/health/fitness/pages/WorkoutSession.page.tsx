@@ -41,7 +41,7 @@ import { useRestTimer } from "@/hooks/useRestTimer";
 import { useWorkoutFlow } from "@/hooks/useWorkoutFlow";
 import { useMyGym } from "@/features/health/fitness/hooks/useMyGym.hook";
 import { Settings, Timer, Trash2 } from "lucide-react";
-import AdaptiveSetForm from "@/components/workout/AdaptiveSetForm";
+import SmartSetForm from "@/components/workout/set-forms/SmartSetForm";
 import { useWarmupManager } from "@/features/workouts/hooks/useWarmupManager";
 
 const useSEO = (titleAddon: string) => {
@@ -556,11 +556,11 @@ const WorkoutSession: React.FC = () => {
                         </div>
                         
                          {/* Add Set Form */}
-                        <AdaptiveSetForm 
-                          exerciseId={ex.id}
-                          onSubmit={(setData) => handleSetSubmit(ex.id, setData)}
-                          isLoading={addSetMut.isPending}
-                          unit={unit}
+                         <SmartSetForm 
+                          workoutExerciseId={ex.id}
+                          exercise={ex}
+                          setIndex={completedSets.length + 1}
+                          onLogged={() => queryClient.invalidateQueries({ queryKey: ['workout', id] })}
                         />
                         
                       </div>
