@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.22: Restore old set display + fix "Log Set 4" bug ———
-const __DEBUG_VERSION = 'v112.22-OLD-STYLE-FIXED-' + Date.now();
+// ——— DEBUG v112.23: EXACT old code restored + completion buttons ———
+const __DEBUG_VERSION = 'v112.23-EXACT-OLD-CODE-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {

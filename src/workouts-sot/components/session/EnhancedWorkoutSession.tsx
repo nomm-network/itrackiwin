@@ -848,92 +848,166 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       </div>
                     )}
                     
-                    {/* Previous Sets Display - OLD STYLE WITH EDIT BUTTONS */}
-                    {sets.length > 0 && (
-                      <div className="space-y-2 mb-4">
-                        {sets.filter(set => set.is_completed).map((set, idx) => (
-                          <Card key={set.id || idx} className="p-3">
-                            <div className="flex items-center justify-between">
-                              <div className="flex items-center gap-3">
-                                <span className="font-medium text-sm">Set</span>
-                                <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
-                                  {(set.set_index ?? idx) + 1}
-                                </Badge>
-                                <span className="font-medium text-sm">
-                                  {set.weight_kg ? `${set.weight_kg}kg` : ''} 
-                                  {set.weight_kg && set.reps ? ' × ' : ''}
-                                  {set.reps ? `${set.reps} reps` : ''}
-                                </span>
-                              </div>
-                              <div className="flex items-center gap-2">
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  className="h-8 w-8 p-0"
-                                  onClick={() => {
-                                    // TODO: Implement edit set functionality
-                                    console.log('Edit set', set);
-                                  }}
-                                >
-                                  ✏️
-                                </Button>
-                                <Badge variant="default" className="text-xs bg-green-500">
-                                  ✓ Done
-                                </Badge>
-                              </div>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
+                    {/* Completed Sets - OLD EXACT CODE */}
+                    {sets.filter(set => set.is_completed).map((set, index) => (
+                      <Card key={set.id || index} className="p-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <span className="font-medium">Set</span>
+                            <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
+                              {(set.set_index ?? index) + 1}
+                            </Badge>
+                            <span className="font-medium">
+                              {set.weight_kg ? `${set.weight_kg}kg` : ''} 
+                              {set.weight_kg && set.reps ? ' × ' : ''}
+                              {set.reps ? `${set.reps} reps` : ''}
+                            </span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-8 w-8 p-0"
+                              onClick={() => {
+                                // TODO: Implement edit set functionality
+                                console.log('Edit set', set);
+                              }}
+                            >
+                              ✏️
+                            </Button>
+                            <Badge variant="default" className="text-xs bg-green-500">
+                              ✓ Done
+                            </Badge>
+                          </div>
+                        </div>
+                      </Card>
+                    ))}
+
+                    {/* Current Set Entry - ONLY show if not complete */}
+                    {completedSetsCount < targetSetsCount && (
+                      <>
+                        <SmartSetForm
+                          exercise={currentExercise}
+                          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                          setIndex={currentSetIndex}
+                          onLogged={async () => {
+                            console.log('✅ Set logged successfully via SOT SmartSetForm');
+                            // Force immediate refetch to update UI
+                            await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                            await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                          }}
+                          className="space-y-4"
+                        />
+                        
+                        {/* 🎯 LEGACY MINI-MENU: Feel Selector - Exact copy from legacy */}
+                        <div className="space-y-2">
+                          <label className="text-sm font-medium">How did that feel?</label>
+                          <div className="grid grid-cols-5 gap-1">
+                            {FEEL_OPTIONS.map((option) => (
+                              <Button
+                                key={option.value}
+                                variant={currentSetFeel === option.value ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => setCurrentSetFeel(option.value)}
+                                className="flex flex-col items-center p-1 min-w-[60px] h-14"
+                              >
+                                <span className="text-lg">{option.emoji}</span>
+                                <span className="text-xs font-medium">{option.value}</span>
+                              </Button>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 🎯 LEGACY MINI-MENU: Pain Toggle - Exact copy from legacy */}
+                        <Button
+                          variant={currentSetPain ? "destructive" : "outline"}
+                          onClick={() => setCurrentSetPain(!currentSetPain)}
+                          className={cn(
+                            "w-full",
+                            currentSetPain 
+                              ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
+                              : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
+                          )}
+                          size="sm"
+                        >
+                          {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
+                        </Button>
+                      </>
                     )}
 
-                    {/* SOT Set Form - Use SmartSetForm directly */}
-                    <SmartSetForm
-                      exercise={currentExercise}
-                      workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                      setIndex={currentSetIndex}
-                      onLogged={async () => {
-                        console.log('✅ Set logged successfully via SOT SmartSetForm');
-                        // Force immediate refetch to update UI
-                        await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
-                        await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
-                      }}
-                      className="space-y-4"
-                    />
-                    
-                    {/* 🎯 LEGACY MINI-MENU: Feel Selector - Exact copy from legacy */}
-                    <div className="space-y-2">
-                      <label className="text-sm font-medium">How did that feel?</label>
-                      <div className="grid grid-cols-5 gap-1">
-                        {FEEL_OPTIONS.map((option) => (
-                          <Button
-                            key={option.value}
-                            variant={currentSetFeel === option.value ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => setCurrentSetFeel(option.value)}
-                            className="flex flex-col items-center p-1 min-w-[60px] h-14"
-                          >
-                            <span className="text-lg">{option.emoji}</span>
-                            <span className="text-xs font-medium">{option.value}</span>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* 🎯 LEGACY MINI-MENU: Pain Toggle - Exact copy from legacy */}
-                    <Button
-                      variant={currentSetPain ? "destructive" : "outline"}
-                      onClick={() => setCurrentSetPain(!currentSetPain)}
-                      className={cn(
-                        "w-full",
-                        currentSetPain 
-                          ? "bg-red-500 text-white hover:bg-red-600 border-red-500" 
-                          : "bg-green-100 text-green-800 border-green-200 hover:bg-green-200 dark:bg-green-900/20 dark:text-green-400 dark:border-green-800 dark:hover:bg-green-900/30"
-                      )}
-                      size="sm"
-                    >
-                      {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
-                    </Button>
+                    {/* Exercise Complete Message - OLD EXACT CODE */}
+                    {completedSetsCount >= targetSetsCount && (
+                      <Card className="border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20">
+                        <CardContent className="pt-6 text-center space-y-4">
+                          <div className="text-2xl">🎉</div>
+                          {currentExercise?.id === workout?.exercises[workout.exercises.length - 1]?.id ? (
+                            <>
+                              <div className="text-lg font-semibold text-green-700">
+                                Congrats. You finished last exercise!
+                              </div>
+                              <div className="text-sm text-green-600">
+                                {completedSetsCount} sets completed
+                              </div>
+                              <div className="space-y-2">
+                                <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
+                                  Finish Workout
+                                </Button>
+                                <Button 
+                                  onClick={() => {
+                                    // TODO: Add extra set functionality
+                                    console.log('Add extra set');
+                                  }} 
+                                  variant="outline" 
+                                  className="w-full" 
+                                  size="lg"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Extra Set
+                                </Button>
+                              </div>
+                            </>
+                          ) : (
+                            <>
+                              <div className="text-lg font-semibold text-green-700">
+                                Exercise Complete!
+                              </div>
+                              <div className="text-sm text-green-600">
+                                {completedSetsCount} sets completed
+                              </div>
+                              <div className="space-y-2">
+                                <Button onClick={() => {
+                                  // Move to next exercise
+                                  const currentIdx = workout.exercises.findIndex((ex: any) => ex.id === currentExercise?.id);
+                                  if (currentIdx < workout.exercises.length - 1) {
+                                    const nextEx = workout.exercises[currentIdx + 1];
+                                    setCurrentExerciseId(nextEx.id);
+                                    try {
+                                      localStorage.setItem(`workout_${workout?.id}_currentExercise`, nextEx.id);
+                                    } catch (error) {
+                                      console.warn('Failed to persist current exercise:', error);
+                                    }
+                                  }
+                                }} className="w-full" size="lg">
+                                  Next Exercise
+                                </Button>
+                                <Button 
+                                  onClick={() => {
+                                    // TODO: Add extra set functionality
+                                    console.log('Add extra set');
+                                  }} 
+                                  variant="outline" 
+                                  className="w-full" 
+                                  size="lg"
+                                >
+                                  <Plus className="h-4 w-4 mr-2" />
+                                  Extra Set
+                                </Button>
+                              </div>
+                            </>
+                          )}
+                        </CardContent>
+                      </Card>
+                    )}
                   </div>
                 </div>
               </>
