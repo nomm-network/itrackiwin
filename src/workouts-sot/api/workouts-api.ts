@@ -108,6 +108,7 @@ export const useGetWorkout = (workoutId?: string) => {
         `)
         .eq('id', workoutId)
         .eq('user_id', user.id)
+        .order('set_index', { foreignTable: 'exercises.sets', ascending: true })
         .maybeSingle();
 
       if (workoutError) throw workoutError;
@@ -143,7 +144,8 @@ export const useGetWorkout = (workoutId?: string) => {
       
       return workoutData;
     },
-    staleTime: 30_000,
+    staleTime: 0, // CRITICAL: Allow immediate refetch after set logging
+    refetchOnWindowFocus: false,
   });
 };
 

@@ -189,8 +189,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
   const { data: currentExerciseEstimate } = useExerciseEstimate(currentExerciseEstimateId, 'rm10');
 
-  // Calculate sets data early so it can be used in useEffect
-  const sets = currentExercise?.sets || [];
+  // Calculate sets data early so it can be used in useEffect - ALWAYS SORT BY set_index
+  const sets = useMemo(() => {
+    const rawSets = currentExercise?.sets || [];
+    return [...rawSets].sort((a, b) => (a.set_index ?? 0) - (b.set_index ?? 0));
+  }, [currentExercise?.sets]);
+  
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   
 

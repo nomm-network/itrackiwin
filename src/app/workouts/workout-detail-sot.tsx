@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.17: Force refetch after set logging to update UI ———
-const __DEBUG_VERSION = 'v112.17-FORCE-REFETCH-' + Date.now();
+// ——— DEBUG v112.19: Zero staleTime + sort sets by set_index ———
+const __DEBUG_VERSION = 'v112.19-SORTED-SETS-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
