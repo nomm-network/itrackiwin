@@ -25,6 +25,7 @@ import { useNavigate } from 'react-router-dom';
 import ExerciseCard from './shim-ExerciseCard';
 import { SmartSetForm } from '../sets';
 import { SetFeelSelector } from '@/features/health/fitness/components/SetFeelSelector';
+import { SetPrevTargetDisplay } from '@/features/health/fitness/components/SetPrevTargetDisplay';
 import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor';
 import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
 import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
@@ -909,8 +910,34 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
                     {/* Current Set Entry - ONLY show if not complete */}
                     {completedSetsCount < targetSetsCount && (
-                      <>
-                        <SmartSetForm
+                      <Card className="p-4 border-primary/20 bg-primary/5">
+                        <div className="space-y-4">
+                          {/* Set X Current Set Title - EXACT OLD CODE */}
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">Set</span>
+                              <Badge className="w-8 h-8 rounded-full flex items-center justify-center">
+                                {currentSetIndex + 1}
+                              </Badge>
+                              <span className="font-medium">Current Set</span>
+                            </div>
+                          </div>
+
+                          {/* Previous Set and Target Display - EXACT OLD CODE */}
+                          <SetPrevTargetDisplay
+                            userId={user?.id}
+                            exerciseId={currentExercise?.exercise_id}
+                            setIndex={currentSetIndex}
+                            templateTargetReps={currentExercise?.target_reps}
+                            templateTargetWeight={currentExercise?.target_weight}
+                            currentSetNumber={currentSetIndex + 1}
+                            onApplyTarget={(weight, reps) => {
+                              console.log('🎯 Applying target from SetPrevTargetDisplay:', { weight, reps });
+                              setCurrentSetData(prev => ({ ...prev, weight, reps }));
+                            }}
+                          />
+
+                          <SmartSetForm
                           exercise={currentExercise}
                           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                           setIndex={currentSetIndex}
@@ -956,7 +983,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         >
                           {currentSetPain ? '⚠ Pain reported 🔄' : '🔄 No pain 💢'}
                         </Button>
-                      </>
+                        </div>
+                      </Card>
                     )}
 
                     {/* Exercise Complete Message - OLD EXACT CODE */}
