@@ -37,6 +37,7 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
+import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 import { cn } from '@/lib/utils';
 // import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession'; // REMOVED - using SOT components directly
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
@@ -374,10 +375,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         });
 
       if (error) {
-        console.error('❌ Failed to log set:', error);
+        console.error('❌ Failed to log set - FULL ERROR DETAILS:', error);
+        console.error('❌ Error code:', error.code);
+        console.error('❌ Error message:', error.message);
+        console.error('❌ Error details:', error.details);
+        console.error('❌ Error hint:', error.hint);
+        console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+        
+        const errorMsg = buildSupabaseErrorMessage(error, 'Set Logging');
         toastUtils({
-          title: "Error",
-          description: "Failed to log set. Please try again.",
+          title: "Set Save Failed",
+          description: errorMsg,
           variant: "destructive"
         });
         return;
@@ -394,10 +402,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       });
 
     } catch (error) {
-      console.error('❌ handleSetComplete error:', error);
+      console.error('❌ handleSetComplete CATCH ERROR - FULL DETAILS:', error);
+      console.error('❌ Error type:', typeof error);
+      console.error('❌ Error constructor:', error?.constructor?.name);
+      console.error('❌ Full error object:', JSON.stringify(error, null, 2));
+      
+      const errorMsg = buildSupabaseErrorMessage(error, 'Set Logging - Catch Block');
       toastUtils({
-        title: "Error",
-        description: "Failed to log set. Please try again.",
+        title: "Set Save Failed",
+        description: errorMsg,
         variant: "destructive"
       });
     }
