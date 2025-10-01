@@ -103,8 +103,9 @@ export function SetPrevTargetDisplay({
                 <span>
                   Prev&nbsp;
                   <strong>
-                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0} {feelEmoji(parseFeelFromNotes(last.notes))}
+                    {(last.weight ?? 0).toFixed(0)}kg × {last.reps ?? 0}
                   </strong>
+                  &nbsp;{feelEmoji(parseFeelFromNotes(last.notes))}
                 </span>
               )}
             </div>
@@ -125,6 +126,13 @@ export function SetPrevTargetDisplay({
               <RestTimer />
             </div>
           )}
+        </div>
+      )}
+      
+      {/* Debug info to understand target calculation */}
+      {last && (
+        <div className="mt-2 text-xs text-muted-foreground font-mono">
+          Debug: Last={last.weight}kg×{last.reps} → Target={target.weight}kg×{target.reps} | Feel={parseFeelFromNotes(last.notes) || 'none'}
         </div>
       )}
     </div>

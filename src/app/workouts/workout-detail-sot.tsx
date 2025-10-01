@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.26: Renamed unused files with old-UNUSED prefix ———
-const __DEBUG_VERSION = 'v112.26-CLEANUP-' + Date.now();
+// ——— DEBUG v112.27: Fixed rest timer start + investigating low targets ———
+const __DEBUG_VERSION = 'v112.27-TIMER-FIX-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {

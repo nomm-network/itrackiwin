@@ -82,8 +82,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Use proper auth hook - no race conditions
   const { user, loading: authLoading } = useAuth();
   
-  // Session timing for workout tracking
-  const { startSession } = useSessionTiming();
+  // Session timing for workout tracking and rest timer
+  const { startSession, startRest, stopRest, restStartedAt } = useSessionTiming();
 
   // Robust readiness check using the auth hook
   const { data: shouldShowReadiness, isLoading: isCheckingReadiness } = useShouldShowReadiness(workout?.id, user?.id);
@@ -432,6 +432,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       }
 
       console.log('✅ Set logged successfully with simple insert');
+      
+      // Start rest timer after logging set (except for last set of exercise)
+      const completedSetsCount = (workout?.exercises?.find((ex: any) => ex.id === currentExerciseId)?.sets?.length || 0) + 1;
+      const targetSetsCount = workout?.exercises?.find((ex: any) => ex.id === currentExerciseId)?.target_sets || 3;
+      
+      if (completedSetsCount < targetSetsCount) {
+        console.log('🕐 Starting rest timer after set completion');
+        startRest();
+      } else {
+        console.log('🕐 Last set - not starting rest timer');
+        stopRest();
+      }
       
       // Force immediate refetch to update UI with new set
       await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
