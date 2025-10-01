@@ -133,6 +133,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const [currentSetPain, setCurrentSetPain] = useState<boolean>(false);
   const [showWarmup, setShowWarmup] = useState(false);
   
+  // Edit set state
+  const [editingSetIndex, setEditingSetIndex] = useState<number | null>(null);
+  const [editSetData, setEditSetData] = useState<any>(null);
+  
   // Set input state - always show for current set
   const [currentSetData, setCurrentSetData] = useState({
     weight: 0,
@@ -198,7 +202,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   
 
-  // Check if warmup feedback was already given when exercise changes
+  // Check if warmup feedback was already given AND auto-open if not
   useEffect(() => {
     const checkWarmupFeedback = async () => {
       if (currentExercise) {
@@ -209,16 +213,23 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           .eq('id', weId)
           .maybeSingle();
         
-        // Only hide warmup if feedback was explicitly given
-        if (data?.warmup_feedback && data?.warmup_feedback_at) {
-          setWarmupCompleted(true);
+        const hasGivenFeedback = data?.warmup_feedback && data?.warmup_feedback_at;
+        
+        // Set warmup completed state
+        setWarmupCompleted(!!hasGivenFeedback);
+        
+        // Auto-open warmup if:
+        // 1. No feedback has been given yet
+        // 2. No sets have been completed yet
+        if (!hasGivenFeedback && completedSetsCount === 0) {
+          setShowWarmup(true);
         } else {
-          setWarmupCompleted(false);
+          setShowWarmup(false);
         }
       }
     };
     checkWarmupFeedback();
-  }, [currentExercise]);
+  }, [currentExercise, completedSetsCount]);
 
   // Trigger warmup display immediately when exercise loads (before any sets)
   useEffect(() => {
@@ -842,46 +853,59 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         <WarmupBlock
                           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                           existingFeedback={null}
-                          onFeedbackGiven={() => console.log('Warmup feedback given')}
+                          onFeedbackGiven={async () => {
+                            console.log('Warmup feedback given');
+                            setShowWarmup(false);
+                            setWarmupCompleted(true);
+                            // Refetch to update UI
+                            await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                          }}
                           onClose={() => setShowWarmup(false)}
                         />
                       </div>
                     )}
                     
-                    {/* Completed Sets - OLD EXACT CODE */}
-                    {sets.filter(set => set.is_completed).map((set, index) => (
-                      <Card key={set.id || index} className="p-3">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <span className="font-medium">Set</span>
-                            <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
-                              {(set.set_index ?? index) + 1}
-                            </Badge>
-                            <span className="font-medium">
-                              {set.weight_kg ? `${set.weight_kg}kg` : ''} 
-                              {set.weight_kg && set.reps ? ' × ' : ''}
-                              {set.reps ? `${set.reps} reps` : ''}
-                            </span>
+                    {/* Completed Sets - with proper weight display and edit dialog */}
+                    {sets.filter(set => set.is_completed).map((set, index) => {
+                      const displayWeight = set.weight_kg || set.weight || 0;
+                      return (
+                        <Card key={set.id || index} className="p-3">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              <span className="font-medium">Set</span>
+                              <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
+                                {(set.set_index ?? index) + 1}
+                              </Badge>
+                              <span className="font-medium">
+                                {displayWeight > 0 ? `${displayWeight}kg` : ''} 
+                                {displayWeight > 0 && set.reps ? ' × ' : ''}
+                                {set.reps ? `${set.reps} reps` : ''}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="h-8 w-8 p-0"
+                                onClick={() => {
+                                  setEditingSetIndex(index);
+                                  setEditSetData({
+                                    weight: displayWeight,
+                                    reps: set.reps || 0,
+                                    setId: set.id
+                                  });
+                                }}
+                              >
+                                ✏️
+                              </Button>
+                              <Badge variant="default" className="text-xs bg-green-500">
+                                ✓ Done
+                              </Badge>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="h-8 w-8 p-0"
-                              onClick={() => {
-                                // TODO: Implement edit set functionality
-                                console.log('Edit set', set);
-                              }}
-                            >
-                              ✏️
-                            </Button>
-                            <Badge variant="default" className="text-xs bg-green-500">
-                              ✓ Done
-                            </Badge>
-                          </div>
-                        </div>
-                      </Card>
-                    ))}
+                        </Card>
+                      );
+                    })}
 
                     {/* Current Set Entry - ONLY show if not complete */}
                     {completedSetsCount < targetSetsCount && (
@@ -1090,6 +1114,119 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Set Dialog */}
+      {editingSetIndex !== null && editSetData && (
+        <Dialog open={true} onOpenChange={() => {
+          setEditingSetIndex(null);
+          setEditSetData(null);
+        }}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Edit Set {editingSetIndex + 1}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 p-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Weight (kg)</label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditSetData((prev: any) => ({ ...prev, weight: Math.max(0, prev.weight - 2.5) }))}
+                  >
+                    -2.5
+                  </Button>
+                  <input
+                    type="number"
+                    className="flex-1 px-3 py-2 border rounded-md"
+                    value={editSetData.weight || ''}
+                    onChange={(e) => setEditSetData((prev: any) => ({ ...prev, weight: parseFloat(e.target.value) || 0 }))}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditSetData((prev: any) => ({ ...prev, weight: prev.weight + 2.5 }))}
+                  >
+                    +2.5
+                  </Button>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Reps</label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditSetData((prev: any) => ({ ...prev, reps: Math.max(0, prev.reps - 1) }))}
+                  >
+                    -1
+                  </Button>
+                  <input
+                    type="number"
+                    className="flex-1 px-3 py-2 border rounded-md"
+                    value={editSetData.reps || ''}
+                    onChange={(e) => setEditSetData((prev: any) => ({ ...prev, reps: parseInt(e.target.value) || 0 }))}
+                  />
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setEditSetData((prev: any) => ({ ...prev, reps: prev.reps + 1 }))}
+                  >
+                    +1
+                  </Button>
+                </div>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  variant="outline"
+                  className="flex-1"
+                  onClick={() => {
+                    setEditingSetIndex(null);
+                    setEditSetData(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  className="flex-1"
+                  onClick={async () => {
+                    try {
+                      // Update the set using Supabase
+                      const { error } = await supabase
+                        .from('workout_sets')
+                        .update({
+                          weight_kg: editSetData.weight,
+                          weight: editSetData.weight,
+                          reps: editSetData.reps
+                        })
+                        .eq('id', editSetData.setId);
+
+                      if (error) throw error;
+
+                      toast.success('Set updated successfully');
+                      
+                      // Refetch workout data
+                      await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                      await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                      
+                      // Close dialog
+                      setEditingSetIndex(null);
+                      setEditSetData(null);
+                    } catch (error) {
+                      console.error('Failed to update set:', error);
+                      toast.error('Failed to update set');
+                    }
+                  }}
+                >
+                  Save
+                </Button>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
 
       {/* Debug Area */}
       <div className="mt-8 p-4 bg-muted rounded-lg">

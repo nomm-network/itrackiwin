@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.23: EXACT old code restored + completion buttons ———
-const __DEBUG_VERSION = 'v112.23-EXACT-OLD-CODE-' + Date.now();
+// ——— DEBUG v112.24: Fixed weight display, working edit, auto-open warmup ———
+const __DEBUG_VERSION = 'v112.24-ALL-FIXED-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
