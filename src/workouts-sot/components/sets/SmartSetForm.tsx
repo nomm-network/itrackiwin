@@ -23,9 +23,10 @@ type Props = {
   className?: string;
   targetWeight?: number;
   targetReps?: number;
+  feel?: string;
 };
 
-export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1, onLogged, className, targetWeight, targetReps }: Props) {
+export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1, onLogged, className, targetWeight, targetReps, feel }: Props) {
   // Mount debug
   React.useEffect(() => {
     console.log('[v108] Mounted: SmartSetForm');
@@ -55,6 +56,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
         className={className}
         targetWeight={targetWeight}
         targetReps={targetReps}
+        feel={feel}
       />
     );
   }
@@ -89,6 +91,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
           className={className}
           targetWeight={targetWeight}
           targetReps={targetReps}
+          feel={feel}
         />
       );
   }

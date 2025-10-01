@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.29: Fixed rest timer start + auto-populate form fields ———
-const __DEBUG_VERSION = 'v112.29-TIMER-AUTOPOP-' + Date.now();
+// ——— DEBUG v112.30: Fixed Feel icon display in set history ———
+const __DEBUG_VERSION = 'v112.30-FEEL-SAVE-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {

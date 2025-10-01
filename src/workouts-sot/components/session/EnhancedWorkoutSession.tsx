@@ -962,6 +962,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           setIndex={currentSetIndex}
                           targetWeight={currentSetData.weight}
                           targetReps={currentSetData.reps}
+                          feel={currentSetFeel}
                           onLogged={async () => {
                             console.log('✅ Set logged successfully via SOT SmartSetForm');
                             
@@ -971,6 +972,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                               console.log('🕐 Starting rest timer after set completion');
                               startRest();
                             }
+                            
+                            // Reset feel after logging
+                            setCurrentSetFeel(undefined);
+                            setCurrentSetPain(false);
                             
                             // Force immediate refetch to update UI
                             await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });

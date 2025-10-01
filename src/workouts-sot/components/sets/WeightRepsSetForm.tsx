@@ -15,6 +15,7 @@ import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 interface WeightRepsSetFormProps extends BaseSetFormProps {
   targetWeight?: number;
   targetReps?: number;
+  feel?: string;
 }
 
 const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
@@ -25,7 +26,8 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   onCancel,
   className,
   targetWeight,
-  targetReps
+  targetReps,
+  feel
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
@@ -65,13 +67,19 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       return;
     }
 
+    // Format notes with Feel if provided
+    let finalNotes = notes || '';
+    if (feel) {
+      finalNotes = `Feel: ${feel}${finalNotes ? ` | ${finalNotes}` : ''}`;
+    }
+
     const setData = {
       workout_exercise_id: workoutExerciseId,
       weight: weight ? Number(weight) : undefined,
       weight_unit: weight ? 'kg' : undefined,
       reps: Number(reps),
       rpe: rpe ? Number(rpe) : undefined,
-      notes: notes || undefined,
+      notes: finalNotes || undefined,
       is_completed: true
     };
 
