@@ -360,17 +360,25 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     try {
       console.log('✅ Logging set for exercise:', workoutExerciseId);
       console.log('✅ Set data:', setData);
-      console.log('✅ Existing sets:', sets);
 
-      // Get the next set_index by finding max existing set_index
-      const maxSetIndex = sets.length > 0 
-        ? Math.max(...sets.map(s => s.set_index ?? -1))
-        : -1;
-      const nextSetIndex = maxSetIndex + 1;
+      // Query database directly for current MAX set_index to avoid race conditions
+      const { data: maxSetData, error: maxError } = await supabase
+        .from('workout_sets')
+        .select('set_index')
+        .eq('workout_exercise_id', workoutExerciseId)
+        .order('set_index', { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      console.log('✅ Max set index:', maxSetIndex, '→ Next set index:', nextSetIndex);
+      if (maxError) {
+        console.error('❌ Error getting max set_index:', maxError);
+        throw maxError;
+      }
 
-      // Use simple direct Supabase insert instead of complex functions
+      const nextSetIndex = (maxSetData?.set_index ?? -1) + 1;
+      console.log('✅ Current max from DB:', maxSetData?.set_index, '→ Next set index:', nextSetIndex);
+
+      // Use simple direct Supabase insert
       const { error } = await supabase
         .from('workout_sets')
         .insert({
