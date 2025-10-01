@@ -960,8 +960,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           exercise={currentExercise}
                           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                           setIndex={currentSetIndex}
+                          targetWeight={currentSetData.weight}
+                          targetReps={currentSetData.reps}
                           onLogged={async () => {
                             console.log('✅ Set logged successfully via SOT SmartSetForm');
+                            
+                            // Start rest timer if not the last set
+                            const newCompletedCount = completedSetsCount + 1;
+                            if (newCompletedCount < targetSetsCount) {
+                              console.log('🕐 Starting rest timer after set completion');
+                              startRest();
+                            }
+                            
                             // Force immediate refetch to update UI
                             await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
                             await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });

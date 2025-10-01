@@ -12,7 +12,10 @@ import { useToast } from '@/hooks/use-toast';
 import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
 
-interface WeightRepsSetFormProps extends BaseSetFormProps {}
+interface WeightRepsSetFormProps extends BaseSetFormProps {
+  targetWeight?: number;
+  targetReps?: number;
+}
 
 const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   workoutExerciseId,
@@ -20,15 +23,23 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   setIndex,
   onLogged,
   onCancel,
-  className
+  className,
+  targetWeight,
+  targetReps
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
   const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
   
-  // Weight & reps specific fields
-  const [reps, setReps] = useState<number | ''>('');
-  const [weight, setWeight] = useState<number | ''>('');
+  // Weight & reps specific fields - initialize with target values if available
+  const [reps, setReps] = useState<number | ''>(targetReps || '');
+  const [weight, setWeight] = useState<number | ''>(targetWeight || '');
+
+  // Update form when target values change
+  React.useEffect(() => {
+    if (targetWeight !== undefined) setWeight(targetWeight);
+    if (targetReps !== undefined) setReps(targetReps);
+  }, [targetWeight, targetReps]);
   
   const { rpe, notes, restSeconds } = baseState;
   const loadMode = exercise.load_mode;
