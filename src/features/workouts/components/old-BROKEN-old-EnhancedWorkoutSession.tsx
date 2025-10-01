@@ -37,7 +37,7 @@ import { toast } from 'sonner';
 import { useExerciseTranslation } from '@/hooks/useExerciseTranslations';
 import { useGrips, getGripIdByName } from '@/hooks/useGrips';
 import { sanitizeUuid, isUuid } from '@/utils/ids';
-import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession';
+// import ImprovedWorkoutSession from '@/components/fitness/old-UNUSED-ImprovedWorkoutSession'; // UNUSED
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../utils/exerciseName';
 import { useAdvancedSetLogging } from '../hooks/useAdvancedSetLogging';
@@ -817,78 +817,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             {currentExercise && (
               <>
                 {/* SESSION-LEVEL WARMUP REMOVED - warmup only shows in exercise cards */}
-                <ImprovedWorkoutSession
-                exercise={{
-                  id: currentExercise.id,
-                  workout_exercise_id: resolveWorkoutExerciseId(currentExercise),
-                  name: getExerciseName(),
-                  target_sets: currentExercise.target_sets || 3,
-                  completed_sets: sets
-                    .filter((set: any) => set.is_completed)
-                    .sort((a: any, b: any) => (a.set_index || 0) - (b.set_index || 0)),
-                  load_type: currentExercise?.exercise?.load_type || currentExercise?.load_type,
-                  equipment_ref: (() => {
-                    const equipRef = getEquipmentRefId(currentExercise);
-                    console.log('🚨 RED DEBUG - Equipment Ref being passed:', {
-                      equipRef,
-                      currentExercise,
-                      currentExerciseKeys: Object.keys(currentExercise || {})
-                    });
-                    return equipRef;
-                  })()
-                }}
-                userId={userId}
-                exerciseId={currentExercise?.exercise_id}
-                templateTargetReps={currentExercise?.target_reps}
-                templateTargetWeight={currentExercise?.target_weight_kg || currentExerciseEstimate?.estimated_weight}
-                isLastExercise={(workout?.exercises?.findIndex((x: any) => x.id === currentExerciseId) ?? 0) === totalExercises - 1}
-                onSetComplete={(setData) => {
-                  // Hide warmup when first set is completed
-                  setWarmupCompleted(true);
-                  const weId = resolveWorkoutExerciseId(currentExercise);
-                  handleSetComplete(weId, setData);
-                }}
-                onExerciseComplete={() => {
-                  // Reset warmup for next exercise
-                  setWarmupCompleted(false);
-                  setHasExistingWarmupData(false);
-                  handleExerciseComplete(currentExercise.id);
-                }}
-                onFinishWorkout={handleWorkoutComplete}
-                onAddExtraSet={() => {
-                  const weId = resolveWorkoutExerciseId(currentExercise);
-                  handleSetComplete(weId, {
-                    weight: 0,
-                    reps: 0,
-                    rpe: 5,
-                    feel: '',
-                    pain: false,
-                    notes: '',
-                    is_completed: false
-                  });
-                }}
-                onUpdateSet={(setIndex, setData) => {
-                  // Find the set to update by index
-                  const setToUpdate = sets[setIndex];
-                  if (setToUpdate?.id) {
-                    updateSet({
-                      setId: setToUpdate.id,
-                      weight: setData.weight,
-                      reps: setData.reps,
-                      notes: setData.notes
-                    }, {
-                      onSuccess: () => {
-                        toast.success('Set updated successfully!');
-                      },
-                      onError: (error) => {
-                        console.error('Failed to update set:', error);
-                        toast.error(`Failed to update set: ${error.message}`);
-                      }
-                    });
-                  }
-                }}
-                unit="kg"
-                />
+                {/* BROKEN - ImprovedWorkoutSession component removed - this file is UNUSED */}
+                <div className="p-4 text-center text-red-500">
+                  This file is BROKEN and UNUSED. Use src/workouts-sot/components/session/EnhancedWorkoutSession.tsx instead.
+                </div>
               </>
             )}
 

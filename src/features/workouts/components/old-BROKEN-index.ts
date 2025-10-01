@@ -6,4 +6,4 @@ export { default as TrainingLauncher } from '@/workouts-sot/components/session/T
 export { default as SetRow } from './SetRow';
 export { default as ExerciseCard } from './ExerciseCard';
 export { default as StartOrContinue } from './StartOrContinue';
-export { default as WorkoutSession } from './WorkoutSession';
+// export { default as WorkoutSession } from './old-UNUSED-WorkoutSession'; // UNUSED

@@ -1,5 +1,5 @@
 // Workouts UI components
-export { default as WorkoutSession } from '../components/WorkoutSession';
+// export { default as WorkoutSession } from '../components/old-UNUSED-WorkoutSession'; // UNUSED
 export { default as ExerciseCard } from '../components/ExerciseCard';
 export { default as SetRow } from '../components/SetRow';
 export { default as TrainingLauncher } from '@/workouts-sot/components/session/TrainingLauncher';
