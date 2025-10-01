@@ -413,8 +413,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
       console.log('✅ Set logged successfully with simple insert');
       
-      // Trigger workout refetch to show the new set
-      queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+      // Force immediate refetch to update UI with new set
+      await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+      await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
       
       toastUtils({
         title: "Set Logged",
@@ -844,10 +845,11 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       exercise={currentExercise}
                       workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                       setIndex={currentSetIndex}
-                      onLogged={() => {
+                      onLogged={async () => {
                         console.log('✅ Set logged successfully via SOT SmartSetForm');
-                        // Trigger workout refetch
-                        queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                        // Force immediate refetch to update UI
+                        await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                        await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
                         
                         // Call the main set completion handler
                         handleSetComplete(resolveWorkoutExerciseId(currentExercise), {

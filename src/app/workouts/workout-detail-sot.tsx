@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.16: Query DB directly for MAX set_index to avoid race conditions ———
-const __DEBUG_VERSION = 'v112.16-DB-QUERY-MAX-INDEX-' + Date.now();
+// ——— DEBUG v112.17: Force refetch after set logging to update UI ———
+const __DEBUG_VERSION = 'v112.17-FORCE-REFETCH-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
