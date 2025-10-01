@@ -885,16 +885,6 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         // Force immediate refetch to update UI
                         await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
                         await queryClient.refetchQueries({ queryKey: workoutKeys.byId(workout?.id) });
-                        
-                        // Call the main set completion handler
-                        handleSetComplete(resolveWorkoutExerciseId(currentExercise), {
-                          weight: 0,
-                          reps: 0,
-                          feel: currentSetFeel,
-                          pain: currentSetPain,
-                          notes: '',
-                          is_completed: true
-                        });
                       }}
                       className="space-y-4"
                     />
