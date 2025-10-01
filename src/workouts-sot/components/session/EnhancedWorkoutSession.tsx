@@ -434,14 +434,17 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       console.log('✅ Set logged successfully with simple insert');
       
       // Start rest timer after logging set (except for last set of exercise)
-      const completedSetsCount = (workout?.exercises?.find((ex: any) => ex.id === currentExerciseId)?.sets?.length || 0) + 1;
-      const targetSetsCount = workout?.exercises?.find((ex: any) => ex.id === currentExerciseId)?.target_sets || 3;
+      // Use the already-calculated completedSetsCount and add 1 for the set we just logged
+      const newCompletedCount = completedSetsCount + 1;
+      const targetCount = currentExercise?.target_sets || 3;
       
-      if (completedSetsCount < targetSetsCount) {
+      console.log('🕐 Rest timer check:', { newCompletedCount, targetCount });
+      
+      if (newCompletedCount < targetCount) {
         console.log('🕐 Starting rest timer after set completion');
         startRest();
       } else {
-        console.log('🕐 Last set - not starting rest timer');
+        console.log('🕐 Last set - stopping rest timer');
         stopRest();
       }
       
@@ -881,6 +884,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     {/* Completed Sets - with proper weight display and edit dialog */}
                     {sets.filter(set => set.is_completed).map((set, index) => {
                       const displayWeight = set.weight_kg || set.weight || 0;
+                      const feel = set.notes?.match(/Feel:\s*(--|-|=|\+|\+\+)/)?.[1];
                       return (
                         <Card key={set.id || index} className="p-3">
                           <div className="flex items-center justify-between">
@@ -893,6 +897,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                                 {displayWeight > 0 ? `${displayWeight}kg` : ''} 
                                 {displayWeight > 0 && set.reps ? ' × ' : ''}
                                 {set.reps ? `${set.reps} reps` : ''}
+                                {feel && ` ${FEEL_OPTIONS.find(opt => opt.value === feel)?.emoji || ''}`}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
