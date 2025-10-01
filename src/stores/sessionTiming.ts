@@ -24,8 +24,8 @@ export const useSessionTiming = create<SessionTiming & {
       startSession: () => set({ sessionStartedAt: Date.now() }),
 
       startRest: () => {
-        const { restStartedAt } = get();
-        if (!restStartedAt) set({ restStartedAt: Date.now() });
+        // Always reset the timer when starting a new rest period
+        set({ restStartedAt: Date.now() });
       },
 
       stopRest: () => {

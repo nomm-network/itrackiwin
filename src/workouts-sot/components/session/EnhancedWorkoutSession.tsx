@@ -30,6 +30,7 @@ import { WarmupEditor } from '@/features/health/fitness/components/WarmupEditor'
 import { WorkoutRecalibration } from '@/features/health/fitness/components/WorkoutRecalibration';
 import { GymConstraintsFilter } from '@/features/health/fitness/components/GymConstraintsFilter';
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
+import { feelEmoji, parseFeelFromNotes } from '@/features/workouts/utils/feel';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
 import { useLogSet, useUpdateSet } from '../../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
@@ -884,7 +885,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     {/* Completed Sets - with proper weight display and edit dialog */}
                     {sets.filter(set => set.is_completed).map((set, index) => {
                       const displayWeight = set.weight_kg || set.weight || 0;
-                      const feel = set.notes?.match(/Feel:\s*(--|-|=|\+|\+\+)/)?.[1];
+                      const feel = parseFeelFromNotes(set.notes);
+                      const emoji = feelEmoji(feel);
                       return (
                         <Card key={set.id || index} className="p-3">
                           <div className="flex items-center justify-between">
@@ -897,7 +899,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                                 {displayWeight > 0 ? `${displayWeight}kg` : ''} 
                                 {displayWeight > 0 && set.reps ? ' × ' : ''}
                                 {set.reps ? `${set.reps} reps` : ''}
-                                {feel && ` ${FEEL_OPTIONS.find(opt => opt.value === feel)?.emoji || ''}`}
+                                {emoji && ` ${emoji}`}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">
