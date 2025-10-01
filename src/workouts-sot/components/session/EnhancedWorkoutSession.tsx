@@ -312,7 +312,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     return `Exercise ${exerciseId?.slice(0, 8) || 'Unknown'}`;
   };
   
-  const targetSetsCount = sets.length || 3;
+  const targetSetsCount = currentExercise?.target_sets || 3;
   const currentSetNumber = completedSetsCount + 1;
   
   // Find current set index (first non-completed set)
@@ -844,6 +844,37 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       </div>
                     )}
                     
+                    {/* Previous Sets Display */}
+                    {sets.length > 0 && (
+                      <div className="space-y-2 mb-4">
+                        <div className="text-sm font-medium text-muted-foreground">Previous Sets</div>
+                        {sets.filter(set => set.is_completed).map((set, idx) => (
+                          <div key={set.id || idx} className="flex items-center justify-between p-3 rounded-lg border bg-muted">
+                            <div className="flex items-center gap-3">
+                              <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center text-xs">
+                                {(set.set_index ?? idx) + 1}
+                              </Badge>
+                              <div className="flex items-center gap-2">
+                                {set.weight_kg && (
+                                  <span className="text-sm font-medium">
+                                    {set.weight_kg}kg
+                                  </span>
+                                )}
+                                {set.reps && (
+                                  <span className="text-sm text-muted-foreground">
+                                    × {set.reps} reps
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            <Badge variant="default" className="text-xs">
+                              ✓ Done
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
                     {/* SOT Set Form - Use SmartSetForm directly */}
                     <SmartSetForm
                       exercise={currentExercise}
