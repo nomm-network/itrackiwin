@@ -358,12 +358,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     console.log('🔍 Final grip IDs after conversion:', gripIds);
     
     try {
+      console.log('✅ Logging set for exercise:', workoutExerciseId);
+      console.log('✅ Set data:', setData);
+      console.log('✅ Existing sets:', sets);
+
+      // Get the next set_index by finding max existing set_index
+      const maxSetIndex = sets.length > 0 
+        ? Math.max(...sets.map(s => s.set_index ?? -1))
+        : -1;
+      const nextSetIndex = maxSetIndex + 1;
+
+      console.log('✅ Max set index:', maxSetIndex, '→ Next set index:', nextSetIndex);
+
       // Use simple direct Supabase insert instead of complex functions
       const { error } = await supabase
         .from('workout_sets')
         .insert({
           workout_exercise_id: workoutExerciseId,
-          set_index: sets.filter(s => s.is_completed).length, // Count completed sets
+          set_index: nextSetIndex,
           weight_kg: setData.weight || null,
           weight: setData.weight || null,
           weight_unit: 'kg',

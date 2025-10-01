@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v112.14: Explicit error logging with full Supabase error details ———
-const __DEBUG_VERSION = 'v112.14-EXPLICIT-ERROR-LOGGING-' + Date.now();
+// ——— DEBUG v112.15: Fixed set_index duplicate constraint by using MAX + 1 ———
+const __DEBUG_VERSION = 'v112.15-FIXED-SET-INDEX-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
