@@ -887,6 +887,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       const displayWeight = set.weight_kg || set.weight || 0;
                       const feel = parseFeelFromNotes(set.notes);
                       const emoji = feelEmoji(feel);
+                      
+                      // Calculate total load for bodyweight exercises
+                      const isBodyweight = currentExercise?.load_mode === 'bodyweight_plus_optional' || 
+                                          currentExercise?.exercise?.load_mode === 'bodyweight_plus_optional';
+                      const totalLoad = isBodyweight && displayWeight !== 0 
+                        ? `BW${displayWeight > 0 ? '+' : ''}${displayWeight}kg`
+                        : displayWeight > 0 ? `${displayWeight}kg` : '';
+                      
                       return (
                         <Card key={set.id || index} className="p-3">
                           <div className="flex items-center justify-between">
@@ -896,10 +904,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                                 {(set.set_index ?? index) + 1}
                               </Badge>
                               <span className="font-medium">
-                                {displayWeight > 0 ? `${displayWeight}kg` : ''} 
-                                {displayWeight > 0 && set.reps ? ' × ' : ''}
+                                {totalLoad || (set.reps && isBodyweight ? 'BW' : '')}
+                                {totalLoad && set.reps ? ' × ' : ''}
                                 {set.reps ? `${set.reps} reps` : ''}
-                                {emoji && ` ${emoji}`}
+                                {emoji ? ` ${emoji}` : ''}
                               </span>
                             </div>
                             <div className="flex items-center gap-2">

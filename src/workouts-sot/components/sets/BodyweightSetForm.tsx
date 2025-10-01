@@ -38,6 +38,7 @@ type Props = {
   setIndex?: number;
   currentSetNumber?: number; // Add this for bodyweight sets
   onLogged?: () => void;
+  feel?: string; // Feel rating from parent
 
   // keep these to avoid TS noise if parent passes them
   className?: string;
@@ -61,6 +62,7 @@ export default function BodyweightSetForm({
   workoutExerciseId,
   currentSetNumber = 1,
   className,
+  feel: feelProp,
 }: Props) {
   const [mode, setMode] = useState<Mode>("bodyweight");
   const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
@@ -76,8 +78,8 @@ export default function BodyweightSetForm({
   // Optional extras (kept but not rendered to avoid UI changes)
   const [notes] = useState<string>("");
   const [rpe] = useState<number | undefined>(undefined);
-  const [feel] = useState<string | undefined>(undefined);
   const [pain] = useState<boolean | undefined>(undefined);
+  const feel = feelProp; // Use feel from props
 
   // Effective external load to send to logger
   const effectiveWeight = useMemo(() => {
@@ -107,9 +109,16 @@ export default function BodyweightSetForm({
       pain,
     };
 
+    // Format notes with Feel if provided
+    let finalNotes = notes || '';
+    if (feel) {
+      finalNotes = `Feel: ${feel}${finalNotes ? ` | ${finalNotes}` : ''}`;
+    }
+
     const setData: any = {
       workout_exercise_id: workoutExerciseId,
       reps: payload.reps,
+      notes: finalNotes || undefined,
       is_completed: true
     };
 
