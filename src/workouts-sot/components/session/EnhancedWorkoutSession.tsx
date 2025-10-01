@@ -318,8 +318,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Find current set index (first non-completed set)
   const currentSetIndex = useMemo(() => {
     const index = sets.findIndex(s => !s.is_completed);
-    return index === -1 ? sets.length : index;
-  }, [sets]);
+    // If all sets completed, cap at target sets to prevent "Log Set 4" when only 3 sets
+    if (index === -1) {
+      return Math.min(sets.length, targetSetsCount - 1);
+    }
+    return index;
+  }, [sets, targetSetsCount]);
 
   // Filter exercises based on gym constraints
   const filteredExercises = useMemo(() => {
@@ -844,33 +848,41 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                       </div>
                     )}
                     
-                    {/* Previous Sets Display */}
+                    {/* Previous Sets Display - OLD STYLE WITH EDIT BUTTONS */}
                     {sets.length > 0 && (
                       <div className="space-y-2 mb-4">
-                        <div className="text-sm font-medium text-muted-foreground">Previous Sets</div>
                         {sets.filter(set => set.is_completed).map((set, idx) => (
-                          <div key={set.id || idx} className="flex items-center justify-between p-3 rounded-lg border bg-muted">
-                            <div className="flex items-center gap-3">
-                              <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center text-xs">
-                                {(set.set_index ?? idx) + 1}
-                              </Badge>
+                          <Card key={set.id || idx} className="p-3">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center gap-3">
+                                <span className="font-medium text-sm">Set</span>
+                                <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
+                                  {(set.set_index ?? idx) + 1}
+                                </Badge>
+                                <span className="font-medium text-sm">
+                                  {set.weight_kg ? `${set.weight_kg}kg` : ''} 
+                                  {set.weight_kg && set.reps ? ' × ' : ''}
+                                  {set.reps ? `${set.reps} reps` : ''}
+                                </span>
+                              </div>
                               <div className="flex items-center gap-2">
-                                {set.weight_kg && (
-                                  <span className="text-sm font-medium">
-                                    {set.weight_kg}kg
-                                  </span>
-                                )}
-                                {set.reps && (
-                                  <span className="text-sm text-muted-foreground">
-                                    × {set.reps} reps
-                                  </span>
-                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  className="h-8 w-8 p-0"
+                                  onClick={() => {
+                                    // TODO: Implement edit set functionality
+                                    console.log('Edit set', set);
+                                  }}
+                                >
+                                  ✏️
+                                </Button>
+                                <Badge variant="default" className="text-xs bg-green-500">
+                                  ✓ Done
+                                </Badge>
                               </div>
                             </div>
-                            <Badge variant="default" className="text-xs">
-                              ✓ Done
-                            </Badge>
-                          </div>
+                          </Card>
                         ))}
                       </div>
                     )}
