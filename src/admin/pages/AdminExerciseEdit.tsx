@@ -482,7 +482,7 @@ const AdminExerciseEdit: React.FC = () => {
         is_public: values.is_public,
         owner_user_id: cleanUUID(values.owner_user_id),
         popularity_rank: values.popularity_rank,
-        loading_hint: values.loading_hint || null,
+        loading_hint: values.loading_hint && values.loading_hint !== '' ? values.loading_hint : null,
         
         body_part_id: cleanUUID(values.body_part_id),
         movement_pattern_id: cleanUUID(values.movement_pattern_id),
