@@ -127,10 +127,14 @@ export function SetPrevTargetDisplay({
             
             {/* Debug info to understand target calculation */}
             <div className="mt-2 p-2 bg-red-500/20 border border-red-500 rounded text-xs text-red-200 font-mono">
-              <div className="font-bold mb-1">🔍 TARGET DEBUG v113.1:</div>
+              <div className="font-bold mb-1">🔍 TARGET DEBUG v113.4:</div>
               <div>Last: {last?.weight || 0}kg×{last?.reps || 0}</div>
               <div>Target: {target.weight}kg×{target.reps}</div>
               <div>Feel: {parseFeelFromNotes(last?.notes) || 'none'}</div>
+              <div className="text-yellow-300 mt-1">Range: {templateTargetRepsMin ?? '?'}-{templateTargetRepsMax ?? '?'}</div>
+              <div className={target.reps >= (templateTargetRepsMin ?? 0) && target.reps <= (templateTargetRepsMax ?? 999) ? 'text-green-300' : 'text-red-300'}>
+                In range: {target.reps >= (templateTargetRepsMin ?? 0) && target.reps <= (templateTargetRepsMax ?? 999) ? 'YES' : 'NO'}
+              </div>
             </div>
           </div>
           

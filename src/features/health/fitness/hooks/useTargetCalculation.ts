@@ -38,14 +38,21 @@ export function useTargetCalculation({
   const { getSmartTarget } = useReadinessTargets();
   const readiness = useReadinessData();
 
-  console.log('🎯 v113.1 useTargetCalculation: Hook inputs:', {
+  console.log('🎯 v113.4 useTargetCalculation: Hook inputs:', {
     userId, exerciseId, setIndex, 
     templateTargetReps, templateTargetRepsMin, templateTargetRepsMax,
     templateTargetWeight,
     hasLastSet: !!lastSet, hasEstimate: !!estimate,
     estimateWeight: estimate?.estimated_weight,
     isLoadingLastSet, isLoadingEstimate,
-    estimate: estimate // Full estimate object for debugging
+    estimate: estimate, // Full estimate object for debugging
+    CRITICAL_RANGE_CHECK: {
+      hasMin: templateTargetRepsMin !== undefined,
+      hasMax: templateTargetRepsMax !== undefined,
+      minValue: templateTargetRepsMin,
+      maxValue: templateTargetRepsMax,
+      willClamp: !!(templateTargetRepsMin && templateTargetRepsMax)
+    }
   });
 
   // Calculate target with readiness adaptation AND equipment constraints
@@ -185,13 +192,30 @@ export function useTargetCalculation({
       });
       
       // CRITICAL: Clamp reps to the defined range
+      console.log('🎯 v113.4 CLAMP CHECK - Before clamping:', {
+        scaledReps,
+        hasMin: templateTargetRepsMin !== undefined,
+        hasMax: templateTargetRepsMax !== undefined,
+        min: templateTargetRepsMin,
+        max: templateTargetRepsMax,
+        willClamp: !!(templateTargetRepsMin && templateTargetRepsMax)
+      });
+      
       if (templateTargetRepsMin && templateTargetRepsMax) {
+        const beforeClamp = scaledReps;
         scaledReps = Math.max(templateTargetRepsMin, Math.min(templateTargetRepsMax, scaledReps));
-        console.log('🎯 DEBUG: useTargetCalculation - Clamped reps to range:', {
+        console.log('🎯 v113.4 CLAMPED REPS:', {
           originalScaledReps: Math.max(1, baselineTarget.reps + repsDelta),
+          beforeClamp,
           min: templateTargetRepsMin,
           max: templateTargetRepsMax,
-          clampedReps: scaledReps
+          afterClamp: scaledReps,
+          changed: beforeClamp !== scaledReps
+        });
+      } else {
+        console.log('🎯 v113.4 ⚠️ CLAMP SKIPPED - Missing range!', {
+          hasMin: !!templateTargetRepsMin,
+          hasMax: !!templateTargetRepsMax
         });
       }
       
@@ -200,7 +224,7 @@ export function useTargetCalculation({
       const minIncrement = 2.5; // Standard barbell minimum increment
       const finalWeight = Math.round(scaledWeight / minIncrement) * minIncrement;
       
-      console.log('🎯 v113.3 useTargetCalculation - Weight rounding to valid increments:', {
+      console.log('🎯 v113.4 useTargetCalculation - Weight rounding to valid increments:', {
         scaledWeight,
         minIncrement,
         finalWeight,
@@ -230,12 +254,17 @@ export function useTargetCalculation({
         reps: finalReps
       };
       
-      console.log('🎯 DEBUG: useTargetCalculation - Final target after readiness scaling:', {
+      console.log('🎯 v113.4 FINAL TARGET after readiness scaling:', {
         baselineTarget,
         readinessScore: readiness.score,
         scalingFactors: { weightPct, repsDelta, progressiveBias },
         intermediateValues: { scaledWeight, scaledReps },
-        finalTarget
+        finalTarget,
+        rangeConstraints: {
+          min: templateTargetRepsMin,
+          max: templateTargetRepsMax,
+          isInRange: finalReps >= (templateTargetRepsMin || 0) && finalReps <= (templateTargetRepsMax || 999)
+        }
       });
       
       return finalTarget;
@@ -254,7 +283,7 @@ export function useTargetCalculation({
   const [resolvedDetails, setResolvedDetails] = React.useState<any>(null);
   
   React.useEffect(() => {
-    console.log('🎯 v113.1 EQUIPMENT RESOLUTION EFFECT:', {
+    console.log('🎯 v113.4 EQUIPMENT RESOLUTION EFFECT:', {
       hasTarget: !!target,
       targetWeight: target?.weight,
       targetReps: target?.reps,
@@ -299,7 +328,7 @@ export function useTargetCalculation({
             reps: target.reps
           };
           
-          console.log('🎯 v113.1 Setting equipment-resolved target:', equipmentTarget);
+          console.log('🎯 v113.4 Setting equipment-resolved target:', equipmentTarget);
           
           setEquipmentResolvedTarget(equipmentTarget);
           setResolvedDetails({
@@ -310,17 +339,17 @@ export function useTargetCalculation({
           });
         }
       } catch (error) {
-        console.error('🎯 v113.1 ❌ EQUIPMENT RESOLUTION FAILED:', error);
-        console.log('🎯 v113.1 Falling back to original target:', target);
+        console.error('🎯 v113.4 ❌ EQUIPMENT RESOLUTION FAILED:', error);
+        console.log('🎯 v113.4 Falling back to original target:', target);
         setEquipmentResolvedTarget(target);
       }
     };
 
     if (target.weight > 0 && exerciseId) {
-      console.log('🎯 v113.1 Conditions met - RUNNING equipment resolution');
+      console.log('🎯 v113.4 Conditions met - RUNNING equipment resolution');
       resolveWithEquipment();
     } else {
-      console.log('🎯 v113.1 ⚠️ Conditions NOT met - skipping equipment resolution:', {
+      console.log('🎯 v113.4 ⚠️ Conditions NOT met - skipping equipment resolution:', {
         targetWeight: target.weight,
         exerciseId,
         reason: target.weight <= 0 ? 'zero/negative weight' : 'no exercise ID'
@@ -334,7 +363,7 @@ export function useTargetCalculation({
   const currentKey = `${userId}-${exerciseId}-${setIndex}-${equipmentResolvedTarget.weight}-${equipmentResolvedTarget.reps}`;
   
   React.useEffect(() => {
-    console.log('🎯 v113.1 TARGET APPLICATION EFFECT:', {
+    console.log('🎯 v113.4 TARGET APPLICATION EFFECT:', {
       hasOnApplyTarget: !!onApplyTarget,
       currentKey,
       previousKey: hasAppliedRef.current,
@@ -348,7 +377,7 @@ export function useTargetCalculation({
     
     // Always apply if we haven't applied this exact target combination
     if (onApplyTarget && hasAppliedRef.current !== currentKey && !isLoadingLastSet && !isLoadingEstimate) {
-      console.log('🎯 v113.1 ✅ APPLYING TARGET TO FORM:', { 
+      console.log('🎯 v113.4 ✅ APPLYING TARGET TO FORM:', { 
         weight: equipmentResolvedTarget.weight,
         reps: equipmentResolvedTarget.reps,
         oldKey: hasAppliedRef.current, 
@@ -358,9 +387,9 @@ export function useTargetCalculation({
       onApplyTarget(equipmentResolvedTarget.weight, equipmentResolvedTarget.reps);
       hasAppliedRef.current = currentKey;
       
-      console.log('🎯 v113.1 Target application completed');
+      console.log('🎯 v113.4 Target application completed');
     } else {
-      console.log('🎯 v113.1 ⏭️ Target application SKIPPED:', {
+      console.log('🎯 v113.4 ⏭️ Target application SKIPPED:', {
         reason: !onApplyTarget ? 'no callback' :
                 hasAppliedRef.current === currentKey ? 'already applied' :
                 isLoadingLastSet ? 'loading last set' :
