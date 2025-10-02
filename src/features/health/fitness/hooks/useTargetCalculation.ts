@@ -114,6 +114,8 @@ export function useTargetCalculation({
         lastReps: lastSet.reps,
         feel: lastFeel,
         templateTargetReps: targetRepsForSession,
+        templateTargetRepsMin,
+        templateTargetRepsMax,
         templateTargetWeight: undefined,
         stepKg: 2.5
       });
@@ -167,7 +169,7 @@ export function useTargetCalculation({
       
       // Apply scaling
       const scaledWeight = baselineTarget.weight * weightPct * progressiveBias;
-      const scaledReps = Math.max(1, baselineTarget.reps + repsDelta);
+      let scaledReps = Math.max(1, baselineTarget.reps + repsDelta);
       
       console.log('🎯 DEBUG: useTargetCalculation - After scaling application:', {
         baselineWeight: baselineTarget.weight,
@@ -179,6 +181,17 @@ export function useTargetCalculation({
           repsCalc: `max(1, ${baselineTarget.reps} + ${repsDelta}) = ${scaledReps}`
         }
       });
+      
+      // CRITICAL: Clamp reps to the defined range
+      if (templateTargetRepsMin && templateTargetRepsMax) {
+        scaledReps = Math.max(templateTargetRepsMin, Math.min(templateTargetRepsMax, scaledReps));
+        console.log('🎯 DEBUG: useTargetCalculation - Clamped reps to range:', {
+          originalScaledReps: Math.max(1, baselineTarget.reps + repsDelta),
+          min: templateTargetRepsMin,
+          max: templateTargetRepsMax,
+          clampedReps: scaledReps
+        });
+      }
       
       // Round to 0.5kg increments
       const finalWeight = Math.round(scaledWeight * 2) / 2;
@@ -193,6 +206,10 @@ export function useTargetCalculation({
       let finalReps = scaledReps;
       if (readiness.score < 25 && lastSet) {
         finalReps = Math.min(scaledReps, lastSet.reps);
+        // Still respect the range even with low readiness
+        if (templateTargetRepsMin && templateTargetRepsMax) {
+          finalReps = Math.max(templateTargetRepsMin, Math.min(templateTargetRepsMax, finalReps));
+        }
         console.log('🎯 DEBUG: useTargetCalculation - Low readiness safety net applied:', {
           readinessScore: readiness.score,
           isLowReadiness: readiness.score < 25,

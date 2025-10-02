@@ -27,6 +27,8 @@ export interface TargetSuggestionOptions {
   lastReps?: number | null;
   feel?: Feel;
   templateTargetReps?: number | null;
+  templateTargetRepsMin?: number | null;
+  templateTargetRepsMax?: number | null;
   templateTargetWeight?: number | null;
   stepKg?: number;
 }
@@ -37,6 +39,8 @@ export function suggestTarget(options: TargetSuggestionOptions) {
     lastReps,
     feel,
     templateTargetReps,
+    templateTargetRepsMin,
+    templateTargetRepsMax,
     templateTargetWeight,
     stepKg = 2.5
   } = options;
@@ -46,6 +50,8 @@ export function suggestTarget(options: TargetSuggestionOptions) {
     lastReps,
     feel,
     templateTargetReps,
+    templateTargetRepsMin,
+    templateTargetRepsMax,
     templateTargetWeight,
     stepKg
   });
@@ -54,9 +60,9 @@ export function suggestTarget(options: TargetSuggestionOptions) {
   let weight = lastWeight ?? templateTargetWeight ?? 0;
   let reps = templateTargetReps ?? lastReps ?? 10;
 
-  // Enhanced logic with rep ranges (using simple default range for now)
-  const repMin = Math.max(1, Math.floor((templateTargetReps ?? 10) * 0.8)); // 80% of target as min
-  const repMax = Math.ceil((templateTargetReps ?? 10) * 1.2); // 120% of target as max
+  // Use explicit rep range if provided, otherwise calculate default range
+  const repMin = templateTargetRepsMin ?? Math.max(1, Math.floor((templateTargetReps ?? 10) * 0.8));
+  const repMax = templateTargetRepsMax ?? Math.ceil((templateTargetReps ?? 10) * 1.2);
 
   // If we have previous data, use progressive logic
   if (lastWeight && lastReps) {
