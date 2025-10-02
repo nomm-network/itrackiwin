@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import { Dumbbell } from 'lucide-react';
 import { 
   BaseSetFormProps, 
@@ -39,6 +40,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const [reps, setReps] = useState<number | ''>(targetReps || '');
   const [weight, setWeight] = useState<number | ''>(targetWeight || '');
   const [side, setSide] = useState<'left' | 'right' | 'both'>('both');
+  const [unilateralEnabled, setUnilateralEnabled] = useState(false);
 
   // Update form when target values change
   React.useEffect(() => {
@@ -81,7 +83,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       weight: weight ? Number(weight) : undefined,
       weight_unit: weight ? 'kg' : undefined,
       reps: Number(reps),
-      side: isUnilateral ? side : 'both',
+      side: (isUnilateral && unilateralEnabled) ? side : 'both',
       rpe: rpe ? Number(rpe) : undefined,
       notes: finalNotes || undefined,
       is_completed: true
@@ -174,39 +176,58 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       </div>
 
-      {/* Side Selector for Unilateral Exercises */}
+      {/* Unilateral Toggle for Unilateral Exercises */}
       {isUnilateral && (
-        <div className="space-y-2">
-          <Label>Side Trained</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={side === 'left' ? 'default' : 'outline'}
-              onClick={() => setSide('left')}
-              className="flex-1"
-            >
-              Left
-            </Button>
-            <Button
-              type="button"
-              variant={side === 'right' ? 'default' : 'outline'}
-              onClick={() => setSide('right')}
-              className="flex-1"
-            >
-              Right
-            </Button>
-            <Button
-              type="button"
-              variant={side === 'both' ? 'default' : 'outline'}
-              onClick={() => setSide('both')}
-              className="flex-1"
-            >
-              Both
-            </Button>
+        <div className="space-y-4 border-t pt-4">
+          <div className="flex items-center justify-between">
+            <div className="space-y-0.5">
+              <Label htmlFor="unilateral-mode">Track Side Independently</Label>
+              <p className="text-xs text-muted-foreground">
+                Enable to track left/right sides separately
+              </p>
+            </div>
+            <Switch
+              id="unilateral-mode"
+              checked={unilateralEnabled}
+              onCheckedChange={setUnilateralEnabled}
+            />
           </div>
-          <p className="text-xs text-muted-foreground">
-            Select which side you trained this set
-          </p>
+
+          {/* Side Selector (only shown when toggle is ON) */}
+          {unilateralEnabled && (
+            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
+              <Label>Side Trained</Label>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant={side === 'left' ? 'default' : 'outline'}
+                  onClick={() => setSide('left')}
+                  className="flex-1"
+                >
+                  Left
+                </Button>
+                <Button
+                  type="button"
+                  variant={side === 'right' ? 'default' : 'outline'}
+                  onClick={() => setSide('right')}
+                  className="flex-1"
+                >
+                  Right
+                </Button>
+                <Button
+                  type="button"
+                  variant={side === 'both' ? 'default' : 'outline'}
+                  onClick={() => setSide('both')}
+                  className="flex-1"
+                >
+                  Both
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select which side you trained this set
+              </p>
+            </div>
+          )}
         </div>
       )}
 
@@ -215,7 +236,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         <div className="text-sm bg-muted p-3 rounded-md">
           <div className="font-medium">
             Load: {weight}kg × {reps || '0'} reps
-            {isUnilateral && side !== 'both' && <Badge variant="outline" className="ml-2">{side}</Badge>}
+            {isUnilateral && unilateralEnabled && side !== 'both' && <Badge variant="outline" className="ml-2">{side}</Badge>}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
             Total Volume: {weight && reps ? (Number(weight) * Number(reps)).toFixed(1) : '0'}kg
