@@ -68,26 +68,58 @@ export function ExerciseSettingsSheet({
     // Save to preferences immediately
     if (userId && exerciseId) {
       try {
-      const { error } = await supabase
-        .from('user_exercise_preferences')
-        .upsert({
-          user_id: userId,
-          exercise_id: exerciseId,
-          template_id: templateId || null,
-          program_id: programId || null,
-          unilateral_enabled: enabled,
-          last_updated_at: new Date().toISOString()
-        });
+        // First check if preference exists
+        let query = supabase
+          .from('user_exercise_preferences')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('exercise_id', exerciseId);
         
-        if (error) {
-          console.error('Error saving unilateral preference:', error);
-          toast.error('Failed to save unilateral setting');
-          throw error;
+        if (templateId) {
+          query = query.eq('template_id', templateId);
+        } else {
+          query = query.is('template_id', null);
+        }
+        
+        if (programId) {
+          query = query.eq('program_id', programId);
+        } else {
+          query = query.is('program_id', null);
+        }
+        
+        const { data: existing } = await query.maybeSingle();
+        
+        if (existing) {
+          // Update existing
+          const { error } = await supabase
+            .from('user_exercise_preferences')
+            .update({
+              unilateral_enabled: enabled,
+              last_updated_at: new Date().toISOString()
+            })
+            .eq('id', existing.id);
+          
+          if (error) throw error;
+        } else {
+          // Insert new
+          const { error } = await supabase
+            .from('user_exercise_preferences')
+            .insert({
+              user_id: userId,
+              exercise_id: exerciseId,
+              template_id: templateId || null,
+              program_id: programId || null,
+              unilateral_enabled: enabled,
+              last_updated_at: new Date().toISOString()
+            });
+          
+          if (error) throw error;
         }
         
         toast.success('Unilateral setting saved');
       } catch (error) {
         console.error('Error saving unilateral preference:', error);
+        toast.error('Failed to save unilateral setting');
       }
     }
   };
@@ -192,21 +224,50 @@ export function ExerciseSettingsSheet({
       }
 
       if (userId && exerciseId) {
-        const { error: prefError } = await supabase
+        // Check if preference exists
+        let query = supabase
           .from('user_exercise_preferences')
-          .upsert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            template_id: templateId || null,
-            program_id: programId || null,
-            preferred_grip_ids: newSelection,
-            last_updated_at: new Date().toISOString()
-          });
+          .select('id')
+          .eq('user_id', userId)
+          .eq('exercise_id', exerciseId);
         
-        if (prefError) {
-          console.error('Error saving grip preference:', prefError);
-          toast.error('Failed to save grip preference');
-          throw prefError;
+        if (templateId) {
+          query = query.eq('template_id', templateId);
+        } else {
+          query = query.is('template_id', null);
+        }
+        
+        if (programId) {
+          query = query.eq('program_id', programId);
+        } else {
+          query = query.is('program_id', null);
+        }
+        
+        const { data: existing } = await query.maybeSingle();
+        
+        if (existing) {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .update({
+              preferred_grip_ids: newSelection,
+              last_updated_at: new Date().toISOString()
+            })
+            .eq('id', existing.id);
+          
+          if (prefError) throw prefError;
+        } else {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .insert({
+              user_id: userId,
+              exercise_id: exerciseId,
+              template_id: templateId || null,
+              program_id: programId || null,
+              preferred_grip_ids: newSelection,
+              last_updated_at: new Date().toISOString()
+            });
+          
+          if (prefError) throw prefError;
         }
       }
       
@@ -232,21 +293,50 @@ export function ExerciseSettingsSheet({
 
       // Save to preferences
       if (userId && exerciseId) {
-        const { error: prefError } = await supabase
+        // Check if preference exists
+        let query = supabase
           .from('user_exercise_preferences')
-          .upsert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            template_id: templateId || null,
-            program_id: programId || null,
-            preferred_target_sets: localTargetSets,
-            last_updated_at: new Date().toISOString()
-          });
+          .select('id')
+          .eq('user_id', userId)
+          .eq('exercise_id', exerciseId);
         
-        if (prefError) {
-          console.error('Error saving sets preference:', prefError);
-          toast.error('Failed to save sets preference');
-          throw prefError;
+        if (templateId) {
+          query = query.eq('template_id', templateId);
+        } else {
+          query = query.is('template_id', null);
+        }
+        
+        if (programId) {
+          query = query.eq('program_id', programId);
+        } else {
+          query = query.is('program_id', null);
+        }
+        
+        const { data: existing } = await query.maybeSingle();
+        
+        if (existing) {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .update({
+              preferred_target_sets: localTargetSets,
+              last_updated_at: new Date().toISOString()
+            })
+            .eq('id', existing.id);
+          
+          if (prefError) throw prefError;
+        } else {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .insert({
+              user_id: userId,
+              exercise_id: exerciseId,
+              template_id: templateId || null,
+              program_id: programId || null,
+              preferred_target_sets: localTargetSets,
+              last_updated_at: new Date().toISOString()
+            });
+          
+          if (prefError) throw prefError;
         }
       }
 
@@ -281,22 +371,52 @@ export function ExerciseSettingsSheet({
 
       // Save preferences if we have context
       if (userId && exerciseId) {
-        const { error: prefError } = await supabase
+        // Check if preference exists
+        let query = supabase
           .from('user_exercise_preferences')
-          .upsert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            template_id: templateId || null,
-            program_id: programId || null,
-            preferred_rep_min: repMin,
-            preferred_rep_max: repMax,
-            last_updated_at: new Date().toISOString()
-          });
-
-        if (prefError) {
-          console.error('Error saving rep range preference:', prefError);
-          toast.error('Failed to save rep range preference');
-          throw prefError;
+          .select('id')
+          .eq('user_id', userId)
+          .eq('exercise_id', exerciseId);
+        
+        if (templateId) {
+          query = query.eq('template_id', templateId);
+        } else {
+          query = query.is('template_id', null);
+        }
+        
+        if (programId) {
+          query = query.eq('program_id', programId);
+        } else {
+          query = query.is('program_id', null);
+        }
+        
+        const { data: existing } = await query.maybeSingle();
+        
+        if (existing) {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .update({
+              preferred_rep_min: repMin,
+              preferred_rep_max: repMax,
+              last_updated_at: new Date().toISOString()
+            })
+            .eq('id', existing.id);
+          
+          if (prefError) throw prefError;
+        } else {
+          const { error: prefError } = await supabase
+            .from('user_exercise_preferences')
+            .insert({
+              user_id: userId,
+              exercise_id: exerciseId,
+              template_id: templateId || null,
+              program_id: programId || null,
+              preferred_rep_min: repMin,
+              preferred_rep_max: repMax,
+              last_updated_at: new Date().toISOString()
+            });
+          
+          if (prefError) throw prefError;
         }
       }
 
