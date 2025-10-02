@@ -1356,6 +1356,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           currentTargetReps={currentExercise.target_reps}
           templateId={workout?.template_id}
           programId={workout?.program_id}
+          userId={workout?.user_id}
           open={repRangeEditorOpen}
           onOpenChange={setRepRangeEditorOpen}
           onSuccess={() => {
