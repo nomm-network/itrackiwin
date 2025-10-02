@@ -285,9 +285,9 @@ export function ExerciseSettingsSheet({
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
-                    <Label htmlFor="unilateral-toggle">Track Side Independently</Label>
+                    <Label htmlFor="unilateral-toggle">Unilateral Training</Label>
                     <p className="text-sm text-muted-foreground">
-                      Enable to track left/right sides separately
+                      Enable unilateral training for better time and weight tracking
                     </p>
                   </div>
                   <Switch

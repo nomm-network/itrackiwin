@@ -27,9 +27,10 @@ type Props = {
   targetReps?: number;
   feel?: string;
   unilateralEnabled?: boolean;
+  onSettingsClick?: () => void;
 };
 
-export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1, onLogged, className, targetWeight, targetReps, feel, unilateralEnabled = false }: Props) {
+export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1, onLogged, className, targetWeight, targetReps, feel, unilateralEnabled = false, onSettingsClick }: Props) {
   // Mount debug
   React.useEffect(() => {
     console.log('[v109-UNILATERAL] Mounted: SmartSetForm');
@@ -102,6 +103,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
           feel={feel}
           isUnilateral={isUnilateral}
           unilateralEnabled={unilateralEnabled}
+          onSettingsClick={onSettingsClick}
         />
       );
   }

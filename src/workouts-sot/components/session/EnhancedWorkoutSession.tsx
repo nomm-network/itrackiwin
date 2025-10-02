@@ -995,6 +995,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           targetReps={currentSetData.reps}
                           feel={currentSetFeel}
                           unilateralEnabled={unilateralEnabled[resolveWorkoutExerciseId(currentExercise)] ?? false}
+                          onSettingsClick={() => {
+                            setShowExerciseSettings(true);
+                          }}
                           onLogged={async () => {
                             console.log('✅ Set logged successfully via SOT SmartSetForm');
                             

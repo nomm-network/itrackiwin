@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell } from 'lucide-react';
+import { Dumbbell, Settings } from 'lucide-react';
 import { 
   BaseSetFormProps, 
   useBaseFormState
@@ -19,6 +19,7 @@ interface WeightRepsSetFormProps extends BaseSetFormProps {
   feel?: string;
   isUnilateral?: boolean;
   unilateralEnabled?: boolean;
+  onSettingsClick?: () => void;
 }
 
 const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
@@ -32,7 +33,8 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   targetReps,
   feel,
   isUnilateral = false,
-  unilateralEnabled = false
+  unilateralEnabled = false,
+  onSettingsClick
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
@@ -177,39 +179,21 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       </div>
 
-      {/* Side Selector for Unilateral Exercises (only when enabled) */}
+      {/* Unilateral Training Indicator */}
       {isUnilateral && unilateralEnabled && (
-        <div className="space-y-2">
-          <Label>Side Trained</Label>
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={side === 'left' ? 'default' : 'outline'}
-              onClick={() => setSide('left')}
-              className="flex-1"
-            >
-              Left
-            </Button>
-            <Button
-              type="button"
-              variant={side === 'right' ? 'default' : 'outline'}
-              onClick={() => setSide('right')}
-              className="flex-1"
-            >
-              Right
-            </Button>
-            <Button
-              type="button"
-              variant={side === 'both' ? 'default' : 'outline'}
-              onClick={() => setSide('both')}
-              className="flex-1"
-            >
-              Both
-            </Button>
-          </div>
-          <p className="text-xs text-muted-foreground">
-            Select which side you trained this set
+        <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg">
+          <p className="text-sm text-muted-foreground flex-1">
+            Unilateral enabled
           </p>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={onSettingsClick}
+            className="h-7 w-7"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
         </div>
       )}
 
