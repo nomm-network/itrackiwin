@@ -27,10 +27,6 @@ export function RepRangeEditor({
   onOpenChange,
   onSuccess
 }: RepRangeEditorProps) {
-  const [mode, setMode] = useState<'fixed' | 'range'>(
-    currentRepMin && currentRepMax ? 'range' : 'fixed'
-  );
-  const [targetReps, setTargetReps] = useState(currentTargetReps || 8);
   const [repMin, setRepMin] = useState(currentRepMin || 6);
   const [repMax, setRepMax] = useState(currentRepMax || 10);
   const [isSaving, setIsSaving] = useState(false);
@@ -38,17 +34,11 @@ export function RepRangeEditor({
   const handleSave = async () => {
     setIsSaving(true);
     try {
-      const updateData = mode === 'fixed' 
-        ? {
-            target_reps: targetReps,
-            target_reps_min: null,
-            target_reps_max: null
-          }
-        : {
-            target_reps: null,
-            target_reps_min: repMin,
-            target_reps_max: repMax
-          };
+      const updateData = {
+        target_reps: null,
+        target_reps_min: repMin,
+        target_reps_max: repMax
+      };
 
       const { error } = await supabase
         .from('workout_exercises')
@@ -79,76 +69,35 @@ export function RepRangeEditor({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Mode Selector */}
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              variant={mode === 'fixed' ? 'default' : 'outline'}
-              onClick={() => setMode('fixed')}
-              className="flex-1"
-            >
-              Fixed Reps
-            </Button>
-            <Button
-              type="button"
-              variant={mode === 'range' ? 'default' : 'outline'}
-              onClick={() => setMode('range')}
-              className="flex-1"
-            >
-              Rep Range
-            </Button>
-          </div>
-
-          {/* Fixed Reps Input */}
-          {mode === 'fixed' && (
-            <div className="space-y-2">
-              <Label htmlFor="target_reps">Target Reps</Label>
-              <Input
-                id="target_reps"
-                type="number"
-                value={targetReps}
-                onChange={(e) => setTargetReps(Number(e.target.value))}
-                min={1}
-                max={100}
-              />
-              <p className="text-sm text-muted-foreground">
-                Set a fixed number of target reps for all sets
-              </p>
-            </div>
-          )}
-
-          {/* Rep Range Inputs */}
-          {mode === 'range' && (
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="rep_min">Min Reps</Label>
-                  <Input
-                    id="rep_min"
-                    type="number"
-                    value={repMin}
-                    onChange={(e) => setRepMin(Number(e.target.value))}
-                    min={1}
-                    max={repMax - 1}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="rep_max">Max Reps</Label>
-                  <Input
-                    id="rep_max"
-                    type="number"
-                    value={repMax}
-                    onChange={(e) => setRepMax(Number(e.target.value))}
-                    min={repMin + 1}
-                    max={100}
-                  />
-                </div>
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="rep_min">Min Reps</Label>
+                <Input
+                  id="rep_min"
+                  type="number"
+                  value={repMin}
+                  onChange={(e) => setRepMin(Number(e.target.value))}
+                  min={1}
+                  max={repMax - 1}
+                />
               </div>
-              <p className="text-sm text-muted-foreground">
-                Target range: {repMin}-{repMax} reps. Weight suggestions will adapt based on your performance within this range.
-              </p>
+              <div className="space-y-2">
+                <Label htmlFor="rep_max">Max Reps</Label>
+                <Input
+                  id="rep_max"
+                  type="number"
+                  value={repMax}
+                  onChange={(e) => setRepMax(Number(e.target.value))}
+                  min={repMin + 1}
+                  max={100}
+                />
+              </div>
             </div>
-          )}
+            <p className="text-sm text-muted-foreground">
+              Target range: {repMin}-{repMax} reps. Weight suggestions will adapt based on your performance within this range.
+            </p>
+          </div>
         </div>
 
         <DialogFooter>
