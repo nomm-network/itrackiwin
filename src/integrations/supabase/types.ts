@@ -6960,11 +6960,14 @@ export type Database = {
           exercise_id: string
           id: string
           last_updated_at: string
+          preferred_grip_ids: string[] | null
           preferred_rep_max: number | null
           preferred_rep_min: number | null
+          preferred_target_sets: number | null
           preferred_weight_kg: number | null
           program_id: string | null
           template_id: string | null
+          unilateral_enabled: boolean | null
           user_id: string
         }
         Insert: {
@@ -6972,11 +6975,14 @@ export type Database = {
           exercise_id: string
           id?: string
           last_updated_at?: string
+          preferred_grip_ids?: string[] | null
           preferred_rep_max?: number | null
           preferred_rep_min?: number | null
+          preferred_target_sets?: number | null
           preferred_weight_kg?: number | null
           program_id?: string | null
           template_id?: string | null
+          unilateral_enabled?: boolean | null
           user_id: string
         }
         Update: {
@@ -6984,11 +6990,14 @@ export type Database = {
           exercise_id?: string
           id?: string
           last_updated_at?: string
+          preferred_grip_ids?: string[] | null
           preferred_rep_max?: number | null
           preferred_rep_min?: number | null
+          preferred_target_sets?: number | null
           preferred_weight_kg?: number | null
           program_id?: string | null
           template_id?: string | null
+          unilateral_enabled?: boolean | null
           user_id?: string
         }
         Relationships: [

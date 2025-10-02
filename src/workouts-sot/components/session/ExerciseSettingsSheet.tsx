@@ -60,6 +60,29 @@ export function ExerciseSettingsSheet({
   templateId,
   programId,
 }: ExerciseSettingsSheetProps) {
+  
+  // Handle unilateral toggle with preference saving
+  const handleUnilateralChange = async (enabled: boolean) => {
+    onUnilateralEnabledChange(enabled);
+    
+    // Save to preferences immediately
+    if (userId && exerciseId) {
+      try {
+        await supabase
+          .from('user_exercise_preferences')
+          .upsert({
+            user_id: userId,
+            exercise_id: exerciseId,
+            template_id: templateId || null,
+            program_id: programId || null,
+            unilateral_enabled: enabled,
+            last_updated_at: new Date().toISOString()
+          });
+      } catch (error) {
+        console.error('Error saving unilateral preference:', error);
+      }
+    }
+  };
   const { data: allGrips = [] } = useGrips();
   const [repMin, setRepMin] = useState(currentRepMin || 6);
   const [repMax, setRepMax] = useState(currentRepMax || 10);
@@ -80,11 +103,34 @@ export function ExerciseSettingsSheet({
     return true; // For now, show all grips
   });
 
-  const handleToggleGrip = (gripId: string) => {
+  const handleToggleGrip = async (gripId: string) => {
     const newSelection = selectedGripIds.includes(gripId)
       ? selectedGripIds.filter(id => id !== gripId)
       : [...selectedGripIds, gripId];
     onGripsChange(newSelection);
+    
+    // Auto-save grips to workout_exercises and preferences
+    try {
+      await supabase
+        .from('workout_exercises')
+        .update({ grip_ids: newSelection })
+        .eq('id', workoutExerciseId);
+
+      if (userId && exerciseId) {
+        await supabase
+          .from('user_exercise_preferences')
+          .upsert({
+            user_id: userId,
+            exercise_id: exerciseId,
+            template_id: templateId || null,
+            program_id: programId || null,
+            preferred_grip_ids: newSelection,
+            last_updated_at: new Date().toISOString()
+          });
+      }
+    } catch (error) {
+      console.error('Error saving grip preferences:', error);
+    }
   };
 
   const handleSaveSets = async () => {
@@ -96,6 +142,20 @@ export function ExerciseSettingsSheet({
         .eq('id', workoutExerciseId);
 
       if (error) throw error;
+
+      // Save to preferences
+      if (userId && exerciseId) {
+        await supabase
+          .from('user_exercise_preferences')
+          .upsert({
+            user_id: userId,
+            exercise_id: exerciseId,
+            template_id: templateId || null,
+            program_id: programId || null,
+            preferred_target_sets: localTargetSets,
+            last_updated_at: new Date().toISOString()
+          });
+      }
 
       toast.success('Target sets updated');
       onRepRangeSave?.();
@@ -293,7 +353,7 @@ export function ExerciseSettingsSheet({
                   <Switch
                     id="unilateral-toggle"
                     checked={unilateralEnabled}
-                    onCheckedChange={onUnilateralEnabledChange}
+                    onCheckedChange={handleUnilateralChange}
                   />
                 </div>
               </div>

@@ -200,6 +200,32 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
     return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
   }, [workout?.exercises, currentExerciseId]);
+  
+  // Load preferences when exercise changes
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!currentExercise || !userId) return;
+      
+      const exerciseId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
+      if (!exerciseId) return;
+      
+      const { data } = await supabase
+        .from('user_exercise_preferences')
+        .select('unilateral_enabled')
+        .eq('user_id', userId)
+        .eq('exercise_id', exerciseId)
+        .maybeSingle();
+      
+      if (data?.unilateral_enabled !== undefined) {
+        setUnilateralEnabled(prev => ({
+          ...prev,
+          [currentExercise.id]: data.unilateral_enabled
+        }));
+      }
+    };
+    
+    loadPreferences();
+  }, [currentExercise?.id, userId]);
 
   // Get exercise estimate for current exercise - moved after currentExercise definition
   const currentExerciseEstimateId = currentExercise?.exercise_id || currentExercise?.exercise?.id;
