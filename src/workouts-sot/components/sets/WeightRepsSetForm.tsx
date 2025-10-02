@@ -18,6 +18,7 @@ interface WeightRepsSetFormProps extends BaseSetFormProps {
   targetReps?: number;
   feel?: string;
   isUnilateral?: boolean;
+  unilateralEnabled?: boolean;
 }
 
 const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
@@ -30,7 +31,8 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   targetWeight,
   targetReps,
   feel,
-  isUnilateral = false
+  isUnilateral = false,
+  unilateralEnabled = false
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
@@ -40,7 +42,6 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const [reps, setReps] = useState<number | ''>(targetReps || '');
   const [weight, setWeight] = useState<number | ''>(targetWeight || '');
   const [side, setSide] = useState<'left' | 'right' | 'both'>('both');
-  const [unilateralEnabled, setUnilateralEnabled] = useState(false);
 
   // Update form when target values change
   React.useEffect(() => {
@@ -176,58 +177,39 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       </div>
 
-      {/* Unilateral Toggle for Unilateral Exercises */}
-      {isUnilateral && (
-        <div className="space-y-4 border-t pt-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-0.5">
-              <Label htmlFor="unilateral-mode">Track Side Independently</Label>
-              <p className="text-xs text-muted-foreground">
-                Enable to track left/right sides separately
-              </p>
-            </div>
-            <Switch
-              id="unilateral-mode"
-              checked={unilateralEnabled}
-              onCheckedChange={setUnilateralEnabled}
-            />
+      {/* Side Selector for Unilateral Exercises (only when enabled) */}
+      {isUnilateral && unilateralEnabled && (
+        <div className="space-y-2">
+          <Label>Side Trained</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={side === 'left' ? 'default' : 'outline'}
+              onClick={() => setSide('left')}
+              className="flex-1"
+            >
+              Left
+            </Button>
+            <Button
+              type="button"
+              variant={side === 'right' ? 'default' : 'outline'}
+              onClick={() => setSide('right')}
+              className="flex-1"
+            >
+              Right
+            </Button>
+            <Button
+              type="button"
+              variant={side === 'both' ? 'default' : 'outline'}
+              onClick={() => setSide('both')}
+              className="flex-1"
+            >
+              Both
+            </Button>
           </div>
-
-          {/* Side Selector (only shown when toggle is ON) */}
-          {unilateralEnabled && (
-            <div className="space-y-2 bg-muted/50 p-4 rounded-lg">
-              <Label>Side Trained</Label>
-              <div className="flex gap-2">
-                <Button
-                  type="button"
-                  variant={side === 'left' ? 'default' : 'outline'}
-                  onClick={() => setSide('left')}
-                  className="flex-1"
-                >
-                  Left
-                </Button>
-                <Button
-                  type="button"
-                  variant={side === 'right' ? 'default' : 'outline'}
-                  onClick={() => setSide('right')}
-                  className="flex-1"
-                >
-                  Right
-                </Button>
-                <Button
-                  type="button"
-                  variant={side === 'both' ? 'default' : 'outline'}
-                  onClick={() => setSide('both')}
-                  className="flex-1"
-                >
-                  Both
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Select which side you trained this set
-              </p>
-            </div>
-          )}
+          <p className="text-xs text-muted-foreground">
+            Select which side you trained this set
+          </p>
         </div>
       )}
 

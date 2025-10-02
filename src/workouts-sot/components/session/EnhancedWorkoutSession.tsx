@@ -45,6 +45,7 @@ import { cn } from '@/lib/utils';
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../../utils/exerciseName';
 import { RepRangeEditor } from './RepRangeEditor';
+import { ExerciseSettingsSheet } from './ExerciseSettingsSheet';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -98,8 +99,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   // Warmup context manager for dynamic warm-up counts
   const { resetSessionContext, logWorkingSet } = useWarmupManager();
   
-  // Rep range editor state
+  // Rep range editor state (deprecated - now in settings sheet)
   const [repRangeEditorOpen, setRepRangeEditorOpen] = useState(false);
+  
+  // Exercise settings sheet state
+  const [showExerciseSettings, setShowExerciseSettings] = useState(false);
+  const [unilateralEnabled, setUnilateralEnabled] = useState<Record<string, boolean>>({});
   
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => {
     // Try to restore from localStorage first
@@ -848,50 +853,36 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                 {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
                 <div className="space-y-4">
                   <div className="bg-card border rounded-lg p-4">
-                    {/* 🎯 LEGACY MINI-MENU: Exercise Header with grips/sets/warmup buttons */}
+                    {/* Exercise Header with Settings and Warmup icons */}
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-foreground">
                           {getExerciseName()}
                         </h3>
+                        <Badge variant="secondary">
+                          {completedSetsCount}/{targetSetsCount} sets
+                        </Badge>
+                      </div>
+                      <div className="flex items-center gap-2">
                         <Button 
                           variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0"
-                          title="Change grips"
+                          size="icon" 
+                          className="h-8 w-8"
+                          onClick={() => setShowExerciseSettings(true)}
+                          title="Exercise Settings"
                         >
-                          ✋
+                          <Settings className="h-4 w-4" />
                         </Button>
                         <Button 
                           variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0"
-                          title="Configure sets"
-                        >
-                          🔢
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0"
+                          size="icon" 
+                          className="h-8 w-8"
                           onClick={() => setShowWarmup(!showWarmup)}
                           title={showWarmup ? "Hide warmup" : "Show warmup"}
                         >
-                          🤸
-                        </Button>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-8 w-8 p-0"
-                          onClick={() => setRepRangeEditorOpen(true)}
-                          title="Edit rep target"
-                        >
-                          🎯
+                          <Zap className="h-4 w-4" />
                         </Button>
                       </div>
-                      <Badge variant="secondary">
-                        {completedSetsCount}/{targetSetsCount} sets
-                      </Badge>
                     </div>
 
                     {/* 🎯 LEGACY MINI-MENU: Warmup Block */}
@@ -1003,6 +994,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           targetWeight={currentSetData.weight}
                           targetReps={currentSetData.reps}
                           feel={currentSetFeel}
+                          unilateralEnabled={unilateralEnabled[resolveWorkoutExerciseId(currentExercise)] ?? false}
                           onLogged={async () => {
                             console.log('✅ Set logged successfully via SOT SmartSetForm');
                             
@@ -1369,7 +1361,42 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         </div>
       </div>
 
-      {/* Rep Range Editor Dialog */}
+      {/* Exercise Settings Sheet */}
+      {currentExercise && (
+        <ExerciseSettingsSheet
+          open={showExerciseSettings}
+          onOpenChange={setShowExerciseSettings}
+          exerciseName={getExerciseName()}
+          exerciseId={currentExercise.exercise_id}
+          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+          selectedGripIds={selectedGrips[resolveWorkoutExerciseId(currentExercise)] || []}
+          onGripsChange={(gripIds) => {
+            setSelectedGrips({
+              ...selectedGrips,
+              [resolveWorkoutExerciseId(currentExercise)]: gripIds
+            });
+          }}
+          currentRepMin={currentExercise.target_reps_min}
+          currentRepMax={currentExercise.target_reps_max}
+          targetSets={targetSetsCount}
+          isUnilateral={currentExercise?.exercise?.is_unilateral ?? false}
+          unilateralEnabled={unilateralEnabled[resolveWorkoutExerciseId(currentExercise)] ?? false}
+          onUnilateralEnabledChange={(enabled) => {
+            setUnilateralEnabled({
+              ...unilateralEnabled,
+              [resolveWorkoutExerciseId(currentExercise)]: enabled
+            });
+          }}
+          onRepRangeSave={() => {
+            queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+          }}
+          templateId={workout?.template_id}
+          programId={workout?.program_id}
+          userId={workout?.user_id}
+        />
+      )}
+      
+      {/* Rep Range Editor Dialog (Deprecated - kept for backward compatibility) */}
       {currentExercise && (
         <RepRangeEditor
           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}

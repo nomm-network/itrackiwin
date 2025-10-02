@@ -1,5 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Settings, Zap } from 'lucide-react';
 import { ImplementChooser } from './ImplementChooser';
 
 interface WorkoutExerciseHeaderProps {
@@ -9,6 +11,8 @@ interface WorkoutExerciseHeaderProps {
   supportedImplements?: ('barbell' | 'dumbbell' | 'machine')[];
   selectedImplement?: string;
   onImplementChange: (implement: string) => void;
+  onSettingsClick?: () => void;
+  onWarmupClick?: () => void;
   className?: string;
 }
 
@@ -19,6 +23,8 @@ export function WorkoutExerciseHeader({
   supportedImplements = ['barbell'],
   selectedImplement,
   onImplementChange,
+  onSettingsClick,
+  onWarmupClick,
   className
 }: WorkoutExerciseHeaderProps) {
   return (
@@ -32,12 +38,36 @@ export function WorkoutExerciseHeader({
         )}
       </div>
       
-      <ImplementChooser
-        exerciseId={exerciseId}
-        supportedImplements={supportedImplements}
-        selectedImplement={selectedImplement}
-        onImplementChange={onImplementChange}
-      />
+      <div className="flex items-center gap-2">
+        <ImplementChooser
+          exerciseId={exerciseId}
+          supportedImplements={supportedImplements}
+          selectedImplement={selectedImplement}
+          onImplementChange={onImplementChange}
+        />
+        
+        {onSettingsClick && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onSettingsClick}
+            className="h-8 w-8"
+          >
+            <Settings className="h-4 w-4" />
+          </Button>
+        )}
+        
+        {onWarmupClick && (
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={onWarmupClick}
+            className="h-8 w-8"
+          >
+            <Zap className="h-4 w-4" />
+          </Button>
+        )}
+      </div>
     </div>
   );
 }
