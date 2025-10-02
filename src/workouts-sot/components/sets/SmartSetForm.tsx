@@ -40,12 +40,14 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
   const isUnilateral = exercise?.exercise?.is_unilateral ?? exercise?.is_unilateral ?? false;
 
   // Debug breadcrumb into console (and stays silent in UI)
-  console.log("🎯 SmartSetForm v108", { 
+  console.log("🎯 SmartSetForm v108 [UNILATERAL DEBUG]", { 
     effort, 
     load,
     isUnilateral,
     exId: exercise?.id,
     exerciseNested: exercise?.exercise,
+    exerciseIsUnilateral: exercise?.is_unilateral,
+    nestedIsUnilateral: exercise?.exercise?.is_unilateral,
     raw: exercise 
   });
 
