@@ -97,20 +97,40 @@ export function ExerciseSettingsSheet({
       if (!open || !userId || !exerciseId || loadedPreferences) return;
       
       try {
-        const { data } = await supabase
+        // Build query with proper NULL handling
+        let query = supabase
           .from('user_exercise_preferences')
           .select('preferred_rep_min, preferred_rep_max, preferred_target_sets, preferred_grip_ids')
           .eq('user_id', userId)
-          .eq('exercise_id', exerciseId)
-          .eq('template_id', templateId || '')
-          .maybeSingle();
+          .eq('exercise_id', exerciseId);
+        
+        // Handle template_id properly (NULL vs actual value)
+        if (templateId) {
+          query = query.eq('template_id', templateId);
+        } else {
+          query = query.is('template_id', null);
+        }
+        
+        const { data, error } = await query.maybeSingle();
+        
+        if (error) {
+          console.error('Error loading preferences:', error);
+          return;
+        }
         
         if (data) {
-          // Apply preferences if they exist
-          if (data.preferred_rep_min) setRepMin(data.preferred_rep_min);
-          if (data.preferred_rep_max) setRepMax(data.preferred_rep_max);
-          if (data.preferred_target_sets) setLocalTargetSets(data.preferred_target_sets);
-          if (data.preferred_grip_ids && data.preferred_grip_ids.length > 0) {
+          console.log('Loaded preferences:', data);
+          // Apply ALL preferences that exist
+          if (data.preferred_rep_min !== null && data.preferred_rep_min !== undefined) {
+            setRepMin(data.preferred_rep_min);
+          }
+          if (data.preferred_rep_max !== null && data.preferred_rep_max !== undefined) {
+            setRepMax(data.preferred_rep_max);
+          }
+          if (data.preferred_target_sets !== null && data.preferred_target_sets !== undefined) {
+            setLocalTargetSets(data.preferred_target_sets);
+          }
+          if (data.preferred_grip_ids && Array.isArray(data.preferred_grip_ids) && data.preferred_grip_ids.length > 0) {
             onGripsChange(data.preferred_grip_ids);
           }
         }
@@ -118,6 +138,7 @@ export function ExerciseSettingsSheet({
         setLoadedPreferences(true);
       } catch (error) {
         console.error('Error loading preferences:', error);
+        setLoadedPreferences(true); // Still mark as loaded to prevent infinite loop
       }
     };
     
@@ -127,7 +148,7 @@ export function ExerciseSettingsSheet({
       // Reset when sheet closes
       setLoadedPreferences(false);
     }
-  }, [open, userId, exerciseId, templateId, loadedPreferences, onGripsChange]);
+  }, [open, userId, exerciseId, templateId]);
 
   // Update state when props change
   useEffect(() => {
