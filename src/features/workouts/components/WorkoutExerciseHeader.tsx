@@ -1,7 +1,7 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Settings, Zap } from 'lucide-react';
+import { Settings, Dumbbell } from 'lucide-react';
 import { ImplementChooser } from './ImplementChooser';
 
 interface WorkoutExerciseHeaderProps {
@@ -64,7 +64,7 @@ export function WorkoutExerciseHeader({
             onClick={onWarmupClick}
             className="h-8 w-8"
           >
-            <Zap className="h-4 w-4" />
+            <Dumbbell className="h-4 w-4" />
           </Button>
         )}
       </div>

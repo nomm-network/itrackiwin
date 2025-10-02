@@ -296,14 +296,6 @@ export function ExerciseSettingsSheet({
                     onCheckedChange={onUnilateralEnabledChange}
                   />
                 </div>
-                
-                {unilateralEnabled && (
-                  <div className="bg-muted/50 p-4 rounded-lg">
-                    <p className="text-sm">
-                      Side tracking enabled. You'll be able to log each side separately when logging sets.
-                    </p>
-                  </div>
-                )}
               </div>
             ) : (
               <div className="text-sm text-muted-foreground">
