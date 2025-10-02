@@ -195,13 +195,16 @@ export function useTargetCalculation({
         });
       }
       
-      // Don't round yet - let equipment resolution handle snapping to valid weights
-      const finalWeight = scaledWeight;
+      // Round to minimum increment (2.5kg for barbell - smallest plate 1.25kg × 2 sides)
+      // This prevents invalid weights like 63.75kg before equipment resolution
+      const minIncrement = 2.5; // Standard barbell minimum increment
+      const finalWeight = Math.round(scaledWeight / minIncrement) * minIncrement;
       
-      console.log('🎯 DEBUG: useTargetCalculation - Weight before equipment resolution:', {
+      console.log('🎯 v113.3 useTargetCalculation - Weight rounding to valid increments:', {
         scaledWeight,
+        minIncrement,
         finalWeight,
-        note: 'Not rounding yet - equipment resolver will snap to valid weights'
+        roundingCalc: `Math.round(${scaledWeight} / ${minIncrement}) * ${minIncrement} = ${finalWeight}`
       });
       
       // Safety net: don't increase reps on ultra-low readiness
