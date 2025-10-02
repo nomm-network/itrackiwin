@@ -9,9 +9,11 @@ type ExerciseLike = {
   effort_mode?: "reps" | "time" | "distance" | "calories";
   load_mode?: "bodyweight_plus_optional" | "external_added" | "external_assist" | "machine_level" | "free_weight" | "none" | "band_level";
   allows_grips?: boolean | null;
+  is_unilateral?: boolean;
   exercise?: {
     effort_mode?: "reps" | "time" | "distance" | "calories";
     load_mode?: "bodyweight_plus_optional" | "external_added" | "external_assist" | "machine_level" | "free_weight" | "none" | "band_level";
+    is_unilateral?: boolean;
   };
 };
 
@@ -35,11 +37,13 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
   // Try multiple paths to find effort_mode and load_mode from the nested exercise object
   const effort = exercise?.exercise?.effort_mode ?? exercise?.effort_mode ?? "reps";
   const load = exercise?.exercise?.load_mode ?? exercise?.load_mode ?? "free_weight";
+  const isUnilateral = exercise?.exercise?.is_unilateral ?? exercise?.is_unilateral ?? false;
 
   // Debug breadcrumb into console (and stays silent in UI)
   console.log("🎯 SmartSetForm v108", { 
     effort, 
-    load, 
+    load,
+    isUnilateral,
     exId: exercise?.id,
     exerciseNested: exercise?.exercise,
     raw: exercise 
@@ -93,6 +97,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
           targetWeight={targetWeight}
           targetReps={targetReps}
           feel={feel}
+          isUnilateral={isUnilateral}
         />
       );
   }

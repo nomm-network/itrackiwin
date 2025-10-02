@@ -20,6 +20,7 @@ export const useWorkoutSetGrips = () => {
       pain?: boolean;
       set_kind?: string;
       is_completed?: boolean;
+      side?: 'left' | 'right' | 'both';
     },
     gripIds?: string[]
   ) => {

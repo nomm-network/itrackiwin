@@ -16,6 +16,7 @@ interface WeightRepsSetFormProps extends BaseSetFormProps {
   targetWeight?: number;
   targetReps?: number;
   feel?: string;
+  isUnilateral?: boolean;
 }
 
 const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
@@ -27,7 +28,8 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   className,
   targetWeight,
   targetReps,
-  feel
+  feel,
+  isUnilateral = false
 }) => {
   const [baseState, setBaseState] = useBaseFormState();
   const { toast } = useToast();
@@ -36,6 +38,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   // Weight & reps specific fields - initialize with target values if available
   const [reps, setReps] = useState<number | ''>(targetReps || '');
   const [weight, setWeight] = useState<number | ''>(targetWeight || '');
+  const [side, setSide] = useState<'left' | 'right' | 'both'>('both');
 
   // Update form when target values change
   React.useEffect(() => {
@@ -78,6 +81,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       weight: weight ? Number(weight) : undefined,
       weight_unit: weight ? 'kg' : undefined,
       reps: Number(reps),
+      side: isUnilateral ? side : 'both',
       rpe: rpe ? Number(rpe) : undefined,
       notes: finalNotes || undefined,
       is_completed: true
@@ -170,10 +174,49 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
         </div>
       </div>
 
+      {/* Side Selector for Unilateral Exercises */}
+      {isUnilateral && (
+        <div className="space-y-2">
+          <Label>Side Trained</Label>
+          <div className="flex gap-2">
+            <Button
+              type="button"
+              variant={side === 'left' ? 'default' : 'outline'}
+              onClick={() => setSide('left')}
+              className="flex-1"
+            >
+              Left
+            </Button>
+            <Button
+              type="button"
+              variant={side === 'right' ? 'default' : 'outline'}
+              onClick={() => setSide('right')}
+              className="flex-1"
+            >
+              Right
+            </Button>
+            <Button
+              type="button"
+              variant={side === 'both' ? 'default' : 'outline'}
+              onClick={() => setSide('both')}
+              className="flex-1"
+            >
+              Both
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            Select which side you trained this set
+          </p>
+        </div>
+      )}
+
       {/* Load Summary */}
       {weight !== '' && weight !== 0 && (
         <div className="text-sm bg-muted p-3 rounded-md">
-          <div className="font-medium">Load: {weight}kg × {reps || '0'} reps</div>
+          <div className="font-medium">
+            Load: {weight}kg × {reps || '0'} reps
+            {isUnilateral && side !== 'both' && <Badge variant="outline" className="ml-2">{side}</Badge>}
+          </div>
           <div className="text-xs text-muted-foreground mt-1">
             Total Volume: {weight && reps ? (Number(weight) * Number(reps)).toFixed(1) : '0'}kg
           </div>
