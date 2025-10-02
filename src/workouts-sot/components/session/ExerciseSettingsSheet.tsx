@@ -68,16 +68,18 @@ export function ExerciseSettingsSheet({
     // Save to preferences immediately
     if (userId && exerciseId) {
       try {
-        const { error } = await supabase
-          .from('user_exercise_preferences')
-          .upsert({
-            user_id: userId,
-            exercise_id: exerciseId,
-            template_id: templateId || null,
-            program_id: programId || null,
-            unilateral_enabled: enabled,
-            last_updated_at: new Date().toISOString()
-          });
+      const { error } = await supabase
+        .from('user_exercise_preferences')
+        .upsert({
+          user_id: userId,
+          exercise_id: exerciseId,
+          template_id: templateId || null,
+          program_id: programId || null,
+          unilateral_enabled: enabled,
+          last_updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,exercise_id,template_id,program_id'
+        });
         
         if (error) {
           console.error('Error saving unilateral preference:', error);
@@ -201,6 +203,8 @@ export function ExerciseSettingsSheet({
             program_id: programId || null,
             preferred_grip_ids: newSelection,
             last_updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
         
         if (prefError) {
@@ -241,6 +245,8 @@ export function ExerciseSettingsSheet({
             program_id: programId || null,
             preferred_target_sets: localTargetSets,
             last_updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
         
         if (prefError) {
@@ -291,6 +297,8 @@ export function ExerciseSettingsSheet({
             preferred_rep_min: repMin,
             preferred_rep_max: repMax,
             last_updated_at: new Date().toISOString()
+          }, {
+            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
 
         if (prefError) {
