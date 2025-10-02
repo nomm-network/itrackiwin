@@ -77,8 +77,6 @@ export function ExerciseSettingsSheet({
           program_id: programId || null,
           unilateral_enabled: enabled,
           last_updated_at: new Date().toISOString()
-        }, {
-          onConflict: 'user_id,exercise_id,template_id,program_id'
         });
         
         if (error) {
@@ -203,8 +201,6 @@ export function ExerciseSettingsSheet({
             program_id: programId || null,
             preferred_grip_ids: newSelection,
             last_updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
         
         if (prefError) {
@@ -245,8 +241,6 @@ export function ExerciseSettingsSheet({
             program_id: programId || null,
             preferred_target_sets: localTargetSets,
             last_updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
         
         if (prefError) {
@@ -297,8 +291,6 @@ export function ExerciseSettingsSheet({
             preferred_rep_min: repMin,
             preferred_rep_max: repMax,
             last_updated_at: new Date().toISOString()
-          }, {
-            onConflict: 'user_id,exercise_id,template_id,program_id'
           });
 
         if (prefError) {
