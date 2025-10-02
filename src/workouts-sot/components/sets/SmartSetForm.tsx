@@ -1,4 +1,4 @@
-// v108 — SmartSetForm.tsx (SOT)
+// v109-UNILATERAL — SmartSetForm.tsx (SOT)
 // Routes to Bodyweight vs Weight/Reps vs Cardio by exercise.effort_mode + load_mode.
 import React from "react";
 import BodyweightSetForm from "./BodyweightSetForm";
@@ -31,7 +31,7 @@ type Props = {
 export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1, onLogged, className, targetWeight, targetReps, feel }: Props) {
   // Mount debug
   React.useEffect(() => {
-    console.log('[v108] Mounted: SmartSetForm');
+    console.log('[v109-UNILATERAL] Mounted: SmartSetForm');
   }, []);
 
   // Try multiple paths to find effort_mode and load_mode from the nested exercise object
@@ -40,7 +40,7 @@ export default function SmartSetForm({ exercise, workoutExerciseId, setIndex = 1
   const isUnilateral = exercise?.exercise?.is_unilateral ?? exercise?.is_unilateral ?? false;
 
   // Debug breadcrumb into console (and stays silent in UI)
-  console.log("🎯 SmartSetForm v108 [UNILATERAL DEBUG]", { 
+  console.log("🎯 SmartSetForm v109-UNILATERAL [DEBUG]", { 
     effort, 
     load,
     isUnilateral,

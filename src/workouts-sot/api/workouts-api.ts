@@ -94,7 +94,9 @@ export const useGetWorkout = (workoutId?: string) => {
               load_type,
               equipment_ref_id,
               effort_mode,
-              load_mode
+              load_mode,
+              is_unilateral,
+              allows_grips
             ),
             sets:workout_sets(
               id,
