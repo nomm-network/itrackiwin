@@ -11,6 +11,8 @@ interface SetPrevTargetDisplayProps {
   exerciseId?: string;
   setIndex?: number;
   templateTargetReps?: number;
+  templateTargetRepsMin?: number;
+  templateTargetRepsMax?: number;
   templateTargetWeight?: number;
   onApplyTarget?: (w: number, r: number) => void;
   currentSetNumber?: number; // Add this to determine if we should show timer
@@ -74,6 +76,8 @@ export function SetPrevTargetDisplay({
   exerciseId,
   setIndex,
   templateTargetReps,
+  templateTargetRepsMin,
+  templateTargetRepsMax,
   templateTargetWeight,
   onApplyTarget,
   currentSetNumber = 1,
@@ -83,6 +87,8 @@ export function SetPrevTargetDisplay({
     exerciseId,
     setIndex,
     templateTargetReps,
+    templateTargetRepsMin,
+    templateTargetRepsMax,
     templateTargetWeight,
     onApplyTarget
   });

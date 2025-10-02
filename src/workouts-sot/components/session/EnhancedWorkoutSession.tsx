@@ -986,6 +986,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                             exerciseId={currentExercise?.exercise_id}
                             setIndex={currentSetIndex}
                             templateTargetReps={currentExercise?.target_reps}
+                            templateTargetRepsMin={currentExercise?.target_reps_min}
+                            templateTargetRepsMax={currentExercise?.target_reps_max}
                             templateTargetWeight={currentExercise?.target_weight}
                             currentSetNumber={currentSetIndex + 1}
                             onApplyTarget={(weight, reps) => {

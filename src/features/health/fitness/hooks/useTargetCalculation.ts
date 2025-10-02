@@ -13,6 +13,8 @@ interface UseTargetCalculationProps {
   exerciseId?: string;
   setIndex?: number;
   templateTargetReps?: number;
+  templateTargetRepsMin?: number;
+  templateTargetRepsMax?: number;
   templateTargetWeight?: number;
   gripKey?: string | null;
   loadType?: 'dual_load' | 'single_load' | 'stack';
@@ -24,6 +26,8 @@ export function useTargetCalculation({
   exerciseId,
   setIndex,
   templateTargetReps,
+  templateTargetRepsMin,
+  templateTargetRepsMax,
   templateTargetWeight,
   gripKey,
   loadType = 'dual_load',
@@ -68,7 +72,10 @@ export function useTargetCalculation({
       
       // NO PREVIOUS SETS - use estimates
       const baseWeight = estimate?.estimated_weight || templateTargetWeight || 20;
-      const baseReps = templateTargetReps || 10;
+      // Use the midpoint of the rep range if available, otherwise fallback to single target or 10
+      const baseReps = templateTargetRepsMin && templateTargetRepsMax 
+        ? Math.round((templateTargetRepsMin + templateTargetRepsMax) / 2)
+        : (templateTargetReps || 10);
       
       baselineTarget = {
         weight: baseWeight,
@@ -97,11 +104,16 @@ export function useTargetCalculation({
         parsedFeel: lastFeel
       });
       
+      // Calculate target reps for this session
+      const targetRepsForSession = templateTargetRepsMin && templateTargetRepsMax
+        ? Math.round((templateTargetRepsMin + templateTargetRepsMax) / 2)
+        : templateTargetReps;
+      
       const baseSuggestion = suggestTarget({
         lastWeight: lastSet.weight,
         lastReps: lastSet.reps,
         feel: lastFeel,
-        templateTargetReps,
+        templateTargetReps: targetRepsForSession,
         templateTargetWeight: undefined,
         stepKg: 2.5
       });
