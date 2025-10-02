@@ -63,13 +63,16 @@ export function ExerciseSettingsSheet({
   const { data: allGrips = [] } = useGrips();
   const [repMin, setRepMin] = useState(currentRepMin || 6);
   const [repMax, setRepMax] = useState(currentRepMax || 10);
+  const [localTargetSets, setLocalTargetSets] = useState(targetSets);
   const [isSaving, setIsSaving] = useState(false);
+  const [isSavingSets, setIsSavingSets] = useState(false);
 
   // Update state when props change
   useEffect(() => {
     setRepMin(currentRepMin || 6);
     setRepMax(currentRepMax || 10);
-  }, [currentRepMin, currentRepMax, workoutExerciseId]);
+    setLocalTargetSets(targetSets);
+  }, [currentRepMin, currentRepMax, targetSets, workoutExerciseId]);
 
   // Filter grips for this exercise
   const exerciseGrips = allGrips.filter((grip: any) => {
@@ -82,6 +85,26 @@ export function ExerciseSettingsSheet({
       ? selectedGripIds.filter(id => id !== gripId)
       : [...selectedGripIds, gripId];
     onGripsChange(newSelection);
+  };
+
+  const handleSaveSets = async () => {
+    setIsSavingSets(true);
+    try {
+      const { error } = await supabase
+        .from('workout_exercises')
+        .update({ target_sets: localTargetSets })
+        .eq('id', workoutExerciseId);
+
+      if (error) throw error;
+
+      toast.success('Target sets updated');
+      onRepRangeSave?.();
+    } catch (error) {
+      console.error('Error updating target sets:', error);
+      toast.error('Failed to update target sets');
+    } finally {
+      setIsSavingSets(false);
+    }
   };
 
   const handleSaveRepRange = async () => {
@@ -211,12 +234,31 @@ export function ExerciseSettingsSheet({
 
             <Separator />
 
-            {/* Target Sets (Read-only for now) */}
-            <div className="space-y-2">
-              <Label>Target Sets</Label>
-              <p className="text-sm text-muted-foreground">
-                Number of sets planned: <strong>{targetSets}</strong>
-              </p>
+            {/* Target Sets */}
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="target_sets">Target Sets</Label>
+                <p className="text-sm text-muted-foreground">
+                  Number of sets to complete for this exercise
+                </p>
+              </div>
+              
+              <Input
+                id="target_sets"
+                type="number"
+                value={localTargetSets}
+                onChange={(e) => setLocalTargetSets(Number(e.target.value))}
+                min={1}
+                max={12}
+              />
+
+              <Button 
+                onClick={handleSaveSets} 
+                disabled={isSavingSets || localTargetSets === targetSets}
+                className="w-full"
+              >
+                {isSavingSets ? 'Saving...' : 'Save Target Sets'}
+              </Button>
             </div>
           </TabsContent>
 
