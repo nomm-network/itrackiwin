@@ -32,7 +32,7 @@ import { GymConstraintsFilter } from '@/features/health/fitness/components/GymCo
 import { type Feel, FEEL_TO_RPE, FEEL_OPTIONS } from '@/features/health/fitness/lib/feelToRpe';
 import { feelEmoji, parseFeelFromNotes } from '@/features/workouts/utils/feel';
 import { useMyGym } from '@/features/health/fitness/hooks/useMyGym.hook';
-import { useLogSet, useUpdateSet } from '../../hooks';
+import { useLogSet, useUpdateSet, useEndWorkout } from '../../hooks';
 import { useAdvanceProgramState } from '@/hooks/useTrainingPrograms';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -74,6 +74,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { mutate: updateSet } = useUpdateSet();
+  const { mutate: endWorkout, isPending: isEndingWorkout } = useEndWorkout();
   const { gym } = useMyGym();
   const advanceProgramState = useAdvanceProgramState();
   const { data: grips = [] } = useGrips();
@@ -573,21 +574,37 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   };
 
   const handleFinishWorkout = async () => {
-    // If this workout is part of a program, advance the progress
-    if (workout.program_id && workout.program_position) {
-      try {
-        await supabase.rpc('advance_program_progress', {
-          p_program_id: workout.program_id,
-          p_user_id: workout.user_id,
-          p_position: workout.program_position,
-          p_workout_id: workout.id
-        });
-      } catch (progError) {
-        console.error('Failed to advance program progress:', progError);
-        // Don't fail the workout completion if this fails
-      }
+    try {
+      // End the workout first
+      endWorkout(workout.id, {
+        onSuccess: async () => {
+          // If this workout is part of a program, advance the progress
+          if (workout.program_id && workout.program_position) {
+            try {
+              await supabase.rpc('advance_program_progress', {
+                p_program_id: workout.program_id,
+                p_user_id: workout.user_id,
+                p_position: workout.program_position,
+                p_workout_id: workout.id
+              });
+            } catch (progError) {
+              console.error('Failed to advance program progress:', progError);
+              // Don't fail the workout completion if this fails
+            }
+          }
+          
+          toast.success('Workout completed!');
+          navigate('/dashboard');
+        },
+        onError: (error) => {
+          console.error('Failed to end workout:', error);
+          toast.error('Failed to end workout');
+        }
+      });
+    } catch (error) {
+      console.error('Error finishing workout:', error);
+      toast.error('Failed to finish workout');
     }
-    navigate('/dashboard');
   };
 
   // Readiness check handlers
@@ -1056,8 +1073,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                                 {completedSetsCount} sets completed
                               </div>
                               <div className="space-y-2">
-                                <Button onClick={() => navigate('/dashboard')} className="w-full" size="lg">
-                                  Finish Workout
+                                <Button 
+                                  onClick={handleFinishWorkout} 
+                                  disabled={isEndingWorkout}
+                                  className="w-full" 
+                                  size="lg"
+                                >
+                                  {isEndingWorkout ? 'Finishing...' : 'Finish Workout'}
                                 </Button>
                                 <Button 
                                   onClick={() => {
