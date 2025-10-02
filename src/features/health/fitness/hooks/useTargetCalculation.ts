@@ -38,8 +38,10 @@ export function useTargetCalculation({
   const { getSmartTarget } = useReadinessTargets();
   const readiness = useReadinessData();
 
-  console.log('🎯 useTargetCalculation: Hook inputs:', {
-    userId, exerciseId, setIndex, templateTargetReps, templateTargetWeight,
+  console.log('🎯 v113.1 useTargetCalculation: Hook inputs:', {
+    userId, exerciseId, setIndex, 
+    templateTargetReps, templateTargetRepsMin, templateTargetRepsMax,
+    templateTargetWeight,
     hasLastSet: !!lastSet, hasEstimate: !!estimate,
     estimateWeight: estimate?.estimated_weight,
     isLoadingLastSet, isLoadingEstimate,
@@ -249,12 +251,13 @@ export function useTargetCalculation({
   const [resolvedDetails, setResolvedDetails] = React.useState<any>(null);
   
   React.useEffect(() => {
-    console.log('🎯 DEBUG: useTargetCalculation - Equipment resolution effect triggered:', {
+    console.log('🎯 v113.1 EQUIPMENT RESOLUTION EFFECT:', {
       hasTarget: !!target,
       targetWeight: target?.weight,
       targetReps: target?.reps,
       exerciseId,
-      shouldResolve: target.weight > 0 && exerciseId
+      shouldResolve: target.weight > 0 && exerciseId,
+      triggerReason: 'target.weight or exerciseId changed'
     });
     
     const resolveWithEquipment = async () => {
@@ -293,7 +296,7 @@ export function useTargetCalculation({
             reps: target.reps
           };
           
-          console.log('🎯 DEBUG: useTargetCalculation - Setting equipment-resolved target:', equipmentTarget);
+          console.log('🎯 v113.1 Setting equipment-resolved target:', equipmentTarget);
           
           setEquipmentResolvedTarget(equipmentTarget);
           setResolvedDetails({
@@ -304,17 +307,17 @@ export function useTargetCalculation({
           });
         }
       } catch (error) {
-        console.error('🎯 DEBUG: useTargetCalculation - Equipment resolution failed:', error);
-        console.log('🎯 DEBUG: useTargetCalculation - Falling back to original target:', target);
+        console.error('🎯 v113.1 ❌ EQUIPMENT RESOLUTION FAILED:', error);
+        console.log('🎯 v113.1 Falling back to original target:', target);
         setEquipmentResolvedTarget(target);
       }
     };
 
     if (target.weight > 0 && exerciseId) {
-      console.log('🎯 DEBUG: useTargetCalculation - Conditions met, starting equipment resolution');
+      console.log('🎯 v113.1 Conditions met - RUNNING equipment resolution');
       resolveWithEquipment();
     } else {
-      console.log('🎯 DEBUG: useTargetCalculation - Conditions not met, using original target:', {
+      console.log('🎯 v113.1 ⚠️ Conditions NOT met - skipping equipment resolution:', {
         targetWeight: target.weight,
         exerciseId,
         reason: target.weight <= 0 ? 'zero/negative weight' : 'no exercise ID'
@@ -328,33 +331,33 @@ export function useTargetCalculation({
   const currentKey = `${userId}-${exerciseId}-${setIndex}-${equipmentResolvedTarget.weight}-${equipmentResolvedTarget.reps}`;
   
   React.useEffect(() => {
-    console.log('🎯 DEBUG: useTargetCalculation - Target application effect triggered:', {
+    console.log('🎯 v113.1 TARGET APPLICATION EFFECT:', {
       hasOnApplyTarget: !!onApplyTarget,
       currentKey,
       previousKey: hasAppliedRef.current,
       isKeyDifferent: hasAppliedRef.current !== currentKey,
       isLoadingLastSet,
       isLoadingEstimate,
-      equipmentResolvedTarget,
+      equipmentResolvedWeight: equipmentResolvedTarget.weight,
+      equipmentResolvedReps: equipmentResolvedTarget.reps,
       shouldApply: onApplyTarget && hasAppliedRef.current !== currentKey && !isLoadingLastSet && !isLoadingEstimate
     });
     
     // Always apply if we haven't applied this exact target combination
     if (onApplyTarget && hasAppliedRef.current !== currentKey && !isLoadingLastSet && !isLoadingEstimate) {
-      console.log('🎯 DEBUG: useTargetCalculation - Applying equipment-resolved target to form:', { 
-        target: equipmentResolvedTarget, 
-        oldKey: hasAppliedRef.current, 
-        newKey: currentKey,
+      console.log('🎯 v113.1 ✅ APPLYING TARGET TO FORM:', { 
         weight: equipmentResolvedTarget.weight,
-        reps: equipmentResolvedTarget.reps
+        reps: equipmentResolvedTarget.reps,
+        oldKey: hasAppliedRef.current, 
+        newKey: currentKey
       });
       
       onApplyTarget(equipmentResolvedTarget.weight, equipmentResolvedTarget.reps);
       hasAppliedRef.current = currentKey;
       
-      console.log('🎯 DEBUG: useTargetCalculation - Target application completed, key updated to:', currentKey);
+      console.log('🎯 v113.1 Target application completed');
     } else {
-      console.log('🎯 DEBUG: useTargetCalculation - Target application skipped:', {
+      console.log('🎯 v113.1 ⏭️ Target application SKIPPED:', {
         reason: !onApplyTarget ? 'no callback' :
                 hasAppliedRef.current === currentKey ? 'already applied' :
                 isLoadingLastSet ? 'loading last set' :

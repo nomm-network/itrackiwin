@@ -124,6 +124,14 @@ export function SetPrevTargetDisplay({
                 </strong>
               </span>
             </div>
+            
+            {/* Debug info to understand target calculation */}
+            <div className="mt-2 p-2 bg-red-500/20 border border-red-500 rounded text-xs text-red-200 font-mono">
+              <div className="font-bold mb-1">🔍 TARGET DEBUG v113.1:</div>
+              <div>Last: {last?.weight || 0}kg×{last?.reps || 0}</div>
+              <div>Target: {target.weight}kg×{target.reps}</div>
+              <div>Feel: {parseFeelFromNotes(last?.notes) || 'none'}</div>
+            </div>
           </div>
           
           {/* Right side: ONE timer spanning both rows - only show if not Set 1 */}
@@ -132,13 +140,6 @@ export function SetPrevTargetDisplay({
               <RestTimer />
             </div>
           )}
-        </div>
-      )}
-      
-      {/* Debug info to understand target calculation */}
-      {last && (
-        <div className="mt-2 text-xs text-muted-foreground font-mono">
-          Debug: Last={last.weight}kg×{last.reps} → Target={target.weight}kg×{target.reps} | Feel={parseFeelFromNotes(last.notes) || 'none'}
         </div>
       )}
     </div>
