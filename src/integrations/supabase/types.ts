@@ -6554,6 +6554,8 @@ export type Database = {
         Row: {
           ai_generated: boolean
           created_at: string
+          default_rep_max: number | null
+          default_rep_min: number | null
           description: string | null
           goal: string | null
           id: string
@@ -6565,6 +6567,8 @@ export type Database = {
         Insert: {
           ai_generated?: boolean
           created_at?: string
+          default_rep_max?: number | null
+          default_rep_min?: number | null
           description?: string | null
           goal?: string | null
           id?: string
@@ -6576,6 +6580,8 @@ export type Database = {
         Update: {
           ai_generated?: boolean
           created_at?: string
+          default_rep_max?: number | null
+          default_rep_min?: number | null
           description?: string | null
           goal?: string | null
           id?: string
