@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -38,6 +38,12 @@ export function RepRangeEditor({
   const [repMin, setRepMin] = useState(currentRepMin || 6);
   const [repMax, setRepMax] = useState(currentRepMax || 10);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Update state when props change (when switching between exercises)
+  useEffect(() => {
+    setRepMin(currentRepMin || 6);
+    setRepMax(currentRepMax || 10);
+  }, [currentRepMin, currentRepMax, workoutExerciseId]);
 
   const handleSave = async () => {
     setIsSaving(true);
