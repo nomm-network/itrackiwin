@@ -11896,6 +11896,10 @@ export type Database = {
         Args: { p_top_reps?: number; p_top_weight: number; p_unit?: string }
         Returns: Json
       }
+      generate_warmup_steps: {
+        Args: { target_weight_kg: number }
+        Returns: Json
+      }
       geography: {
         Args: { "": string } | { "": unknown }
         Returns: unknown
