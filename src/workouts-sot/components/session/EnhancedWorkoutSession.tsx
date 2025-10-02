@@ -44,6 +44,7 @@ import { cn } from '@/lib/utils';
 // import ImprovedWorkoutSession from '@/components/fitness/ImprovedWorkoutSession'; // REMOVED - using SOT components directly
 import { WarmupBlock } from '@/components/fitness/WarmupBlock';
 import { getExerciseDisplayName } from '../../utils/exerciseName';
+import { RepRangeEditor } from './RepRangeEditor';
 
 // Add readiness check imports
 import EnhancedReadinessCheckIn, { EnhancedReadinessData } from '@/components/fitness/EnhancedReadinessCheckIn';
@@ -95,6 +96,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   
   // Warmup context manager for dynamic warm-up counts
   const { resetSessionContext, logWorkingSet } = useWarmupManager();
+  
+  // Rep range editor state
+  const [repRangeEditorOpen, setRepRangeEditorOpen] = useState(false);
   
   const [currentExerciseId, setCurrentExerciseId] = useState<string | null>(() => {
     // Try to restore from localStorage first
@@ -858,6 +862,15 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         >
                           🤸
                         </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-8 w-8 p-0"
+                          onClick={() => setRepRangeEditorOpen(true)}
+                          title="Edit rep target"
+                        >
+                          🎯
+                        </Button>
                       </div>
                       <Badge variant="secondary">
                         {completedSetsCount}/{targetSetsCount} sets
@@ -1331,6 +1344,22 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           </div>
         </div>
       </div>
+
+      {/* Rep Range Editor Dialog */}
+      {currentExercise && (
+        <RepRangeEditor
+          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+          exerciseName={getExerciseName()}
+          currentRepMin={currentExercise.target_reps_min}
+          currentRepMax={currentExercise.target_reps_max}
+          currentTargetReps={currentExercise.target_reps}
+          open={repRangeEditorOpen}
+          onOpenChange={setRepRangeEditorOpen}
+          onSuccess={() => {
+            queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+          }}
+        />
+      )}
 
       {/* Debug Panel - Only show if debug mode is enabled */}
       {/* TODO: Connect to actual debug toggle */}
