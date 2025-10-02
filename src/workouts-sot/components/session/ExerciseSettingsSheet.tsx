@@ -163,8 +163,9 @@ export function ExerciseSettingsSheet({
         </SheetHeader>
 
         <Tabs defaultValue="grips" className="mt-6">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="grips">Grips</TabsTrigger>
+            <TabsTrigger value="sets">Sets</TabsTrigger>
             <TabsTrigger value="targets">Targets</TabsTrigger>
             <TabsTrigger value="tracking">Tracking</TabsTrigger>
           </TabsList>
@@ -187,7 +188,52 @@ export function ExerciseSettingsSheet({
             />
           </TabsContent>
 
-          {/* Targets Tab */}
+          {/* Sets Tab */}
+          <TabsContent value="sets" className="space-y-6">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="target_sets">Number of Sets</Label>
+                <p className="text-sm text-muted-foreground">
+                  How many sets do you want to complete for this exercise?
+                </p>
+              </div>
+              
+              <Input
+                id="target_sets"
+                type="number"
+                value={localTargetSets}
+                onChange={(e) => setLocalTargetSets(Number(e.target.value))}
+                min={1}
+                max={12}
+                className="text-lg"
+              />
+
+              <div className="grid grid-cols-3 gap-2">
+                {[2, 3, 4, 5, 6].map((num) => (
+                  <Button
+                    key={num}
+                    type="button"
+                    variant={localTargetSets === num ? "default" : "outline"}
+                    onClick={() => setLocalTargetSets(num)}
+                    className="h-12"
+                  >
+                    {num} sets
+                  </Button>
+                ))}
+              </div>
+
+              <Button 
+                onClick={handleSaveSets} 
+                disabled={isSavingSets || localTargetSets === targetSets}
+                className="w-full"
+                size="lg"
+              >
+                {isSavingSets ? 'Saving...' : 'Save Sets Configuration'}
+              </Button>
+            </div>
+          </TabsContent>
+
+          {/* Targets Tab - Rep Range only */}
           <TabsContent value="targets" className="space-y-6">
             {/* Rep Range */}
             <div className="space-y-4">
@@ -229,35 +275,6 @@ export function ExerciseSettingsSheet({
                 className="w-full"
               >
                 {isSaving ? 'Saving...' : 'Save Rep Range'}
-              </Button>
-            </div>
-
-            <Separator />
-
-            {/* Target Sets */}
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <Label htmlFor="target_sets">Target Sets</Label>
-                <p className="text-sm text-muted-foreground">
-                  Number of sets to complete for this exercise
-                </p>
-              </div>
-              
-              <Input
-                id="target_sets"
-                type="number"
-                value={localTargetSets}
-                onChange={(e) => setLocalTargetSets(Number(e.target.value))}
-                min={1}
-                max={12}
-              />
-
-              <Button 
-                onClick={handleSaveSets} 
-                disabled={isSavingSets || localTargetSets === targetSets}
-                className="w-full"
-              >
-                {isSavingSets ? 'Saving...' : 'Save Target Sets'}
               </Button>
             </div>
           </TabsContent>
