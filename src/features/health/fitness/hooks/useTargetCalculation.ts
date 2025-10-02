@@ -275,7 +275,7 @@ export function useTargetCalculation({
             snapStrategy: 'down'
           });
           
-          const resolved = await resolveAchievableLoad(exerciseId, target.weight, gymId, { snapStrategy: 'down' });
+          const resolved = await resolveAchievableLoad(exerciseId, target.weight, gymId, { snapStrategy: 'nearest' });
           
           console.log('🎯 DEBUG: useTargetCalculation - Equipment resolution completed:', {
             original: target.weight,
