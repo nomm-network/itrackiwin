@@ -903,9 +903,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                               <Badge variant="outline" className="w-8 h-8 rounded-full flex items-center justify-center">
                                 {(set.set_index ?? index) + 1}
                               </Badge>
-                              <span className="font-medium">
+                      <span className="font-medium">
                                 {totalLoad || (set.reps && isBodyweight ? 'BW' : '')}
-                                {totalLoad && set.reps ? ' × ' : ''}
+                                {((totalLoad || (set.reps && isBodyweight)) && set.reps) ? ' × ' : ''}
                                 {set.reps ? `${set.reps} reps` : ''}
                                 {emoji ? ` ${emoji}` : ''}
                               </span>
