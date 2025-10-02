@@ -162,27 +162,35 @@ export async function resolveAchievableLoad(
   gymId?: string,
   opts?: { equipmentRefId?: string; snapStrategy?: 'down' | 'nearest' | 'up' }
 ): Promise<LoadResolutionResult> {
-  console.log('🎯 DEBUG: resolveAchievableLoad - Starting weight resolution', {
+  console.log('🎯 v113.2 resolveAchievableLoad - ENTRY:', {
     exerciseId,
     desiredKg,
-    gymId
+    gymId,
+    snapStrategy: opts?.snapStrategy || 'not provided'
   });
   
   try {
     // Check if gym equipment v2 is enabled
     const v2Enabled = await getFeatureFlag('gym_equipment_v2');
     
-    console.log('🎯 DEBUG: resolveAchievableLoad - Feature flag check:', {
-      v2Enabled
+    console.log('🎯 v113.2 resolveAchievableLoad - Feature flag:', {
+      flag: 'gym_equipment_v2',
+      v2Enabled,
+      willUseVersion: v2Enabled ? 'V2' : 'V1'
     });
     
     const result = v2Enabled 
       ? await resolveAchievableLoadV2(exerciseId, desiredKg, gymId, opts)
       : await resolveAchievableLoadV1(exerciseId, desiredKg, gymId);
     
-    console.log('🎯 DEBUG: resolveAchievableLoad - Resolution completed:', {
-      version: v2Enabled ? 'v2' : 'v1',
-      result
+    console.log('🎯 v113.2 resolveAchievableLoad - ✅ COMPLETE:', {
+      version: v2Enabled ? 'V2' : 'V1',
+      inputWeight: desiredKg,
+      outputWeight: result.totalKg,
+      weightChanged: result.totalKg !== desiredKg,
+      implement: result.implement,
+      residualKg: result.residualKg,
+      details: result.details
     });
     
     return result;
