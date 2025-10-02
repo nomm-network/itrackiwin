@@ -19,6 +19,8 @@ export interface WorkoutExercise {
   order_index: number;
   target_sets: number;
   target_reps: number | null;
+  target_reps_min: number | null;  // NEW: min reps for rep range targeting
+  target_reps_max: number | null;  // NEW: max reps for rep range targeting
   target_weight_kg: number | null;  // <- NORMALIZED: always use this
   weight_unit: 'kg' | 'lb' | null;
   notes: string | null;
