@@ -193,13 +193,13 @@ export function useTargetCalculation({
         });
       }
       
-      // Round to 0.5kg increments
-      const finalWeight = Math.round(scaledWeight * 2) / 2;
+      // Don't round yet - let equipment resolution handle snapping to valid weights
+      const finalWeight = scaledWeight;
       
-      console.log('🎯 DEBUG: useTargetCalculation - Weight rounding:', {
+      console.log('🎯 DEBUG: useTargetCalculation - Weight before equipment resolution:', {
         scaledWeight,
         finalWeight,
-        roundingCalc: `Math.round(${scaledWeight} × 2) / 2 = ${finalWeight}`
+        note: 'Not rounding yet - equipment resolver will snap to valid weights'
       });
       
       // Safety net: don't increase reps on ultra-low readiness
