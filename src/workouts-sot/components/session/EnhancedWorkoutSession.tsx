@@ -1202,7 +1202,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setEditSetData((prev: any) => ({ ...prev, weight: Math.max(0, prev.weight - 2.5) }))}
+                    onClick={() => setEditSetData((prev: any) => ({ ...prev, weight: prev.weight - 2.5 }))}
                   >
                     -2.5
                   </Button>
