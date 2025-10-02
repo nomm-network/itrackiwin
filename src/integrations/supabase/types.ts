@@ -13716,7 +13716,7 @@ export type Database = {
         Returns: number
       }
       start_workout: {
-        Args: { p_template_id?: string }
+        Args: { p_program_id?: string; p_template_id?: string }
         Returns: string
       }
       start_workout_with_smart_targets: {

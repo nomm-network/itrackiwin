@@ -22,35 +22,31 @@ export async function startFromTemplate(templateId: string) {
 }
 
 export async function startFromProgram(programId: string) {
-  // Get next template using new RPC
+  // Get next template using RPC
   const { data: user } = await supabase.auth.getUser();
   if (!user.user) throw new Error('Not authenticated');
 
-  // TODO: Re-implement when get_next_program_template function is available
-  // const { data: nextTemplate, error: templateError } = await supabase.rpc('get_next_program_template', {
-  //   p_program_id: programId,
-  //   p_user_id: user.user.id
-  // });
-
-  // if (templateError) throw templateError;
-  // if (!nextTemplate?.[0]) throw new Error('No program templates found');
-  
-  // Placeholder for now
-  
-  // TODO: Re-implement the rest when program template function is available
-  /*
-  // Start workout from the program's template with program tracking
-  const { data: workoutId, error: workoutError } = await supabase.rpc("start_workout", { 
-    p_template_id: nextTemplate[0].template_id 
+  const { data: nextTemplate, error: templateError } = await (supabase.rpc as any)('get_next_program_template', {
+    p_program_id: programId,
+    p_user_id: user.user.id
   });
+
+  if (templateError) throw templateError;
+  if (!nextTemplate?.[0]) throw new Error('No program templates found');
+  
+  // Start workout with BOTH template_id and program_id
+  // This tells start_workout to use program rep ranges instead of template defaults
+  const { data: workoutId, error: workoutError } = await supabase.rpc("start_workout", { 
+    p_template_id: nextTemplate[0].template_id,
+    p_program_id: programId
+  } as any);
 
   if (workoutError) throw workoutError;
 
-  // Update the workout with program info
+  // Update the workout with program position tracking
   await supabase
     .from('workouts')
     .update({
-      program_id: programId,
       program_position: nextTemplate[0].order_position,
       program_template_id: nextTemplate[0].template_id
     })
@@ -65,9 +61,13 @@ export async function startFromProgram(programId: string) {
       .eq('id', workoutId);
   }
   
-  return { workoutId: null };
-  */
+  // Advance program progress
+  await (supabase.rpc as any)('advance_program_progress', {
+    p_program_id: programId,
+    p_user_id: user.user.id,
+    p_position: nextTemplate[0].order_position,
+    p_workout_id: workoutId
+  });
   
-  // For now, return null since the function is not available
-  return { workoutId: null };
+  return { workoutId };
 }
