@@ -68,7 +68,7 @@ export function ExerciseSettingsSheet({
     // Save to preferences immediately
     if (userId && exerciseId) {
       try {
-        await supabase
+        const { error } = await supabase
           .from('user_exercise_preferences')
           .upsert({
             user_id: userId,
@@ -78,6 +78,14 @@ export function ExerciseSettingsSheet({
             unilateral_enabled: enabled,
             last_updated_at: new Date().toISOString()
           });
+        
+        if (error) {
+          console.error('Error saving unilateral preference:', error);
+          toast.error('Failed to save unilateral setting');
+          throw error;
+        }
+        
+        toast.success('Unilateral setting saved');
       } catch (error) {
         console.error('Error saving unilateral preference:', error);
       }
@@ -172,13 +180,19 @@ export function ExerciseSettingsSheet({
     
     // Auto-save grips to workout_exercises and preferences
     try {
-      await supabase
+      const { error: workoutError } = await supabase
         .from('workout_exercises')
         .update({ grip_ids: newSelection })
         .eq('id', workoutExerciseId);
 
+      if (workoutError) {
+        console.error('Error saving grip to workout:', workoutError);
+        toast.error('Failed to save grip to workout');
+        throw workoutError;
+      }
+
       if (userId && exerciseId) {
-        await supabase
+        const { error: prefError } = await supabase
           .from('user_exercise_preferences')
           .upsert({
             user_id: userId,
@@ -188,25 +202,37 @@ export function ExerciseSettingsSheet({
             preferred_grip_ids: newSelection,
             last_updated_at: new Date().toISOString()
           });
+        
+        if (prefError) {
+          console.error('Error saving grip preference:', prefError);
+          toast.error('Failed to save grip preference');
+          throw prefError;
+        }
       }
+      
+      toast.success('Grip saved');
     } catch (error) {
-      console.error('Error saving grip preferences:', error);
+      console.error('Error saving grip:', error);
     }
   };
 
   const handleSaveSets = async () => {
     setIsSavingSets(true);
     try {
-      const { error } = await supabase
+      const { error: workoutError } = await supabase
         .from('workout_exercises')
         .update({ target_sets: localTargetSets })
         .eq('id', workoutExerciseId);
 
-      if (error) throw error;
+      if (workoutError) {
+        console.error('Error updating workout sets:', workoutError);
+        toast.error('Failed to update workout sets');
+        throw workoutError;
+      }
 
       // Save to preferences
       if (userId && exerciseId) {
-        await supabase
+        const { error: prefError } = await supabase
           .from('user_exercise_preferences')
           .upsert({
             user_id: userId,
@@ -216,13 +242,18 @@ export function ExerciseSettingsSheet({
             preferred_target_sets: localTargetSets,
             last_updated_at: new Date().toISOString()
           });
+        
+        if (prefError) {
+          console.error('Error saving sets preference:', prefError);
+          toast.error('Failed to save sets preference');
+          throw prefError;
+        }
       }
 
-      toast.success('Target sets updated');
+      toast.success('Target sets saved');
       onRepRangeSave?.();
     } catch (error) {
       console.error('Error updating target sets:', error);
-      toast.error('Failed to update target sets');
     } finally {
       setIsSavingSets(false);
     }
@@ -237,12 +268,16 @@ export function ExerciseSettingsSheet({
         target_reps_max: repMax
       };
 
-      const { error } = await supabase
+      const { error: workoutError } = await supabase
         .from('workout_exercises')
         .update(updateData)
         .eq('id', workoutExerciseId);
 
-      if (error) throw error;
+      if (workoutError) {
+        console.error('Error updating workout rep range:', workoutError);
+        toast.error('Failed to update workout rep range');
+        throw workoutError;
+      }
 
       // Save preferences if we have context
       if (userId && exerciseId) {
@@ -259,15 +294,16 @@ export function ExerciseSettingsSheet({
           });
 
         if (prefError) {
-          console.warn('Failed to save preference:', prefError);
+          console.error('Error saving rep range preference:', prefError);
+          toast.error('Failed to save rep range preference');
+          throw prefError;
         }
       }
 
-      toast.success('Rep target updated');
+      toast.success('Rep range saved');
       onRepRangeSave?.();
     } catch (error) {
-      console.error('Error updating rep target:', error);
-      toast.error('Failed to update rep target');
+      console.error('Error updating rep range:', error);
     } finally {
       setIsSaving(false);
     }
