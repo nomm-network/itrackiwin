@@ -89,13 +89,54 @@ export function ExerciseSettingsSheet({
   const [localTargetSets, setLocalTargetSets] = useState(targetSets);
   const [isSaving, setIsSaving] = useState(false);
   const [isSavingSets, setIsSavingSets] = useState(false);
+  const [loadedPreferences, setLoadedPreferences] = useState(false);
+
+  // Load preferences when sheet opens
+  useEffect(() => {
+    const loadPreferences = async () => {
+      if (!open || !userId || !exerciseId || loadedPreferences) return;
+      
+      try {
+        const { data } = await supabase
+          .from('user_exercise_preferences')
+          .select('preferred_rep_min, preferred_rep_max, preferred_target_sets, preferred_grip_ids')
+          .eq('user_id', userId)
+          .eq('exercise_id', exerciseId)
+          .eq('template_id', templateId || '')
+          .maybeSingle();
+        
+        if (data) {
+          // Apply preferences if they exist
+          if (data.preferred_rep_min) setRepMin(data.preferred_rep_min);
+          if (data.preferred_rep_max) setRepMax(data.preferred_rep_max);
+          if (data.preferred_target_sets) setLocalTargetSets(data.preferred_target_sets);
+          if (data.preferred_grip_ids && data.preferred_grip_ids.length > 0) {
+            onGripsChange(data.preferred_grip_ids);
+          }
+        }
+        
+        setLoadedPreferences(true);
+      } catch (error) {
+        console.error('Error loading preferences:', error);
+      }
+    };
+    
+    if (open) {
+      loadPreferences();
+    } else {
+      // Reset when sheet closes
+      setLoadedPreferences(false);
+    }
+  }, [open, userId, exerciseId, templateId, loadedPreferences, onGripsChange]);
 
   // Update state when props change
   useEffect(() => {
-    setRepMin(currentRepMin || 6);
-    setRepMax(currentRepMax || 10);
-    setLocalTargetSets(targetSets);
-  }, [currentRepMin, currentRepMax, targetSets, workoutExerciseId]);
+    if (!loadedPreferences) {
+      setRepMin(currentRepMin || 6);
+      setRepMax(currentRepMax || 10);
+      setLocalTargetSets(targetSets);
+    }
+  }, [currentRepMin, currentRepMax, targetSets, workoutExerciseId, loadedPreferences]);
 
   // Filter grips for this exercise
   const exerciseGrips = allGrips.filter((grip: any) => {
@@ -104,9 +145,8 @@ export function ExerciseSettingsSheet({
   });
 
   const handleToggleGrip = async (gripId: string) => {
-    const newSelection = selectedGripIds.includes(gripId)
-      ? selectedGripIds.filter(id => id !== gripId)
-      : [...selectedGripIds, gripId];
+    // Single selection - replace instead of toggle
+    const newSelection = [gripId];
     onGripsChange(newSelection);
     
     // Auto-save grips to workout_exercises and preferences
