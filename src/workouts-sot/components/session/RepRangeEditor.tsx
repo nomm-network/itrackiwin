@@ -8,10 +8,13 @@ import { toast } from 'sonner';
 
 interface RepRangeEditorProps {
   workoutExerciseId: string;
+  exerciseId: string;
   exerciseName: string;
   currentRepMin: number | null;
   currentRepMax: number | null;
   currentTargetReps: number | null;
+  templateId?: string | null;
+  programId?: string | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSuccess?: () => void;
@@ -19,10 +22,13 @@ interface RepRangeEditorProps {
 
 export function RepRangeEditor({
   workoutExerciseId,
+  exerciseId,
   exerciseName,
   currentRepMin,
   currentRepMax,
   currentTargetReps,
+  templateId,
+  programId,
   open,
   onOpenChange,
   onSuccess
@@ -34,18 +40,43 @@ export function RepRangeEditor({
   const handleSave = async () => {
     setIsSaving(true);
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      // Update the current workout exercise
       const updateData = {
         target_reps: null,
         target_reps_min: repMin,
         target_reps_max: repMax
       };
 
-      const { error } = await supabase
+      const { error: workoutError } = await supabase
         .from('workout_exercises')
         .update(updateData)
         .eq('id', workoutExerciseId);
 
-      if (error) throw error;
+      if (workoutError) throw workoutError;
+
+      // Save to preferences table (upsert)
+      const { error: prefError } = await supabase
+        .from('user_exercise_preferences')
+        .upsert({
+          user_id: user.id,
+          exercise_id: exerciseId,
+          template_id: templateId || null,
+          program_id: programId || null,
+          preferred_rep_min: repMin,
+          preferred_rep_max: repMax,
+          last_updated_at: new Date().toISOString()
+        }, {
+          onConflict: 'user_id,exercise_id,template_id,program_id',
+          ignoreDuplicates: false
+        });
+
+      if (prefError) {
+        console.error('Error saving preference:', prefError);
+        // Don't fail the whole operation if preference save fails
+      }
 
       toast.success('Rep target updated successfully');
       onSuccess?.();

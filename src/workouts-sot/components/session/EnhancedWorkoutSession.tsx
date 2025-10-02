@@ -1349,10 +1349,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
       {currentExercise && (
         <RepRangeEditor
           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+          exerciseId={currentExercise.exercise_id}
           exerciseName={getExerciseName()}
           currentRepMin={currentExercise.target_reps_min}
           currentRepMax={currentExercise.target_reps_max}
           currentTargetReps={currentExercise.target_reps}
+          templateId={workout?.template_id}
+          programId={workout?.program_id}
           open={repRangeEditorOpen}
           onOpenChange={setRepRangeEditorOpen}
           onSuccess={() => {

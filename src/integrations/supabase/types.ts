@@ -6954,6 +6954,88 @@ export type Database = {
           },
         ]
       }
+      user_exercise_preferences: {
+        Row: {
+          created_at: string
+          exercise_id: string
+          id: string
+          last_updated_at: string
+          preferred_rep_max: number | null
+          preferred_rep_min: number | null
+          preferred_weight_kg: number | null
+          program_id: string | null
+          template_id: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          exercise_id: string
+          id?: string
+          last_updated_at?: string
+          preferred_rep_max?: number | null
+          preferred_rep_min?: number | null
+          preferred_weight_kg?: number | null
+          program_id?: string | null
+          template_id?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          exercise_id?: string
+          id?: string
+          last_updated_at?: string
+          preferred_rep_max?: number | null
+          preferred_rep_min?: number | null
+          preferred_weight_kg?: number | null
+          program_id?: string | null
+          template_id?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_exercise_preferences_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_preferences_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_admin_exercises"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_preferences_exercise_id_fkey"
+            columns: ["exercise_id"]
+            isOneToOne: false
+            referencedRelation: "v_exercises_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_preferences_program_id_fkey"
+            columns: ["program_id"]
+            isOneToOne: false
+            referencedRelation: "training_programs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_preferences_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "v_workout_templates_with_translations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_exercise_preferences_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "workout_templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_exercise_warmup_prefs: {
         Row: {
           ease_bias: number
