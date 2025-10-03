@@ -239,6 +239,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   
+  // Reset rest timer when switching exercises or when starting first exercise
+  useEffect(() => {
+    if (currentExercise && completedSetsCount === 0) {
+      stopRest(); // Reset timer to 0:00 for new exercise
+      console.log('🕐 Reset rest timer for new exercise:', currentExercise.id);
+    }
+  }, [currentExercise?.id]);
+  
 
   // Check if warmup feedback was already given AND auto-open if not
   useEffect(() => {
@@ -903,7 +911,14 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           variant="ghost" 
                           size="icon" 
                           className="h-8 w-8"
-                          onClick={() => setShowWarmup(!showWarmup)}
+                          onClick={() => {
+                            setShowWarmup(!showWarmup);
+                            // Reset rest timer when showing warmup for Set 1
+                            if (!showWarmup && currentSetIndex === 0) {
+                              stopRest(); // This resets the timer
+                              console.log('🕐 Reset rest timer when showing warmup');
+                            }
+                          }}
                           title={showWarmup ? "Hide warmup" : "Show warmup"}
                         >
                           <Zap className="h-4 w-4" />
