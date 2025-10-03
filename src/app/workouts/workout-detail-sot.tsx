@@ -8,8 +8,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v113: UNILATERAL SIDE TRACKING IMPLEMENTED ———
-const __DEBUG_VERSION = 'v113-UNILATERAL-SIDE-TRACKING-' + Date.now();
+// ——— DEBUG v114: WARMUP COMPACT LAYOUT ———
+const __DEBUG_VERSION = 'v114-WARMUP-COMPACT-' + Date.now();
 
 function DebugTop({ payload }: { payload: any }) {
   const json = (() => {
@@ -92,11 +92,11 @@ export default function WorkoutPage() {
   if (isLoading) {
     return (
       <>
-        <DebugTop payload={__debugPayload} />
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           <span className="ml-2">Loading workout...</span>
         </div>
+        <DebugTop payload={__debugPayload} />
       </>
     );
   }
@@ -104,13 +104,13 @@ export default function WorkoutPage() {
   if (isError) {
     return (
       <>
-        <DebugTop payload={__debugPayload} />
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Failed to load workout</h2>
             <p className="text-muted-foreground">{(error as any)?.message}</p>
           </div>
         </div>
+        <DebugTop payload={__debugPayload} />
       </>
     );
   }
@@ -118,21 +118,21 @@ export default function WorkoutPage() {
   if (!workout) {
     return (
       <>
-        <DebugTop payload={__debugPayload} />
         <div className="min-h-screen bg-background flex items-center justify-center">
           <div className="text-center">
             <h2 className="text-xl font-semibold mb-2">Workout not found</h2>
             <p className="text-muted-foreground">This workout doesn't exist or you don't have access to it.</p>
           </div>
         </div>
+        <DebugTop payload={__debugPayload} />
       </>
     );
   }
 
   return (
     <>
-      <DebugTop payload={__debugPayload} />
       <EnhancedWorkoutSession workout={workout} />
+      <DebugTop payload={__debugPayload} />
     </>
   );
 }

@@ -877,10 +877,10 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
             {currentExercise && (
               <>
                 {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
-                <div className="space-y-4">
-                  <div className="bg-card border rounded-lg p-4">
+                <div className="space-y-2">
+                  <div className="bg-card border rounded-lg p-2">
                     {/* Exercise Header with Settings and Warmup icons */}
-                    <div className="flex items-center justify-between mb-4">
+                    <div className="flex items-center justify-between mb-2">
                       <div className="flex items-center gap-2">
                         <h3 className="text-lg font-semibold text-foreground">
                           {getExerciseName()}
@@ -913,20 +913,18 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
                     {/* 🎯 LEGACY MINI-MENU: Warmup Block */}
                     {showWarmup && (
-                      <div className="mb-2 bg-muted/50 border rounded-lg p-2">
-                        <WarmupBlock
-                          workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
-                          existingFeedback={null}
-                          onFeedbackGiven={async () => {
-                            console.log('Warmup feedback given');
-                            setShowWarmup(false);
-                            setWarmupCompleted(true);
-                            // Refetch to update UI
-                            await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
-                          }}
-                          onClose={() => setShowWarmup(false)}
-                        />
-                      </div>
+                      <WarmupBlock
+                        workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                        existingFeedback={null}
+                        onFeedbackGiven={async () => {
+                          console.log('Warmup feedback given');
+                          setShowWarmup(false);
+                          setWarmupCompleted(true);
+                          // Refetch to update UI
+                          await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
+                        }}
+                        onClose={() => setShowWarmup(false)}
+                      />
                     )}
                     
                     {/* Completed Sets - with proper weight display and edit dialog */}
