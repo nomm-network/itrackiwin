@@ -922,6 +922,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           console.log('Warmup feedback given');
                           setShowWarmup(false);
                           setWarmupCompleted(true);
+                          // Start rest timer after warmup for Set 1
+                          startRest();
+                          console.log('🕐 Started rest timer after warmup completion');
                           // Refetch to update UI
                           await queryClient.invalidateQueries({ queryKey: workoutKeys.byId(workout?.id) });
                         }}
