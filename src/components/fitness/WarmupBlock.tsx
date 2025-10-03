@@ -100,9 +100,8 @@ export function WarmupBlock({
   console.log('🎯 WarmupBlock: Rendering with feedback:', { localFeedback, existingFeedback });
 
   return (
-    <div>
-      <Card className="mb-2">
-        <CardHeader className="pb-1 pt-2 px-3">
+    <Card className="mb-1">
+      <CardHeader className="pb-1 pt-2 px-2">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
             {onClose && (
@@ -122,7 +121,7 @@ export function WarmupBlock({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-2 px-3 pb-2">
+        <CardContent className="space-y-2 px-2 pb-2">
           {/* Plan preview */}
           <div className="rounded-md border p-2">
             <div className="text-xs font-medium mb-1">Sets</div>
@@ -171,6 +170,5 @@ export function WarmupBlock({
           </div>
         </CardContent>
       </Card>
-    </div>
   );
 }
