@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
-import { Dumbbell, Settings } from 'lucide-react';
+import { Dumbbell, Settings, Minus, Plus } from 'lucide-react';
 import { 
   BaseSetFormProps, 
   useBaseFormState
@@ -149,33 +149,75 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
 
       <div className="grid grid-cols-2 gap-4">
-        {/* Weight Input */}
+        {/* Weight Input with +/- buttons */}
         <div className="space-y-2">
           <Label htmlFor="weight">Weight (kg)</Label>
-          <Input
-            id="weight"
-            type="number"
-            value={weight}
-            onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
-            min={0}
-            step={2.5}
-            placeholder="0"
-          />
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setWeight(prev => Math.max(0, (prev || 0) - 2.5))}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+              id="weight"
+              type="number"
+              value={weight}
+              onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
+              min={0}
+              step={2.5}
+              placeholder="0"
+              className="text-center h-10"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setWeight(prev => (prev || 0) + 2.5)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Reps Input */}
+        {/* Reps Input with +/- buttons */}
         <div className="space-y-2">
           <Label htmlFor="reps">Reps *</Label>
-          <Input
-            id="reps"
-            type="number"
-            value={reps}
-            onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
-            min={0}
-            step={1}
-            placeholder="8"
-            required
-          />
+          <div className="flex items-center gap-1">
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setReps(prev => Math.max(0, (prev || 0) - 1))}
+            >
+              <Minus className="h-4 w-4" />
+            </Button>
+            <Input
+              id="reps"
+              type="number"
+              value={reps}
+              onChange={(e) => setReps(e.target.value === '' ? '' : Number(e.target.value))}
+              min={0}
+              step={1}
+              placeholder="8"
+              required
+              className="text-center h-10"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              size="icon"
+              className="h-10 w-10 shrink-0"
+              onClick={() => setReps(prev => (prev || 0) + 1)}
+            >
+              <Plus className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
 
