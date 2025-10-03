@@ -915,6 +915,8 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                     {showWarmup && (
                       <WarmupBlock
                         workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+                        suggestedTopWeight={currentExercise?.target_weight || 20}
+                        suggestedTopReps={currentExercise?.target_reps || 8}
                         existingFeedback={null}
                         onFeedbackGiven={async () => {
                           console.log('Warmup feedback given');
@@ -986,12 +988,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                         "p-4 border-primary/20 bg-primary/5 relative",
                         showWarmup && !warmupCompleted && currentSetIndex === 0 && "pointer-events-none"
                       )}>
-                        {/* Blur overlay when warmup is shown but not completed on Set 1 */}
+                        {/* Lock overlay when warmup is shown but not completed on Set 1 */}
                         {showWarmup && !warmupCompleted && currentSetIndex === 0 && (
-                          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
-                            <div className="text-center text-sm text-muted-foreground">
+                          <div className="absolute inset-0 bg-background/10 backdrop-blur-[2px] z-10 rounded-lg flex items-center justify-center">
+                            <div className="text-center text-sm text-foreground bg-background/90 px-4 py-2 rounded-lg border shadow-lg">
                               <div className="mb-1">🔒 Complete warmup first</div>
-                              <div className="text-xs">Choose your warmup feedback above</div>
+                              <div className="text-xs text-muted-foreground">Choose your warmup feedback above</div>
                             </div>
                           </div>
                         )}

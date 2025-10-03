@@ -126,12 +126,10 @@ export function SetPrevTargetDisplay({
             </div>
           </div>
           
-          {/* Right side: ONE timer spanning both rows - only show if not Set 1 */}
-          {currentSetNumber > 1 && (
-            <div className="flex items-center">
-              <RestTimer />
-            </div>
-          )}
+          {/* Right side: ONE timer spanning both rows */}
+          <div className="flex items-center">
+            <RestTimer />
+          </div>
         </div>
       )}
     </div>
