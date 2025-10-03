@@ -239,13 +239,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   
   const completedSetsCount = sets.filter((set: any) => set.is_completed).length;
   
-  // Reset rest timer when switching exercises or when starting first exercise
+  // Track previous exercise ID to detect actual changes (not initial mount)
+  const prevExerciseIdRef = React.useRef<string | null>(null);
+  
+  // Reset rest timer ONLY when switching exercises (not on page load/refresh)
   useEffect(() => {
-    if (currentExercise && completedSetsCount === 0) {
+    const currentId = currentExercise?.id;
+    
+    // Only reset if we're changing FROM one exercise TO another
+    // Don't reset on initial mount (prevExerciseIdRef.current === null)
+    if (prevExerciseIdRef.current !== null && 
+        prevExerciseIdRef.current !== currentId && 
+        currentId && 
+        completedSetsCount === 0) {
       stopRest(); // Reset timer to 0:00 for new exercise
-      console.log('🕐 Reset rest timer for new exercise:', currentExercise.id);
+      console.log('🕐 Reset rest timer - switching from', prevExerciseIdRef.current, 'to', currentId);
     }
-  }, [currentExercise?.id]);
+    
+    // Update ref for next comparison
+    prevExerciseIdRef.current = currentId || null;
+  }, [currentExercise?.id, completedSetsCount]);
   
 
   // Check if warmup feedback was already given AND auto-open if not
