@@ -982,7 +982,20 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
                     {/* Current Set Entry - ONLY show if not complete */}
                     {completedSetsCount < targetSetsCount && (
-                      <Card className="p-4 border-primary/20 bg-primary/5">
+                      <Card className={cn(
+                        "p-4 border-primary/20 bg-primary/5 relative",
+                        showWarmup && !warmupCompleted && currentSetIndex === 0 && "pointer-events-none"
+                      )}>
+                        {/* Blur overlay when warmup is shown but not completed on Set 1 */}
+                        {showWarmup && !warmupCompleted && currentSetIndex === 0 && (
+                          <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-10 rounded-lg flex items-center justify-center">
+                            <div className="text-center text-sm text-muted-foreground">
+                              <div className="mb-1">🔒 Complete warmup first</div>
+                              <div className="text-xs">Choose your warmup feedback above</div>
+                            </div>
+                          </div>
+                        )}
+
                         <div className="space-y-4">
                           {/* Set X Current Set Title - EXACT OLD CODE */}
                           <div className="flex items-center justify-between">
