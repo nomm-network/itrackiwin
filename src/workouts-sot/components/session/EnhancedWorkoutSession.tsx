@@ -282,6 +282,9 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
         // 2. No sets have been completed yet
         if (!hasGivenFeedback && completedSetsCount === 0) {
           setShowWarmup(true);
+          // Stop any running timer when showing warmup without feedback
+          stopRest();
+          console.log('🕐 Stopped rest timer - warmup needs feedback');
         } else {
           setShowWarmup(false);
         }
