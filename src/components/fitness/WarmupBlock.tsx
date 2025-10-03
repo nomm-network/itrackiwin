@@ -112,8 +112,8 @@ export function WarmupBlock({
         }, null, 2)}</pre>
       </details>
       
-      <Card className="mb-4">
-        <CardHeader className="pb-2">
+      <Card className="mb-2">
+        <CardHeader className="pb-1 pt-2 px-3">
           <div className="flex items-center justify-between">
             <CardTitle className="text-sm">Warm‑up 🤸</CardTitle>
             {onClose && (
@@ -133,11 +133,11 @@ export function WarmupBlock({
           </div>
         </CardHeader>
 
-        <CardContent className="space-y-3">
+        <CardContent className="space-y-2 px-3 pb-2">
           {/* Plan preview */}
-          <div className="rounded-md border p-3">
-            <div className="text-xs font-medium mb-2">Sets</div>
-            <ol className="space-y-2">
+          <div className="rounded-md border p-2">
+            <div className="text-xs font-medium mb-1">Sets</div>
+            <ol className="space-y-1">
               {plan.steps.map((step, index) => (
                 <li key={step.id} className="flex items-center justify-between text-sm">
                   <span className="font-medium">Set {index + 1}</span>
@@ -152,8 +152,8 @@ export function WarmupBlock({
 
           {/* One-tap feedback after finishing all warmups for the exercise */}
           <div>
-            <div className="text-sm mb-2">How was the warm‑up? Pick 👇🏻</div>
-            <div className="flex gap-2">
+            <div className="text-sm mb-1">How was the warm‑up? Pick 👇🏻</div>
+            <div className="flex gap-1.5">
               <Button
                 size="sm"
                 variant={localFeedback === 'not_enough' ? 'default' : 'outline'}
@@ -168,7 +168,7 @@ export function WarmupBlock({
                 onClick={() => save('excellent' as any)}
                 disabled={isSaving}
               >
-                🔥 Excellent
+                🔥 Great
               </Button>
               <Button
                 size="sm"
