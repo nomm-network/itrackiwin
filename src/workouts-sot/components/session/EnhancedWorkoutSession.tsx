@@ -913,7 +913,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
 
                     {/* 🎯 LEGACY MINI-MENU: Warmup Block */}
                     {showWarmup && (
-                      <div className="mb-4 bg-muted/50 border rounded-lg p-4">
+                      <div className="mb-2 bg-muted/50 border rounded-lg p-2">
                         <WarmupBlock
                           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
                           existingFeedback={null}
