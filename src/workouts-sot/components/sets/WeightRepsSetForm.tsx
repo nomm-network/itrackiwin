@@ -4,6 +4,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Dumbbell, Settings, Minus, Plus } from 'lucide-react';
 import { 
   BaseSetFormProps, 
@@ -12,6 +13,8 @@ import {
 import { useToast } from '@/hooks/use-toast';
 import { useWorkoutSetGrips } from '@/hooks/useWorkoutSetGrips';
 import { buildSupabaseErrorMessage } from '@/workouts-sot/utils/supabaseError';
+import { getDualLoadMode, setDualLoadMode } from '@/lib/workouts/dualLoadMode';
+import { getLoadType } from '@/lib/workouts/equipmentContext';
 
 interface WeightRepsSetFormProps extends BaseSetFormProps {
   targetWeight?: number;
@@ -40,10 +43,26 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   const { toast } = useToast();
   const { saveSetWithGrips, isLoading } = useWorkoutSetGrips();
   
+  // Detect dual-load exercises
+  const loadType = getLoadType(exercise);
+  const isDualLoad = loadType === 'dual_load';
+  
+  // Dual-load entry mode - load from localStorage
+  const exerciseId = exercise?.id;
+  const [entryMode, setEntryMode] = useState<'per_side' | 'total'>(() => {
+    if (isDualLoad && exerciseId) {
+      return getDualLoadMode(exerciseId);
+    }
+    return 'per_side';
+  });
+  
   // Weight & reps specific fields - initialize with target values if available
   const [reps, setReps] = useState<number | ''>(targetReps || '');
   const [weight, setWeight] = useState<number | ''>(targetWeight || '');
   const [side, setSide] = useState<'left' | 'right' | 'both'>('both');
+  
+  // Estimated bar weight for dual-load calculations
+  const barWeight = 20; // Default Olympic bar weight in kg
 
   // Update form when target values change
   React.useEffect(() => {
@@ -148,10 +167,41 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
   return (
     <form onSubmit={handleSubmit} className={`space-y-6 ${className}`}>
 
+      {/* Dual-Load Entry Mode Toggle */}
+      {isDualLoad && (
+        <div className="space-y-2">
+          <Label>Entry Mode</Label>
+          <ToggleGroup 
+            type="single" 
+            value={entryMode}
+            onValueChange={(val) => {
+              if (val) {
+                const newMode = val as 'per_side' | 'total';
+                setEntryMode(newMode);
+                // Save to localStorage
+                if (exerciseId) {
+                  setDualLoadMode(exerciseId, newMode);
+                }
+              }
+            }}
+            className="justify-start"
+          >
+            <ToggleGroupItem value="per_side" className="flex-1">
+              Per Side
+            </ToggleGroupItem>
+            <ToggleGroupItem value="total" className="flex-1">
+              Total
+            </ToggleGroupItem>
+          </ToggleGroup>
+        </div>
+      )}
+
       <div className="grid grid-cols-2 gap-4">
         {/* Weight Input with +/- buttons */}
         <div className="space-y-2">
-          <Label htmlFor="weight">Weight (kg)</Label>
+          <Label htmlFor="weight">
+            {isDualLoad && entryMode === 'per_side' ? 'Weight Per Side (kg)' : 'Weight (kg)'}
+          </Label>
           <div className="flex items-center gap-1">
             <Button
               type="button"
@@ -182,6 +232,13 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
               <Plus className="h-4 w-4" />
             </Button>
           </div>
+          {/* Show total weight calculation for dual-load per-side entry */}
+          {isDualLoad && entryMode === 'per_side' && weight !== '' && weight !== 0 && (
+            <div className="text-xs text-muted-foreground mt-1">
+              Total: {((Number(weight) * 2) + barWeight).toFixed(1)} kg
+              <span className="ml-1">({Number(weight)} kg × 2 + {barWeight} kg bar)</span>
+            </div>
+          )}
         </div>
 
         {/* Reps Input with +/- buttons */}
