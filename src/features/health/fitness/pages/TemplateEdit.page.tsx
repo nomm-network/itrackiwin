@@ -56,6 +56,9 @@ export default function TemplateEdit() {
   const [exerciseSearch, setExerciseSearch] = useState("");
   const [selectedMuscleGroup, setSelectedMuscleGroup] = useState("all");
   const [selectedEquipment, setSelectedEquipment] = useState("all");
+  const [selectedExercises, setSelectedExercises] = useState<string[]>([]);
+  const [showSupersetDialog, setShowSupersetDialog] = useState(false);
+  const [supersetRounds, setSupersetRounds] = useState(3);
 
   const { data: template, isLoading: templateLoading } = useTemplateDetail(templateId);
   const { data: exercises, isLoading: exercisesLoading, refetch: refetchExercises } = useTemplateExercises(templateId);
@@ -285,6 +288,68 @@ export default function TemplateEdit() {
     }
   };
 
+  const handleCreateSuperset = async () => {
+    if (selectedExercises.length < 2) {
+      toast.error("Select at least 2 exercises to create a superset");
+      return;
+    }
+    
+    try {
+      const groupId = crypto.randomUUID();
+      
+      // Update each selected exercise with superset data
+      for (let i = 0; i < selectedExercises.length; i++) {
+        const exerciseId = selectedExercises[i];
+        await supabase
+          .from('template_exercises')
+          .update({
+            superset_group_id: groupId,
+            superset_order: i + 1,
+            superset_rounds_target: supersetRounds
+          })
+          .eq('id', exerciseId);
+      }
+      
+      toast.success(`Created superset with ${selectedExercises.length} exercises`);
+      setSelectedExercises([]);
+      setShowSupersetDialog(false);
+      setSupersetRounds(3);
+      refetchExercises();
+    } catch (error) {
+      toast.error("Failed to create superset");
+      console.error("Superset creation error:", error);
+    }
+  };
+
+  const handleRemoveFromSuperset = async (exerciseId: string) => {
+    if (!confirm("Remove this exercise from the superset?")) return;
+    
+    try {
+      await supabase
+        .from('template_exercises')
+        .update({
+          superset_group_id: null,
+          superset_order: null,
+          superset_rounds_target: null
+        })
+        .eq('id', exerciseId);
+        
+      toast.success("Exercise removed from superset");
+      refetchExercises();
+    } catch (error) {
+      toast.error("Failed to remove from superset");
+      console.error("Remove from superset error:", error);
+    }
+  };
+
+  const toggleExerciseSelection = (exerciseId: string) => {
+    setSelectedExercises(prev => 
+      prev.includes(exerciseId) 
+        ? prev.filter(id => id !== exerciseId)
+        : [...prev, exerciseId]
+    );
+  };
+
   if (templateLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -448,7 +513,65 @@ export default function TemplateEdit() {
             <div className="flex items-center justify-between">
               <CardTitle>Exercises</CardTitle>
               
-              <Dialog open={showExerciseDialog} onOpenChange={setShowExerciseDialog}>
+              <div className="flex gap-2">
+                {selectedExercises.length > 0 && (
+                  <Dialog open={showSupersetDialog} onOpenChange={setShowSupersetDialog}>
+                    <DialogTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Group as Superset ({selectedExercises.length})
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                      <DialogHeader>
+                        <DialogTitle>Create Superset</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Selected Exercises (will be ordered A, B, C...)
+                          </label>
+                          <div className="space-y-2">
+                            {selectedExercises.map((exId, idx) => {
+                              const ex = exercises?.find(e => e.id === exId);
+                              return (
+                                <div key={exId} className="flex items-center gap-2 p-2 bg-muted rounded">
+                                  <Badge variant="outline">
+                                    {String.fromCharCode(65 + idx)}
+                                  </Badge>
+                                  <span className="text-sm">{ex?.display_name || 'Exercise'}</span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                        
+                        <div>
+                          <label className="text-sm font-medium mb-2 block">
+                            Target Rounds
+                          </label>
+                          <Input
+                            type="number"
+                            min="1"
+                            max="10"
+                            value={supersetRounds}
+                            onChange={(e) => setSupersetRounds(Number(e.target.value))}
+                          />
+                        </div>
+                        
+                        <div className="flex gap-2 justify-end">
+                          <Button variant="outline" onClick={() => setShowSupersetDialog(false)}>
+                            Cancel
+                          </Button>
+                          <Button onClick={handleCreateSuperset}>
+                            Create Superset
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                )}
+                
+                <Dialog open={showExerciseDialog} onOpenChange={setShowExerciseDialog}>
                 <DialogTrigger asChild>
                   <Button>
                     <Plus className="h-4 w-4 mr-2" />
@@ -565,7 +688,8 @@ export default function TemplateEdit() {
                       </div>
                     </div>
                   </DialogContent>
-              </Dialog>
+                </Dialog>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
