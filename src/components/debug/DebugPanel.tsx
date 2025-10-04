@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { Card } from '@/components/ui/card';
 import { X } from 'lucide-react';
 
-const DEBUG_VERSION = 'v2.1';
+const DEBUG_VERSION = 'v2.2';
 
 export function DebugPanel() {
   const [errors, setErrors] = useState<string[]>([]);
