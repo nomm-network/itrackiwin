@@ -6328,6 +6328,9 @@ export type Database = {
           rep_range_min: number | null
           rest_seconds: number | null
           set_scheme: string | null
+          superset_group_id: string | null
+          superset_order: number | null
+          superset_rounds_target: number | null
           target_rep_max: number | null
           target_rep_min: number | null
           target_reps: number | null
@@ -6359,6 +6362,9 @@ export type Database = {
           rep_range_min?: number | null
           rest_seconds?: number | null
           set_scheme?: string | null
+          superset_group_id?: string | null
+          superset_order?: number | null
+          superset_rounds_target?: number | null
           target_rep_max?: number | null
           target_rep_min?: number | null
           target_reps?: number | null
@@ -6390,6 +6396,9 @@ export type Database = {
           rep_range_min?: number | null
           rest_seconds?: number | null
           set_scheme?: string | null
+          superset_group_id?: string | null
+          superset_order?: number | null
+          superset_rounds_target?: number | null
           target_rep_max?: number | null
           target_rep_min?: number | null
           target_reps?: number | null
@@ -8838,6 +8847,9 @@ export type Database = {
           readiness_adjusted_from: string | null
           rest_seconds: number | null
           selected_bar_id: string | null
+          superset_group_id: string | null
+          superset_order: number | null
+          superset_rounds_target: number | null
           target_origin: string | null
           target_reps: number | null
           target_reps_max: number | null
@@ -8874,6 +8886,9 @@ export type Database = {
           readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
+          superset_group_id?: string | null
+          superset_order?: number | null
+          superset_rounds_target?: number | null
           target_origin?: string | null
           target_reps?: number | null
           target_reps_max?: number | null
@@ -8910,6 +8925,9 @@ export type Database = {
           readiness_adjusted_from?: string | null
           rest_seconds?: number | null
           selected_bar_id?: string | null
+          superset_group_id?: string | null
+          superset_order?: number | null
+          superset_rounds_target?: number | null
           target_origin?: string | null
           target_reps?: number | null
           target_reps_max?: number | null
@@ -9282,6 +9300,7 @@ export type Database = {
           notes: string | null
           reps: number | null
           rest_seconds: number | null
+          round_number: number | null
           rpe: number | null
           set_index: number | null
           set_kind: Database["public"]["Enums"]["set_type"] | null
@@ -9317,6 +9336,7 @@ export type Database = {
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
+          round_number?: number | null
           rpe?: number | null
           set_index?: number | null
           set_kind?: Database["public"]["Enums"]["set_type"] | null
@@ -9352,6 +9372,7 @@ export type Database = {
           notes?: string | null
           reps?: number | null
           rest_seconds?: number | null
+          round_number?: number | null
           rpe?: number | null
           set_index?: number | null
           set_kind?: Database["public"]["Enums"]["set_type"] | null

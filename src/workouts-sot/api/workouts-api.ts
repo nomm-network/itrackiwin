@@ -85,6 +85,9 @@ export const useGetWorkout = (workoutId?: string) => {
             notes,
             warmup_plan,
             grip_id,
+            superset_group_id,
+            superset_order,
+            superset_rounds_target,
             exercise:exercises(
               id,
               default_grip_ids,

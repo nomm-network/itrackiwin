@@ -61,6 +61,8 @@ import { useExerciseEstimate, useWarmupSessionState, useWarmupManager } from '..
 import { submitWarmupFeedback } from '../../warmup';
 import { SessionHeaderMeta } from './';
 import { workoutKeys } from '../../api/workouts-api';
+import { groupExercisesIntoBlocks, getCurrentRound, getSupersetLetter, getSupersetRestDuration } from '../../utils/supersetGrouping';
+import { SupersetBlock } from './SupersetBlock';
 
 // Import readiness scoring utilities
 import { computeReadinessScore, getCurrentUserReadinessScore } from '@/lib/readiness';
@@ -196,10 +198,26 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
     }
   }, [workout?.started_at, workout?.ended_at, startSession, resetSessionContext]);
 
+  // Group exercises into blocks (supersets and singles)
+  const exerciseBlocks = useMemo(() => {
+    return groupExercisesIntoBlocks(workout?.exercises || []);
+  }, [workout?.exercises]);
+  
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
     return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
   }, [workout?.exercises, currentExerciseId]);
+  
+  // Find current block (for superset context)
+  const currentBlock = useMemo(() => {
+    return exerciseBlocks.find(block => {
+      if (block.type === 'superset') {
+        return block.exercises.some(ex => ex.id === currentExerciseId);
+      } else {
+        return block.exercise.id === currentExerciseId;
+      }
+    });
+  }, [exerciseBlocks, currentExerciseId]);
   
   // Load preferences when exercise changes
   useEffect(() => {
@@ -900,8 +918,24 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           <>
             {currentExercise && (
               <>
-                {/* SOT Set Form - Direct usage instead of ImprovedWorkoutSession wrapper */}
+                {/* Render exercise content with optional superset wrapper */}
                 <div className="space-y-2">
+                  {currentBlock?.type === 'superset' && (
+                    <SupersetBlock
+                      superset={currentBlock}
+                      currentExerciseId={currentExerciseId}
+                      onExerciseClick={(exId) => {
+                        setCurrentExerciseId(exId);
+                        try {
+                          localStorage.setItem(`workout_${workout?.id}_currentExercise`, exId);
+                        } catch (error) {
+                          console.warn('Failed to persist current exercise:', error);
+                        }
+                      }}
+                    >
+                      <div/> {/* Placeholder - content below */}
+                    </SupersetBlock>
+                  )}
                   <div className="bg-card border rounded-lg p-2">
                     {/* Exercise Header with Settings and Warmup icons */}
                     <div className="flex items-center justify-between mb-2">
@@ -1074,10 +1108,22 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
                           onLogged={async () => {
                             console.log('✅ Set logged successfully via SOT SmartSetForm');
                             
-                            // Start rest timer if not the last set
+                            // Determine rest duration based on superset context
                             const newCompletedCount = completedSetsCount + 1;
                             if (newCompletedCount < targetSetsCount) {
                               console.log('🕐 Starting rest timer after set completion');
+                              
+                              // Check if we're in a superset
+                              if (currentBlock?.type === 'superset') {
+                                const currentExIndex = currentBlock.exercises.findIndex(ex => ex.id === currentExerciseId);
+                                const isLastInRound = currentExIndex === currentBlock.exercises.length - 1;
+                                const lastSet = sets[sets.length - 1];
+                                const restDuration = getSupersetRestDuration(isLastInRound, lastSet?.rpe);
+                                
+                                console.log('🔄 Superset rest:', { isLastInRound, restDuration });
+                                // TODO: Pass custom rest duration to timer
+                              }
+                              
                               startRest();
                             }
                             
