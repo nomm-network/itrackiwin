@@ -7,7 +7,7 @@ import { useTrainingPrograms } from '@/hooks/useTrainingPrograms';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import DebugPanel from '@/components/debug/DebugPanel';
+import { DebugPanel } from '@/components/debug/DebugPanel';
 import { EdgeFunctionDebugPanel } from '@/components/debug/EdgeFunctionDebugPanel';
 
 export function ProgramTabs() {
@@ -322,7 +322,7 @@ export function ProgramTabs() {
       
       
       <EdgeFunctionDebugPanel />
-      <DebugPanel forceOpen={true} />
+      <DebugPanel />
     </div>
   );
 }

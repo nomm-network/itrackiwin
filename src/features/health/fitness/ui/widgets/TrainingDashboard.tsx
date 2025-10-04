@@ -8,6 +8,7 @@ import { Clock, XCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useDeleteWorkout } from '@/features/health/fitness/services/fitness.api';
 import { useToast } from '@/hooks/use-toast';
+import { DebugPanel } from '@/components/debug/DebugPanel';
 
 const TrainingDashboard: React.FC = () => {
   const navigate = useNavigate();
@@ -102,7 +103,12 @@ const TrainingDashboard: React.FC = () => {
   }
 
   // Show the new favorites-based Training Center
-  return <TrainingCenterCard />;
+  return (
+    <>
+      <TrainingCenterCard />
+      <DebugPanel />
+    </>
+  );
 };
 
 export default TrainingDashboard;

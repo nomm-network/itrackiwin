@@ -40,26 +40,49 @@ export default function TrainingCenterCard() {
 
   async function onStart() {
     setIsStarting(true);
+    
+    // Dispatch debug event
+    window.dispatchEvent(new CustomEvent('debug-error', { 
+      detail: { message: `[v2.1] Starting ${mode} with ID: ${mode === 'template' ? templateId : programId}` }
+    }));
+    
     try {
       if (mode === "template" && templateId) {
-        console.log('[TrainingCenter] Starting from template:', templateId);
+        console.log('[TrainingCenter v2.1] Starting from template:', templateId);
         const { workoutId } = await startFromTemplate(templateId);
-        console.log('[TrainingCenter] Started workout:', workoutId);
+        console.log('[TrainingCenter v2.1] Started workout:', workoutId);
+        
+        window.dispatchEvent(new CustomEvent('debug-error', { 
+          detail: { message: `[v2.1] SUCCESS! Workout started: ${workoutId}` }
+        }));
+        
         navigate(`/app/workouts/${workoutId}`);
       } else if (mode === "program" && programId) {
-        console.log('[TrainingCenter] Starting from program:', programId);
+        console.log('[TrainingCenter v2.1] Starting from program:', programId);
         const { workoutId } = await startFromProgram(programId);
-        console.log('[TrainingCenter] Started workout:', workoutId);
+        console.log('[TrainingCenter v2.1] Started workout:', workoutId);
+        
+        window.dispatchEvent(new CustomEvent('debug-error', { 
+          detail: { message: `[v2.1] SUCCESS! Workout started: ${workoutId}` }
+        }));
+        
         navigate(`/app/workouts/${workoutId}`);
       }
     } catch (error: any) {
-      console.error('[TrainingCenter] FULL ERROR:', error);
-      console.error('[TrainingCenter] Error message:', error?.message);
-      console.error('[TrainingCenter] Error details:', JSON.stringify(error, null, 2));
+      console.error('[TrainingCenter v2.1] FULL ERROR:', error);
+      console.error('[TrainingCenter v2.1] Error message:', error?.message);
+      console.error('[TrainingCenter v2.1] Error details:', JSON.stringify(error, null, 2));
       
       const errorMsg = error?.message || error?.toString() || 'Unknown error';
-      toast.error(`ERROR: ${errorMsg}`, {
-        description: error?.details || error?.hint || 'Check console for full details',
+      const fullError = `[v2.1] ERROR: ${errorMsg} | Details: ${error?.details || error?.hint || 'none'} | Code: ${error?.code || 'none'}`;
+      
+      // Send to debug panel
+      window.dispatchEvent(new CustomEvent('debug-error', { 
+        detail: { message: fullError }
+      }));
+      
+      toast.error(`🚨 ERROR v2.1: ${errorMsg}`, {
+        description: error?.details || error?.hint || 'Check debug panel for full details',
         duration: 10000,
       });
     } finally {
