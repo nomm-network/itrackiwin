@@ -42,15 +42,26 @@ export default function TrainingCenterCard() {
     setIsStarting(true);
     try {
       if (mode === "template" && templateId) {
+        console.log('[TrainingCenter] Starting from template:', templateId);
         const { workoutId } = await startFromTemplate(templateId);
+        console.log('[TrainingCenter] Started workout:', workoutId);
         navigate(`/app/workouts/${workoutId}`);
       } else if (mode === "program" && programId) {
+        console.log('[TrainingCenter] Starting from program:', programId);
         const { workoutId } = await startFromProgram(programId);
+        console.log('[TrainingCenter] Started workout:', workoutId);
         navigate(`/app/workouts/${workoutId}`);
       }
-    } catch (error) {
-      console.error('Failed to start session:', error);
-      toast.error('Failed to start session. Please try again.');
+    } catch (error: any) {
+      console.error('[TrainingCenter] FULL ERROR:', error);
+      console.error('[TrainingCenter] Error message:', error?.message);
+      console.error('[TrainingCenter] Error details:', JSON.stringify(error, null, 2));
+      
+      const errorMsg = error?.message || error?.toString() || 'Unknown error';
+      toast.error(`ERROR: ${errorMsg}`, {
+        description: error?.details || error?.hint || 'Check console for full details',
+        duration: 10000,
+      });
     } finally {
       setIsStarting(false);
     }

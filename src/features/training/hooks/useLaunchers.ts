@@ -2,22 +2,35 @@ import { supabase } from "@/integrations/supabase/client";
 import { useReadinessStore } from "@/stores/readinessStore";
 
 export async function startFromTemplate(templateId: string) {
+  console.log('[useLaunchers] Starting workout from template:', templateId);
+  
   // Call the existing start_workout RPC function with template
   const { data, error } = await supabase.rpc("start_workout", { 
     p_template_id: templateId 
   });
 
-  if (error) throw error;
+  console.log('[useLaunchers] start_workout response:', { data, error });
+
+  if (error) {
+    console.error('[useLaunchers] start_workout ERROR:', error);
+    throw error;
+  }
   
   // Update workout with current readiness score
   const readinessStore = useReadinessStore.getState();
   if (data && readinessStore.score !== null && readinessStore.score !== undefined) {
-    await supabase
+    console.log('[useLaunchers] Updating workout with readiness score:', readinessStore.score);
+    const { error: updateError } = await supabase
       .from('workouts')
       .update({ readiness_score: readinessStore.score })
       .eq('id', data);
+    
+    if (updateError) {
+      console.error('[useLaunchers] Failed to update readiness score:', updateError);
+    }
   }
   
+  console.log('[useLaunchers] Workout started successfully:', data);
   return { workoutId: data };
 }
 
