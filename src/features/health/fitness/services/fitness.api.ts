@@ -94,6 +94,9 @@ export interface TemplateExercise {
   notes?: string | null;
   grip_ids?: string[] | null;
   display_name?: string | null;
+  superset_group_id?: string | null;
+  superset_order?: number | null;
+  superset_rounds_target?: number | null;
 }
 
 export interface PersonalRecord {

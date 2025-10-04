@@ -703,49 +703,60 @@ export default function TemplateEdit() {
                   {(provided) => (
                     <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-3">
                       {exercises.map((exercise, index) => (
-                        <Draggable 
-                          key={exercise.id} 
-                          draggableId={exercise.id} 
-                          index={index}
+                    <Draggable key={exercise.id} draggableId={exercise.id} index={index}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`flex items-start gap-4 p-4 rounded-lg border ${
+                            selectedExercises.includes(exercise.id) 
+                              ? "bg-primary/5 border-primary" 
+                              : "bg-card"
+                          } ${snapshot.isDragging ? "shadow-lg" : ""}`}
                         >
-                          {(provided, snapshot) => (
-                            <div
-                              ref={provided.innerRef}
-                              {...provided.draggableProps}
-                              className={`flex items-center gap-3 p-3 border rounded-lg transition-colors ${
-                                snapshot.isDragging ? 'bg-muted shadow-lg' : 'hover:bg-muted/50'
-                              }`}
-                            >
-                              <div
-                                {...provided.dragHandleProps}
-                                className="text-muted-foreground hover:text-foreground cursor-grab active:cursor-grabbing"
-                              >
-                                <GripVertical className="h-5 w-5" />
+                          <input
+                            type="checkbox"
+                            checked={selectedExercises.includes(exercise.id)}
+                            onChange={() => toggleExerciseSelection(exercise.id)}
+                            className="mt-1.5"
+                          />
+                          
+                          <div {...provided.dragHandleProps} className="mt-1">
+                            <GripVertical className="h-5 w-5 text-muted-foreground" />
+                          </div>
+                          
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <div>
+                                <div className="flex items-center gap-2">
+                                  <h4 className="font-medium">
+                                    <ExerciseNameDisplay exerciseId={exercise.exercise_id} />
+                                  </h4>
+                                  {exercise.superset_group_id && (
+                                    <Badge variant="outline" className="text-xs">
+                                      {String.fromCharCode(64 + (exercise.superset_order || 1))} • 
+                                      {exercise.superset_rounds_target || 3} rounds
+                                    </Badge>
+                                  )}
+                                </div>
+                                <div className="text-sm text-muted-foreground mt-1">
+                                  {exercise.default_sets} sets × {exercise.target_reps} reps
+                                </div>
                               </div>
                               
-                              <div className="w-8 h-8 rounded-full bg-primary text-primary-foreground flex items-center justify-center text-sm font-medium">
-                                {index + 1}
-                              </div>
-                              
-                              <div className="flex-1">
-                                 <ExerciseNameDisplay exerciseId={exercise.exercise_id} />
-                                 <div className="text-sm text-muted-foreground">
-                                   {exercise.default_sets} sets × {exercise.target_reps} reps
-                                   {exercise.target_weight_kg && ` @ ${exercise.target_weight_kg}${exercise.weight_unit || 'kg'}`}
-                                 </div>
-                                {exercise.notes && (
-                                  <div className="text-xs text-muted-foreground mt-1">
-                                    {exercise.notes}
-                                  </div>
+                              <div className="flex gap-1">
+                                {exercise.superset_group_id && (
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    onClick={() => handleRemoveFromSuperset(exercise.id)}
+                                    title="Remove from superset"
+                                  >
+                                    Ungroup
+                                  </Button>
                                 )}
-                              </div>
-                              
-                              <div className="flex gap-2">
-                                <Button variant="ghost" size="sm">
-                                  Edit
-                                </Button>
-                                <Button 
-                                  variant="ghost" 
+                                <Button
+                                  variant="ghost"
                                   size="sm"
                                   onClick={() => handleRemoveExercise(exercise.id)}
                                 >
@@ -753,8 +764,10 @@ export default function TemplateEdit() {
                                 </Button>
                               </div>
                             </div>
-                          )}
-                        </Draggable>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
                       ))}
                       {provided.placeholder}
                     </div>
