@@ -352,16 +352,21 @@ export function ExerciseSettingsSheet({
       console.log('🔧 Sets saved successfully, invalidating cache for workout:', workoutId);
       toast.success('Target sets saved');
       
-      // Invalidate cache to refresh workout data with new target_sets
-      await queryClient.invalidateQueries({ 
-        queryKey: workoutKeys.byId(workoutId) 
+      // Force refetch instead of just invalidating
+      console.log('🔧 Forcing refetch of workout data...');
+      await queryClient.refetchQueries({ 
+        queryKey: workoutKeys.byId(workoutId),
+        exact: true 
       });
       
-      console.log('🔧 Cache invalidated, calling onRepRangeSave');
+      console.log('🔧 Refetch complete, calling onRepRangeSave');
       onRepRangeSave?.();
-    } catch (error) {
+      
+      // Close the sheet after successful save
+      setTimeout(() => onOpenChange(false), 300);
+    } catch (error: any) {
       console.error('❌ Error updating target sets:', error);
-      toast.error(`Failed to save: ${error.message || 'Unknown error'}`);
+      toast.error(`Failed to save: ${error?.message || 'Unknown error'}`);
     } finally {
       setIsSavingSets(false);
     }

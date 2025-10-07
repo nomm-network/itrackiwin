@@ -1,6 +1,7 @@
 import { useParams } from 'react-router-dom';
 import { useGetWorkout } from '@/workouts-sot/hooks';
 import { EnhancedWorkoutSession } from '@/workouts-sot/components/session';
+import { useState } from 'react';
 
 // Log component mount for verification
 console.log('WorkoutPage mounted • v112.0-LEGACY-MINI-MENU-ACTIVATED');
@@ -8,12 +9,27 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v114: WARMUP COMPACT LAYOUT ———
-const __DEBUG_VERSION = 'v114-WARMUP-COMPACT-' + Date.now();
+// ——— DEBUG v115: SETS FIX + CACHE REFETCH ———
+const __DEBUG_VERSION = 'v115-SETS-FIX-' + Date.now();
 
-function DebugTop({ payload }: { payload: any }) {
+function DebugTop({ payload, currentExercise }: { payload: any; currentExercise?: any }) {
   const json = (() => {
-    try { return JSON.stringify({ version: __DEBUG_VERSION, ...payload }, null, 2); }
+    try { 
+      return JSON.stringify({ 
+        version: __DEBUG_VERSION, 
+        ...payload,
+        currentExercise: currentExercise ? {
+          id: currentExercise.id,
+          exercise_id: currentExercise.exercise_id,
+          target_sets: currentExercise.target_sets,
+          target_reps_min: currentExercise.target_reps_min,
+          target_reps_max: currentExercise.target_reps_max,
+          target_weight_kg: currentExercise.target_weight_kg,
+          sets_count: currentExercise.sets?.length || 0,
+          completed_sets: currentExercise.sets?.filter((s: any) => s.is_completed).length || 0
+        } : null
+      }, null, 2); 
+    }
     catch { return '{}'; }
   })();
 
@@ -63,6 +79,7 @@ function DebugTop({ payload }: { payload: any }) {
 export default function WorkoutPage() {
   const { workoutId } = useParams<{ workoutId: string }>();
   const { data: workout, isLoading, isError, error } = useGetWorkout(workoutId);
+  const [currentExerciseForDebug, setCurrentExerciseForDebug] = useState<any>(null);
 
   console.log('[WorkoutPage] id param:', workoutId);
   console.log('[WorkoutPage] query state:', { isLoading, isError, hasData: !!workout });
@@ -131,8 +148,11 @@ export default function WorkoutPage() {
 
   return (
     <>
-      <EnhancedWorkoutSession workout={workout} />
-      <DebugTop payload={__debugPayload} />
+      <EnhancedWorkoutSession 
+        workout={workout} 
+        onCurrentExerciseChange={setCurrentExerciseForDebug}
+      />
+      <DebugTop payload={__debugPayload} currentExercise={currentExerciseForDebug} />
     </>
   );
 }

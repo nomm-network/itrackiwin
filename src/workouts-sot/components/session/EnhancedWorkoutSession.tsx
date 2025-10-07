@@ -71,9 +71,10 @@ import { useSessionTiming } from '@/stores/sessionTiming';
 
 interface WorkoutSessionProps {
   workout: any;
+  onCurrentExerciseChange?: (exercise: any) => void;
 }
 
-export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps) {
+export default function EnhancedWorkoutSession({ workout, onCurrentExerciseChange }: WorkoutSessionProps) {
   const navigate = useNavigate();
   const { mutate: logSet, isPending: isLogging } = useLogSet();
   const { mutate: updateSet } = useUpdateSet();
@@ -205,8 +206,13 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   
   const currentExercise = useMemo(() => {
     const sortedExercises = workout?.exercises?.sort((a: any, b: any) => a.order_index - b.order_index) || [];
-    return sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
-  }, [workout?.exercises, currentExerciseId]);
+    const exercise = sortedExercises.find((x: any) => x.id === currentExerciseId) ?? sortedExercises[0];
+    
+    // Notify parent component for debug panel
+    onCurrentExerciseChange?.(exercise);
+    
+    return exercise;
+  }, [workout?.exercises, currentExerciseId, onCurrentExerciseChange]);
   
   // Find current block (for superset context)
   const currentBlock = useMemo(() => {
@@ -404,6 +410,12 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
   };
   
   const targetSetsCount = currentExercise?.target_sets || 3;
+  console.log('🎯 Target Sets Count:', { 
+    from_currentExercise: currentExercise?.target_sets,
+    fallback: 3,
+    final: targetSetsCount,
+    exerciseId: currentExercise?.id
+  });
   const currentSetNumber = completedSetsCount + 1;
   
   // Find current set index (first non-completed set)
