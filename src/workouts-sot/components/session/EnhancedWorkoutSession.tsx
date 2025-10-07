@@ -428,6 +428,29 @@ export default function EnhancedWorkoutSession({ workout, onCurrentExerciseChang
     return index;
   }, [sets, targetSetsCount]);
 
+  // CRITICAL FIX: Reset currentSetData to target values when setIndex changes
+  // This ensures all sets get pre-populated, not just the first one
+  useEffect(() => {
+    const targetWeight = currentExercise?.target_weight_kg || currentExercise?.target_weight || 0;
+    const targetReps = currentExercise?.target_reps || 0;
+    
+    console.log('🔄 [v116-FIX] setIndex or currentExercise changed - pre-populating currentSetData:', {
+      currentSetIndex,
+      targetWeight,
+      targetReps,
+      exerciseId: currentExercise?.exercise_id
+    });
+    
+    setCurrentSetData({
+      weight: targetWeight,
+      reps: targetReps,
+      rpe: 5,
+      feel: '',
+      notes: '',
+      pain: false
+    });
+  }, [currentSetIndex, currentExercise?.exercise_id, currentExercise?.target_weight_kg, currentExercise?.target_weight, currentExercise?.target_reps]);
+
   // Filter exercises based on gym constraints
   const filteredExercises = useMemo(() => {
     if (!workout?.exercises || !gym) return workout?.exercises || [];

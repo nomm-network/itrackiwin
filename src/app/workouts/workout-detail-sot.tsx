@@ -9,8 +9,8 @@ console.log('📁 [WorkoutPage] SOT File Path: src/app/workouts/workout-detail-s
 console.log('📁 [WorkoutPage] SOT Hook: @/workouts-sot/hooks/useGetWorkout');
 console.log('📁 [WorkoutPage] SOT Session: @/workouts-sot/components/session/EnhancedWorkoutSession (LEGACY-MINI-MENU)');
 
-// ——— DEBUG v116: PREFERENCES PRIORITY FIX ———
-const __DEBUG_VERSION = 'v116-PREFS-PRIORITY-' + Date.now();
+// ——— DEBUG v117: PREPOPULATE ALL SETS FIX ———
+const __DEBUG_VERSION = 'v117-ALL-SETS-PREPOP-' + Date.now();
 
 function DebugTop({ payload, currentExercise }: { payload: any; currentExercise?: any }) {
   const json = (() => {
