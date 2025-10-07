@@ -153,7 +153,64 @@ export const useGetWorkout = (workoutId?: string) => {
         });
       }
 
-      console.log('🔍 Final workout data with translations:', JSON.stringify(workoutData, null, 2));
+      // CRITICAL: Fetch user preferences and override target_sets/reps
+      if (workoutData.exercises && workoutData.exercises.length > 0) {
+        const { data: prefsData } = await supabase
+          .from('user_exercise_preferences')
+          .select('exercise_id, template_id, program_id, preferred_target_sets, preferred_rep_min, preferred_rep_max, preferred_grip_ids')
+          .eq('user_id', user.id)
+          .in('exercise_id', exerciseIds);
+
+        console.log('🎯 User preferences fetched:', prefsData);
+
+        // Apply preferences to each exercise
+        if (prefsData && prefsData.length > 0) {
+          workoutData.exercises.forEach(workoutEx => {
+            // Find matching preference (prioritize template > program > exercise-only)
+            const pref = prefsData.find(p => 
+              p.exercise_id === workoutEx.exercise_id &&
+              p.template_id === workoutData.template_id &&
+              p.program_id === workoutData.program_id
+            ) || prefsData.find(p => 
+              p.exercise_id === workoutEx.exercise_id &&
+              p.template_id === workoutData.template_id
+            ) || prefsData.find(p => 
+              p.exercise_id === workoutEx.exercise_id &&
+              p.program_id === workoutData.program_id
+            ) || prefsData.find(p => 
+              p.exercise_id === workoutEx.exercise_id &&
+              !p.template_id &&
+              !p.program_id
+            );
+
+            if (pref) {
+              console.log(`🎯 Applying preferences for exercise ${workoutEx.exercise_id}:`, {
+                before: { target_sets: workoutEx.target_sets, target_reps_min: workoutEx.target_reps_min, target_reps_max: workoutEx.target_reps_max },
+                prefs: { preferred_target_sets: pref.preferred_target_sets, preferred_rep_min: pref.preferred_rep_min, preferred_rep_max: pref.preferred_rep_max }
+              });
+
+              // Override with preferences if they exist
+              if (pref.preferred_target_sets !== null) {
+                workoutEx.target_sets = pref.preferred_target_sets;
+              }
+              if (pref.preferred_rep_min !== null) {
+                workoutEx.target_reps_min = pref.preferred_rep_min;
+              }
+              if (pref.preferred_rep_max !== null) {
+                workoutEx.target_reps_max = pref.preferred_rep_max;
+              }
+
+              console.log(`✅ After applying preferences:`, {
+                target_sets: workoutEx.target_sets,
+                target_reps_min: workoutEx.target_reps_min,
+                target_reps_max: workoutEx.target_reps_max
+              });
+            }
+          });
+        }
+      }
+
+      console.log('🔍 Final workout data with translations & preferences:', JSON.stringify(workoutData, null, 2));
       
       return workoutData;
     },
