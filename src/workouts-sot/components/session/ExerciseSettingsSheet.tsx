@@ -283,22 +283,42 @@ export function ExerciseSettingsSheet({
   };
 
   const handleSaveSets = async () => {
-    console.log('🔧 Saving sets:', { workoutExerciseId, localTargetSets, workoutId });
+    console.log('🔧 [SAVE] Starting save...', { 
+      workoutExerciseId, 
+      localTargetSets, 
+      workoutId,
+      userId,
+      exerciseId 
+    });
+    
     setIsSavingSets(true);
     try {
-      const { data, error: workoutError } = await supabase
+      // CRITICAL: Use .select() to verify the update worked
+      const { data: updateResult, error: workoutError } = await supabase
         .from('workout_exercises')
         .update({ target_sets: localTargetSets })
         .eq('id', workoutExerciseId)
-        .select();
+        .select('id, target_sets, workout_id');
 
-      console.log('🔧 Update result:', { data, error: workoutError });
+      console.log('🔧 [SAVE] Database update result:', { 
+        updateResult, 
+        error: workoutError,
+        expectedTargetSets: localTargetSets
+      });
 
       if (workoutError) {
-        console.error('Error updating workout sets:', workoutError);
+        console.error('❌ [SAVE] Database error:', workoutError);
         toast.error('Failed to update workout sets');
         throw workoutError;
       }
+      
+      if (!updateResult || updateResult.length === 0) {
+        console.error('❌ [SAVE] No rows updated!');
+        toast.error('Failed to update - no rows affected');
+        throw new Error('No rows updated');
+      }
+      
+      console.log('✅ [SAVE] Database updated successfully:', updateResult[0]);
 
       // Save to preferences
       if (userId && exerciseId) {
@@ -514,7 +534,10 @@ export function ExerciseSettingsSheet({
                     key={num}
                     type="button"
                     variant={localTargetSets === num ? "default" : "outline"}
-                    onClick={() => setLocalTargetSets(num)}
+                    onClick={() => {
+                      console.log('🔧 [QUICK] Quick button clicked:', num);
+                      setLocalTargetSets(num);
+                    }}
                     className="h-12"
                   >
                     {num} sets
@@ -523,7 +546,14 @@ export function ExerciseSettingsSheet({
               </div>
 
               <Button 
-                onClick={handleSaveSets} 
+                onClick={() => {
+                  console.log('🔧 [BUTTON] Save button clicked!', {
+                    localTargetSets,
+                    targetSets,
+                    disabled: isSavingSets || localTargetSets === targetSets
+                  });
+                  handleSaveSets();
+                }}
                 disabled={isSavingSets || localTargetSets === targetSets}
                 className="w-full"
                 size="lg"
