@@ -218,7 +218,7 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
               value={weight}
               onChange={(e) => setWeight(e.target.value === '' ? '' : Number(e.target.value))}
               min={0}
-              step={2.5}
+              step="any"
               placeholder="0"
               className="text-center h-10"
             />
