@@ -300,11 +300,15 @@ const WeightRepsSetForm: React.FC<WeightRepsSetFormProps> = ({
       {weight !== '' && weight !== 0 && (
         <div className="text-sm bg-muted p-3 rounded-md">
           <div className="font-medium">
-            Load: {weight}kg × {reps || '0'} reps
+            Load: {isDualLoad && entryMode === 'per_side' ? ((Number(weight) * 2) + barWeight).toFixed(1) : weight}kg × {reps || '0'} reps
             {isUnilateral && unilateralEnabled && side !== 'both' && <Badge variant="outline" className="ml-2">{side}</Badge>}
           </div>
           <div className="text-xs text-muted-foreground mt-1">
-            Total Volume: {weight && reps ? (Number(weight) * Number(reps)).toFixed(1) : '0'}kg
+            Total Volume: {weight && reps ? (
+              isDualLoad && entryMode === 'per_side' 
+                ? (((Number(weight) * 2) + barWeight) * Number(reps)).toFixed(1)
+                : (Number(weight) * Number(reps)).toFixed(1)
+            ) : '0'}kg
           </div>
         </div>
       )}
