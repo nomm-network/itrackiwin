@@ -10,6 +10,8 @@ import { GripChips } from '@/features/exercises/ui';
 import { useGrips } from '@/hooks/useGrips';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
+import { workoutKeys } from '../../api/workouts-api';
 
 interface ExerciseSettingsSheetProps {
   open: boolean;
@@ -17,6 +19,7 @@ interface ExerciseSettingsSheetProps {
   exerciseName: string;
   exerciseId: string;
   workoutExerciseId: string;
+  workoutId: string; // ADD THIS for cache invalidation
   
   // Grips
   selectedGripIds: string[];
@@ -47,6 +50,7 @@ export function ExerciseSettingsSheet({
   exerciseName,
   exerciseId,
   workoutExerciseId,
+  workoutId,
   selectedGripIds,
   onGripsChange,
   currentRepMin,
@@ -123,6 +127,7 @@ export function ExerciseSettingsSheet({
       }
     }
   };
+  const queryClient = useQueryClient();
   const { data: allGrips = [] } = useGrips();
   const [repMin, setRepMin] = useState(currentRepMin || 6);
   const [repMax, setRepMax] = useState(currentRepMax || 10);
@@ -341,6 +346,12 @@ export function ExerciseSettingsSheet({
       }
 
       toast.success('Target sets saved');
+      
+      // Invalidate cache to refresh workout data with new target_sets
+      queryClient.invalidateQueries({ 
+        queryKey: workoutKeys.byId(workoutId) 
+      });
+      
       onRepRangeSave?.();
     } catch (error) {
       console.error('Error updating target sets:', error);

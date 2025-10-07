@@ -1491,6 +1491,7 @@ export default function EnhancedWorkoutSession({ workout }: WorkoutSessionProps)
           exerciseName={getExerciseName()}
           exerciseId={currentExercise.exercise_id}
           workoutExerciseId={resolveWorkoutExerciseId(currentExercise)}
+          workoutId={workout.id}
           selectedGripIds={selectedGrips[resolveWorkoutExerciseId(currentExercise)] || []}
           onGripsChange={(gripIds) => {
             setSelectedGrips({
