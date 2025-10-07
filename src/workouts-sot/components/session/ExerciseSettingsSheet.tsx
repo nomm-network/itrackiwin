@@ -283,12 +283,16 @@ export function ExerciseSettingsSheet({
   };
 
   const handleSaveSets = async () => {
+    console.log('🔧 Saving sets:', { workoutExerciseId, localTargetSets, workoutId });
     setIsSavingSets(true);
     try {
-      const { error: workoutError } = await supabase
+      const { data, error: workoutError } = await supabase
         .from('workout_exercises')
         .update({ target_sets: localTargetSets })
-        .eq('id', workoutExerciseId);
+        .eq('id', workoutExerciseId)
+        .select();
+
+      console.log('🔧 Update result:', { data, error: workoutError });
 
       if (workoutError) {
         console.error('Error updating workout sets:', workoutError);
@@ -345,16 +349,19 @@ export function ExerciseSettingsSheet({
         }
       }
 
+      console.log('🔧 Sets saved successfully, invalidating cache for workout:', workoutId);
       toast.success('Target sets saved');
       
       // Invalidate cache to refresh workout data with new target_sets
-      queryClient.invalidateQueries({ 
+      await queryClient.invalidateQueries({ 
         queryKey: workoutKeys.byId(workoutId) 
       });
       
+      console.log('🔧 Cache invalidated, calling onRepRangeSave');
       onRepRangeSave?.();
     } catch (error) {
-      console.error('Error updating target sets:', error);
+      console.error('❌ Error updating target sets:', error);
+      toast.error(`Failed to save: ${error.message || 'Unknown error'}`);
     } finally {
       setIsSavingSets(false);
     }
