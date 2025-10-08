@@ -81,8 +81,18 @@ export default function Atlas() {
             {priorities && priorities.length > 0 ? (
               <div className="space-y-3">
                 {priorities.map((priority: any, index: number) => {
-                  const isHealth = priority.slug === 'health';
-                  const targetPath = isHealth ? '/atlas/health' : `/dashboard?cat=${priority.slug}`;
+                  // Map category slugs to their Atlas pages
+                  const atlasRoutes: Record<string, string> = {
+                    'health': '/atlas/health',
+                    'mind': '/atlas/mind',
+                    'relationships': '/atlas/relationships',
+                    'wealth': '/atlas/wealth',
+                    'purpose': '/atlas/purpose',
+                    'lifestyle': '/atlas/lifestyle',
+                  };
+                  
+                  // Use Atlas route if available, otherwise fall back to dashboard
+                  const targetPath = atlasRoutes[priority.slug] || `/dashboard?cat=${priority.slug}`;
                   
                   return (
                     <button
@@ -125,7 +135,19 @@ export default function Atlas() {
             </CardHeader>
             <CardContent>
               <button
-                onClick={() => navigate(`/dashboard?cat=${nextCategory.slug}`)}
+                onClick={() => {
+                  const atlasRoutes: Record<string, string> = {
+                    'health': '/atlas/health',
+                    'mind': '/atlas/mind',
+                    'relationships': '/atlas/relationships',
+                    'wealth': '/atlas/wealth',
+                    'purpose': '/atlas/purpose',
+                    'lifestyle': '/atlas/lifestyle',
+                  };
+                  const targetPath = atlasRoutes[nextCategory.slug] || `/dashboard?cat=${nextCategory.slug}`;
+                  navigate(targetPath);
+                }}
+                
                 className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left"
               >
                 <span className="text-3xl">{nextCategory.icon}</span>
