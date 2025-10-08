@@ -6,18 +6,6 @@ import { useTranslations } from "@/hooks/useTranslations";
 interface OrbitNavigationProps {
   centerImageSrc?: string;
 }
-const categoryIcon = (name: string): string => {
-  const map: Record<string, string> = {
-    "Health": "🩺",
-    "Mind & Emotions": "🧠",
-    "Relationships": "❤️",
-    "Wealth": "💰",
-    "Purpose & Growth": "🎯",
-    "Lifestyle & Contribution": "🌟",
-    "Lifestyle": "🌟"
-  };
-  return map[name] ?? "🪐";
-};
 const subcategoryIcon = (name: string): string => {
   const map: Record<string, string> = {
     // Health subcategories
@@ -400,7 +388,7 @@ const OrbitNavigation: React.FC<OrbitNavigationProps> = ({
       return {
         id: c.id,
         name,
-        icon: c.icon && c.icon.trim().length > 0 ? c.icon : categoryIcon(name),
+        icon: c.icon ?? "🪐",
         color: c.color ?? null,
         subcategories: subByCat[c.id] || []
       };
