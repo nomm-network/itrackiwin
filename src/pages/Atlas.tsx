@@ -72,7 +72,7 @@ export default function Atlas() {
                 {priorities.map((priority: any, index: number) => (
                   <button
                     key={priority.category_id}
-                    onClick={() => navigate(`/dashboard/${priority.slug}`)}
+                    onClick={() => navigate(`/dashboard?cat=${priority.slug}`)}
                     className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
                   >
                     <span className="text-2xl">{priority.icon}</span>
@@ -106,7 +106,7 @@ export default function Atlas() {
             </CardHeader>
             <CardContent>
               <button
-                onClick={() => navigate(`/dashboard/${nextCategory.slug}`)}
+                onClick={() => navigate(`/dashboard?cat=${nextCategory.slug}`)}
                 className="w-full flex items-center gap-3 p-4 rounded-lg bg-primary/5 hover:bg-primary/10 transition-colors text-left"
               >
                 <span className="text-3xl">{nextCategory.icon}</span>
