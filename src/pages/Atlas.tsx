@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings } from "lucide-react";
+import { Settings, ArrowRight } from "lucide-react";
 
 const setSeo = () => {
   const title = "Atlas | I Track I Win";
@@ -80,26 +80,34 @@ export default function Atlas() {
           <CardContent>
             {priorities && priorities.length > 0 ? (
               <div className="space-y-3">
-                {priorities.map((priority: any, index: number) => (
-                  <button
-                    key={priority.category_id}
-                    onClick={() => navigate(`/dashboard?cat=${priority.slug}`)}
-                    className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left"
-                  >
-                    <span className="text-2xl">{priority.icon}</span>
-                    <div className="flex-1">
-                      <div className="font-medium">{priority.name}</div>
-                      <div className="text-sm text-muted-foreground">
-                        Priority #{index + 1}
+                {priorities.map((priority: any, index: number) => {
+                  const isHealth = priority.slug === 'health';
+                  const targetPath = isHealth ? '/atlas/health' : `/dashboard?cat=${priority.slug}`;
+                  
+                  return (
+                    <button
+                      key={priority.category_id}
+                      onClick={() => navigate(targetPath)}
+                      className="w-full flex items-center gap-3 p-3 rounded-lg border hover:bg-muted transition-colors text-left group"
+                    >
+                      <span className="text-2xl">{priority.icon}</span>
+                      <div className="flex-1">
+                        <div className="font-medium flex items-center justify-between">
+                          {priority.name}
+                          <ArrowRight className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <div className="text-sm text-muted-foreground">
+                          Priority #{index + 1}
+                        </div>
                       </div>
-                    </div>
-                    {priority.nav_pinned && (
-                      <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
-                        Pinned
-                      </span>
-                    )}
-                  </button>
-                ))}
+                      {priority.nav_pinned && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">
+                          Pinned
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             ) : (
               <p className="text-muted-foreground text-center py-4">
