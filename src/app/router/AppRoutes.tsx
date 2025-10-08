@@ -113,6 +113,11 @@ const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
 const Atlas = lazy(() => import('@/pages/Atlas'));
 const HealthPage = lazy(() => import('@/features/atlas/health/HealthPage'));
+const MindPage = lazy(() => import("@/features/atlas/mind/MindPage"));
+const RelationshipsPage = lazy(() => import("@/features/atlas/relationships/RelationshipsPage"));
+const WealthPage = lazy(() => import("@/features/atlas/wealth/WealthPage"));
+const PurposePage = lazy(() => import("@/features/atlas/purpose/PurposePage"));
+const LifestylePage = lazy(() => import("@/features/atlas/lifestyle/LifestylePage"));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -150,6 +155,36 @@ export function AppRoutes() {
           <Route path="/atlas/health" element={
             <ProtectedMobileLayout>
               <HealthPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          <Route path="/atlas/mind" element={
+            <ProtectedMobileLayout>
+              <MindPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          <Route path="/atlas/relationships" element={
+            <ProtectedMobileLayout>
+              <RelationshipsPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          <Route path="/atlas/wealth" element={
+            <ProtectedMobileLayout>
+              <WealthPage />
+            </ProtectedMobileLayout>
+          } />
+          
+          <Route path="/atlas/purpose" element={
+            <ProtectedMobileLayout>
+              <PurposePage />
+            </ProtectedMobileLayout>
+          } />
+          
+          <Route path="/atlas/lifestyle" element={
+            <ProtectedMobileLayout>
+              <LifestylePage />
             </ProtectedMobileLayout>
           } />
           
