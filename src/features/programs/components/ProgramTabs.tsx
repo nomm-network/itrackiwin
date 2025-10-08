@@ -215,15 +215,13 @@ export function ProgramTabs() {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    {!('ai_generated' in program && program.ai_generated) && (
-                      <Button 
-                        variant="ghost" 
-                        size="icon"
-                        onClick={() => handleDelete(program.id, 'ai_generated' in program && program.ai_generated || false)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    )}
+                    <Button 
+                      variant="ghost" 
+                      size="icon"
+                      onClick={() => handleDelete(program.id, 'ai_generated' in program && program.ai_generated || false)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                     {!program.is_active && !('ai_generated' in program && program.ai_generated) && (
                       <Button 
                         size="sm"
