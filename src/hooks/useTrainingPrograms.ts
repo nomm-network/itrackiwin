@@ -48,6 +48,7 @@ export const useTrainingPrograms = () => {
         .from('training_programs')
         .select('*')
         .eq('is_active', true)
+        .or('ai_generated.is.null,ai_generated.eq.false')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
