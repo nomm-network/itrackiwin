@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Settings } from "lucide-react";
 
 const setSeo = () => {
   const title = "Atlas | I Track I Win";
@@ -64,7 +65,17 @@ export default function Atlas() {
         {/* Priorities Overview */}
         <Card>
           <CardHeader>
-            <CardTitle>Your Priorities</CardTitle>
+            <div className="flex items-center justify-between">
+              <CardTitle>Your Priorities</CardTitle>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => navigate('/settings')}
+                className="h-8 w-8"
+              >
+                <Settings className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {priorities && priorities.length > 0 ? (
