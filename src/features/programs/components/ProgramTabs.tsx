@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Brain, User, Plus, Edit, Trash2 } from 'lucide-react';
 import { ProgramBuilderForm, useAIPrograms } from '@/features/ai-coach';
 import { EnhancedProgramBuilder } from './EnhancedProgramBuilder';
+import { ProgramEditDialog } from './ProgramEditDialog';
 import { useTrainingPrograms, useDeleteTrainingProgram, useSetActiveProgram } from '@/hooks/useTrainingPrograms';
 import { useDeleteProgramWithTemplates } from '@/hooks/useDeleteProgramWithTemplates';
 import { useCleanupOrphanedTemplates } from '@/hooks/useCleanupOrphanedTemplates';
@@ -29,6 +30,8 @@ export function ProgramTabs() {
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [programToDelete, setProgramToDelete] = useState<{ id: string; isAi: boolean } | null>(null);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [programToEdit, setProgramToEdit] = useState<any>(null);
   
   const { data: aiPrograms = [], isLoading: aiLoading } = useAIPrograms();
   const { data: manualPrograms = [], isLoading: manualLoading } = useTrainingPrograms();
@@ -48,6 +51,11 @@ export function ProgramTabs() {
   const handleDeleteClick = (programId: string, isAiGenerated: boolean) => {
     setProgramToDelete({ id: programId, isAi: isAiGenerated });
     setDeleteDialogOpen(true);
+  };
+
+  const handleEditClick = (program: any) => {
+    setProgramToEdit(program);
+    setEditDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -249,10 +257,7 @@ export function ProgramTabs() {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => {
-                        // TODO: Implement edit
-                        console.log('Edit program:', program.id);
-                      }}
+                      onClick={() => handleEditClick(program)}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -304,6 +309,12 @@ export function ProgramTabs() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      
+      <ProgramEditDialog
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+        program={programToEdit}
+      />
       
       <EdgeFunctionDebugPanel />
       <DebugPanel />
