@@ -70,7 +70,7 @@ export default function Atlas() {
               <Button
                 variant="ghost"
                 size="icon"
-                onClick={() => navigate('/settings')}
+                onClick={() => navigate('/user-dashboard')}
                 className="h-8 w-8"
               >
                 <Settings className="h-4 w-4" />
