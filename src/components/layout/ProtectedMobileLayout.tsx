@@ -3,6 +3,7 @@ import { Navigate, useLocation } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import MobileLayout from "./MobileLayout";
+import { BottomNav } from "@/components/navigation/BottomNav";
 
 interface ProtectedMobileLayoutProps {
   children: React.ReactNode;
@@ -34,6 +35,7 @@ const ProtectedMobileLayout: React.FC<ProtectedMobileLayoutProps> = ({ children 
   return (
     <MobileLayout>
       {children}
+      <BottomNav />
     </MobileLayout>
   );
 };

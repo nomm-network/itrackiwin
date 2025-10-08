@@ -11653,6 +11653,18 @@ export type Database = {
         Args: { available_plates: number[]; bar_kg: number; desired_kg: number }
         Returns: number
       }
+      coaches_for_category: {
+        Args: { p_category_slug: string; p_user_id: string }
+        Returns: {
+          coach_id: string
+          coach_type: Database["public"]["Enums"]["coach_type"]
+          display_name: string
+          has_access: boolean
+          is_default: boolean
+          is_selected: boolean
+          name: string
+        }[]
+      }
       compute_readiness_for_user: {
         Args: { p_user_id: string }
         Returns: number
@@ -12446,6 +12458,10 @@ export type Database = {
           gym_id: string
           name: string
         }[]
+      }
+      next_best_category: {
+        Args: { p_user_id: string }
+        Returns: Json
       }
       next_template_id: {
         Args: { _user_id: string }
@@ -13963,6 +13979,23 @@ export type Database = {
       upsert_warmup_bias: {
         Args: { p_delta: number; p_exercise_id: string; p_user_id: string }
         Returns: undefined
+      }
+      user_bottom_nav: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
+      user_priorities: {
+        Args: { p_user_id: string }
+        Returns: {
+          category_id: string
+          color: string
+          display_order: number
+          icon: string
+          is_enabled: boolean
+          name: string
+          nav_pinned: boolean
+          slug: string
+        }[]
       }
       validate_contraindications: {
         Args: { contraindications: Json }
