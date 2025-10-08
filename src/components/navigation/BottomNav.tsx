@@ -17,7 +17,7 @@ export function BottomNav() {
       case 'planets':
         return '/planets';
       case 'category_dashboard':
-        return `/dashboard/${item.slug}`;
+        return `/dashboard?cat=${item.slug}`;
       default:
         return '/';
     }

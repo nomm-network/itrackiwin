@@ -112,7 +112,6 @@ const LazyStartQuickWorkout = lazy(() => import('@/app/workouts/start-quick/page
 const LazyWorkoutPage = lazy(() => import('@/app/workouts/workout-detail'));
 const BroAICoach = lazy(() => import('@/pages/BroAICoach'));
 const Atlas = lazy(() => import('@/pages/Atlas'));
-const CategoryDashboard = lazy(() => import('@/pages/CategoryDashboard'));
 
 const LoadingFallback = () => (
   <div className="min-h-screen bg-background flex items-center justify-center">
@@ -150,12 +149,6 @@ export function AppRoutes() {
           <Route path="/planets" element={
             <ProtectedMobileLayout>
               <OrbitPlanetsPage />
-            </ProtectedMobileLayout>
-          } />
-          
-          <Route path="/dashboard/:slug" element={
-            <ProtectedMobileLayout>
-              <CategoryDashboard />
             </ProtectedMobileLayout>
           } />
 
