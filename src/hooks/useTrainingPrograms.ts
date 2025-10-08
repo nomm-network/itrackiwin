@@ -6,7 +6,9 @@ export interface TrainingProgram {
   user_id: string;
   name: string;
   goal?: string;
+  description?: string;
   is_active: boolean;
+  ai_generated?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -44,11 +46,15 @@ export const useTrainingPrograms = () => {
   return useQuery({
     queryKey: ['training-programs'],
     queryFn: async (): Promise<TrainingProgram[]> => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+      
       const { data, error } = await supabase
         .from('training_programs')
         .select('*')
+        .eq('user_id', user.user.id)
         .eq('is_active', true)
-        .or('ai_generated.is.null,ai_generated.eq.false')
+        .neq('ai_generated', true)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

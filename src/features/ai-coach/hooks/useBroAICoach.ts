@@ -242,18 +242,23 @@ export const useAIPrograms = () => {
   return useQuery({
     queryKey: ['ai-programs'],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) return [];
+      
       const { data, error } = await supabase
         .from('training_programs')
         .select(`
           id,
+          user_id,
           name,
           description,
+          goal,
           is_active,
           ai_generated,
           created_at,
           updated_at
         `)
-        .eq('user_id', (await supabase.auth.getUser()).data.user?.id)
+        .eq('user_id', user.user.id)
         .eq('ai_generated', true)
         .order('created_at', { ascending: false });
 
