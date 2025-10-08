@@ -48,12 +48,9 @@ export function ProgramTabs() {
     if (!programToDelete) return;
 
     try {
-      if (!programToDelete.isAi) {
-        await deleteProgram.mutateAsync(programToDelete.id);
-      } else {
-        // TODO: Implement AI program deletion
-        console.log('Delete AI program:', programToDelete.id);
-      }
+      // Both AI and manual programs use the same table and deletion logic
+      await deleteProgram.mutateAsync(programToDelete.id);
+      
       toast({
         title: "Program deleted",
         description: "The program has been successfully deleted.",
