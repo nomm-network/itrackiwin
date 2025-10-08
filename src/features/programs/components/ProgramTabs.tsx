@@ -21,14 +21,14 @@ export function ProgramTabs() {
   const setActiveProgram = useSetActiveProgram();
   const { toast } = useToast();
 
-  // Combine all programs with type flag
+  // Combine all programs - AI programs have ai_generated field, manual programs don't
   const allPrograms = [
-    ...aiPrograms.map(p => ({ ...p, program_type: 'ai' as const })),
-    ...manualPrograms.map(p => ({ ...p, program_type: 'manual' as const }))
+    ...aiPrograms,
+    ...manualPrograms
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const handleDelete = async (programId: string, programType: 'ai' | 'manual') => {
-    if (programType === 'manual') {
+  const handleDelete = async (programId: string, isAiGenerated: boolean) => {
+    if (!isAiGenerated) {
       try {
         await deleteProgram.mutateAsync(programId);
         toast({
@@ -45,8 +45,8 @@ export function ProgramTabs() {
     }
   };
 
-  const handleActivate = async (programId: string, programType: 'ai' | 'manual') => {
-    if (programType === 'manual') {
+  const handleActivate = async (programId: string, isAiGenerated: boolean) => {
+    if (!isAiGenerated) {
       try {
         await setActiveProgram.mutateAsync(programId);
         toast({
@@ -175,8 +175,8 @@ export function ProgramTabs() {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <CardTitle className="text-lg">{program.name || 'Unnamed Program'}</CardTitle>
-                      <Badge variant={program.program_type === 'ai' ? 'default' : 'outline'}>
-                        {program.program_type === 'ai' ? (
+                      <Badge variant={'ai_generated' in program && program.ai_generated ? 'default' : 'outline'}>
+                        {'ai_generated' in program && program.ai_generated ? (
                           <>
                             <Brain className="h-3 w-3 mr-1" />
                             AI Generated
@@ -215,19 +215,19 @@ export function ProgramTabs() {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    {program.program_type === 'manual' && (
+                    {!('ai_generated' in program && program.ai_generated) && (
                       <Button 
                         variant="ghost" 
                         size="icon"
-                        onClick={() => handleDelete(program.id, program.program_type)}
+                        onClick={() => handleDelete(program.id, 'ai_generated' in program && program.ai_generated || false)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     )}
-                    {!program.is_active && program.program_type === 'manual' && (
+                    {!program.is_active && !('ai_generated' in program && program.ai_generated) && (
                       <Button 
                         size="sm"
-                        onClick={() => handleActivate(program.id, program.program_type)}
+                        onClick={() => handleActivate(program.id, 'ai_generated' in program && program.ai_generated || false)}
                       >
                         Activate
                       </Button>
