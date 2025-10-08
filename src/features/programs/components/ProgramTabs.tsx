@@ -9,11 +9,23 @@ import { Badge } from '@/components/ui/badge';
 import { DebugPanel } from '@/components/debug/DebugPanel';
 import { EdgeFunctionDebugPanel } from '@/components/debug/EdgeFunctionDebugPanel';
 import { useToast } from '@/hooks/use-toast';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 export function ProgramTabs() {
   const [showBuilder, setShowBuilder] = useState(false);
   const [builderType, setBuilderType] = useState<'ai' | 'manual'>('manual');
   const [selectedProgramId, setSelectedProgramId] = useState<string | null>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [programToDelete, setProgramToDelete] = useState<{ id: string; isAi: boolean } | null>(null);
   
   const { data: aiPrograms = [], isLoading: aiLoading } = useAIPrograms();
   const { data: manualPrograms = [], isLoading: manualLoading } = useTrainingPrograms();
@@ -27,21 +39,34 @@ export function ProgramTabs() {
     ...manualPrograms
   ].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
 
-  const handleDelete = async (programId: string, isAiGenerated: boolean) => {
-    if (!isAiGenerated) {
-      try {
-        await deleteProgram.mutateAsync(programId);
-        toast({
-          title: "Program deleted",
-          description: "The program has been successfully deleted.",
-        });
-      } catch (error) {
-        toast({
-          title: "Error",
-          description: "Failed to delete program",
-          variant: "destructive",
-        });
+  const handleDeleteClick = (programId: string, isAiGenerated: boolean) => {
+    setProgramToDelete({ id: programId, isAi: isAiGenerated });
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!programToDelete) return;
+
+    try {
+      if (!programToDelete.isAi) {
+        await deleteProgram.mutateAsync(programToDelete.id);
+      } else {
+        // TODO: Implement AI program deletion
+        console.log('Delete AI program:', programToDelete.id);
       }
+      toast({
+        title: "Program deleted",
+        description: "The program has been successfully deleted.",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete program",
+        variant: "destructive",
+      });
+    } finally {
+      setDeleteDialogOpen(false);
+      setProgramToDelete(null);
     }
   };
 
@@ -218,7 +243,7 @@ export function ProgramTabs() {
                     <Button 
                       variant="ghost" 
                       size="icon"
-                      onClick={() => handleDelete(program.id, 'ai_generated' in program && program.ai_generated || false)}
+                      onClick={() => handleDeleteClick(program.id, 'ai_generated' in program && program.ai_generated || false)}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -243,6 +268,21 @@ export function ProgramTabs() {
           ))}
         </div>
       )}
+      
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This action cannot be undone. This will permanently delete the training program.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
       
       <EdgeFunctionDebugPanel />
       <DebugPanel />
