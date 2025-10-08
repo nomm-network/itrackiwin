@@ -1,4 +1,4 @@
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from '@/hooks/use-toast';
 
@@ -23,6 +23,8 @@ export interface AIProgram {
 }
 
 export const useGenerateProgram = () => {
+  const queryClient = useQueryClient();
+  
   return useMutation({
     mutationFn: async (params?: Partial<ProgramGenerationRequest>) => {
       try {
@@ -201,6 +203,9 @@ export const useGenerateProgram = () => {
           source: 'BroAICoach Success Callback'
         });
       }
+      
+      queryClient.invalidateQueries({ queryKey: ['ai-programs'] });
+      queryClient.invalidateQueries({ queryKey: ['training-programs'] });
       
       toast({
         title: "Program Generated! 💪",

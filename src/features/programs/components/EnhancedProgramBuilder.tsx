@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import { GripVertical, Plus, X, Play } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useCreateTrainingProgram, useAddProgramBlock, useSetActiveProgram } from "@/hooks/useTrainingPrograms";
 import { toast } from "sonner";
@@ -35,6 +35,8 @@ export function EnhancedProgramBuilder({ onProgramCreated }: EnhancedProgramBuil
   const [programDescription, setProgramDescription] = useState('');
   const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([]);
   const [createdProgramId, setCreatedProgramId] = useState<string | null>(null);
+  
+  const queryClient = useQueryClient();
 
   // Fetch available templates
   const { data: templates = [], isLoading: templatesLoading } = useQuery({
@@ -86,6 +88,9 @@ export function EnhancedProgramBuilder({ onProgramCreated }: EnhancedProgramBuil
         });
       }
 
+      queryClient.invalidateQueries({ queryKey: ['training-programs'] });
+      queryClient.invalidateQueries({ queryKey: ['ai-programs'] });
+      
       toast.success('Training program created successfully!');
       onProgramCreated?.(program.id);
     } catch (error) {
