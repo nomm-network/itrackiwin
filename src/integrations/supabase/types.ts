@@ -11649,6 +11649,10 @@ export type Database = {
         Args: Record<PropertyKey, never>
         Returns: number
       }
+      cleanup_orphaned_templates: {
+        Args: { p_user_id: string }
+        Returns: Json
+      }
       closest_barbell_weight_kg: {
         Args: { available_plates: number[]; bar_kg: number; desired_kg: number }
         Returns: number
@@ -11775,6 +11779,10 @@ export type Database = {
           rank: number
           verified_deals: number
         }[]
+      }
+      delete_program_with_templates: {
+        Args: { p_program_id: string; p_user_id: string }
+        Returns: Json
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>

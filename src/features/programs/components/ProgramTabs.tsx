@@ -3,6 +3,9 @@ import { Brain, User, Plus, Edit, Trash2 } from 'lucide-react';
 import { ProgramBuilderForm, useAIPrograms } from '@/features/ai-coach';
 import { EnhancedProgramBuilder } from './EnhancedProgramBuilder';
 import { useTrainingPrograms, useDeleteTrainingProgram, useSetActiveProgram } from '@/hooks/useTrainingPrograms';
+import { useDeleteProgramWithTemplates } from '@/hooks/useDeleteProgramWithTemplates';
+import { useCleanupOrphanedTemplates } from '@/hooks/useCleanupOrphanedTemplates';
+import { useIsAdmin } from '@/hooks/useIsAdmin';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,7 +33,10 @@ export function ProgramTabs() {
   const { data: aiPrograms = [], isLoading: aiLoading } = useAIPrograms();
   const { data: manualPrograms = [], isLoading: manualLoading } = useTrainingPrograms();
   const deleteProgram = useDeleteTrainingProgram();
+  const deleteProgramWithTemplates = useDeleteProgramWithTemplates();
+  const cleanupOrphaned = useCleanupOrphanedTemplates();
   const setActiveProgram = useSetActiveProgram();
+  const { isAdmin } = useIsAdmin();
   const { toast } = useToast();
 
   // Combine all programs - AI programs have ai_generated field, manual programs don't
@@ -48,22 +54,24 @@ export function ProgramTabs() {
     if (!programToDelete) return;
 
     try {
-      // Both AI and manual programs use the same table and deletion logic
-      await deleteProgram.mutateAsync(programToDelete.id);
-      
-      toast({
-        title: "Program deleted",
-        description: "The program has been successfully deleted.",
-      });
+      // For AI programs, use the function that also cleans up orphaned templates
+      // For manual programs, use standard deletion
+      if (programToDelete.isAi) {
+        await deleteProgramWithTemplates.mutateAsync(programToDelete.id);
+      } else {
+        await deleteProgram.mutateAsync(programToDelete.id);
+      }
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to delete program",
-        variant: "destructive",
-      });
+      // Error handling is done in the hooks
     } finally {
       setDeleteDialogOpen(false);
       setProgramToDelete(null);
+    }
+  };
+
+  const handleCleanupOrphaned = async () => {
+    if (window.confirm('This will delete all workout templates that are not linked to any program. Continue?')) {
+      await cleanupOrphaned.mutateAsync();
     }
   };
 
@@ -124,26 +132,37 @@ export function ProgramTabs() {
             Create and manage your workout programs
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => {
-              setBuilderType('ai');
-              setShowBuilder(true);
-            }}
-          >
-            <Brain className="h-4 w-4 mr-2" />
-            AI Program
-          </Button>
-          <Button 
-            onClick={() => {
-              setBuilderType('manual');
-              setShowBuilder(true);
-            }}
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Manual Program
-          </Button>
+        <div className="flex flex-col gap-2">
+          <div className="flex gap-2">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                setBuilderType('ai');
+                setShowBuilder(true);
+              }}
+            >
+              <Brain className="h-4 w-4 mr-2" />
+              AI Program
+            </Button>
+            <Button 
+              onClick={() => {
+                setBuilderType('manual');
+                setShowBuilder(true);
+              }}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Manual Program
+            </Button>
+          </div>
+          {isAdmin && (
+            <Button 
+              onClick={handleCleanupOrphaned} 
+              variant="outline" 
+              size="sm"
+            >
+              🧹 Cleanup Orphaned Templates
+            </Button>
+          )}
         </div>
       </div>
 
@@ -272,6 +291,11 @@ export function ProgramTabs() {
             <AlertDialogTitle>Are you sure?</AlertDialogTitle>
             <AlertDialogDescription>
               This action cannot be undone. This will permanently delete the training program.
+              {programToDelete?.isAi && (
+                <span className="block mt-2 font-medium text-foreground">
+                  Note: Workout templates created by this AI program that are not used in other programs will also be deleted.
+                </span>
+              )}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
